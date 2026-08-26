@@ -6,7 +6,6 @@ import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
 import { formatPrice } from '@/utils/formatPrice';
 import { BUSINESS } from '@/utils/constants';
-import { createOrder } from '@/services/orderEngine';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
@@ -102,42 +101,68 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleSubmitOrder = (e) => {
+  const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (!validateStep(3)) return;
 
     setIsSubmitting(true);
 
     try {
-      const confirmedOrder = createOrder({
-        customerData: {
+      // Prepare items for API
+      const apiItems = items.map(({ product, quantity }) => ({
+        productId: product.id,
+        quantity,
+      }));
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          items: apiItems,
+          deliveryMethod: formData.deliveryMethod,
+          paymentMethod: formData.paymentMethod,
+          paymentNetwork: formData.momoNetwork === 'mtn' ? 'MTN MoMo' : formData.momoNetwork === 'telecel' ? 'Telecel Cash' : 'AT Money',
+          momoWalletNumber: formData.momoNumber,
+          discountAmount: calculatedDiscount,
+          promoCode: promoApplied ? promoCode : null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not complete order. Please review your cart.');
+      }
+
+      setOrderConfirmed({
+        orderId: data.order.orderNumber,
+        date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        items: items.map(({ product, quantity }) => ({
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+          },
+          quantity,
+        })),
+        subtotal,
+        deliveryFee,
+        discount: calculatedDiscount,
+        total: data.order.total,
+        customer: {
           fullName: formData.fullName,
           phone: formData.phone,
           email: formData.email,
+          deliveryMethod: formData.deliveryMethod,
           area: formData.area,
           address: formData.address,
-          deliveryNotes: formData.deliveryNotes,
+          paymentMethod: formData.paymentMethod,
+          momoNetwork: formData.momoNetwork === 'mtn' ? 'MTN MoMo' : formData.momoNetwork === 'telecel' ? 'Telecel Cash' : 'AT Money',
         },
-        cartItems: items,
-        deliveryMethod: formData.deliveryMethod,
-        paymentMethod: formData.paymentMethod,
-        paymentNetwork: formData.momoNetwork === 'mtn' ? 'MTN MoMo' : formData.momoNetwork === 'telecel' ? 'Telecel Cash' : 'AT Money',
-        momoWalletNumber: formData.momoNumber,
-        discountAmount: calculatedDiscount,
-        promoCode: promoApplied ? promoCode : null,
-      });
-
-      setOrderConfirmed({
-        orderId: confirmedOrder.orderId,
-        date: new Date(confirmedOrder.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-        items: confirmedOrder.items,
-        subtotal: confirmedOrder.pricing.subtotal,
-        deliveryFee: confirmedOrder.pricing.deliveryFee,
-        discount: confirmedOrder.pricing.discount,
-        total: confirmedOrder.pricing.total,
-        customer: confirmedOrder.customer,
-        orderStatus: confirmedOrder.orderStatus,
-        paymentStatus: confirmedOrder.paymentStatus,
+        orderStatus: data.order.orderStatus,
+        paymentStatus: data.order.paymentStatus,
       });
 
       clearCart();

@@ -1,7 +1,26 @@
 import { sql } from '@/lib/db';
+import { cookies } from 'next/headers';
+import { validateAdminSession } from '@/services/authService';
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('cr_admin_session')?.value;
+
+    if (!token) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const admin = await validateAdminSession(token);
+    if (!admin) {
+      return Response.json({ success: false, error: 'Invalid admin session' }, { status: 401 });
+    }
+
+    // Check permission
+    if (!admin.permissions.includes('view_dashboard') && admin.role !== 'SUPER_ADMIN') {
+      return Response.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     // 1. Total revenue
     const revResult = await sql`
       SELECT COALESCE(SUM(total), 0) as total_revenue, COUNT(*) as total_orders
@@ -13,7 +32,7 @@ export async function GET() {
     const pendingResult = await sql`
       SELECT COUNT(*) as pending_count
       FROM orders
-      WHERE order_status = 'PENDING';
+      WHERE order_status = 'PENDING' OR order_status = 'CONFIRMED';
     `;
 
     // 3. Low stock count

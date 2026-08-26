@@ -1,28 +1,37 @@
 import { sql } from '@/lib/db';
+import { cookies } from 'next/headers';
+import { validateCustomerSession } from '@/services/authService';
 
 export async function GET(request) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('cr_customer_session')?.value;
+
+    if (!token) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const customer = await validateCustomerSession(token);
+    if (!customer) {
+      return Response.json({ success: false, error: 'Invalid session' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const customerEmail = searchParams.get('email');
     const orderId = searchParams.get('id');
 
     let rows;
     if (orderId) {
       rows = await sql`
         SELECT * FROM orders
-        WHERE id = ${orderId} OR order_number = ${orderId};
-      `;
-    } else if (customerEmail) {
-      rows = await sql`
-        SELECT * FROM orders
-        WHERE LOWER(customer_email) = ${customerEmail.toLowerCase().trim()}
-        ORDER BY created_at DESC;
+        WHERE (id = ${orderId} OR order_number = ${orderId}) AND customer_id = ${customer.id}
+        LIMIT 1;
       `;
     } else {
       rows = await sql`
         SELECT * FROM orders
+        WHERE customer_id = ${customer.id}
         ORDER BY created_at DESC
-        LIMIT 100;
+        LIMIT 50;
       `;
     }
 
@@ -58,105 +67,100 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('cr_customer_session')?.value;
+
+    if (!token) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const customer = await validateCustomerSession(token);
+    if (!customer) {
+      return Response.json({ success: false, error: 'Invalid session' }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
-      customerData,
       items,
-      subtotal,
-      deliveryFee,
-      discount = 0,
-      total,
+      deliveryMethod = 'doorstep',
       paymentMethod = 'momo',
+      paymentNetwork = 'MTN MoMo',
+      momoWalletNumber = '',
+      discountAmount = 0,
+      promoCode = null,
+      idempotencyKey = null,
     } = body;
 
-    const timestamp = Date.now();
-    const orderId = `ord-${timestamp}`;
-    const orderNumber = `CR-${new Date().getFullYear()}-${String(timestamp).slice(-5)}`;
+    if (!items || items.length === 0) {
+      return Response.json({ success: false, error: 'Cannot create an order with an empty cart.' }, { status: 400 });
+    }
 
-    // 1. Insert Order
-    await sql`
-      INSERT INTO orders (
-        id, order_number, customer_id, customer_name,
-        customer_phone, customer_email, delivery_address,
-        delivery_area, delivery_method, delivery_notes,
-        items, subtotal, delivery_fee, discount, total,
-        payment_method, payment_status, order_status
-      ) VALUES (
-        ${orderId}, ${orderNumber}, ${customerData.id || null}, ${customerData.fullName},
-        ${customerData.phone}, ${customerData.email || null}, ${customerData.address || ''},
-        ${customerData.area || 'Botwe'}, ${customerData.deliveryMethod || 'doorstep'}, ${customerData.deliveryNotes || ''},
-        ${JSON.stringify(items)}, ${subtotal}, ${deliveryFee || 0}, ${discount || 0}, ${total},
-        ${paymentMethod}, 'PENDING', 'PENDING'
-      );
+    // Fetch current products from database to validate prices and stock
+    const productIds = items.map(i => i.productId || i.id);
+    const products = await sql`
+      SELECT id, name, price, stock_count, image, brand, category
+      FROM products
+      WHERE id = ANY(${productIds})
     `;
 
-    // 2. Reduce Stock and log ledger for each item
-    for (const item of items) {
-      const prodId = item.id || item.productId;
-      const qty = item.quantity || 1;
+    const productMap = {};
+    products.forEach(p => {
+      productMap[p.id] = p;
+    });
 
-      // Update product stock
-      const updated = await sql`
-        UPDATE products
-        SET stock_count = GREATEST(0, stock_count - ${qty}),
-            in_stock = (stock_count - ${qty}) > 0,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${prodId}
-        RETURNING stock_count, name;
-      `;
-
-      if (updated.length > 0) {
-        const balanceAfter = updated[0].stock_count;
-        const prodName = updated[0].name;
-
-        // Log ledger
-        await sql`
-          INSERT INTO inventory_ledger (
-            product_id, product_name, change_qty, balance_after, reason, reference_id
-          ) VALUES (
-            ${prodId}, ${prodName}, ${-qty}, ${balanceAfter}, 'ORDER_CREATION', ${orderNumber}
-          );
-        `;
+    // Validate stock and prices
+    const validatedItems = items.map(item => {
+      const productId = item.productId || item.id;
+      const product = productMap[productId];
+      if (!product) throw new Error(`Product ${productId} not found`);
+      if (product.stock_count < item.quantity) {
+        throw new Error(`Insufficient stock for "${product.name}". Available: ${product.stock_count}`);
       }
-    }
+      return {
+        product: {
+          id: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          image: product.image,
+          brand: product.brand,
+        },
+        quantity: item.quantity,
+      };
+    });
 
-    // 3. Update customer stats if registered
-    if (customerData.email) {
-      await sql`
-        INSERT INTO customers (id, full_name, phone, email, orders_count, total_spent)
-        VALUES (${`cust-${timestamp}`}, ${customerData.fullName}, ${customerData.phone}, ${customerData.email}, 1, ${total})
-        ON CONFLICT (email) DO UPDATE SET
-          orders_count = customers.orders_count + 1,
-          total_spent = customers.total_spent + ${total},
-          full_name = EXCLUDED.full_name,
-          phone = EXCLUDED.phone,
-          updated_at = CURRENT_TIMESTAMP;
-      `;
-    }
+    const { createOrder } = await import('@/services/orderEngine');
 
-    // 4. Audit Log
-    await sql`
-      INSERT INTO audit_logs (event_type, actor_name, actor_role, description, details)
-      VALUES (
-        'ORDER_CREATED',
-        ${customerData.fullName},
-        'CUSTOMER',
-        ${`New order created: ${orderNumber} for GHS ${total}`},
-        ${JSON.stringify({ orderId, orderNumber, total, itemsCount: items.length })}
-      );
-    `;
+    const orderRecord = await createOrder({
+      customerData: {
+        id: customer.id,
+        fullName: customer.fullName,
+        phone: customer.phone,
+        email: customer.email,
+        area: 'Botwe',
+        address: '',
+        deliveryNotes: '',
+      },
+      cartItems: validatedItems,
+      deliveryMethod,
+      paymentMethod,
+      paymentNetwork,
+      momoWalletNumber,
+      discountAmount,
+      promoCode,
+      idempotencyKey,
+    });
 
     return Response.json({
       success: true,
       order: {
-        id: orderId,
-        orderNumber,
-        customerName: customerData.fullName,
-        customerPhone: customerData.phone,
-        total,
+        id: orderRecord.orderId,
+        orderNumber: orderRecord.orderId,
+        customerName: orderRecord.customer.fullName,
+        customerPhone: orderRecord.customer.phone,
+        total: orderRecord.pricing.total,
         paymentMethod,
-        orderStatus: 'PENDING',
-        createdAt: new Date().toISOString(),
+        orderStatus: orderRecord.orderStatus,
+        createdAt: orderRecord.createdAt,
       },
     });
   } catch (error) {
@@ -167,39 +171,35 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('cr_admin_session')?.value;
+
+    if (!token) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const admin = await import('@/services/authService').then(m => m.validateAdminSession(token));
+    if (!admin) {
+      return Response.json({ success: false, error: 'Invalid admin session' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { orderId, orderStatus, paymentStatus, actorName = 'Admin' } = body;
+    const { orderId, orderStatus, paymentStatus, actorName = admin.name } = body;
 
     if (!orderId) {
       return Response.json({ success: false, error: 'Order ID is required' }, { status: 400 });
     }
 
-    let updatedRows;
+    const { transitionOrderStatus, markOrderPaymentPaid } = await import('@/services/orderEngine');
+
+    let updatedOrder;
     if (orderStatus && paymentStatus) {
-      updatedRows = await sql`
-        UPDATE orders
-        SET order_status = ${orderStatus},
-            payment_status = ${paymentStatus},
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${orderId} OR order_number = ${orderId}
-        RETURNING *;
-      `;
+      await transitionOrderStatus(orderId, orderStatus, actorName, `Status updated to ${orderStatus}`);
+      updatedOrder = await markOrderPaymentPaid(orderId, `MANUAL-${Date.now()}`, actorName);
     } else if (orderStatus) {
-      updatedRows = await sql`
-        UPDATE orders
-        SET order_status = ${orderStatus},
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${orderId} OR order_number = ${orderId}
-        RETURNING *;
-      `;
+      updatedOrder = await transitionOrderStatus(orderId, orderStatus, actorName);
     } else if (paymentStatus) {
-      updatedRows = await sql`
-        UPDATE orders
-        SET payment_status = ${paymentStatus},
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${orderId} OR order_number = ${orderId}
-        RETURNING *;
-      `;
+      updatedOrder = await markOrderPaymentPaid(orderId, `MANUAL-${Date.now()}`, actorName);
     }
 
     // Record audit
@@ -214,7 +214,7 @@ export async function PATCH(request) {
       );
     `;
 
-    return Response.json({ success: true, order: updatedRows[0] });
+    return Response.json({ success: true, order: updatedOrder });
   } catch (error) {
     console.error('[API /api/orders PATCH Error]:', error);
     return Response.json({ success: false, error: error.message }, { status: 500 });

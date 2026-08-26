@@ -129,9 +129,9 @@ export function CartProvider({ children }) {
     0
   );
   
-  // Delivery pricing is intentionally unset until CR confirms its policy.
-  const deliveryFee = null;
-  const total = subtotal;
+  // Delivery fee calculation based on business config
+  const deliveryFee = subtotal >= 300 ? 0 : 25;
+  const total = subtotal + deliveryFee;
 
   return (
     <CartContext.Provider

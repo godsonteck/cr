@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
-import { verifyCustomerEmail } from '@/services/authService';
 
 function VerifyEmailForm() {
   const searchParams = useSearchParams();
@@ -19,15 +18,22 @@ function VerifyEmailForm() {
         setState('INVALID');
         return;
       }
-      const res = await verifyCustomerEmail(token);
-      if (res.status === 'VERIFIED') {
-        setState('VERIFIED');
-        setCustomerName(res.customer?.fullName || '');
-      } else if (res.status === 'ALREADY_VERIFIED') {
-        setState('ALREADY_VERIFIED');
-      } else if (res.status === 'EXPIRED') {
-        setState('EXPIRED');
-      } else {
+      try {
+        const res = await fetch(`/api/auth/customer/verify-email?token=${encodeURIComponent(token)}`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (data.success && data.status === 'VERIFIED') {
+          setState('VERIFIED');
+          setCustomerName(data.customer?.fullName || '');
+        } else if (data.status === 'ALREADY_VERIFIED') {
+          setState('ALREADY_VERIFIED');
+        } else if (data.status === 'EXPIRED') {
+          setState('EXPIRED');
+        } else {
+          setState('INVALID');
+        }
+      } catch (e) {
         setState('INVALID');
       }
     }

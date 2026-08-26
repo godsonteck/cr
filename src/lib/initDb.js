@@ -50,7 +50,63 @@ export async function initializeDatabase() {
     );
   `;
 
-  // 3. Orders Table
+  // 3. Staff Table (for admin authentication)
+  await sql`
+    CREATE TABLE IF NOT EXISTS staff (
+      id VARCHAR(64) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      role VARCHAR(64) NOT NULL DEFAULT 'ORDER_STAFF',
+      status VARCHAR(32) DEFAULT 'ACTIVE',
+      password_hash TEXT NOT NULL,
+      last_active TIMESTAMP WITH TIME ZONE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 4. Customer Sessions Table
+  await sql`
+    CREATE TABLE IF NOT EXISTS customer_sessions (
+      token VARCHAR(128) PRIMARY KEY,
+      customer_id VARCHAR(64) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 5. Admin Sessions Table
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_sessions (
+      token VARCHAR(128) PRIMARY KEY,
+      staff_id VARCHAR(64) NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+      expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 6. Password Reset Tokens Table
+  await sql`
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      token VARCHAR(128) PRIMARY KEY,
+      customer_id VARCHAR(64) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      email VARCHAR(255) NOT NULL,
+      expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 7. Email Verification Tokens Table
+  await sql`
+    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+      token VARCHAR(128) PRIMARY KEY,
+      customer_id VARCHAR(64) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 7. Orders Table
   await sql`
     CREATE TABLE IF NOT EXISTS orders (
       id VARCHAR(64) PRIMARY KEY,
@@ -76,7 +132,7 @@ export async function initializeDatabase() {
     );
   `;
 
-  // 4. Inventory Ledger Table
+  // 8. Inventory Ledger Table
   await sql`
     CREATE TABLE IF NOT EXISTS inventory_ledger (
       id SERIAL PRIMARY KEY,
@@ -90,7 +146,7 @@ export async function initializeDatabase() {
     );
   `;
 
-  // 5. Audit Logs Table
+  // 9. Audit Logs Table
   await sql`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id SERIAL PRIMARY KEY,
@@ -103,7 +159,7 @@ export async function initializeDatabase() {
     );
   `;
 
-  // 6. Settings Table
+  // 10. Settings Table
   await sql`
     CREATE TABLE IF NOT EXISTS settings (
       key VARCHAR(128) PRIMARY KEY,
@@ -111,6 +167,19 @@ export async function initializeDatabase() {
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
+
+  // Create indexes for performance
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_customer_sessions_expires ON customer_sessions(expires_at);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_password_reset_expires ON password_reset_tokens(expires_at);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_inventory_ledger_product ON inventory_ledger(product_id);`;
 
   // Check if products need seeding
   const existingProducts = await sql`SELECT count(*) as count FROM products;`;
@@ -133,6 +202,19 @@ export async function initializeDatabase() {
       `;
     }
     console.log('[DB Init] Products successfully seeded into Neon PostgreSQL.');
+  }
+
+  // Seed default admin user if no staff exists
+  const existingStaff = await sql`SELECT count(*) as count FROM staff;`;
+  if (parseInt(existingStaff[0]?.count || '0', 10) === 0) {
+    const bcrypt = await import('bcryptjs');
+    const adminHash = await bcrypt.hash('Admin12345!', 12);
+    await sql`
+      INSERT INTO staff (id, name, email, role, status, password_hash)
+      VALUES ('USR-001', 'Akosua Boakye', 'akosua@crcosmetics.gh', 'SUPER_ADMIN', 'ACTIVE', ${adminHash})
+      ON CONFLICT (id) DO NOTHING;
+    `;
+    console.log('[DB Init] Default admin user seeded.');
   }
 
   // Seed default settings if empty

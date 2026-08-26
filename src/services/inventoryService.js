@@ -1,242 +1,208 @@
 // ═══════════════════════════════════════════════════════════
 // CR COSMETICS & ESSENTIALS
-// Inventory Flow & Position Ledger Engine (Persistent)
-// Master Directive Section 07, 08, 09, 12, 31, 32
+// Inventory Flow & Position Ledger Engine (PostgreSQL Authoritative)
 // ═══════════════════════════════════════════════════════════
 
-import { getAllProductsAdmin, updateProduct } from './productService';
+import { sql } from '@/lib/db';
+import { updateProduct } from './productService';
 import { BUSINESS_CONFIG } from '@/data/businessConfig';
-import { storeStorage } from '@/utils/storeStorage';
 
-function loadPositions() {
-  const stored = storeStorage.getInventory(null);
-  if (stored) return stored;
+export async function getInventoryPosition(productId) {
+  const rows = await sql`
+    SELECT id, name, stock_count, low_stock_threshold
+    FROM products
+    WHERE id = ${productId}
+    LIMIT 1;
+  `;
 
-  const initial = {};
-  const products = getAllProductsAdmin();
-  products.forEach((product) => {
-    const initialQty = product.stockCount !== undefined ? product.stockCount : 20;
-    initial[product.id] = {
-      productId: product.id,
-      productName: product.name,
-      sku: product.id.toUpperCase(),
-      available: initialQty,
-      reserved: 0,
-      sold: 0,
-      totalPhysical: initialQty,
-      lowStockThreshold: BUSINESS_CONFIG.inventory.defaultLowStockThreshold,
-      lastUpdated: new Date().toISOString(),
-    };
-  });
+  if (rows.length === 0) return null;
 
-  storeStorage.saveInventory(initial);
-  return initial;
-}
-
-function savePositions(pos) {
-  storeStorage.saveInventory(pos);
-}
-
-function loadLedger() {
-  return storeStorage.getLedger([]);
-}
-
-function saveLedger(ledger) {
-  storeStorage.saveLedger(ledger);
-}
-
-/**
- * Get current inventory position for a product
- */
-export function getInventoryPosition(productId) {
-  const positions = loadPositions();
-  return positions[productId] || null;
-}
-
-/**
- * Check if requested quantity can be fulfilled
- */
-export function checkStockAvailability(productId, requestedQty) {
-  const positions = loadPositions();
-  const position = positions[productId];
-  if (!position) return { available: false, remaining: 0 };
+  const row = rows[0];
   return {
-    available: position.available >= requestedQty,
-    remaining: position.available,
+    productId: row.id,
+    productName: row.name,
+    sku: row.id.toUpperCase(),
+    available: row.stock_count,
+    reserved: 0,
+    sold: 0,
+    totalPhysical: row.stock_count,
+    lowStockThreshold: row.low_stock_threshold || BUSINESS_CONFIG.inventory.defaultLowStockThreshold,
+    lastUpdated: new Date().toISOString(),
   };
 }
 
-/**
- * Reserve stock when customer enters checkout
- */
-export function reserveStock(productId, quantity, referenceId, operator = 'Checkout Engine') {
-  const positions = loadPositions();
-  const pos = positions[productId];
-  if (!pos || pos.available < quantity) {
-    throw new Error(`Insufficient stock for product ${productId}. Available: ${pos ? pos.available : 0}`);
+export async function checkStockAvailability(productId, requestedQty) {
+  const rows = await sql`
+    SELECT stock_count FROM products WHERE id = ${productId} LIMIT 1;
+  `;
+
+  if (rows.length === 0) return { available: false, remaining: 0 };
+
+  return {
+    available: rows[0].stock_count >= requestedQty,
+    remaining: rows[0].stock_count,
+  };
+}
+
+export async function reserveStock(productId, quantity, referenceId, operator = 'Checkout Engine') {
+  const rows = await sql`
+    SELECT stock_count, name FROM products WHERE id = ${productId} LIMIT 1;
+  `;
+
+  if (rows.length === 0 || rows[0].stock_count < quantity) {
+    throw new Error(`Insufficient stock for product ${productId}. Available: ${rows[0]?.stock_count || 0}`);
   }
 
-  pos.available -= quantity;
-  pos.reserved += quantity;
-  pos.lastUpdated = new Date().toISOString();
-  savePositions(positions);
+  const newStock = rows[0].stock_count - quantity;
+  await sql`
+    UPDATE products
+    SET stock_count = ${newStock}, in_stock = ${newStock > 0}, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${productId};
+  `;
 
-  const ledger = loadLedger();
-  const movement = {
-    movementId: `MOV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+  await sql`
+    INSERT INTO inventory_ledger (product_id, product_name, change_qty, balance_after, reason, reference_id)
+    VALUES (${productId}, ${rows[0].name}, ${-quantity}, ${newStock}, 'RESERVED', ${referenceId});
+  `;
+
+  return {
     productId,
-    productName: pos.productName,
+    productName: rows[0].name,
     type: 'STOCK_RESERVED',
     quantity,
     reason: `Reserved for checkout / order ${referenceId}`,
     operator,
     timestamp: new Date().toISOString(),
-    positionAfter: { ...pos },
   };
-
-  ledger.unshift(movement);
-  saveLedger(ledger);
-  return movement;
 }
 
-/**
- * Release reserved stock if checkout expires or payment fails
- */
-export function releaseStock(productId, quantity, referenceId, operator = 'Checkout Engine') {
-  const positions = loadPositions();
-  const pos = positions[productId];
-  if (!pos) return;
+export async function releaseStock(productId, quantity, referenceId, operator = 'Checkout Engine') {
+  const rows = await sql`
+    SELECT stock_count, name FROM products WHERE id = ${productId} LIMIT 1;
+  `;
 
-  const actualRelease = Math.min(pos.reserved, quantity);
-  pos.reserved -= actualRelease;
-  pos.available += actualRelease;
-  pos.lastUpdated = new Date().toISOString();
-  savePositions(positions);
+  if (rows.length === 0) return;
 
-  const ledger = loadLedger();
-  const movement = {
-    movementId: `MOV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
-    productId,
-    productName: pos.productName,
-    type: 'STOCK_RELEASED',
-    quantity: actualRelease,
-    reason: `Released hold from expired/cancelled order ${referenceId}`,
-    operator,
-    timestamp: new Date().toISOString(),
-    positionAfter: { ...pos },
+  const newStock = rows[0].stock_count + quantity;
+  await sql`
+    UPDATE products
+    SET stock_count = ${newStock}, in_stock = true, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${productId};
+  `;
+
+  await sql`
+    INSERT INTO inventory_ledger (product_id, product_name, change_qty, balance_after, reason, reference_id)
+    VALUES (${productId}, ${rows[0].name}, ${quantity}, ${newStock}, 'RELEASED', ${referenceId});
+  `;
+}
+
+export async function commitStock(productId, quantity, orderId, operator = 'Order Fulfillment') {
+  // Stock already deducted during reserve, just log the sale
+  const rows = await sql`
+    SELECT stock_count, name FROM products WHERE id = ${productId} LIMIT 1;
+  `;
+
+  if (rows.length === 0) return;
+
+  await sql`
+    INSERT INTO inventory_ledger (product_id, product_name, change_qty, balance_after, reason, reference_id)
+    VALUES (${productId}, ${rows[0].name}, 0, ${rows[0].stock_count}, 'SOLD', ${orderId});
+  `;
+}
+
+export async function adjustStock(productId, deltaQuantity, reason, operator = 'Store Manager') {
+  const rows = await sql`
+    SELECT stock_count, name FROM products WHERE id = ${productId} LIMIT 1;
+  `;
+
+  if (rows.length === 0) throw new Error(`Product ${productId} not found`);
+
+  const previousStock = rows[0].stock_count;
+  const newStock = Math.max(0, previousStock + deltaQuantity);
+
+  await sql`
+    UPDATE products
+    SET stock_count = ${newStock}, in_stock = ${newStock > 0}, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${productId};
+  `;
+
+  await sql`
+    INSERT INTO inventory_ledger (product_id, product_name, change_qty, balance_after, reason, reference_id)
+    VALUES (${productId}, ${rows[0].name}, ${deltaQuantity}, ${newStock}, ${deltaQuantity > 0 ? 'RECEIVED' : 'ADJUSTED'}, ${reason});
+  `;
+
+  return {
+    position: {
+      productId,
+      productName: rows[0].name,
+      available: newStock,
+      totalPhysical: newStock,
+    },
+    movement: {
+      productId,
+      productName: rows[0].name,
+      type: deltaQuantity > 0 ? 'STOCK_RECEIVED' : 'STOCK_ADJUSTED',
+      quantity: Math.abs(deltaQuantity),
+      reason: reason || 'Manual inventory adjustment',
+      operator,
+      timestamp: new Date().toISOString(),
+    },
   };
-
-  ledger.unshift(movement);
-  saveLedger(ledger);
-  return movement;
 }
 
-/**
- * Commit reserved stock on order confirmation (sales finalized)
- */
-export function commitStock(productId, quantity, orderId, operator = 'Order Fulfillment') {
-  const positions = loadPositions();
-  const pos = positions[productId];
-  if (!pos) return;
+export async function getLowStockAlerts() {
+  const rows = await sql`
+    SELECT id, name, stock_count, low_stock_threshold
+    FROM products
+    WHERE stock_count <= low_stock_threshold AND status = 'PUBLISHED'
+    ORDER BY stock_count ASC;
+  `;
 
-  if (pos.reserved >= quantity) {
-    pos.reserved -= quantity;
-  } else {
-    pos.available = Math.max(0, pos.available - quantity);
-  }
-
-  pos.totalPhysical = Math.max(0, pos.totalPhysical - quantity);
-  pos.sold += quantity;
-  pos.lastUpdated = new Date().toISOString();
-  savePositions(positions);
-
-  // Sync to product catalog
-  try {
-    updateProduct(productId, { stockCount: pos.available }, operator);
-  } catch (err) {
-    // Ignore if not found
-  }
-
-  const ledger = loadLedger();
-  const movement = {
-    movementId: `MOV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
-    productId,
-    productName: pos.productName,
-    type: 'STOCK_SOLD',
-    quantity,
-    reason: `Sale finalized under order ${orderId}`,
-    operator,
-    timestamp: new Date().toISOString(),
-    positionAfter: { ...pos },
-  };
-
-  ledger.unshift(movement);
-  saveLedger(ledger);
-  return movement;
+  return rows.map(row => ({
+    productId: row.id,
+    productName: row.name,
+    available: row.stock_count,
+    lowStockThreshold: row.low_stock_threshold || BUSINESS_CONFIG.inventory.defaultLowStockThreshold,
+  }));
 }
 
-/**
- * Manual stock intake or adjustment with explicit reason & operator audit
- */
-export function adjustStock(productId, deltaQuantity, reason, operator = 'Store Manager') {
-  const positions = loadPositions();
-  const pos = positions[productId];
-  if (!pos) throw new Error(`Product ${productId} not found`);
+export async function getAllInventoryPositions() {
+  const rows = await sql`
+    SELECT id, name, stock_count, low_stock_threshold
+    FROM products
+    WHERE status = 'PUBLISHED'
+    ORDER BY name;
+  `;
 
-  const previous = { ...pos };
-  pos.available += deltaQuantity;
-  pos.totalPhysical += deltaQuantity;
-  pos.lastUpdated = new Date().toISOString();
-  savePositions(positions);
-
-  // Sync with product catalog
-  try {
-    updateProduct(productId, { stockCount: pos.available }, operator);
-  } catch (err) {
-    // Ignore if not found
-  }
-
-  const ledger = loadLedger();
-  const movement = {
-    movementId: `MOV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
-    productId,
-    productName: pos.productName,
-    type: deltaQuantity > 0 ? 'STOCK_RECEIVED' : 'STOCK_ADJUSTED',
-    quantity: Math.abs(deltaQuantity),
-    reason: reason || 'Manual inventory adjustment',
-    operator,
-    timestamp: new Date().toISOString(),
-    previousPosition: previous,
-    positionAfter: { ...pos },
-  };
-
-  ledger.unshift(movement);
-  saveLedger(ledger);
-  return { position: pos, movement };
+  return rows.map(row => ({
+    productId: row.id,
+    productName: row.name,
+    sku: row.id.toUpperCase(),
+    available: row.stock_count,
+    reserved: 0,
+    sold: 0,
+    totalPhysical: row.stock_count,
+    lowStockThreshold: row.low_stock_threshold || BUSINESS_CONFIG.inventory.defaultLowStockThreshold,
+    lastUpdated: new Date().toISOString(),
+  }));
 }
 
-/**
- * Retrieve low stock alerts based on configurable thresholds
- */
-export function getLowStockAlerts() {
-  const positions = loadPositions();
-  return Object.values(positions).filter(
-    (pos) => pos.available <= pos.lowStockThreshold
-  );
-}
+export async function getInventoryLedger(limit = 50) {
+  const rows = await sql`
+    SELECT * FROM inventory_ledger
+    ORDER BY created_at DESC
+    LIMIT ${limit};
+  `;
 
-/**
- * Retrieve all inventory positions
- */
-export function getAllInventoryPositions() {
-  const positions = loadPositions();
-  return Object.values(positions);
-}
-
-/**
- * Retrieve the full movement ledger
- */
-export function getInventoryLedger(limit = 50) {
-  const ledger = loadLedger();
-  return ledger.slice(0, limit);
+  return rows.map(row => ({
+    movementId: row.id,
+    productId: row.product_id,
+    productName: row.product_name,
+    type: row.reason,
+    quantity: Math.abs(row.change_qty),
+    reason: row.reason,
+    operator: 'System',
+    timestamp: row.created_at,
+    balanceAfter: row.balance_after,
+  }));
 }

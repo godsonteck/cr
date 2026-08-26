@@ -1,70 +1,121 @@
 // ═══════════════════════════════════════════════════════════
-// Product Service — Live Reactive Catalog Engine
-// Master Directive Section 04, 05, 06, 14, 15, 16, 17, 18, 19, 20, 21
+// Product Service — PostgreSQL Authoritative Catalog
 // ═══════════════════════════════════════════════════════════
 
-import { products as initialProducts, categories as initialCategories, brands as initialBrands } from '@/data/products';
+import { sql } from '@/lib/db';
 import { recordAuditEvent } from './auditService';
-import { storeStorage } from '@/utils/storeStorage';
 
-function getLiveProducts() {
-  return storeStorage.getProducts(initialProducts);
+function formatProduct(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    brand: row.brand,
+    category: row.category,
+    subcategory: row.subcategory,
+    price: parseFloat(row.price),
+    originalPrice: row.original_price ? parseFloat(row.original_price) : null,
+    costPrice: row.cost_price ? parseFloat(row.cost_price) : null,
+    stockCount: row.stock_count,
+    lowStockThreshold: row.low_stock_threshold,
+    inStock: row.in_stock && row.stock_count > 0,
+    badge: row.badge,
+    rating: parseFloat(row.rating || 5.0),
+    reviewCount: row.review_count || 0,
+    status: row.status,
+    image: row.image,
+    images: row.images || [],
+    description: row.description,
+    details: row.details || {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function saveLiveProducts(list) {
-  storeStorage.saveProducts(list);
+export async function getAllProducts() {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getAllProducts() {
-  // Public storefront sees published products with active status
-  return getLiveProducts().filter(
-    (p) => p.status !== 'ARCHIVED' && p.status !== 'DRAFT' && p.status !== 'HIDDEN'
-  );
+export async function getAllProductsAdmin() {
+  const rows = await sql`
+    SELECT * FROM products
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getAllProductsAdmin() {
-  // Admin sees all products (including Draft, Hidden, Archived)
-  return getLiveProducts();
+export async function getProductBySlug(slug) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE slug = ${slug} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    LIMIT 1;
+  `;
+  return rows.length > 0 ? formatProduct(rows[0]) : null;
 }
 
-export function getProductBySlug(slug) {
-  return getLiveProducts().find((p) => p.slug === slug) || null;
+export async function getProductById(id) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE id = ${id}
+    LIMIT 1;
+  `;
+  return rows.length > 0 ? formatProduct(rows[0]) : null;
 }
 
-export function getProductById(id) {
-  return getLiveProducts().find((p) => p.id === id) || null;
+export async function getProductsByCategory(categorySlug) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE category = ${categorySlug} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getProductsByCategory(categorySlug) {
-  return getAllProducts().filter((p) => p.category === categorySlug);
+export async function getProductsBySubcategory(subcategory) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE LOWER(subcategory) = ${subcategory.toLowerCase()} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getProductsBySubcategory(subcategory) {
-  return getAllProducts().filter(
-    (p) => p.subcategory?.toLowerCase() === subcategory.toLowerCase()
-  );
+export async function getFeaturedProducts(count = 8) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE in_stock = true AND status = 'PUBLISHED'
+    ORDER BY created_at DESC
+    LIMIT ${count};
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getFeaturedProducts(count = 8) {
-  return getAllProducts()
-    .filter((p) => p.inStock)
-    .slice(0, count);
+export async function getNewArrivals(count = 8) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE (badge = 'new' OR created_at > '2026-07-01') AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY created_at DESC
+    LIMIT ${count};
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getNewArrivals(count = 8) {
-  return getAllProducts()
-    .filter((p) => p.badge === 'new' || new Date(p.createdAt) > new Date('2026-07-01'))
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, count);
+export async function getSaleProducts(count = 8) {
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE badge = 'sale' AND original_price IS NOT NULL AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY created_at DESC
+    LIMIT ${count};
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getSaleProducts(count = 8) {
-  return getAllProducts()
-    .filter((p) => p.badge === 'sale' && p.originalPrice)
-    .slice(0, count);
-}
-
-export function filterProducts({
+export async function filterProducts({
   category,
   subcategory,
   brand,
@@ -74,192 +125,228 @@ export function filterProducts({
   inStockOnly,
   sortBy = 'default',
 } = {}) {
-  let list = getAllProducts();
+  let whereClause = "WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')";
+  const params = [];
 
   if (category) {
-    list = list.filter((p) => p.category === category);
+    params.push(category);
+    whereClause += ` AND category = $${params.length}`;
   }
   if (subcategory) {
-    list = list.filter((p) => p.subcategory?.toLowerCase() === subcategory.toLowerCase());
+    params.push(subcategory.toLowerCase());
+    whereClause += ` AND LOWER(subcategory) = $${params.length}`;
   }
   if (brand) {
-    list = list.filter((p) => p.brand?.toLowerCase() === brand.toLowerCase());
+    params.push(brand.toLowerCase());
+    whereClause += ` AND LOWER(brand) = $${params.length}`;
   }
   if (query && query.trim()) {
-    const q = query.toLowerCase().trim();
-    list = list.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      p.subcategory?.toLowerCase().includes(q) ||
-      p.brand?.toLowerCase().includes(q) ||
-      (p.tags && p.tags.some((tag) => tag.toLowerCase().includes(q))) ||
-      p.description?.toLowerCase().includes(q)
-    );
+    const q = `%${query.toLowerCase().trim()}%`;
+    params.push(q, q, q, q, q);
+    whereClause += ` AND (LOWER(name) LIKE $${params.length - 4} OR LOWER(category) LIKE $${params.length - 3} OR LOWER(subcategory) LIKE $${params.length - 2} OR LOWER(brand) LIKE $${params.length - 1} OR LOWER(description) LIKE $${params.length})`;
   }
   if (minPrice !== undefined) {
-    list = list.filter((p) => p.price >= minPrice);
+    params.push(minPrice);
+    whereClause += ` AND price >= $${params.length}`;
   }
   if (maxPrice !== undefined) {
-    list = list.filter((p) => p.price <= maxPrice);
+    params.push(maxPrice);
+    whereClause += ` AND price <= $${params.length}`;
   }
   if (inStockOnly) {
-    list = list.filter((p) => p.inStock);
+    whereClause += ` AND in_stock = true AND stock_count > 0`;
   }
 
-  // Sorting
+  let orderClause = 'ORDER BY created_at DESC';
   switch (sortBy) {
     case 'price-asc':
-      return list.sort((a, b) => a.price - b.price);
+      orderClause = 'ORDER BY price ASC';
+      break;
     case 'price-desc':
-      return list.sort((a, b) => b.price - a.price);
+      orderClause = 'ORDER BY price DESC';
+      break;
     case 'newest':
-      return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      orderClause = 'ORDER BY created_at DESC';
+      break;
     case 'name-asc':
-      return list.sort((a, b) => a.name.localeCompare(b.name));
-    case 'default':
-    default:
-      return list;
+      orderClause = 'ORDER BY name ASC';
+      break;
   }
+
+  const sqlQuery = `SELECT * FROM products ${whereClause} ${orderClause}`;
+  const rows = await sql(sqlQuery, params);
+  return rows.map(formatProduct);
 }
 
-export function searchProducts(query) {
+export async function searchProducts(query) {
   if (!query || query.trim().length < 2) return [];
-  const q = query.toLowerCase().trim();
-  return getAllProducts().filter((p) =>
-    p.name.toLowerCase().includes(q) ||
-    p.category.toLowerCase().includes(q) ||
-    p.subcategory?.toLowerCase().includes(q) ||
-    p.brand?.toLowerCase().includes(q) ||
-    (p.tags && p.tags.some((tag) => tag.toLowerCase().includes(q))) ||
-    p.description?.toLowerCase().includes(q)
-  );
-}
-
-export function searchProductsAdmin(query) {
-  if (!query || query.trim().length < 2) return getAllProductsAdmin();
-  const q = query.toLowerCase().trim();
-  return getLiveProducts().filter((p) =>
-    p.name.toLowerCase().includes(q) ||
-    p.id.toLowerCase().includes(q) ||
-    p.category.toLowerCase().includes(q) ||
-    p.subcategory?.toLowerCase().includes(q) ||
-    p.brand?.toLowerCase().includes(q)
-  );
-}
-
-export function getRelatedProducts(product, count = 4) {
-  if (!product) return [];
-  return getAllProducts()
-    .filter(
-      (p) =>
-        p.id !== product.id &&
-        (p.category === product.category || p.subcategory === product.subcategory)
+  const q = `%${query.toLowerCase().trim()}%`;
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN') AND (
+      LOWER(name) LIKE ${q} OR
+      LOWER(category) LIKE ${q} OR
+      LOWER(subcategory) LIKE ${q} OR
+      LOWER(brand) LIKE ${q} OR
+      LOWER(description) LIKE ${q}
     )
-    .slice(0, count);
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getAllCategories() {
-  return initialCategories;
+export async function searchProductsAdmin(query) {
+  if (!query || query.trim().length < 2) return getAllProductsAdmin();
+  const q = `%${query.toLowerCase().trim()}%`;
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE LOWER(name) LIKE ${q} OR
+          LOWER(id) LIKE ${q} OR
+          LOWER(category) LIKE ${q} OR
+          LOWER(subcategory) LIKE ${q} OR
+          LOWER(brand) LIKE ${q}
+    ORDER BY created_at DESC;
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getCategoryBySlug(slug) {
-  return initialCategories.find((c) => c.slug === slug) || null;
+export async function getRelatedProducts(product, count = 4) {
+  if (!product) return [];
+  const rows = await sql`
+    SELECT * FROM products
+    WHERE id != ${product.id} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+      AND (category = ${product.category} OR subcategory = ${product.subcategory})
+    LIMIT ${count};
+  `;
+  return rows.map(formatProduct);
 }
 
-export function getAllBrands() {
-  return initialBrands;
+export async function getAllCategories() {
+  const rows = await sql`
+    SELECT DISTINCT category, subcategory FROM products
+    WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+    ORDER BY category, subcategory;
+  `;
+  const categories = {};
+  rows.forEach(row => {
+    if (!categories[row.category]) {
+      categories[row.category] = {
+        id: row.category,
+        name: row.category.charAt(0).toUpperCase() + row.category.slice(1),
+        slug: row.category,
+        subcategories: [],
+      };
+    }
+    if (row.subcategory && !categories[row.category].subcategories.some(s => s.id === row.subcategory)) {
+      categories[row.category].subcategories.push({
+        id: row.subcategory,
+        name: row.subcategory,
+        slug: row.subcategory.toLowerCase().replace(/\s+/g, '-'),
+      });
+    }
+  });
+  return Object.values(categories);
 }
 
-export function getPriceRange() {
-  const prices = getAllProducts().map((p) => p.price);
+export async function getCategoryBySlug(slug) {
+  const categories = await getAllCategories();
+  return categories.find(c => c.slug === slug) || null;
+}
+
+export async function getAllBrands() {
+  const rows = await sql`
+    SELECT DISTINCT brand FROM products
+    WHERE brand IS NOT NULL AND brand != ''
+    ORDER BY brand;
+  `;
+  return rows.map(r => r.brand);
+}
+
+export async function getPriceRange() {
+  const rows = await sql`
+    SELECT MIN(price) as min, MAX(price) as max FROM products
+    WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN');
+  `;
   return {
-    min: prices.length > 0 ? Math.min(...prices) : 0,
-    max: prices.length > 0 ? Math.max(...prices) : 500,
+    min: parseFloat(rows[0]?.min || 0),
+    max: parseFloat(rows[0]?.max || 500),
   };
 }
 
-/**
- * Admin Product Mutation: Create Product
- */
-export function createProduct(productData, operator = 'Admin') {
+export async function createProduct(productData, operator = 'Admin') {
   const slug = productData.slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const id = `prod-${Date.now().toString().slice(-4)}`;
 
-  const newProduct = {
-    id,
-    slug,
-    name: productData.name,
-    brand: productData.brand || 'CR Essentials',
-    category: productData.category || 'skincare',
-    subcategory: productData.subcategory || 'General',
-    price: Number(productData.price) || 0,
-    originalPrice: productData.originalPrice ? Number(productData.originalPrice) : null,
-    currency: 'GHS',
-    rating: 5.0,
-    reviewCount: 0,
-    badge: productData.badge || 'new',
-    inStock: Number(productData.stockCount) > 0,
-    stockCount: Number(productData.stockCount) || 20,
-    image: productData.image || '/images/products/1.jpeg',
-    description: productData.description || '',
-    details: productData.details || {},
-    tags: productData.tags || [productData.category, productData.subcategory],
-    status: productData.status || 'PUBLISHED',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  await sql`
+    INSERT INTO products (
+      id, slug, name, brand, category, subcategory,
+      price, original_price, cost_price, stock_count,
+      low_stock_threshold, in_stock, badge, status,
+      image, description, details, created_at, updated_at
+    ) VALUES (
+      ${id}, ${slug}, ${productData.name}, ${productData.brand || 'CR Essentials'}, ${productData.category || 'skincare'}, ${productData.subcategory || 'General'},
+      ${Number(productData.price) || 0}, ${productData.originalPrice ? Number(productData.originalPrice) : null}, ${productData.costPrice ? Number(productData.costPrice) : null}, ${Number(productData.stockCount) || 20},
+      ${productData.lowStockThreshold || 5}, ${Number(productData.stockCount || 20) > 0}, ${productData.badge || 'new'}, ${productData.status || 'PUBLISHED'},
+      ${productData.image || null}, ${productData.description || ''}, ${JSON.stringify(productData.details || {})}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    );
+  `;
 
-  const list = getLiveProducts();
-  list.unshift(newProduct);
-  saveLiveProducts(list);
-
-  recordAuditEvent({
+  await recordAuditEvent({
     action: 'PRODUCT_CREATED',
     operator,
-    entityId: newProduct.id,
+    entityId: id,
     entityType: 'PRODUCT',
-    details: { name: newProduct.name, price: newProduct.price, category: newProduct.category },
+    details: { name: productData.name, price: productData.price, category: productData.category },
   });
 
-  return newProduct;
+  return getProductById(id);
 }
 
-/**
- * Admin Product Mutation: Update Product
- */
-export function updateProduct(productId, updates, operator = 'Admin') {
-  const list = getLiveProducts();
-  const index = list.findIndex((p) => p.id === productId);
-  if (index === -1) throw new Error(`Product ${productId} not found`);
+export async function updateProduct(productId, updates, operator = 'Admin') {
+  const allowedFields = [
+    'name', 'brand', 'category', 'subcategory', 'price', 'original_price',
+    'cost_price', 'stock_count', 'low_stock_threshold', 'in_stock',
+    'badge', 'status', 'image', 'images', 'description', 'details'
+  ];
 
-  const prev = { ...list[index] };
-  const updated = {
-    ...prev,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
+  const setClauses = [];
+  const values = [];
 
-  if (updates.stockCount !== undefined) {
-    updated.inStock = Number(updates.stockCount) > 0;
+  for (const [key, value] of Object.entries(updates)) {
+    const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (allowedFields.includes(dbKey)) {
+      setClauses.push(`${dbKey} = $${values.length + 1}`);
+      if (dbKey === 'details') {
+        values.push(JSON.stringify(value));
+      } else if (dbKey === 'images') {
+        values.push(JSON.stringify(value));
+      } else {
+        values.push(value);
+      }
+    }
   }
 
-  list[index] = updated;
-  saveLiveProducts(list);
+  if (setClauses.length === 0) return null;
 
-  recordAuditEvent({
+  setClauses.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(productId);
+
+  const query = `UPDATE products SET ${setClauses.join(', ')} WHERE id = $${values.length} RETURNING *`;
+  const result = await sql(query, values);
+
+  if (result.length === 0) throw new Error(`Product ${productId} not found`);
+
+  await recordAuditEvent({
     action: 'PRODUCT_UPDATED',
     operator,
     entityId: productId,
     entityType: 'PRODUCT',
-    details: { before: prev, after: updated },
+    details: { updates },
   });
 
-  return updated;
+  return formatProduct(result[0]);
 }
 
-/**
- * Admin Product Mutation: Archive Product (Soft Delete)
- */
-export function archiveProduct(productId, operator = 'Admin') {
+export async function archiveProduct(productId, operator = 'Admin') {
   return updateProduct(productId, { status: 'ARCHIVED' }, operator);
 }

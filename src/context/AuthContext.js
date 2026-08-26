@@ -1,16 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import {
-  getCurrentCustomerSession,
-  getCurrentAdminSession,
-  signInCustomer as apiSignInCustomer,
-  signUpCustomer as apiSignUpCustomer,
-  signInWithGoogle as apiSignInWithGoogle,
-  signOutCustomer as apiSignOutCustomer,
-  signInAdmin as apiSignInAdmin,
-  signOutAdmin as apiSignOutAdmin,
-} from '@/services/authService';
 
 const AuthContext = createContext(null);
 
@@ -19,18 +9,40 @@ export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadSessions = useCallback(() => {
+  const loadCustomerSession = useCallback(async () => {
     try {
-      const c = getCurrentCustomerSession();
-      const a = getCurrentAdminSession();
-      setCustomer(c);
-      setAdmin(a);
+      const res = await fetch('/api/auth/customer/me', { credentials: 'include' });
+      const data = await res.json();
+      if (data.success && data.customer) {
+        setCustomer(data.customer);
+      } else {
+        setCustomer(null);
+      }
     } catch (e) {
-      console.error('Error loading auth sessions:', e);
-    } finally {
-      setLoading(false);
+      console.error('Error loading customer session:', e);
+      setCustomer(null);
     }
   }, []);
+
+  const loadAdminSession = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/admin/me', { credentials: 'include' });
+      const data = await res.json();
+      if (data.success && data.staff) {
+        setAdmin(data.staff);
+      } else {
+        setAdmin(null);
+      }
+    } catch (e) {
+      console.error('Error loading admin session:', e);
+      setAdmin(null);
+    }
+  }, []);
+
+  const loadSessions = useCallback(async () => {
+    await Promise.all([loadCustomerSession(), loadAdminSession()]);
+    setLoading(false);
+  }, [loadCustomerSession, loadAdminSession]);
 
   useEffect(() => {
     loadSessions();
@@ -49,37 +61,68 @@ export function AuthProvider({ children }) {
   }, [loadSessions]);
 
   const signInCustomer = async (creds) => {
-    const user = await apiSignInCustomer(creds);
-    setCustomer(user);
-    return user;
+    const res = await fetch('/api/auth/customer/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(creds),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Sign in failed');
+    setCustomer(data.customer);
+    window.dispatchEvent(new CustomEvent('cr-auth-changed'));
+    return data.customer;
   };
 
   const signUpCustomer = async (data) => {
-    const res = await apiSignUpCustomer(data);
-    setCustomer(res.user);
-    return res;
+    const res = await fetch('/api/auth/customer/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Registration failed');
+    setCustomer(result.customer);
+    window.dispatchEvent(new CustomEvent('cr-auth-changed'));
+    return result;
   };
 
   const signInWithGoogle = async () => {
-    const user = await apiSignInWithGoogle();
-    setCustomer(user);
-    return user;
+    // Google OAuth would be implemented separately
+    throw new Error('Google sign-in not yet implemented');
   };
 
-  const signOutCustomer = () => {
-    apiSignOutCustomer();
+  const signOutCustomer = async () => {
+    await fetch('/api/auth/customer/signout', {
+      method: 'POST',
+      credentials: 'include',
+    });
     setCustomer(null);
+    window.dispatchEvent(new CustomEvent('cr-auth-changed'));
   };
 
   const signInAdmin = async (creds) => {
-    const staff = await apiSignInAdmin(creds);
-    setAdmin(staff);
-    return staff;
+    const res = await fetch('/api/auth/admin/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(creds),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Admin sign in failed');
+    setAdmin(data.staff);
+    window.dispatchEvent(new CustomEvent('cr-auth-changed'));
+    return data.staff;
   };
 
-  const signOutAdmin = () => {
-    apiSignOutAdmin();
+  const signOutAdmin = async () => {
+    await fetch('/api/auth/admin/signout', {
+      method: 'POST',
+      credentials: 'include',
+    });
     setAdmin(null);
+    window.dispatchEvent(new CustomEvent('cr-auth-changed'));
   };
 
   const hasAdminPermission = (permKey) => {

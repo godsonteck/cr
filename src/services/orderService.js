@@ -8,9 +8,11 @@ import {
   getOrderById,
   getOrdersByStatus,
   getRecentOrders,
+  getOrdersByCustomer,
   createOrder,
   transitionOrderStatus,
   markOrderPaymentPaid,
+  issueRefund,
 } from './orderEngine';
 
 export {
@@ -18,11 +20,14 @@ export {
   getOrderById,
   getOrdersByStatus,
   getRecentOrders,
+  getOrdersByCustomer,
   createOrder,
   transitionOrderStatus,
   markOrderPaymentPaid,
+  issueRefund,
 };
 
-export function getOrderCount() {
-  return getAllOrders().length;
+export async function getOrderCount() {
+  const orders = await getAllOrders();
+  return orders.length;
 }

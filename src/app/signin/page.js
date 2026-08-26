@@ -173,23 +173,7 @@ function SignInForm() {
           </AuthButton>
         </form>
 
-        {/* Demo Fast Login Helper */}
-        <div className="auth-demo-card">
-          <div className="demo-header">
-            <span>💡 Demo Customer Account</span>
-          </div>
-          <p className="demo-desc">Click below to auto-fill sample customer credentials:</p>
-          <button
-            type="button"
-            className="demo-autofill-btn"
-            onClick={() => {
-              setIdentifier('0592153306');
-              setPassword('Demo12345!');
-            }}
-          >
-            Auto-fill Nana Ama (0592153306 / Demo12345!)
-          </button>
-        </div>
+        
       </div>
 
       <style jsx>{`

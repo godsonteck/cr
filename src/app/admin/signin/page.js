@@ -140,29 +140,7 @@ function AdminSignInForm() {
           Sign In to Admin Portal
         </AuthButton>
 
-        {/* Demo Fast Login Selector */}
-        <div className="admin-demo-box">
-          <div className="demo-box-head">
-            <span>👑 Quick Staff Login (Demo Environment)</span>
-          </div>
-          <p className="demo-box-sub">Select any staff member to test role-based access:</p>
-          <div className="demo-staff-list">
-            {staffList.slice(0, 3).map((st) => (
-              <button
-                key={st.id}
-                type="button"
-                className="btn-demo-staff"
-                onClick={() => {
-                  setIdentifier(st.email);
-                  setPassword('Admin12345!');
-                }}
-              >
-                <div className="staff-btn-name">{st.name}</div>
-                <div className="staff-btn-role">{st.role.replace('_', ' ')} • {st.email}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+        
       </form>
 
       <style jsx>{`
