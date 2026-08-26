@@ -254,6 +254,63 @@ export function markOrderPaymentPaid(orderId, transactionRef, operator = 'Paymen
 }
 
 /**
+ * Issue Full or Partial Refund for an Order
+ */
+export function issueRefund({ orderId, amount, reason = 'Customer requested refund', operator = 'Store Admin' }) {
+  const orders = getLiveOrders();
+  const order = orders.find((o) => o.orderId === orderId);
+  if (!order) throw new Error(`Order ${orderId} not found`);
+
+  const refundAmount = Number(amount);
+  if (isNaN(refundAmount) || refundAmount <= 0) {
+    throw new Error('Please specify a valid refund amount.');
+  }
+
+  const orderTotal = order.pricing?.total || 0;
+  const alreadyRefunded = order.refunds?.reduce((sum, r) => sum + r.amount, 0) || 0;
+  const maxRefundable = Math.max(0, orderTotal - alreadyRefunded);
+
+  if (refundAmount > maxRefundable) {
+    throw new Error(`Refund amount (GHS ${refundAmount}) exceeds maximum refundable balance (GHS ${maxRefundable}).`);
+  }
+
+  const timestamp = new Date().toISOString();
+  if (!order.refunds) order.refunds = [];
+
+  const refundRecord = {
+    refundId: `REFUND-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    amount: refundAmount,
+    reason,
+    operator,
+    timestamp,
+  };
+
+  order.refunds.push(refundRecord);
+
+  const totalRefundedNow = alreadyRefunded + refundAmount;
+  order.paymentStatus = totalRefundedNow >= orderTotal ? 'REFUNDED' : 'PARTIALLY_REFUNDED';
+  order.updatedAt = timestamp;
+
+  order.timeline.push({
+    status: `Refund Issued (GHS ${refundAmount})`,
+    timestamp,
+    note: `Reason: ${reason} (Processed by ${operator})`,
+  });
+
+  saveLiveOrders(orders);
+
+  recordAuditEvent({
+    action: 'REFUND_ISSUED',
+    operator,
+    entityId: orderId,
+    entityType: 'PAYMENT',
+    details: { refundAmount, totalRefunded: totalRefundedNow, reason },
+  });
+
+  return order;
+}
+
+/**
  * Query orders
  */
 export function getOrderById(orderId) {
@@ -274,3 +331,4 @@ export function getRecentOrders(count = 5) {
   const orders = getLiveOrders();
   return [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, count);
 }
+
