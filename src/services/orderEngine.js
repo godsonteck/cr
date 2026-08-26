@@ -155,6 +155,32 @@ export function createOrder({
     details: { total: finalTotal, itemsCount: itemSnapshots.length, paymentMethod },
   });
 
+  // 7. Sync asynchronously to Neon PostgreSQL API
+  if (typeof window !== 'undefined') {
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerData: {
+          id: orderRecord.customer.id || null,
+          fullName: orderRecord.customer.fullName,
+          phone: orderRecord.customer.phone,
+          email: orderRecord.customer.email,
+          area: orderRecord.customer.area,
+          address: orderRecord.customer.address,
+          deliveryMethod: orderRecord.customer.deliveryMethod,
+          deliveryNotes: orderRecord.customer.deliveryNotes,
+        },
+        items: orderRecord.items,
+        subtotal: orderRecord.pricing.subtotal,
+        deliveryFee: orderRecord.pricing.deliveryFee,
+        discount: orderRecord.pricing.discount,
+        total: orderRecord.pricing.total,
+        paymentMethod: orderRecord.paymentDetails.method,
+      }),
+    }).catch((err) => console.warn('[Neon Sync] Background order sync note:', err.message));
+  }
+
   return orderRecord;
 }
 

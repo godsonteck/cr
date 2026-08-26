@@ -8,6 +8,8 @@ import AuthInput from '@/components/auth/AuthInput';
 import PasswordInput from '@/components/auth/PasswordInput';
 import AuthButton from '@/components/auth/AuthButton';
 import AuthAlert from '@/components/auth/AuthAlert';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
+import AuthDivider from '@/components/auth/AuthDivider';
 import { useAuth } from '@/context/AuthContext';
 
 function SignInForm() {
@@ -15,7 +17,7 @@ function SignInForm() {
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get('redirect') || '/account';
 
-  const { customer, signInCustomer } = useAuth();
+  const { customer, signInCustomer, signInWithGoogle } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +33,13 @@ function SignInForm() {
       router.replace(redirectTarget);
     }
   }, [customer, loading, redirectTarget, router]);
+
+  const handleGoogleSuccess = () => {
+    setSuccess(true);
+    setTimeout(() => {
+      router.push(redirectTarget);
+    }, 600);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,7 +86,7 @@ function SignInForm() {
       footerLinkText="Create an account"
       footerLinkHref={`/signup${redirectTarget !== '/account' ? `?redirect=${encodeURIComponent(redirectTarget)}` : ''}`}
     >
-      <form onSubmit={handleSubmit} className="auth-form-stack" noValidate>
+      <div className="auth-form-stack">
         {errorMsg && (
           <AuthAlert
             type="error"
@@ -93,63 +102,76 @@ function SignInForm() {
           />
         )}
 
-        <AuthInput
-          id="auth-identifier"
-          label="Email or Phone Number"
-          type="text"
-          value={identifier}
-          onChange={(e) => {
-            setIdentifier(e.target.value);
-            if (errorMsg) setErrorMsg('');
-          }}
-          placeholder="e.g. 0592153306 or name@gmail.com"
-          required
-          autoComplete="username"
+        {/* ── Google Sign In ── */}
+        <GoogleAuthButton
+          signInWithGoogle={signInWithGoogle}
+          onSuccess={handleGoogleSuccess}
+          onError={(err) => setErrorMsg(err)}
           disabled={loading || success}
-          icon="👤"
+          text="Sign in with Google"
         />
 
-        <PasswordInput
-          id="auth-password"
-          label="Password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            if (errorMsg) setErrorMsg('');
-          }}
-          placeholder="Enter your password"
-          required
-          autoComplete="current-password"
-          disabled={loading || success}
-          rightAction={
-            <Link href="/forgot-password" className="auth-inline-link">
-              Forgot password?
-            </Link>
-          }
-        />
+        <AuthDivider text="or sign in with email/phone" />
 
-        <div className="auth-remember-row">
-          <label className="auth-checkbox-label">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              disabled={loading || success}
-            />
-            <span>Keep me signed in</span>
-          </label>
-        </div>
+        <form onSubmit={handleSubmit} className="auth-form-stack" noValidate>
+          <AuthInput
+            id="auth-identifier"
+            label="Email or Phone Number"
+            type="text"
+            value={identifier}
+            onChange={(e) => {
+              setIdentifier(e.target.value);
+              if (errorMsg) setErrorMsg('');
+            }}
+            placeholder="e.g. 0592153306 or name@gmail.com"
+            required
+            autoComplete="username"
+            disabled={loading || success}
+            icon="👤"
+          />
 
-        <AuthButton
-          type="submit"
-          loading={loading}
-          loadingText="Signing in..."
-          success={success}
-          successText="Signed in!"
-          disabled={loading || success}
-        >
-          Sign In
-        </AuthButton>
+          <PasswordInput
+            id="auth-password"
+            label="Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errorMsg) setErrorMsg('');
+            }}
+            placeholder="Enter your password"
+            required
+            autoComplete="current-password"
+            disabled={loading || success}
+            rightAction={
+              <Link href="/forgot-password" className="auth-inline-link">
+                Forgot password?
+              </Link>
+            }
+          />
+
+          <div className="auth-remember-row">
+            <label className="auth-checkbox-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading || success}
+              />
+              <span>Keep me signed in</span>
+            </label>
+          </div>
+
+          <AuthButton
+            type="submit"
+            loading={loading}
+            loadingText="Signing in..."
+            success={success}
+            successText="Signed in!"
+            disabled={loading || success}
+          >
+            Sign In
+          </AuthButton>
+        </form>
 
         {/* Demo Fast Login Helper */}
         <div className="auth-demo-card">
@@ -168,7 +190,7 @@ function SignInForm() {
             Auto-fill Nana Ama (0592153306 / Demo12345!)
           </button>
         </div>
-      </form>
+      </div>
 
       <style jsx>{`
         .auth-form-stack {

@@ -2,193 +2,356 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { BUSINESS } from '@/utils/constants';
 
 const VALUES = [
   {
-    icon: '◈',
-    title: 'Authenticity',
-    desc: 'Every product we carry is 100% genuine, sourced directly from trusted distributors.',
+    icon: '✨',
+    title: '100% Authenticity Guaranteed',
+    desc: 'Every single serum, lotion, soap, and pantry item is verified genuine and sourced directly from reputable cosmetic distributors.',
   },
   {
-    icon: '◇',
-    title: 'Accessibility',
-    desc: "Premium skincare and daily essentials shouldn't require a trip to the city. We bring them to Botwe.",
+    icon: '📍',
+    title: 'Rooted in Botwe, Serving Accra',
+    desc: 'Conveniently located near Galaxy International School. We bring premium global and local wellness staples right to your neighbourhood.',
   },
   {
-    icon: '◆',
-    title: 'Community',
-    desc: "We are your neighbours. We care about the people we serve and the community we're part of.",
+    icon: '💧',
+    title: 'Skin-First Formulation Care',
+    desc: 'We curate products specifically chosen to thrive in the Ghanaian tropical climate — prioritizing hydration, barrier repair, and radiant tone.',
   },
   {
-    icon: '✦',
-    title: 'Quality',
-    desc: "We curate carefully — only stocking products we'd confidently use ourselves.",
+    icon: '🤝',
+    title: 'Community & Trust',
+    desc: 'From flexible MoMo payments to personal WhatsApp skincare recommendations, our customers are family.',
   },
 ];
 
 export default function AboutPage() {
   return (
-    <div style={{ paddingTop: 'var(--header-h)' }}>
+    <div className="cr-about-page">
       {/* ── Hero ── */}
-      <section style={{
-        padding: 'clamp(4rem, 8vw, 9rem) var(--container-pad)',
-        maxWidth: 'var(--container-max)',
-        margin: '0 auto',
-        borderBottom: '1px solid var(--mist-border)',
-      }}>
-        <p className="section-label" style={{ marginBottom: 'var(--space-5)' }}>Our story</p>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(3rem, 8vw, 7rem)',
-          fontWeight: 'var(--weight-light)',
-          color: 'var(--warm-white)',
-          letterSpacing: 'var(--tracking-tight)',
-          lineHeight: 0.95,
-          maxWidth: '18ch',
-          marginBottom: 'var(--space-10)',
-        }}>
-          Beauty within<br />
-          <em style={{ fontStyle: 'italic', color: 'var(--burgundy)' }}>reach</em>
-        </h1>
+      <section className="cr-about-hero">
+        <div className="cr-about-container">
+          <span className="cr-about-eyebrow">OUR STORY & PHILOSOPHY</span>
+          <h1 className="cr-about-title">
+            Bringing Everyday Beauty & Quality Essentials to <span className="cr-title-italic">Botwe.</span>
+          </h1>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 'var(--space-12)',
-          alignItems: 'start',
-        }}>
-          <p style={{ fontSize: 'var(--text-lg)', color: 'var(--text-dim)', lineHeight: 'var(--leading-relaxed)', maxWidth: '50ch' }}>
-            CR Cosmetics & Essentials was born from a simple observation:
-            the people of Botwe deserved access to quality skincare and
-            everyday groceries — without the long trip to the city.
-          </p>
-          <p style={{ fontSize: 'var(--text-base)', color: 'var(--text-dim)', lineHeight: 'var(--leading-relaxed)', maxWidth: '50ch', marginTop: 'var(--space-2)' }}>
-            Tucked in the heart of Botwe, near Galaxy International School,
-            we&apos;ve made it our mission to bring world-class products to
-            your neighbourhood. From The Ordinary serums to CeraVe moisturisers,
-            from Nescafé to Premium Basmati — all under one roof.
-          </p>
+          <div className="cr-about-lead-grid">
+            <p className="cr-lead-p">
+              CR Cosmetics & Essentials was founded with a clear, heartfelt purpose: to ensure that the residents of Botwe and Greater Accra have immediate access to 100% genuine skincare, nourishing body care, and verified household essentials.
+            </p>
+            <p className="cr-lead-p">
+              Located right by Galaxy International School in Botwe, we bridge the gap between world-class beauty formulations and everyday household convenience — delivering directly to your door with care, speed, and integrity.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ── Values ── */}
-      <section style={{
-        padding: 'clamp(4rem, 6vw, 7rem) var(--container-pad)',
-        maxWidth: 'var(--container-max)',
-        margin: '0 auto',
-        borderBottom: '1px solid var(--mist-border)',
-      }} aria-labelledby="values-heading">
-        <p className="section-label" style={{ marginBottom: 'var(--space-4)' }}>What we stand for</p>
-        <h2 id="values-heading" className="section-title" style={{ marginBottom: 'var(--space-12)' }}>
-          Our Values
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 'var(--space-6)',
-        }}>
-          {VALUES.map(({ icon, title, desc }) => (
-            <div key={title} style={{
-              background: 'var(--mist)',
-              border: '1px solid var(--mist-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: 'var(--space-8)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-4)',
-            }}>
-              <span style={{ fontSize: '1.5rem', color: 'var(--burgundy)', fontFamily: 'var(--font-mono)' }}>
-                {icon}
-              </span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-xl)', color: 'var(--warm-white)', fontWeight: 'var(--weight-medium)' }}>
-                {title}
-              </h3>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-dim)', lineHeight: 'var(--leading-relaxed)' }}>
-                {desc}
+      {/* ── Brand Pillars ── */}
+      <section className="cr-pillars-section" aria-labelledby="pillars-title">
+        <div className="cr-about-container">
+          <div className="cr-pillars-header">
+            <span className="cr-about-eyebrow">WHAT WE STAND FOR</span>
+            <h2 id="pillars-title" className="cr-pillars-title">Our Core Commitments</h2>
+          </div>
+
+          <div className="cr-pillars-grid">
+            {VALUES.map(({ icon, title, desc }) => (
+              <div key={title} className="cr-pillar-card">
+                <span className="cr-pillar-icon">{icon}</span>
+                <h3 className="cr-pillar-h">{title}</h3>
+                <p className="cr-pillar-p">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Store Location & Hours ── */}
+      <section className="cr-store-section">
+        <div className="cr-about-container">
+          <div className="cr-store-card">
+            <div className="cr-store-info">
+              <span className="cr-store-tag">FLAGSHIP STORE</span>
+              <h2 className="cr-store-title">Visit Us in Botwe</h2>
+              <p className="cr-store-address">
+                📍 Near Galaxy International School, Botwe, Greater Accra, Ghana
               </p>
+              <div className="cr-store-meta">
+                <div>
+                  <strong>Store Hours:</strong>
+                  <p>Monday – Saturday: 8:00 AM – 8:00 PM</p>
+                </div>
+                <div>
+                  <strong>Phone / WhatsApp:</strong>
+                  <p>+233 59 215 3306 (059 215 3306)</p>
+                </div>
+              </div>
+              <div className="cr-store-actions">
+                <Link href="/shop" className="cr-btn-primary">
+                  Shop Online Now
+                </Link>
+                <a
+                  href="https://wa.me/233592153306"
+                  className="cr-btn-secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Chat with Our Team
+                </a>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Location ── */}
-      <section style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        minHeight: '400px',
-      }} aria-labelledby="location-heading">
-        <div style={{
-          background: 'var(--burgundy)',
-          padding: 'clamp(3rem, 6vw, 6rem)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          gap: 'var(--space-5)',
-        }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: 'var(--tracking-widest)', color: 'rgba(245,240,232,0.6)' }}>
-            Find us
-          </p>
-          <h2 id="location-heading" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 'var(--weight-light)', color: 'var(--warm-white)', lineHeight: 1.1 }}>
-            Visit our store in Botwe
-          </h2>
-          <address style={{ fontStyle: 'normal', fontSize: 'var(--text-base)', color: 'rgba(245,240,232,0.75)', lineHeight: 'var(--leading-relaxed)' }}>
-            Near Galaxy International School<br />
-            Botwe, Accra<br />
-            Ghana
-          </address>
-          <Link href="/contact" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 'var(--space-3)',
-            fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', textTransform: 'uppercase',
-            letterSpacing: 'var(--tracking-wider)', color: 'rgba(245,240,232,0.6)',
-            textDecoration: 'none', borderBottom: '1px solid rgba(245,240,232,0.2)',
-            paddingBottom: 'var(--space-2)', width: 'fit-content',
-          }}>
-            Get in touch →
-          </Link>
-        </div>
-        <div style={{
-          background: 'var(--mist)',
-          padding: 'clamp(3rem, 6vw, 6rem)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          gap: 'var(--space-8)',
-        }}>
-          {[
-            { label: 'Opening Hours', value: 'Mon–Sat: 8am – 8pm\nSun: 10am – 6pm' },
-            { label: 'Phone', value: '+233 59 215 3306' },
-            { label: 'WhatsApp', value: '059 215 3306' },
-            { label: 'Email', value: 'hello@crcosmetics.gh' },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: 'var(--tracking-widest)', color: 'var(--text-faint)', marginBottom: 'var(--space-2)' }}>
-                {label}
-              </p>
-              <p style={{ fontSize: 'var(--text-base)', color: 'var(--warm-white)', whiteSpace: 'pre-line' }}>
-                {value}
-              </p>
+            <div className="cr-store-visual">
+              <img
+                src="/images/hero-pedestal.jpg"
+                alt="CR Cosmetics & Essentials Storefront"
+                className="cr-store-img"
+              />
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section style={{
-        padding: 'clamp(4rem, 7vw, 7rem) var(--container-pad)',
-        textAlign: 'center',
-        borderTop: '1px solid var(--mist-border)',
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 4rem)',
-          fontWeight: 'var(--weight-light)', color: 'var(--warm-white)',
-          letterSpacing: 'var(--tracking-tight)', marginBottom: 'var(--space-8)',
-        }}>
-          Ready to shop?
-        </h2>
-        <Link href="/shop" className="hero__cta-primary">
-          Browse All Products
-        </Link>
-      </section>
+      <style jsx>{`
+        .cr-about-page {
+          padding-top: var(--header-h, 74px);
+          background: #FAF8F6;
+          min-height: 100vh;
+          font-family: var(--font-primary, sans-serif);
+        }
+
+        .cr-about-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+        }
+
+        .cr-about-eyebrow {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #BE4D6E;
+          display: block;
+          margin-bottom: 0.5rem;
+        }
+
+        /* ── Hero ── */
+        .cr-about-hero {
+          padding: clamp(3.5rem, 6vw, 5.5rem) 0 clamp(2.5rem, 4vw, 4rem);
+          border-bottom: 1px solid #EBE2E6;
+          background: #FFFFFF;
+        }
+
+        .cr-about-title {
+          font-family: var(--font-display, serif);
+          font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+          font-weight: 700;
+          color: #161114;
+          line-height: 1.15;
+          max-width: 22ch;
+          margin-bottom: 2.5rem;
+          letter-spacing: -0.01em;
+        }
+
+        .cr-title-italic {
+          font-family: var(--font-script, serif);
+          font-style: italic;
+          color: #6B1733;
+          font-weight: 400;
+        }
+
+        .cr-about-lead-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(1.5rem, 4vw, 3rem);
+        }
+
+        .cr-lead-p {
+          font-size: 1.05rem;
+          line-height: 1.7;
+          color: #55454C;
+        }
+
+        /* ── Pillars ── */
+        .cr-pillars-section {
+          padding: clamp(3.5rem, 6vw, 5rem) 0;
+          background: #FAF8F6;
+        }
+
+        .cr-pillars-header {
+          margin-bottom: 2.5rem;
+        }
+
+        .cr-pillars-title {
+          font-family: var(--font-display, serif);
+          font-size: 2rem;
+          font-weight: 700;
+          color: #161114;
+        }
+
+        .cr-pillars-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.75rem;
+        }
+
+        .cr-pillar-card {
+          padding: 2rem;
+          background: #FFFFFF;
+          border: 1px solid #EBE2E6;
+          border-radius: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .cr-pillar-icon {
+          font-size: 1.75rem;
+        }
+
+        .cr-pillar-h {
+          font-family: var(--font-display, serif);
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #161114;
+        }
+
+        .cr-pillar-p {
+          font-size: 0.9rem;
+          line-height: 1.6;
+          color: #6B5B63;
+        }
+
+        /* ── Store Location ── */
+        .cr-store-section {
+          padding: clamp(2rem, 5vw, 4.5rem) 0 5rem;
+        }
+
+        .cr-store-card {
+          background: #140A0F;
+          color: #FFFFFF;
+          border-radius: 16px;
+          overflow: hidden;
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          align-items: center;
+        }
+
+        .cr-store-info {
+          padding: clamp(2rem, 4vw, 3.5rem);
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .cr-store-tag {
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: #C59B3F;
+        }
+
+        .cr-store-title {
+          font-family: var(--font-display, serif);
+          font-size: 2.2rem;
+          font-weight: 700;
+          line-height: 1.1;
+        }
+
+        .cr-store-address {
+          font-size: 0.95rem;
+          color: #D6CAD1;
+          line-height: 1.5;
+        }
+
+        .cr-store-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          font-size: 0.88rem;
+          color: #A3939B;
+          padding: 1rem 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cr-store-meta strong {
+          color: #FFFFFF;
+          display: block;
+          margin-bottom: 2px;
+        }
+
+        .cr-store-actions {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .cr-btn-primary {
+          padding: 0.85rem 1.6rem;
+          background: #7B2347;
+          color: #FFFFFF;
+          font-weight: 700;
+          text-decoration: none;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 0.82rem;
+          border-radius: 6px;
+          transition: background 0.2s;
+        }
+
+        .cr-btn-primary:hover {
+          background: #5E1734;
+        }
+
+        .cr-btn-secondary {
+          padding: 0.85rem 1.6rem;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: #FFFFFF;
+          font-weight: 700;
+          text-decoration: none;
+          font-size: 0.82rem;
+          border-radius: 6px;
+          transition: border-color 0.2s;
+        }
+
+        .cr-btn-secondary:hover {
+          border-color: #FFFFFF;
+        }
+
+        .cr-store-visual {
+          height: 100%;
+          min-height: 340px;
+        }
+
+        .cr-store-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        /* ── Breakpoints ── */
+        @media (max-width: 900px) {
+          .cr-about-lead-grid {
+            grid-template-columns: 1fr;
+          }
+          .cr-pillars-grid {
+            grid-template-columns: 1fr;
+          }
+          .cr-store-card {
+            grid-template-columns: 1fr;
+          }
+          .cr-store-visual {
+            height: 240px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

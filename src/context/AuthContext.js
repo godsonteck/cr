@@ -6,6 +6,7 @@ import {
   getCurrentAdminSession,
   signInCustomer as apiSignInCustomer,
   signUpCustomer as apiSignUpCustomer,
+  signInWithGoogle as apiSignInWithGoogle,
   signOutCustomer as apiSignOutCustomer,
   signInAdmin as apiSignInAdmin,
   signOutAdmin as apiSignOutAdmin,
@@ -59,6 +60,12 @@ export function AuthProvider({ children }) {
     return res;
   };
 
+  const signInWithGoogle = async () => {
+    const user = await apiSignInWithGoogle();
+    setCustomer(user);
+    return user;
+  };
+
   const signOutCustomer = () => {
     apiSignOutCustomer();
     setCustomer(null);
@@ -92,6 +99,7 @@ export function AuthProvider({ children }) {
         loading,
         signInCustomer,
         signUpCustomer,
+        signInWithGoogle,
         signOutCustomer,
         signInAdmin,
         signOutAdmin,

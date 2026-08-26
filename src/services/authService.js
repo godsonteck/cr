@@ -243,6 +243,47 @@ export async function signUpCustomer({ fullName, email, phone, password }) {
   return { user: session.user, verificationToken: token };
 }
 
+export async function signInWithGoogle() {
+  // Simulate natural Google OAuth prompt latency
+  await new Promise((r) => setTimeout(r, 800));
+
+  const customers = getRegisteredCustomers();
+  
+  // Find or create Google Customer
+  let googleCustomer = customers.find((c) => c.authProvider === 'GOOGLE' || c.email === 'user.google@gmail.com');
+
+  if (!googleCustomer) {
+    googleCustomer = {
+      id: `CUST-G-${Date.now().toString().slice(-6)}`,
+      fullName: 'Google User',
+      email: 'user.google@gmail.com',
+      phone: '',
+      authProvider: 'GOOGLE',
+      emailVerified: true,
+      createdAt: new Date().toISOString(),
+      addresses: [],
+    };
+    customers.push(googleCustomer);
+    setStorageItem(CUSTOMER_USERS_KEY, customers);
+  }
+
+  const session = {
+    user: {
+      id: googleCustomer.id,
+      fullName: googleCustomer.fullName,
+      email: googleCustomer.email,
+      phone: googleCustomer.phone || '',
+      emailVerified: true,
+      authProvider: 'GOOGLE',
+    },
+    token: `cust_google_sess_${Date.now()}`,
+    expiresAt: new Date(Date.now() + 86400000 * 30).toISOString(),
+  };
+
+  setStorageItem(CUSTOMER_SESSION_KEY, session);
+  return session.user;
+}
+
 export function getCurrentCustomerSession() {
   const session = getStorageItem(CUSTOMER_SESSION_KEY);
   if (!session) return null;

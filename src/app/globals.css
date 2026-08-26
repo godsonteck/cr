@@ -4,41 +4,41 @@
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── Google Fonts ─── */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Space+Mono:wght@400;700&display=swap');
 
 /* ─── Design Tokens ─── */
 :root {
-  /* ── Brand Palette ── */
-  --burgundy:        #7B2347;
-  --burgundy-deep:   #5A1630;
-  --burgundy-light:  #9B3D63;
-  --burgundy-subtle: #F9EEF2;
-  --rose:            #BE4D6E;
-  --rose-light:      #D4849C;
-  --blush:           #F5E8EE;
-  --blush-mid:       #EDD5DF;
-  --gold:            #C5A059;
-  --gold-light:      #D9BF87;
-  --gold-pale:       #F8F3EB;
+  /* ── Luxury Brand Palette ── */
+  --burgundy:        #6B1733;
+  --burgundy-deep:   #480E21;
+  --burgundy-light:  #8E2B4D;
+  --burgundy-subtle: #FDF4F7;
+  --rose:            #C55272;
+  --rose-light:      #DE829B;
+  --blush:           #F8EFF3;
+  --blush-mid:       #F0E0E7;
+  --gold:            #C59B3F;
+  --gold-light:      #D8B463;
+  --gold-pale:       #FAF5EB;
 
-  /* ── Neutral Surface ── */
-  --bg:             #FFFFFF;
-  --bg-soft:        #FDF7F9;
-  --bg-warm:        #FAF5F7;
-  --bg-category:    #F8F3F5;
+  /* ── Warm Luminous Surfaces ── */
+  --bg:             #FAF8F6;
+  --bg-soft:        #F5EFEB;
+  --bg-warm:        #F2EAE5;
+  --bg-category:    #FAF2F5;
   --surface:        #FFFFFF;
-  --surface-raised: #FFF9FA;
+  --surface-raised: #FFFFFF;
 
-  /* ── Text ── */
-  --text:           #1A1318;
-  --text-secondary: #6B5B62;
-  --text-tertiary:  #9B8990;
-  --text-faint:     #C4B0BA;
+  /* ── Rich Typography Colors ── */
+  --text:           #161114;
+  --text-secondary: #6B5B63;
+  --text-tertiary:  #96878F;
+  --text-faint:     #C2B4BB;
 
-  /* ── Border ── */
-  --border:         #EDE0E6;
-  --border-light:   #F5EDF0;
-  --divider:        #EDE0E6;
+  /* ── Refined Borders ── */
+  --border:         #EBE2E6;
+  --border-light:   #F3ECF0;
+  --divider:        #EBE2E6;
 
   /* ── Semantic ── */
   --color-error:         #DC2626;
@@ -72,8 +72,8 @@
   --text-dim:             var(--text-secondary);
 
   /* ── Typography ── */
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-primary:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --font-primary:  'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-script:   'Cormorant Garamond', Georgia, serif;
   --font-mono:     'Space Mono', 'SF Mono', monospace;
 
@@ -272,17 +272,23 @@ p { line-height: var(--leading-relaxed); color: var(--text-secondary); }
 
 /* ─── Scroll Reveal ─── */
 .reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity var(--dur-slow) var(--ease-out),
-              transform var(--dur-slow) var(--ease-out);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.reveal-delay-1 { transition-delay: 80ms; }
-.reveal-delay-2 { transition-delay: 160ms; }
-.reveal-delay-3 { transition-delay: 240ms; }
-.reveal-delay-4 { transition-delay: 320ms; }
-.reveal-delay-5 { transition-delay: 400ms; }
+.reveal.is-hidden {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 60ms; }
+.reveal-delay-2 { transition-delay: 120ms; }
+.reveal-delay-3 { transition-delay: 180ms; }
+.reveal-delay-4 { transition-delay: 240ms; }
+.reveal-delay-5 { transition-delay: 300ms; }
 
 /* ─── Section headers ─── */
 .section-eyebrow {

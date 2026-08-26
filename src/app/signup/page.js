@@ -9,6 +9,8 @@ import PasswordInput from '@/components/auth/PasswordInput';
 import PasswordStrength from '@/components/auth/PasswordStrength';
 import AuthButton from '@/components/auth/AuthButton';
 import AuthAlert from '@/components/auth/AuthAlert';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
+import AuthDivider from '@/components/auth/AuthDivider';
 import { useAuth } from '@/context/AuthContext';
 import { isValidEmail, isValidGhanaPhone } from '@/services/authService';
 
@@ -17,7 +19,7 @@ function SignUpForm() {
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get('redirect') || '/account';
 
-  const { signUpCustomer } = useAuth();
+  const { signUpCustomer, signInWithGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -132,6 +134,10 @@ function SignUpForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = () => {
+    router.push(redirectTarget);
   };
 
   // If successfully registered, show clear success / verification guidance
@@ -280,7 +286,7 @@ function SignUpForm() {
       footerLinkText="Sign in"
       footerLinkHref={`/signin${redirectTarget !== '/account' ? `?redirect=${encodeURIComponent(redirectTarget)}` : ''}`}
     >
-      <form onSubmit={handleSubmit} className="auth-form-stack" noValidate>
+      <div className="auth-form-stack">
         {serverError && (
           <AuthAlert
             type="error"
@@ -289,107 +295,120 @@ function SignUpForm() {
           />
         )}
 
-        <AuthInput
-          id="auth-signup-name"
-          label="Full Name"
-          value={formData.fullName}
-          onChange={(e) => handleChange('fullName', e.target.value)}
-          onBlur={() => handleBlur('fullName')}
-          placeholder="e.g. Nana Ama Osei"
-          required
-          error={touched.fullName ? errors.fullName : ''}
-          autoComplete="name"
+        {/* ── Google Sign Up ── */}
+        <GoogleAuthButton
+          signInWithGoogle={signInWithGoogle}
+          onSuccess={handleGoogleSuccess}
+          onError={(err) => setServerError(err)}
           disabled={loading}
-          icon="👤"
+          text="Sign up with Google"
         />
 
-        <AuthInput
-          id="auth-signup-email"
-          label="Email Address"
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          onBlur={() => handleBlur('email')}
-          placeholder="name@example.com"
-          required
-          error={touched.email ? errors.email : ''}
-          autoComplete="email"
-          disabled={loading}
-          icon="✉️"
-        />
+        <AuthDivider text="or register with email" />
 
-        <AuthInput
-          id="auth-signup-phone"
-          label="Phone Number"
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => handleChange('phone', e.target.value)}
-          onBlur={() => handleBlur('phone')}
-          placeholder="059 215 3306"
-          prefix="+233"
-          error={touched.phone ? errors.phone : ''}
-          helperText="Used for order confirmation & delivery rider contact."
-          autoComplete="tel"
-          disabled={loading}
-        />
+        <form onSubmit={handleSubmit} className="auth-form-stack" noValidate>
+          <AuthInput
+            id="auth-signup-name"
+            label="Full Name"
+            value={formData.fullName}
+            onChange={(e) => handleChange('fullName', e.target.value)}
+            onBlur={() => handleBlur('fullName')}
+            placeholder="e.g. Nana Ama Osei"
+            required
+            error={touched.fullName ? errors.fullName : ''}
+            autoComplete="name"
+            disabled={loading}
+            icon="👤"
+          />
 
-        <PasswordInput
-          id="auth-signup-password"
-          label="Create Password"
-          value={formData.password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          onBlur={() => handleBlur('password')}
-          placeholder="At least 8 characters"
-          required
-          error={touched.password ? errors.password : ''}
-          autoComplete="new-password"
-          disabled={loading}
-        />
+          <AuthInput
+            id="auth-signup-email"
+            label="Email Address"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            onBlur={() => handleBlur('email')}
+            placeholder="name@example.com"
+            required
+            error={touched.email ? errors.email : ''}
+            autoComplete="email"
+            disabled={loading}
+            icon="✉️"
+          />
 
-        {formData.password && (
-          <PasswordStrength password={formData.password} />
-        )}
+          <AuthInput
+            id="auth-signup-phone"
+            label="Phone Number"
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => handleChange('phone', e.target.value)}
+            onBlur={() => handleBlur('phone')}
+            placeholder="059 215 3306"
+            prefix="+233"
+            error={touched.phone ? errors.phone : ''}
+            helperText="Used for order confirmation & delivery rider contact."
+            autoComplete="tel"
+            disabled={loading}
+          />
 
-        <PasswordInput
-          id="auth-signup-confirm"
-          label="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={(e) => handleChange('confirmPassword', e.target.value)}
-          onBlur={() => handleBlur('confirmPassword')}
-          placeholder="Re-enter your password"
-          required
-          error={touched.confirmPassword ? errors.confirmPassword : ''}
-          autoComplete="new-password"
-          disabled={loading}
-        />
+          <PasswordInput
+            id="auth-signup-password"
+            label="Create Password"
+            value={formData.password}
+            onChange={(e) => handleChange('password', e.target.value)}
+            onBlur={() => handleBlur('password')}
+            placeholder="At least 8 characters"
+            required
+            error={touched.password ? errors.password : ''}
+            autoComplete="new-password"
+            disabled={loading}
+          />
 
-        <div className="auth-terms-row">
-          <label className="auth-checkbox-label">
-            <input
-              type="checkbox"
-              checked={formData.agreeTerms}
-              onChange={(e) => handleChange('agreeTerms', e.target.checked)}
-              disabled={loading}
-            />
-            <span>
-              I agree to the{' '}
-              <Link href="/about" className="auth-inline-link" target="_blank">
-                Terms of Service
-              </Link>{' '}
-              and Privacy Policy.
-            </span>
-          </label>
-        </div>
+          {formData.password && (
+            <PasswordStrength password={formData.password} />
+          )}
 
-        <AuthButton
-          type="submit"
-          loading={loading}
-          loadingText="Creating account..."
-          disabled={loading}
-        >
-          Create Account
-        </AuthButton>
-      </form>
+          <PasswordInput
+            id="auth-signup-confirm"
+            label="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={(e) => handleChange('confirmPassword', e.target.value)}
+            onBlur={() => handleBlur('confirmPassword')}
+            placeholder="Re-enter your password"
+            required
+            error={touched.confirmPassword ? errors.confirmPassword : ''}
+            autoComplete="new-password"
+            disabled={loading}
+          />
+
+          <div className="auth-terms-row">
+            <label className="auth-checkbox-label">
+              <input
+                type="checkbox"
+                checked={formData.agreeTerms}
+                onChange={(e) => handleChange('agreeTerms', e.target.checked)}
+                disabled={loading}
+              />
+              <span>
+                I agree to the{' '}
+                <Link href="/about" className="auth-inline-link" target="_blank">
+                  Terms of Service
+                </Link>{' '}
+                and Privacy Policy.
+              </span>
+            </label>
+          </div>
+
+          <AuthButton
+            type="submit"
+            loading={loading}
+            loadingText="Creating account..."
+            disabled={loading}
+          >
+            Create Account
+          </AuthButton>
+        </form>
+      </div>
 
       <style jsx>{`
         .auth-form-stack {

@@ -8,6 +8,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/utils/formatPrice';
+import { BUSINESS } from '@/utils/constants';
 
 export default function CartPage() {
   const {
@@ -28,19 +29,28 @@ export default function CartPage() {
   const handleApplyPromo = (e) => {
     e.preventDefault();
     if (!promoCode.trim()) return;
-    if (promoCode.trim().toUpperCase() === 'WELCOME10') {
+    if (promoCode.trim().toUpperCase() === 'WELCOME10' || promoCode.trim().toUpperCase() === 'GLOW10') {
       setPromoApplied(true);
       setPromoError('');
     } else {
-      setPromoError('Invalid promo code. Try "WELCOME10" for demo.');
+      setPromoError('Invalid promo code. Try "WELCOME10" for 10% off.');
       setPromoApplied(false);
     }
   };
 
   const discountAmount = promoApplied ? subtotal * 0.1 : 0;
-  const finalTotal = Math.max(0, total - discountAmount);
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   const breadcrumbs = [{ label: 'Cart' }];
+
+  const generateWhatsAppCartLink = () => {
+    const lines = items.map(
+      (it, idx) =>
+        `${idx + 1}. ${it.product.name} (Qty: ${it.quantity}) — GHS ${(it.product.price * it.quantity).toFixed(2)}`
+    );
+    const msg = `Hello CR Cosmetics & Essentials,\nI would like to order the following items from my cart:\n\n${lines.join('\n')}\n\n• Subtotal: GHS ${subtotal.toFixed(2)}${promoApplied ? `\n• Discount (10%): -GHS ${discountAmount.toFixed(2)}` : ''}\n• Order Total: GHS ${finalTotal.toFixed(2)}\n\nPlease confirm availability and delivery dispatch to my area.`;
+    return `https://wa.me/233592153306?text=${encodeURIComponent(msg)}`;
+  };
 
   if (items.length === 0) {
     return (
@@ -61,6 +71,7 @@ export default function CartPage() {
         />
         <style jsx>{`
           .cart-empty-wrap {
+            padding-top: calc(var(--header-h, 74px) + 2rem);
             padding-bottom: var(--space-20);
           }
         `}</style>
@@ -78,6 +89,24 @@ export default function CartPage() {
           <span className="cart-item-count">{totalCount} item{totalCount !== 1 ? 's' : ''}</span>
         </div>
 
+        {/* Free Shipping Tracker */}
+        <div className="free-shipping-progress-banner">
+          <p className="shipping-banner-text">
+            {subtotal >= 300 ? (
+              <strong>🎉 You have unlocked FREE Doorstep Delivery in Greater Accra!</strong>
+            ) : (
+              <span>
+                Add <strong>{formatPrice(300 - subtotal)}</strong> more to qualify for <strong>FREE Doorstep Delivery</strong> in Accra.
+              </span>
+            )}
+          </p>
+          <div className="progress-track">
+            <div
+              className="progress-bar"
+              style={{ width: `${Math.min(100, (subtotal / 300) * 100)}%` }}
+            />
+          </div>
+        </div>
 
         <div className="cart-layout-grid">
           {/* Main Cart Items List */}
@@ -98,48 +127,48 @@ export default function CartPage() {
                   <div key={product.id} className="cart-item-card">
                     {/* Thumbnail */}
                     <div className={`item-thumb ${isSkincare ? 'thumb-skincare' : 'thumb-grocery'}`}>
-                      <span>{isSkincare ? '✨' : '🛒'}</span>
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} className="item-img" />
+                      ) : (
+                        <span className="item-icon-fallback">{isSkincare ? '✨' : '🍯'}</span>
+                      )}
                     </div>
 
-                    {/* Info */}
-                    <div className="item-details">
-                      <div className="item-category-tag">{product.subcategory || product.category}</div>
+                    {/* Details */}
+                    <div className="item-info">
+                      {product.brand && <span className="item-brand">{product.brand}</span>}
                       <Link href={`/shop/${product.slug}`} className="item-title">
                         {product.name}
                       </Link>
-                      <div className="item-meta">
-                        {product.details?.size && <span>{product.details.size}</span>}
-                        {product.details?.weight && <span>{product.details.weight}</span>}
-                        <span>• Brand: {product.brand}</span>
-                      </div>
-                      <div className="item-mobile-price">
+                      <div className="item-unit-price-mobile">
                         {formatPrice(product.price)} each
                       </div>
-                    </div>
-
-                    {/* Price Desktop */}
-                    <div className="item-price-col">
-                      {formatPrice(product.price)}
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="item-qty-col">
-                      <QuantitySelector
-                        value={quantity}
-                        onChange={(newQty) => updateQuantity(product.id, newQty)}
-                        size="sm"
-                      />
                       <button
                         type="button"
                         onClick={() => removeItem(product.id)}
-                        className="remove-btn"
+                        className="item-remove-btn"
                       >
                         Remove
                       </button>
                     </div>
 
-                    {/* Line Total */}
-                    <div className="item-total-col">
+                    {/* Desktop Unit Price */}
+                    <div className="item-unit-price-desktop">
+                      {formatPrice(product.price)}
+                    </div>
+
+                    {/* Quantity Stepper */}
+                    <div className="item-qty-cell">
+                      <QuantitySelector
+                        value={quantity}
+                        min={1}
+                        max={product.stockCount || 99}
+                        onChange={(newQty) => updateQuantity(product.id, newQty)}
+                      />
+                    </div>
+
+                    {/* Line Subtotal */}
+                    <div className="item-subtotal-cell">
                       {formatPrice(lineTotal)}
                     </div>
                   </div>
@@ -173,13 +202,13 @@ export default function CartPage() {
                 </div>
 
                 <div className="summary-line">
-                  <span>Delivery</span>
-                  <span>To be confirmed</span>
+                  <span>Delivery in Accra</span>
+                  <span>{subtotal >= 300 ? 'FREE' : 'Calculated at checkout'}</span>
                 </div>
 
                 {promoApplied && (
                   <div className="summary-line discount-line">
-                    <span>Demo Promo (10% Off)</span>
+                    <span>Discount (10% Off)</span>
                     <span>-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
@@ -187,19 +216,19 @@ export default function CartPage() {
                 <div className="summary-divider" />
 
                 <div className="summary-line total-line">
-                  <span>Estimated Total</span>
+                  <span>Order Subtotal</span>
                   <span>{formatPrice(finalTotal)}</span>
                 </div>
               </div>
 
               {/* Promo Code Box */}
-              <form onSubmit={handleApplyPromo} className="promo-form" aria-label="Demo promotion field">
+              <form onSubmit={handleApplyPromo} className="promo-form" aria-label="Promo code">
                 <div className="promo-input-row">
                   <input
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Promo code (try WELCOME10)"
+                    placeholder="Promo code (e.g. WELCOME10)"
                     className="promo-input"
                   />
                   <button type="submit" className="promo-btn">
@@ -210,22 +239,34 @@ export default function CartPage() {
                 {promoApplied && <p className="promo-msg success">Promo WELCOME10 applied (10% off)!</p>}
               </form>
 
-              <Button href="/checkout" variant="primary" size="lg" fullWidth>
-                Proceed to Checkout
-              </Button>
+              <div className="cart-checkout-actions">
+                <Button href="/checkout" variant="primary" size="lg" fullWidth>
+                  Proceed to Secure Checkout →
+                </Button>
+
+                <a
+                  href={generateWhatsAppCartLink()}
+                  className="cart-btn-wa-order"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>💬</span>
+                  <span>Order Entire Cart via WhatsApp</span>
+                </a>
+              </div>
 
               <div className="checkout-assurances">
                 <div className="assurance-bullet">
-                  <span>ℹ️</span>
-                  <span>Checkout is a storefront preview; no payment is collected.</span>
+                  <span>🛡️</span>
+                  <span>100% Genuine, verified skincare and essentials.</span>
                 </div>
                 <div className="assurance-bullet">
                   <span>📍</span>
-                  <span>Store location: Botwe, near Galaxy International School.</span>
+                  <span>Store pickup & fast Accra doorstep delivery.</span>
                 </div>
                 <div className="assurance-bullet">
-                  <span>📱</span>
-                  <span>Payment and fulfilment options await business confirmation.</span>
+                  <span>💳</span>
+                  <span>MoMo (MTN, Telecel, AT) and Cash on Delivery.</span>
                 </div>
               </div>
             </div>
@@ -235,7 +276,10 @@ export default function CartPage() {
 
       <style jsx>{`
         .cart-page {
+          padding-top: calc(var(--header-h, 74px) + 2rem);
           padding-bottom: var(--space-20);
+          background: #FAF8F6;
+          min-height: 100vh;
         }
         .cart-header {
           display: flex;
@@ -248,29 +292,29 @@ export default function CartPage() {
           color: var(--color-text-secondary);
         }
         .free-shipping-progress-banner {
-          background-color: var(--color-primary-subtle);
-          border: 1px solid #E8D5CA;
+          background-color: #FDF4F7;
+          border: 1px solid #E8D2DC;
           border-radius: var(--radius-lg);
           padding: var(--space-4) var(--space-6);
           margin-bottom: var(--space-8);
         }
         .shipping-banner-text {
           font-size: var(--text-sm);
-          color: var(--color-primary-dark);
+          color: #6B1733;
           margin-bottom: var(--space-2);
         }
         .progress-track {
           width: 100%;
           height: 6px;
-          background: rgba(196, 112, 75, 0.2);
+          background: rgba(107, 23, 51, 0.12);
           border-radius: var(--radius-full);
           overflow: hidden;
         }
         .progress-bar {
           height: 100%;
-          background: var(--color-primary);
+          background: #6B1733;
           border-radius: var(--radius-full);
-          transition: width var(--duration-normal) var(--ease-out);
+          transition: width 0.3s ease;
         }
         .cart-layout-grid {
           display: grid;
@@ -287,12 +331,12 @@ export default function CartPage() {
           display: none;
           grid-template-columns: 3fr 1fr 1.5fr 1fr;
           padding-bottom: var(--space-3);
-          border-bottom: 1px solid var(--color-border);
+          border-bottom: 1px solid #EBE2E6;
           font-size: var(--text-xs);
           font-weight: var(--weight-bold);
           text-transform: uppercase;
           letter-spacing: var(--tracking-wider);
-          color: var(--color-text-tertiary);
+          color: #8C7C84;
         }
         @media (min-width: 768px) {
           .cart-table-header {
@@ -306,109 +350,99 @@ export default function CartPage() {
           margin-top: var(--space-4);
         }
         .cart-item-card {
-          display: flex;
+          display: grid;
+          grid-template-columns: 80px 1fr auto;
           gap: var(--space-4);
           padding: var(--space-4);
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
+          background: #FFFFFF;
+          border: 1px solid #EBE2E6;
           border-radius: var(--radius-lg);
           align-items: center;
         }
         @media (min-width: 768px) {
           .cart-item-card {
-            display: grid;
             grid-template-columns: 80px 2fr 1fr 1.5fr 1fr;
-            align-items: center;
+            padding: var(--space-4) var(--space-6);
           }
         }
         .item-thumb {
-          width: 72px;
-          height: 72px;
+          width: 80px;
+          height: 80px;
           border-radius: var(--radius-md);
+          overflow: hidden;
+          background: #F8EFF3;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 28px;
-          flex-shrink: 0;
         }
-        .thumb-skincare {
-          background-color: var(--color-primary-subtle);
+        .item-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
-        .thumb-grocery {
-          background-color: var(--color-secondary-subtle);
+        .item-icon-fallback {
+          font-size: 2rem;
         }
-        .item-details {
-          flex: 1;
+        .item-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
-        .item-category-tag {
-          font-size: 10px;
-          font-weight: var(--weight-semibold);
+        .item-brand {
+          font-size: 0.72rem;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: var(--tracking-wider);
-          color: var(--color-text-tertiary);
+          color: #BE4D6E;
         }
         .item-title {
-          font-size: var(--text-sm);
-          font-weight: var(--weight-semibold);
-          color: var(--color-text);
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #161114;
+          text-decoration: none;
           line-height: 1.3;
         }
         .item-title:hover {
-          color: var(--color-primary);
+          color: #6B1733;
         }
-        .item-meta {
-          font-size: var(--text-xs);
-          color: var(--color-text-secondary);
-          margin-top: 2px;
-        }
-        .item-mobile-price {
-          font-size: var(--text-xs);
-          font-weight: var(--weight-semibold);
-          color: var(--color-text);
-          margin-top: 4px;
+        .item-unit-price-mobile {
+          font-size: 0.85rem;
+          color: #6B5B63;
         }
         @media (min-width: 768px) {
-          .item-mobile-price {
+          .item-unit-price-mobile {
             display: none;
           }
         }
-        .item-price-col {
+        .item-remove-btn {
+          align-self: flex-start;
+          background: none;
+          border: none;
+          padding: 0;
+          font-size: 0.75rem;
+          color: #BE4D6E;
+          text-decoration: underline;
+          cursor: pointer;
+          margin-top: 4px;
+        }
+        .item-unit-price-desktop {
           display: none;
-          font-size: var(--text-sm);
-          font-weight: var(--weight-medium);
-          color: var(--color-text);
+          font-size: 0.9rem;
+          color: #161114;
+          font-weight: 500;
         }
         @media (min-width: 768px) {
-          .item-price-col {
+          .item-unit-price-desktop {
             display: block;
           }
         }
-        .item-qty-col {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: var(--space-1);
-        }
-        .remove-btn {
-          background: none;
-          border: none;
-          font-size: var(--text-xs);
-          color: var(--color-text-tertiary);
-          text-decoration: underline;
-          cursor: pointer;
-          padding: 0;
-        }
-        .remove-btn:hover {
-          color: var(--color-error);
-        }
-        .item-total-col {
+        .item-subtotal-cell {
           display: none;
-          font-size: var(--text-base);
-          font-weight: var(--weight-bold);
-          color: var(--color-text);
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #161114;
         }
         @media (min-width: 768px) {
-          .item-total-col {
+          .item-subtotal-cell {
             display: block;
           }
         }
@@ -419,115 +453,134 @@ export default function CartPage() {
           margin-top: var(--space-6);
         }
         .clear-cart-text-btn {
-          font-size: var(--text-xs);
-          color: var(--color-text-secondary);
           background: none;
           border: none;
-          cursor: pointer;
+          font-size: 0.82rem;
+          color: #8C7C84;
           text-decoration: underline;
+          cursor: pointer;
         }
         .clear-cart-text-btn:hover {
-          color: var(--color-error);
+          color: #BE4D6E;
         }
+
+        /* ── Summary Card ── */
         .summary-card {
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-xl);
+          background: #FFFFFF;
+          border: 1px solid #EBE2E6;
+          border-radius: var(--radius-lg);
           padding: var(--space-6);
           position: sticky;
-          top: calc(var(--header-height) + var(--space-6));
+          top: calc(var(--header-h, 74px) + 20px);
+          box-shadow: 0 4px 16px rgba(107, 23, 51, 0.04);
         }
         .summary-title {
-          font-size: var(--text-lg);
-          font-weight: var(--weight-semibold);
-          color: var(--color-text);
-          margin-bottom: var(--space-4);
-          padding-bottom: var(--space-3);
-          border-bottom: 1px solid var(--color-border-light);
+          font-family: var(--font-display, serif);
+          font-size: 1.35rem;
+          font-weight: 700;
+          margin-bottom: var(--space-6);
+          color: #161114;
         }
         .summary-lines {
           display: flex;
           flex-direction: column;
           gap: var(--space-3);
-          margin-bottom: var(--space-6);
         }
         .summary-line {
           display: flex;
           justify-content: space-between;
-          font-size: var(--text-sm);
-          color: var(--color-text-secondary);
-        }
-        .free-badge {
-          color: var(--color-success);
-          font-weight: var(--weight-bold);
+          font-size: 0.9rem;
+          color: #55454C;
         }
         .discount-line {
-          color: var(--color-success);
-          font-weight: var(--weight-medium);
+          color: #1E8E49;
+          font-weight: 600;
         }
         .summary-divider {
           height: 1px;
-          background: var(--color-border);
-          margin: var(--space-1) 0;
+          background: #EBE2E6;
+          margin: var(--space-3) 0;
         }
         .total-line {
-          font-size: var(--text-lg);
-          font-weight: var(--weight-bold);
-          color: var(--color-text);
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: #161114;
         }
         .promo-form {
-          margin-bottom: var(--space-6);
+          margin: var(--space-5) 0;
         }
         .promo-input-row {
           display: flex;
-          gap: var(--space-2);
+          gap: 8px;
         }
         .promo-input {
           flex: 1;
-          height: 38px;
-          padding: 0 var(--space-3);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          font-size: var(--text-xs);
+          padding: 0.65rem 0.85rem;
+          border: 1.5px solid #D8CAD0;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          outline: none;
+        }
+        .promo-input:focus {
+          border-color: #6B1733;
         }
         .promo-btn {
-          height: 38px;
-          padding: 0 var(--space-4);
-          background: var(--color-bg-alt);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          font-size: var(--text-xs);
-          font-weight: var(--weight-semibold);
-          color: var(--color-text);
+          padding: 0.65rem 1.1rem;
+          background: #161114;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 0.82rem;
           cursor: pointer;
         }
-        .promo-btn:hover {
-          background: var(--color-border);
-        }
         .promo-msg {
-          font-size: var(--text-xs);
-          margin-top: var(--space-1);
+          font-size: 0.78rem;
+          margin-top: 4px;
         }
-        .promo-msg.error {
-          color: var(--color-error);
-        }
-        .promo-msg.success {
-          color: var(--color-success);
-        }
-        .checkout-assurances {
+        .promo-msg.error { color: #D32F2F; }
+        .promo-msg.success { color: #1E8E49; }
+
+        .cart-checkout-actions {
           display: flex;
           flex-direction: column;
-          gap: var(--space-2);
+          gap: 0.75rem;
           margin-top: var(--space-6);
-          padding-top: var(--space-4);
-          border-top: 1px solid var(--color-border-light);
+        }
+
+        .cart-btn-wa-order {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          background: #1E8E49;
+          color: #FFFFFF;
+          padding: 0.85rem;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 0.88rem;
+          text-decoration: none;
+          transition: background 0.2s;
+        }
+        .cart-btn-wa-order:hover {
+          background: #176F39;
+        }
+
+        .checkout-assurances {
+          margin-top: var(--space-6);
+          padding-top: var(--space-5);
+          border-top: 1px solid #EBE2E6;
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
         }
         .assurance-bullet {
           display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          font-size: var(--text-xs);
-          color: var(--color-text-secondary);
+          align-items: flex-start;
+          gap: 8px;
+          font-size: 0.8rem;
+          color: #6B5B63;
+          line-height: 1.4;
         }
       `}</style>
     </div>

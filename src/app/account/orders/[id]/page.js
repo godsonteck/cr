@@ -215,6 +215,7 @@ export default function OrderDetailPage() {
 
       <style jsx>{`
         .order-detail-page {
+          padding-top: calc(var(--header-h, 74px) + 2rem);
           padding-bottom: var(--space-20);
         }
         .order-head-bar {

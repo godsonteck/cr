@@ -45,6 +45,7 @@ export default function WishlistPage() {
 
       <style jsx>{`
         .wishlist-page {
+          padding-top: calc(var(--header-h, 74px) + 2rem);
           padding-bottom: var(--space-20);
         }
         .wishlist-header {
