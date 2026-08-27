@@ -1,0 +1,147 @@
+import React from 'react';
+import { Product } from '../../types';
+import { useWishlist } from '../../context/WishlistContext';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
+import { Heart, Star, ShoppingBag, Eye } from 'lucide-react';
+
+interface ProductCardProps {
+  product: Product;
+  onOpenDetails: (product: Product) => void;
+}
+
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails }) => {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
+
+  const isFavorited = isInWishlist(product.id);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart(product, 1);
+    showToast(`Added ${product.name} to basket`);
+  };
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleWishlist(product.id);
+    showToast(isFavorited ? 'Removed from saved favorites' : 'Saved to favorites');
+  };
+
+  return (
+    <div 
+      onClick={() => onOpenDetails(product)}
+      className="bg-white rounded-2xl border border-gray-100 p-4 relative flex flex-col justify-between group hover:shadow-xl hover:border-rose-100 transition-all duration-300 cursor-pointer"
+    >
+      
+      {/* Top Badges & Wishlist Heart */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div>
+          {product.discountBadge ? (
+            <span className="bg-[#A25F6F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+              {product.discountBadge}
+            </span>
+          ) : product.badge ? (
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+              product.badge === 'CR Exclusive' 
+                ? 'bg-black text-[#D4AF37]' 
+                : 'bg-rose-50 text-[#8A3D52]'
+            }`}>
+              {product.badge}
+            </span>
+          ) : (
+            <span />
+          )}
+        </div>
+
+        {/* Heart Wishlist Button */}
+        <button
+          onClick={handleToggleWishlist}
+          aria-label="Add to Wishlist"
+          className="p-1.5 rounded-full hover:bg-rose-50 transition-colors text-gray-400 hover:text-rose-600"
+        >
+          <Heart 
+            className={`w-4 h-4 transition-transform active:scale-125 ${
+              isFavorited ? 'fill-[#8A3D52] text-[#8A3D52]' : 'text-gray-400 stroke-[1.5]'
+            }`} 
+          />
+        </button>
+      </div>
+
+      {/* Product Image Container */}
+      <div className="w-full aspect-square flex items-center justify-center p-2 rounded-xl bg-gray-50/50 group-hover:bg-rose-50/20 transition-colors overflow-hidden relative">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-contain mix-blend-multiply group-hover:scale-108 transition-transform duration-500"
+        />
+
+        {/* Hover Quick Actions overlay */}
+        <div className="absolute inset-x-2 bottom-2 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenDetails(product);
+            }}
+            className="px-3 py-1.5 bg-white/95 hover:bg-white text-gray-800 rounded-lg text-[11px] font-bold shadow-md border border-gray-200 flex items-center gap-1 hover:text-[#8A3D52]"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Quick View</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Product Information */}
+      <div className="pt-3 text-center space-y-1">
+        
+        {/* Brand */}
+        <h4 className="text-xs font-black text-gray-900 tracking-wide uppercase">
+          {product.brand}
+        </h4>
+
+        {/* Product Name */}
+        <p className="text-xs text-gray-600 line-clamp-1 group-hover:text-[#8A3D52] transition-colors font-medium">
+          {product.name}
+        </p>
+
+        {/* Pricing */}
+        <div className="flex items-center justify-center gap-2 pt-1">
+          {product.originalPrice && (
+            <span className="text-xs text-gray-400 line-through">
+              GHS {product.originalPrice.toFixed(2)}
+            </span>
+          )}
+          <span className="text-xs font-black text-gray-900">
+            GHS {product.price.toFixed(2)}
+          </span>
+        </div>
+
+        {/* Rating Stars & Count */}
+        <div className="flex items-center justify-center gap-1 text-[#D4AF37] pt-0.5">
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-3 h-3 fill-current" />
+            ))}
+          </div>
+          <span className="text-[10px] text-gray-400 font-medium">
+            ({product.reviewCount})
+          </span>
+        </div>
+
+      </div>
+
+      {/* Direct Add to Basket Button */}
+      <div className="pt-3">
+        <button
+          onClick={handleAddToCart}
+          className="w-full py-2 bg-gray-900 hover:bg-[#8A3D52] text-white text-[11px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
+        >
+          <ShoppingBag className="w-3.5 h-3.5" />
+          <span>Add to Bag</span>
+        </button>
+      </div>
+
+    </div>
+  );
+};
