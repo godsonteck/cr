@@ -4,89 +4,57 @@ import React from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 
-const categoryCards = [
-  { title: 'Skincare', href: '/shop?category=skincare', image: '/images/categories/skincare.jpg', tone: 'light' },
-  { title: 'Face Care', href: '/shop?subcategory=face', image: '/images/products/face-cleanser.jpg', tone: 'soft' },
-  { title: 'Body Care', href: '/shop?subcategory=body', image: '/images/products/body-lotion.jpg', tone: 'warm' },
-  { title: 'Groceries', href: '/shop?category=groceries', image: '/images/categories/groceries.jpg', tone: 'cream' },
+const categories = [
+  { title: 'Makeup', href: '/shop?category=skincare&subcategory=makeup', image: '/images/products/lip-balm.jpg' },
+  { title: 'Skincare', href: '/shop?category=skincare', image: '/images/categories/skincare.jpg' },
+  { title: 'Fragrances', href: '/shop?category=skincare&subcategory=fragrances', image: '/images/products/3.jpeg' },
+  { title: 'Body Care', href: '/shop?category=skincare&subcategory=body', image: '/images/products/body-lotion.jpg' },
+  { title: 'Beauty Essentials', href: '/shop?category=skincare', image: '/images/products/face-cleanser.jpg' },
+  { title: 'Everyday Essentials', href: '/shop?category=groceries', image: '/images/categories/groceries.jpg' },
+];
+
+const promoCards = [
+  { eyebrow: 'NEW ARRIVALS', title: 'Just In!', copy: 'Fresh beauty finds selected for your routine.', href: '/shop', image: '/images/products/face-moisturizer.jpg', tone: 'rose' },
+  { eyebrow: 'YOUR ROUTINE', title: 'Find your perfect match.', copy: 'Explore skincare by what your skin needs.', href: '/shop?category=skincare', image: '/images/categories/skincare.jpg', tone: 'cream' },
+  { eyebrow: 'CR EDIT', title: 'Curated with care.', copy: 'Only the products we would recommend ourselves.', href: '/shop', image: '/images/hero-pedestal.jpg', tone: 'berry' },
 ];
 
 export default function HomeClient({ allProducts = [], featuredProducts = [] }) {
-  const [activeTab, setActiveTab] = React.useState('featured');
-
+  const [activeTab, setActiveTab] = React.useState('bestsellers');
   const bestSellers = React.useMemo(() => {
     const marked = allProducts.filter((p) => p.badge === 'bestseller');
-    return (marked.length ? marked : featuredProducts).slice(0, 8);
+    return (marked.length ? marked : featuredProducts).slice(0, 6);
   }, [allProducts, featuredProducts]);
 
-  const filteredProducts = React.useMemo(() => {
-    if (activeTab === 'beauty') return allProducts.filter((p) => p.category !== 'groceries').slice(0, 8);
-    if (activeTab === 'essentials') return allProducts.filter((p) => p.category === 'groceries').slice(0, 8);
-    if (activeTab === 'offers') return allProducts.filter((p) => p.originalPrice || p.badge === 'sale').slice(0, 8);
+  const products = React.useMemo(() => {
+    if (activeTab === 'beauty') return allProducts.filter((p) => p.category !== 'groceries').slice(0, 6);
+    if (activeTab === 'essentials') return allProducts.filter((p) => p.category === 'groceries').slice(0, 6);
+    if (activeTab === 'offers') return allProducts.filter((p) => p.originalPrice || p.badge === 'sale').slice(0, 6);
     return bestSellers;
   }, [activeTab, allProducts, bestSellers]);
 
   return (
-    <main className="cr-redesign-home">
-      <section className="cr-editorial-hero">
-        <div className="cr-editorial-hero__copy">
-          <span className="cr-eyebrow">CR COSMETICS &amp; ESSENTIALS · BOTWE</span>
-          <h1>Beauty, care &amp; everyday essentials — <em>beautifully simple.</em></h1>
-          <p>Thoughtfully selected beauty products and everyday essentials, available in-store and online from Botwe, Accra.</p>
-          <div className="cr-hero-actions">
-            <Link href="/shop" className="cr-redesign-btn cr-redesign-btn--dark">Shop the collection</Link>
-            <Link href="/shop?category=groceries" className="cr-redesign-btn cr-redesign-btn--quiet">Explore essentials</Link>
-          </div>
-          <div className="cr-hero-note"><span>Near Galaxy International School</span><span aria-hidden="true">•</span><span>Botwe, Accra</span></div>
+    <main className="cr-reference-home">
+      <section className="cr-home-hero">
+        <div className="cr-home-hero-copy">
+          <span className="cr-home-overline">CR COSMETICS & ESSENTIALS · BOTWE</span>
+          <h1>Your Beauty.<br />Your Essentials.<br /><em>Your Glow.</em></h1>
+          <p>Carefully selected beauty and everyday essentials just for you.</p>
+          <div className="cr-home-actions"><Link href="/shop" className="cr-home-primary">Shop now <span>→</span></Link><Link href="/shop?category=groceries" className="cr-home-secondary">Explore essentials</Link></div>
+          <div className="cr-home-benefits"><span><b>✦</b><strong>100% AUTHENTIC</strong><small>Original products</small></span><span><b>▣</b><strong>SAFE PAYMENT</strong><small>Secure checkout</small></span><span><b>▱</b><strong>FAST DELIVERY</strong><small>Across Ghana</small></span></div>
         </div>
-        <div className="cr-editorial-hero__visual">
-          <div className="cr-hero-image-frame"><img src="/images/hero-pedestal.jpg" alt="CR Cosmetics beauty collection" /></div>
-          <div className="cr-hero-stamp">BEAUTY<br />ESSENTIALS</div>
-        </div>
+        <div className="cr-home-hero-image"><img src="/images/hero-pedestal.jpg" alt="Curated CR Cosmetics beauty collection" /><div className="cr-hero-corner">EST. · BOTWE<br />ACCRA, GH</div></div>
       </section>
 
-      <section className="cr-trust-row" aria-label="Shopping benefits">
-        <div><strong>Curated products</strong><span>Beauty &amp; everyday essentials</span></div>
-        <div><strong>Easy ordering</strong><span>Shop online or message us</span></div>
-        <div><strong>Local pickup</strong><span>Conveniently located in Botwe</span></div>
-        <div><strong>WhatsApp support</strong><span>Help when you need it</span></div>
-      </section>
+      <section className="cr-home-categories"><div className="cr-home-section-heading"><span>DISCOVER</span><h2>Shop by category</h2><i /></div><div className="cr-category-strip">{categories.map((category) => <Link href={category.href} key={category.title} className="cr-category-tile"><div><img src={category.image} alt="" /></div><strong>{category.title}</strong><span>Shop ↗</span></Link>)}</div></section>
 
-      <section className="cr-redesign-section cr-redesign-section--categories">
-        <div className="cr-section-intro"><div><span className="cr-eyebrow">SHOP YOUR WAY</span><h2>Start with what you need.</h2></div><p>From everyday skincare to practical essentials, find your next favourite in a few taps.</p></div>
-        <div className="cr-category-editorial-grid">
-          {categoryCards.map((category) => (
-            <Link key={category.title} href={category.href} className={`cr-category-editorial-card cr-category-editorial-card--${category.tone}`}>
-              <img src={category.image} alt="" /><div className="cr-category-editorial-card__overlay" />
-              <div className="cr-category-editorial-card__content"><span>SHOP</span><h3>{category.title}</h3><span className="cr-category-link">Discover <b>↗</b></span></div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <section className="cr-home-promos"><div className="cr-promo-grid">{promoCards.map((card) => <Link href={card.href} key={card.title} className={`cr-promo-card cr-promo-card--${card.tone}`}><img src={card.image} alt="" /><div className="cr-promo-wash" /><div className="cr-promo-content"><span>{card.eyebrow}</span><h3>{card.title}</h3><p>{card.copy}</p><b>Explore <i>→</i></b></div></Link>)}</div></section>
 
-      <section className="cr-redesign-section cr-product-section">
-        <div className="cr-section-intro cr-section-intro--products"><div><span className="cr-eyebrow">THE CR EDIT</span><h2>Products worth coming back for.</h2></div><Link href="/shop" className="cr-text-link">View all products <span>→</span></Link></div>
-        <div className="cr-product-tabs" role="tablist" aria-label="Product collections">
-          {[['featured', 'Featured'], ['beauty', 'Beauty'], ['essentials', 'Essentials'], ['offers', 'Offers']].map(([key, label]) => (
-            <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? 'is-active' : ''} onClick={() => setActiveTab(key)}>{label}</button>
-          ))}
-        </div>
-        {filteredProducts.length > 0 ? <div className="cr-redesign-product-grid">{filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="cr-home-empty">There are no products in this collection yet.</div>}
-      </section>
+      <section className="cr-home-products"><div className="cr-products-heading"><div><span>THE CR EDIT</span><h2>Beauty, chosen well.</h2></div><Link href="/shop">View all products →</Link></div><div className="cr-product-tabs" role="tablist">{[['bestsellers','Best sellers'],['beauty','Beauty'],['essentials','Essentials'],['offers','Offers']].map(([key,label]) => <button key={key} role="tab" aria-selected={activeTab === key} className={activeTab === key ? 'active' : ''} onClick={() => setActiveTab(key)}>{label}</button>)}</div>{products.length ? <div className="cr-reference-product-grid">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="cr-home-empty">No products in this collection yet.</div>}</section>
 
-      <section className="cr-story-band">
-        <div className="cr-story-band__image"><img src="/images/categories/skincare.jpg" alt="Skincare products at CR Cosmetics" /></div>
-        <div className="cr-story-band__copy"><span className="cr-eyebrow">A STORE MADE FOR REAL LIFE</span><h2>Beauty should feel personal. Shopping should feel easy.</h2><p>CR Cosmetics &amp; Essentials brings beauty care and practical everyday products together, so you can find what you need without the noise.</p>
-          <div className="cr-story-points"><div><span>01</span><strong>Explore</strong><p>Browse by category, need or product.</p></div><div><span>02</span><strong>Choose</strong><p>See clear prices and product details.</p></div><div><span>03</span><strong>Order</strong><p>Checkout online or get help on WhatsApp.</p></div></div>
-          <Link href="/about" className="cr-redesign-btn cr-redesign-btn--outline">Discover CR Cosmetics</Link>
-        </div>
-      </section>
+      <section className="cr-home-trust"><div><span>◌</span><strong>AUTHENTIC PRODUCTS</strong><small>We sell 100% original products</small></div><div><span>▣</span><strong>SECURE PAYMENT</strong><small>Multiple payment options</small></div><div><span>▱</span><strong>FAST & RELIABLE DELIVERY</strong><small>Delivered to your door</small></div><div><span>♙</span><strong>CUSTOMER CARE</strong><small>We are here to help you</small></div></section>
 
-      <section className="cr-redesign-section cr-visit-section">
-        <div className="cr-visit-card"><div><span className="cr-eyebrow">COME SAY HELLO</span><h2>Visit us in Botwe.</h2><p>Find CR Cosmetics &amp; Essentials near Galaxy International School, Botwe, Accra.</p><div className="cr-visit-actions"><Link href="/contact" className="cr-redesign-btn cr-redesign-btn--dark">Contact us</Link><Link href="/contact" className="cr-text-link">Get in touch ↗</Link></div></div><div className="cr-visit-card__mark">CR<span>+</span></div></div>
-      </section>
-
-      <section className="cr-final-cta"><span className="cr-eyebrow">READY WHEN YOU ARE</span><h2>Find something you’ll love.</h2><p>Explore the latest beauty products and everyday essentials from CR Cosmetics.</p><Link href="/shop" className="cr-redesign-btn cr-redesign-btn--cream">Shop now</Link></section>
+      <section className="cr-home-newsletter"><div className="cr-newsletter-copy"><span>STAY GLOWING</span><h2>Good things are worth knowing about.</h2><p>Get updates on new arrivals, special offers and beauty tips from CR.</p></div><form onSubmit={(e) => e.preventDefault()}><input type="email" placeholder="Enter your email address" aria-label="Email address" /><button>Subscribe <span>→</span></button></form></section>
     </main>
   );
 }
