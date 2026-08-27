@@ -1,7 +1,9 @@
 import { getAllProducts } from '@/services/productService';
 
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap() {
-  const baseUrl = 'https://crcosmetics.gh';
+  const baseUrl = 'https://cr-cosmetics.vercel.app';
 
   // Base static routes
   const staticRoutes = [
@@ -28,13 +30,22 @@ export default async function sitemap() {
   }));
 
   // Dynamic product routes
-  const products = getAllProducts();
-  const productRoutes = products.map((p) => ({
-    url: `${baseUrl}/shop/${p.slug}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  let products = [];
+  try {
+    products = (await getAllProducts()) || [];
+  } catch (e) {
+    console.warn('[sitemap] Error fetching products for sitemap:', e?.message);
+    products = [];
+  }
+
+  const productRoutes = Array.isArray(products)
+    ? products.map((p) => ({
+        url: `${baseUrl}/shop/${p.slug}`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      }))
+    : [];
 
   return [...staticRoutes, ...productRoutes];
 }
