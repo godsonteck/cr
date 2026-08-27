@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLowStockAlerts } from '@/services/inventoryService';
@@ -8,528 +8,73 @@ import { getAllOrders } from '@/services/orderEngine';
 import { BUSINESS } from '@/utils/constants';
 import { useAuth } from '@/context/AuthContext';
 
+const NAV = [
+  { label: 'Dashboard', href: '/admin', icon: '⌂' },
+  { label: 'Orders', href: '/admin/orders', icon: '◫' },
+  { label: 'Products', href: '/admin/products', icon: '◇' },
+  { label: 'Inventory', href: '/admin/inventory', icon: '▦' },
+  { label: 'Customers', href: '/admin/customers', icon: '○' },
+  { label: 'Store Settings', href: '/admin/settings', icon: '⚙' },
+];
+
 export default function AdminLayout({ children }) {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const router = useRouter();
   const { admin, isAdminAuthenticated, loading: authLoading, signOutAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [counts, setCounts] = useState({ lowStock: 0, pendingOrders: 0 });
 
-  // If visiting the dedicated Admin Sign-In page, render directly without admin sidebar
-  if (pathname === '/admin/signin') {
-    return <>{children}</>;
-  }
+  const isSignin = pathname === '/admin/signin';
 
-  const lowStockCount = getLowStockAlerts().length;
-  const pendingOrdersCount = getAllOrders().filter(
-    (o) => o.orderStatus === 'PENDING' || o.orderStatus === 'CONFIRMED' || o.orderStatus === 'PROCESSING'
-  ).length;
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCounts() {
+      try {
+        const [lowStockResult, ordersResult] = await Promise.all([getLowStockAlerts(), getAllOrders()]);
+        if (cancelled) return;
+        const lowStock = Array.isArray(lowStockResult) ? lowStockResult.length : 0;
+        const orders = Array.isArray(ordersResult) ? ordersResult : [];
+        const pendingOrders = orders.filter((order) => {
+          const status = String(order?.orderStatus || '').toUpperCase();
+          return ['PENDING', 'CONFIRMED', 'PROCESSING'].includes(status);
+        }).length;
+        setCounts({ lowStock, pendingOrders });
+      } catch (error) {
+        console.error('[AdminLayout] Failed to load navigation counts:', error);
+        if (!cancelled) setCounts({ lowStock: 0, pendingOrders: 0 });
+      }
+    }
+    if (!isSignin && isAdminAuthenticated) loadCounts();
+    return () => { cancelled = true; };
+  }, [isSignin, isAdminAuthenticated]);
 
-  const navLinks = [
-    { label: 'Dashboard', href: '/admin', icon: '📊' },
-    { label: 'Orders', href: '/admin/orders', icon: '🛍️', badge: pendingOrdersCount > 0 ? `${pendingOrdersCount} new` : null, badgeColor: '#BE4D6E' },
-    { label: 'Products', href: '/admin/products', icon: '🧴' },
-    { label: 'Inventory', href: '/admin/inventory', icon: '📦', badge: lowStockCount > 0 ? `${lowStockCount} low` : null, badgeColor: '#D97706' },
-    { label: 'Customers', href: '/admin/customers', icon: '👥' },
-    { label: 'Store Settings', href: '/admin/settings', icon: '⚙️' },
-  ];
-
-  // ── Access Guard: If not signed in as staff, show guard screen ──
-  if (!authLoading && !isAdminAuthenticated) {
-    return (
-      <div className="admin-guard-container">
-        <div className="admin-guard-card">
-          <div className="guard-brand">
-            <span className="guard-crown">♛</span>
-            <h2>CR Cosmetics & Essentials</h2>
-            <span className="guard-tag">ADMIN & STAFF PORTAL</span>
-          </div>
-
-          <div className="guard-icon">🔒</div>
-          <h3>Authentication Required</h3>
-          <p>You must be signed in as an authorized staff member to access the store administration console.</p>
-
-          <div className="guard-actions">
-            <Link href={`/admin/signin?redirect=${encodeURIComponent(pathname)}`} className="btn-guard-signin">
-              Sign In with Staff Account →
-            </Link>
-            <Link href="/" className="btn-guard-home">
-              ← Return to Storefront
-            </Link>
-          </div>
-        </div>
-
-        <style jsx>{`
-          .admin-guard-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1A0D14;
-            padding: 1.5rem;
-            color: #fff;
-          }
-          .admin-guard-card {
-            background: #26131D;
-            border: 1px solid rgba(197, 160, 89, 0.3);
-            border-radius: 12px;
-            padding: 2.5rem;
-            max-width: 440px;
-            width: 100%;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-          }
-          .guard-crown {
-            font-size: 2rem;
-            color: #C5A059;
-          }
-          .guard-brand h2 {
-            font-family: var(--font-display, serif);
-            font-size: 1.25rem;
-            margin: 0.35rem 0 0.2rem 0;
-            color: #fff;
-          }
-          .guard-tag {
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            color: #E6C885;
-          }
-          .guard-icon {
-            font-size: 2.2rem;
-            margin: 0.5rem 0 0;
-          }
-          .admin-guard-card h3 {
-            font-family: var(--font-display, serif);
-            font-size: 1.4rem;
-            margin: 0;
-            color: #fff;
-          }
-          .admin-guard-card p {
-            font-size: 0.85rem;
-            color: #CFC5CA;
-            line-height: 1.5;
-            margin: 0;
-          }
-          .guard-actions {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-          }
-          .btn-guard-signin {
-            background: #7B2347;
-            color: #fff;
-            padding: 0.8rem;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.15s;
-          }
-          .btn-guard-signin:hover {
-            background: #962F58;
-          }
-          .btn-guard-home {
-            font-size: 0.82rem;
-            color: #E6C885;
-            text-decoration: none;
-          }
-          .btn-guard-home:hover {
-            text-decoration: underline;
-          }
-        `}</style>
-      </div>
-    );
-  }
+  useEffect(() => setMobileOpen(false), [pathname]);
 
   const staffName = admin?.name || 'Staff Admin';
-  const staffRole = admin?.roleName || admin?.role?.replace('_', ' ') || 'Administrator';
+  const staffRole = admin?.roleName || String(admin?.role || 'Administrator').replace(/_/g, ' ');
   const staffInitial = staffName.charAt(0).toUpperCase();
+  const navLinks = useMemo(() => NAV.map((item) => ({ ...item, badge: item.href === '/admin/orders' ? counts.pendingOrders : item.href === '/admin/inventory' ? counts.lowStock : null })), [counts]);
 
-  const handleSignOut = () => {
-    signOutAdmin();
-    router.push('/admin/signin');
-  };
+  const handleSignOut = () => { signOutAdmin(); router.push('/admin/signin'); };
 
-  return (
-    <div className="admin-app">
-      {/* ─── Sidebar Navigation ─── */}
-      <aside className={`admin-nav-sidebar ${mobileOpen ? 'open' : ''}`}>
-        {/* Brand Header */}
-        <div className="nav-brand-box">
-          <span className="nav-brand-crown">♛</span>
-          <div>
-            <div className="nav-brand-name">CR Cosmetics</div>
-            <div className="nav-brand-role">Store Admin Portal</div>
-          </div>
-        </div>
+  if (isSignin) return <>{children}</>;
 
-        {/* Navigation Items */}
-        <nav className="nav-menu">
-          {navLinks.map(({ label, href, icon, badge, badgeColor }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => setMobileOpen(false)}
-              >
-                <span className="nav-icon">{icon}</span>
-                <span className="nav-label">{label}</span>
-                {badge && (
-                  <span className="nav-badge" style={{ backgroundColor: badgeColor }}>
-                    {badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+  if (!authLoading && !isAdminAuthenticated) {
+    return <div className="cr-admin-guard"><div className="cr-admin-guard-card"><div className="cr-admin-mark">CR</div><div className="cr-admin-eyebrow">CR COSMETICS & ESSENTIALS</div><h1>Staff access required</h1><p>Sign in with an authorised staff account to manage products, orders, inventory and customers.</p><Link href={`/admin/signin?redirect=${encodeURIComponent(pathname)}`} className="cr-admin-primary">Sign in to admin ↗</Link><Link href="/" className="cr-admin-secondary">Return to storefront</Link></div><style jsx>{`.cr-admin-guard{min-height:100vh;display:grid;place-items:center;padding:24px;background:#f7f1f3;color:#24161c}.cr-admin-guard-card{width:min(440px,100%);padding:52px 42px;text-align:center;background:#fff;border:1px solid #e8dfe2;box-shadow:0 24px 70px rgba(43,20,30,.08)}.cr-admin-mark{font:400 58px/.8 Georgia,serif;letter-spacing:-.08em;color:#6b1733;margin-bottom:24px}.cr-admin-eyebrow{font:700 9px/1 Arial,sans-serif;letter-spacing:.18em;color:#967985;margin-bottom:18px}.cr-admin-guard-card h1{font:400 38px/.98 Georgia,serif;margin:0 0 14px;letter-spacing:-.035em}.cr-admin-guard-card p{font:400 14px/1.65 Arial,sans-serif;color:#74636b;margin:0 auto 26px;max-width:34ch}.cr-admin-primary,.cr-admin-secondary{display:block;text-decoration:none}.cr-admin-primary{padding:15px;background:#6b1733;color:#fff;font:700 10px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}.cr-admin-secondary{margin-top:18px;color:#6b1733;font:700 10px Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}`}</style></div>;
+  }
 
-        {/* Storefront Link at bottom */}
-        <div className="nav-footer">
-          <Link href="/" className="nav-storefront-btn" target="_blank">
-            🛍️ Open Live Website ↗
-          </Link>
-          <div className="nav-store-info">
-            Botwe Branch • 059 215 3306
-          </div>
-        </div>
-      </aside>
-
-      {/* ─── Main Content Canvas ─── */}
-      <div className="admin-body-wrap">
-        {/* Top bar */}
-        <header className="admin-header-bar">
-          <button
-            className="mobile-nav-toggle"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            ☰
-          </button>
-
-          <div className="header-greeting">
-            <span className="greeting-title">{BUSINESS.name}</span>
-            <span className="greeting-sub">• Botwe, Accra</span>
-          </div>
-
-          <div className="header-right-side">
-            <Link href="/admin/products" className="quick-btn-add">
-              + Add Product
-            </Link>
-
-            <div className="admin-user-pill">
-              <span className="admin-avatar">{staffInitial}</span>
-              <div className="admin-info-inline">
-                <span className="admin-name">{staffName}</span>
-                <span className="admin-role-badge">{staffRole}</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="admin-logout-btn"
-              onClick={handleSignOut}
-              title="Sign Out of Admin Console"
-            >
-              Sign Out
-            </button>
-          </div>
-        </header>
-
-        {/* Page Children */}
-        <main className="admin-page-canvas">
-          {children}
-        </main>
-      </div>
-
-      <style jsx global>{`
-        .admin-app {
-          display: flex;
-          min-height: 100vh;
-          background: #FAF8F9;
-          font-family: var(--font-primary, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-          color: #2D1E24;
-          overflow-x: hidden;
-        }
-
-        .admin-nav-sidebar {
-          width: 240px;
-          background: #1A0D14;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          z-index: 100;
-          border-right: 1px solid rgba(255, 255, 255, 0.08);
-          overflow-y: auto;
-        }
-
-        .nav-brand-box {
-          padding: 1.25rem 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-brand-crown {
-          color: #C5A059;
-          font-size: 1.4rem;
-        }
-
-        .nav-brand-name {
-          font-size: 0.95rem;
-          font-weight: 700;
-          color: #fff;
-          font-family: var(--font-display, serif);
-        }
-
-        .nav-brand-role {
-          font-size: 0.7rem;
-          color: rgba(255, 255, 255, 0.55);
-        }
-
-        .nav-menu {
-          padding: 1rem 0.75rem;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.7rem 0.85rem;
-          color: rgba(255, 255, 255, 0.75);
-          text-decoration: none;
-          border-radius: 6px;
-          font-size: 0.88rem;
-          font-weight: 500;
-          transition: all 0.15s ease;
-        }
-
-        .nav-item:hover {
-          background: rgba(255, 255, 255, 0.08);
-          color: #fff;
-        }
-
-        .nav-item.active {
-          background: #7B2347;
-          color: #fff;
-          font-weight: 600;
-        }
-
-        .nav-icon {
-          font-size: 1.05rem;
-        }
-
-        .nav-label {
-          flex: 1;
-        }
-
-        .nav-badge {
-          color: #fff;
-          font-size: 0.68rem;
-          font-weight: 700;
-          padding: 2px 7px;
-          border-radius: 10px;
-          text-transform: uppercase;
-        }
-
-        .nav-footer {
-          padding: 1rem 1rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .nav-storefront-btn {
-          background: rgba(197, 160, 89, 0.15);
-          color: #E6C885;
-          text-decoration: none;
-          padding: 0.5rem 0.75rem;
-          border-radius: 6px;
-          font-size: 0.78rem;
-          font-weight: 600;
-          text-align: center;
-          border: 1px solid rgba(197, 160, 89, 0.3);
-          transition: all 0.2s;
-        }
-
-        .nav-storefront-btn:hover {
-          background: rgba(197, 160, 89, 0.25);
-        }
-
-        .nav-store-info {
-          font-size: 0.68rem;
-          color: rgba(255, 255, 255, 0.45);
-          text-align: center;
-        }
-
-        .admin-body-wrap {
-          flex: 1;
-          margin-left: 240px;
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          min-height: 100vh;
-        }
-
-        .admin-header-bar {
-          height: 64px;
-          background: #fff;
-          border-bottom: 1px solid #EBE4E8;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 2rem;
-          position: sticky;
-          top: 0;
-          z-index: 90;
-        }
-
-        .mobile-nav-toggle {
-          display: none;
-          background: none;
-          border: none;
-          font-size: 1.4rem;
-          color: #7B2347;
-          cursor: pointer;
-        }
-
-        .header-greeting {
-          font-size: 0.9rem;
-        }
-
-        .greeting-title {
-          font-weight: 700;
-          color: #7B2347;
-        }
-
-        .greeting-sub {
-          color: #7A6E73;
-          font-size: 0.8rem;
-          margin-left: 0.3rem;
-        }
-
-        .header-right-side {
-          display: flex;
-          align-items: center;
-          gap: 0.85rem;
-        }
-
-        .quick-btn-add {
-          background: #7B2347;
-          color: #fff;
-          text-decoration: none;
-          padding: 0.45rem 0.9rem;
-          border-radius: 6px;
-          font-size: 0.82rem;
-          font-weight: 600;
-          transition: background 0.15s;
-        }
-
-        .quick-btn-add:hover {
-          background: #5E1734;
-        }
-
-        .admin-user-pill {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.25rem 0.75rem 0.25rem 0.35rem;
-          background: #FDF5F8;
-          border: 1px solid #EBDDE3;
-          border-radius: 20px;
-        }
-
-        .admin-avatar {
-          width: 26px;
-          height: 26px;
-          background: #7B2347;
-          color: #fff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.75rem;
-          font-weight: 700;
-        }
-
-        .admin-info-inline {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .admin-name {
-          font-size: 0.78rem;
-          font-weight: 700;
-          color: #1A0D14;
-          line-height: 1.1;
-        }
-
-        .admin-role-badge {
-          font-size: 0.65rem;
-          color: #7B2347;
-          font-weight: 600;
-        }
-
-        .admin-logout-btn {
-          background: none;
-          border: 1px solid #D8CAD0;
-          padding: 0.35rem 0.7rem;
-          border-radius: 6px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #7A6E73;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-
-        .admin-logout-btn:hover {
-          background: #FEE2E2;
-          border-color: #FCA5A5;
-          color: #DC2626;
-        }
-
-        .admin-page-canvas {
-          padding: 2rem;
-          max-width: 1300px;
-          width: 100%;
-          margin: 0 auto;
-          flex: 1;
-        }
-
-        @media (max-width: 1024px) {
-          .admin-nav-sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.25s ease;
-          }
-          .admin-nav-sidebar.open {
-            transform: translateX(0);
-          }
-          .admin-body-wrap {
-            margin-left: 0;
-          }
-          .mobile-nav-toggle {
-            display: block;
-          }
-        }
-      `}</style>
+  return <div className="cr-admin-app">
+    {mobileOpen && <button className="cr-admin-overlay" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+    <aside className={`cr-admin-sidebar${mobileOpen ? ' is-open' : ''}`}>
+      <div className="cr-admin-brand"><div className="cr-admin-brand-mark">CR</div><div><strong>Cosmetics & Essentials</strong><span>Store operations</span></div></div>
+      <div className="cr-admin-section-label">Workspace</div>
+      <nav className="cr-admin-nav" aria-label="Admin navigation">{navLinks.map((item) => { const active = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} className={`cr-admin-nav-item${active ? ' active' : ''}`}><span className="cr-admin-nav-icon">{item.icon}</span><span>{item.label}</span>{item.badge > 0 && <b>{item.badge}</b>}</Link>; })}</nav>
+      <div className="cr-admin-sidebar-bottom"><Link href="/" target="_blank" className="cr-admin-live">View live store <span>↗</span></Link><div className="cr-admin-location">BOTWE · ACCRA</div></div>
+    </aside>
+    <div className="cr-admin-main">
+      <header className="cr-admin-topbar"><button className="cr-admin-menu" onClick={() => setMobileOpen((value) => !value)} aria-label="Open navigation">☰</button><div className="cr-admin-context"><span>{BUSINESS.name}</span><small> / {pathname === '/admin' ? 'Overview' : pathname.split('/').filter(Boolean).slice(-1)[0]?.replace(/-/g, ' ')}</small></div><div className="cr-admin-top-actions"><Link href="/admin/products" className="cr-admin-add">+ Add product</Link><div className="cr-admin-user"><span>{staffInitial}</span><div><strong>{staffName}</strong><small>{staffRole}</small></div></div><button className="cr-admin-signout" onClick={handleSignOut}>Sign out</button></div></header>
+      <main className="cr-admin-content">{children}</main>
     </div>
-  );
+    <style jsx global>{`.cr-admin-app{min-height:100vh;background:#f8f6f7;color:#281a20;font-family:Arial,sans-serif}.cr-admin-sidebar{position:fixed;inset:0 auto 0 0;width:252px;background:#24131b;color:#fff;z-index:200;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}.cr-admin-brand{padding:27px 23px 25px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;gap:13px;align-items:center}.cr-admin-brand-mark{font:400 39px/.8 Georgia,serif;letter-spacing:-.1em;color:#fff}.cr-admin-brand strong{display:block;font:700 12px/1.2 Georgia,serif}.cr-admin-brand span{display:block;margin-top:5px;color:#bdaeb5;font-size:9px;letter-spacing:.12em;text-transform:uppercase}.cr-admin-section-label{padding:28px 23px 10px;color:#8f7b84;font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}.cr-admin-nav{padding:0 12px;display:flex;flex-direction:column;gap:3px}.cr-admin-nav-item{min-height:45px;padding:0 12px;display:flex;align-items:center;gap:12px;color:#cdbfc5;text-decoration:none;font-size:12px;position:relative}.cr-admin-nav-item:hover{color:#fff;background:rgba(255,255,255,.05)}.cr-admin-nav-item.active{color:#fff;background:#6b1733}.cr-admin-nav-item b{margin-left:auto;min-width:20px;height:20px;padding:0 5px;border-radius:20px;background:#a94d6b;display:grid;place-items:center;color:#fff;font-size:8px}.cr-admin-nav-icon{width:18px;text-align:center;color:#b994a2;font-size:15px}.cr-admin-nav-item.active .cr-admin-nav-icon{color:#fff}.cr-admin-sidebar-bottom{margin-top:auto;padding:18px;border-top:1px solid rgba(255,255,255,.1)}.cr-admin-live{display:flex;justify-content:space-between;padding:12px 13px;color:#e5c5cf;text-decoration:none;border:1px solid rgba(229,197,207,.2);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.cr-admin-location{padding:12px 2px 0;color:#88767f;font-size:8px;letter-spacing:.16em}.cr-admin-main{margin-left:252px;min-height:100vh}.cr-admin-topbar{height:72px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #e9e1e4;display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:150}.cr-admin-context{font-size:12px;color:#6b1733}.cr-admin-context span{font-weight:700}.cr-admin-context small{color:#98858d;font-size:11px}.cr-admin-top-actions{display:flex;align-items:center;gap:16px}.cr-admin-add{background:#6b1733;color:#fff;text-decoration:none;padding:11px 15px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.cr-admin-user{display:flex;align-items:center;gap:9px}.cr-admin-user>span{width:32px;height:32px;background:#f1e5e9;color:#6b1733;display:grid;place-items:center;font-size:11px;font-weight:700}.cr-admin-user strong,.cr-admin-user small{display:block}.cr-admin-user strong{font-size:11px}.cr-admin-user small{margin-top:3px;color:#8d7b83;font-size:8px;text-transform:uppercase;letter-spacing:.08em}.cr-admin-signout{border:0;background:none;color:#8a747d;font-size:10px;font-weight:700;cursor:pointer}.cr-admin-signout:hover{color:#6b1733}.cr-admin-content{padding:clamp(22px,4vw,48px);max-width:1600px}.cr-admin-menu,.cr-admin-overlay{display:none}@media(max-width:900px){.cr-admin-sidebar{transform:translateX(-100%);transition:transform .25s ease}.cr-admin-sidebar.is-open{transform:none}.cr-admin-main{margin-left:0}.cr-admin-menu{display:block;border:0;background:none;font-size:20px;color:#6b1733;cursor:pointer;margin-right:12px}.cr-admin-overlay{display:block;position:fixed;inset:0;background:rgba(26,12,19,.45);z-index:190;border:0}.cr-admin-topbar{padding:0 18px}.cr-admin-context{flex:1}.cr-admin-user div,.cr-admin-signout{display:none}.cr-admin-top-actions{gap:7px}.cr-admin-add{padding:10px 11px}}@media(max-width:520px){.cr-admin-context{display:none}.cr-admin-topbar{justify-content:flex-end}.cr-admin-content{padding:20px 15px}.cr-admin-add{font-size:8px}}`}</style>
+  </div>;
 }
