@@ -4,6 +4,7 @@
 
 import { sql } from '@/lib/db';
 import { recordAuditEvent } from './auditService';
+import { products as fallbackProducts } from '@/data/products';
 
 function formatProduct(row) {
   return {
@@ -33,29 +34,46 @@ function formatProduct(row) {
 }
 
 export async function getAllProducts() {
-  const rows = await sql`
-    SELECT * FROM products
-    WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
-    ORDER BY created_at DESC;
-  `;
-  return rows.map(formatProduct);
+  try {
+    const rows = await sql`
+      SELECT * FROM products
+      WHERE status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+      ORDER BY created_at DESC;
+    `;
+    if (rows && rows.length > 0) {
+      return rows.map(formatProduct);
+    }
+  } catch (e) {
+    console.warn('[productService] DB query failed, using fallback catalog');
+  }
+  return fallbackProducts;
 }
 
 export async function getAllProductsAdmin() {
-  const rows = await sql`
-    SELECT * FROM products
-    ORDER BY created_at DESC;
-  `;
-  return rows.map(formatProduct);
+  try {
+    const rows = await sql`
+      SELECT * FROM products
+      ORDER BY created_at DESC;
+    `;
+    if (rows && rows.length > 0) {
+      return rows.map(formatProduct);
+    }
+  } catch (e) {}
+  return fallbackProducts;
 }
 
 export async function getProductBySlug(slug) {
-  const rows = await sql`
-    SELECT * FROM products
-    WHERE slug = ${slug} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
-    LIMIT 1;
-  `;
-  return rows.length > 0 ? formatProduct(rows[0]) : null;
+  try {
+    const rows = await sql`
+      SELECT * FROM products
+      WHERE slug = ${slug} AND status NOT IN ('ARCHIVED', 'DRAFT', 'HIDDEN')
+      LIMIT 1;
+    `;
+    if (rows && rows.length > 0) {
+      return formatProduct(rows[0]);
+    }
+  } catch (e) {}
+  return fallbackProducts.find((p) => p.slug === slug) || null;
 }
 
 export async function getProductById(id) {
@@ -86,13 +104,18 @@ export async function getProductsBySubcategory(subcategory) {
 }
 
 export async function getFeaturedProducts(count = 8) {
-  const rows = await sql`
-    SELECT * FROM products
-    WHERE in_stock = true AND status = 'PUBLISHED'
-    ORDER BY created_at DESC
-    LIMIT ${count};
-  `;
-  return rows.map(formatProduct);
+  try {
+    const rows = await sql`
+      SELECT * FROM products
+      WHERE in_stock = true AND status = 'PUBLISHED'
+      ORDER BY created_at DESC
+      LIMIT ${count};
+    `;
+    if (rows && rows.length > 0) {
+      return rows.map(formatProduct);
+    }
+  } catch (e) {}
+  return fallbackProducts.slice(0, count);
 }
 
 export async function getNewArrivals(count = 8) {

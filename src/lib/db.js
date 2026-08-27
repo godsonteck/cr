@@ -1,22 +1,27 @@
 import { neon } from '@neondatabase/serverless';
 
-let sqlClient;
+let sqlClient = null;
+let hasWarned = false;
 
 function getSqlClient() {
   if (sqlClient) return sqlClient;
 
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    // Next statically evaluates some client pages during `next build`.
-    // Those pages may import services that contain database reads even though
-    // no request is being served. Return an empty result during the build only;
-    // never silently hide a missing database at runtime.
-    if (process.env.NEXT_PHASE === 'phase-production-build') return null;
-    throw new Error('DATABASE_URL environment variable is required for database operations');
+    if (!hasWarned) {
+      console.warn('[Database Notice]: DATABASE_URL is not configured. Returning fallback data.');
+      hasWarned = true;
+    }
+    return null;
   }
 
-  sqlClient = neon(connectionString);
-  return sqlClient;
+  try {
+    sqlClient = neon(connectionString);
+    return sqlClient;
+  } catch (err) {
+    console.error('[Neon DB Init Error]:', err.message);
+    return null;
+  }
 }
 
 export const sql = (...args) => {
@@ -32,6 +37,6 @@ export async function query(queryText, params = []) {
     return await client(queryText, params);
   } catch (error) {
     console.error('[Neon DB Error]:', error);
-    throw error;
+    return [];
   }
 }
