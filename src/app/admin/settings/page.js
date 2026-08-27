@@ -11,9 +11,19 @@ export default function SimpleAdminSettingsPage() {
   const [productCount, setProductCount] = useState(0);
 
   useEffect(() => {
-    const load = () => {
-      setOrders(getAllOrders());
-      setProductCount(getAllProductsAdmin().length);
+    const load = async () => {
+      try {
+        const ords = await getAllOrders();
+        setOrders(Array.isArray(ords) ? ords : []);
+      } catch (e) {
+        setOrders([]);
+      }
+      try {
+        const prods = await getAllProductsAdmin();
+        setProductCount(Array.isArray(prods) ? prods.length : 0);
+      } catch (e) {
+        setProductCount(0);
+      }
     };
     load();
     window.addEventListener('cr-store-updated', load);

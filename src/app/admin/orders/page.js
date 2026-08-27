@@ -11,8 +11,13 @@ export default function SimpleAdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
 
-  const loadData = () => {
-    setOrders(getAllOrders());
+  const loadData = async () => {
+    try {
+      const res = await getAllOrders();
+      setOrders(Array.isArray(res) ? res : []);
+    } catch (e) {
+      setOrders([]);
+    }
   };
 
   useEffect(() => {
@@ -21,13 +26,14 @@ export default function SimpleAdminOrdersPage() {
     return () => window.removeEventListener('cr-store-updated', loadData);
   }, []);
 
-  const handleAdvance = (orderId, nextStatus) => {
+  const handleAdvance = async (orderId, nextStatus) => {
     try {
-      transitionOrderStatus(orderId, nextStatus, 'Store Admin', `Order updated to ${nextStatus}`);
+      await transitionOrderStatus(orderId, nextStatus, 'Store Admin', `Order updated to ${nextStatus}`);
       setToastMsg(`Order #${orderId} moved to ${nextStatus}`);
-      loadData();
+      await loadData();
       if (selectedOrder && selectedOrder.orderId === orderId) {
-        setSelectedOrder(getAllOrders().find(o => o.orderId === orderId));
+        const all = await getAllOrders();
+        setSelectedOrder((all || []).find(o => o.orderId === orderId));
       }
       setTimeout(() => setToastMsg(''), 3000);
     } catch (err) {
@@ -35,13 +41,14 @@ export default function SimpleAdminOrdersPage() {
     }
   };
 
-  const handleVerify = (orderId) => {
+  const handleVerify = async (orderId) => {
     try {
-      markOrderPaymentPaid(orderId, `MOMO-${Date.now().toString().slice(-4)}`, 'Store Admin');
+      await markOrderPaymentPaid(orderId, `MOMO-${Date.now().toString().slice(-4)}`, 'Store Admin');
       setToastMsg(`Payment verified for order #${orderId}`);
-      loadData();
+      await loadData();
       if (selectedOrder && selectedOrder.orderId === orderId) {
-        setSelectedOrder(getAllOrders().find(o => o.orderId === orderId));
+        const all = await getAllOrders();
+        setSelectedOrder((all || []).find(o => o.orderId === orderId));
       }
       setTimeout(() => setToastMsg(''), 3000);
     } catch (err) {

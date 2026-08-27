@@ -1,140 +1,286 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
-import { useSearch } from '@/context/SearchContext';
 import { useAuth } from '@/context/AuthContext';
-
-const NAV = [
-  { label: 'Home', href: '/' },
-  { label: 'Shop', href: '/shop' },
-  { label: 'About', href: '/about' },
-  { label: 'Contact', href: '/contact' },
-];
+import { useSearch } from '@/context/SearchContext';
 
 export default function Header() {
   const pathname = usePathname() || '';
+  const router = useRouter();
   const { totalCount, openDrawer } = useCart();
-  const { count: wishlistCount } = useWishlist();
+  const { isAuthenticated } = useAuth();
   const { openSearch } = useSearch();
-  const { customer, isAuthenticated } = useAuth();
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const onScroll = useCallback(() => setScrolled(window.scrollY > 8), []);
-  useEffect(() => { window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll); }, [onScroll]);
-  useEffect(() => setOpen(false), [pathname]);
-  useEffect(() => { document.body.style.overflow = open ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [open]);
+  const onScroll = useCallback(() => setScrolled(window.scrollY > 10), []);
+  useEffect(() => {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [onScroll]);
 
-  const isActive = (href) => href === '/' ? pathname === '/' : pathname.startsWith(href);
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  const isActive = (href) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
 
   return (
     <>
-      <header className={'hdr' + (scrolled ? ' hdr--up' : '')}>
-        {/* Top strip */}
-        <div className="hdr-strip">
-          Free delivery over GH&#8373;300 &nbsp;·&nbsp; 100% authentic &nbsp;·&nbsp;
-          <a href="https://wa.me/233592153306" target="_blank" rel="noopener noreferrer">WhatsApp us</a>
-        </div>
+      {/* ── Top Announcement (Subtle & Clean) ── */}
+      <div className="top-banner">
+        <span>Authentic Skincare &amp; Daily Groceries &bull; Same-day delivery across Accra &bull; WhatsApp: 059 215 3306</span>
+      </div>
 
-        <div className="hdr-inner">
+      {/* ── Main Header ── */}
+      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className="header-container">
+          
           {/* Logo */}
-          <Link href="/" className="hdr-logo" aria-label="CR Cosmetics home">
-            <img src="/logo.jpeg" alt="" className="hdr-logo-img" />
-            <div className="hdr-logo-text">
-              <span className="hdr-logo-name">CR Cosmetics</span>
-              <span className="hdr-logo-sub">&amp; Essentials</span>
-            </div>
+          <Link href="/" className="brand-logo">
+            <span className="brand-title">CR COSMETICS</span>
+            <span className="brand-tagline">&amp; ESSENTIALS</span>
           </Link>
 
-          {/* Nav */}
-          <nav className="hdr-nav" aria-label="Main">
-            {NAV.map(n => (
-              <Link key={n.label} href={n.href} className={'hdr-nav-a' + (isActive(n.href) ? ' hdr-nav-a--on' : '')}>
-                {n.label}
-              </Link>
-            ))}
+          {/* Simple Navigation */}
+          <nav className="nav-links" aria-label="Main Navigation">
+            <Link href="/shop" className={`nav-link ${isActive('/shop') && !pathname.includes('category') ? 'is-active' : ''}`}>
+              Shop All
+            </Link>
+            <Link href="/shop?category=skincare" className={`nav-link ${pathname.includes('category=skincare') ? 'is-active' : ''}`}>
+              Skincare
+            </Link>
+            <Link href="/shop?category=groceries" className={`nav-link ${pathname.includes('category=groceries') ? 'is-active' : ''}`}>
+              Groceries
+            </Link>
+            <Link href="/about" className={`nav-link ${isActive('/about') ? 'is-active' : ''}`}>
+              About Store
+            </Link>
+            <Link href="/contact" className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`}>
+              Contact
+            </Link>
           </nav>
 
-          {/* Actions */}
-          <div className="hdr-actions">
-            <button className="hdr-icon" onClick={openSearch} aria-label="Search">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          {/* Clean Utility Actions */}
+          <div className="header-actions">
+            <button
+              type="button"
+              className="action-btn"
+              onClick={openSearch}
+              aria-label="Search"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
+              </svg>
             </button>
-            <Link href={isAuthenticated ? '/account' : '/signin'} className="hdr-icon" aria-label="Account">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+
+            <Link
+              href={isAuthenticated ? '/account' : '/signin'}
+              className="action-btn"
+              aria-label={isAuthenticated ? 'Account' : 'Sign in'}
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>
+              </svg>
             </Link>
-            <button className="hdr-icon hdr-icon--cart" onClick={openDrawer} aria-label={`Cart (${totalCount})`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 7h14l-1 13H6L5 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
-              {totalCount > 0 && <span className="hdr-badge">{totalCount > 9 ? '9+' : totalCount}</span>}
+
+            <button
+              type="button"
+              className="action-btn cart-btn"
+              onClick={openDrawer}
+              aria-label={`Shopping Cart (${totalCount} items)`}
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              {totalCount > 0 && <span className="cart-badge">{totalCount}</span>}
             </button>
-            <button className={'hdr-burger' + (open ? ' hdr-burger--x' : '')} onClick={() => setOpen(v => !v)} aria-label="Menu">
-              <span/><span/><span/>
+
+            {/* Mobile Hamburger */}
+            <button
+              type="button"
+              className="mobile-toggle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile menu */}
-      <div className={'hdr-menu' + (open ? ' hdr-menu--open' : '')} aria-hidden={!open}>
-        <nav>
-          {NAV.map(n => (
-            <Link key={n.label} href={n.href} className="hdr-menu-a" onClick={() => setOpen(false)}>
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-        <a href="https://wa.me/233592153306" target="_blank" rel="noopener noreferrer" className="hdr-menu-wa">
-          WhatsApp us &rarr;
-        </a>
-        <p className="hdr-menu-loc">Near Galaxy Int. School, Botwe, Accra</p>
-      </div>
+      {/* ── Mobile Menu Dropdown ── */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu">
+          <nav className="mobile-nav">
+            <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>Shop All</Link>
+            <Link href="/shop?category=skincare" onClick={() => setMobileMenuOpen(false)}>Skincare &amp; Beauty</Link>
+            <Link href="/shop?category=groceries" onClick={() => setMobileMenuOpen(false)}>Groceries &amp; Essentials</Link>
+            <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About Our Store</Link>
+            <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Contact &amp; Location</Link>
+            <a href="https://wa.me/233592153306" target="_blank" rel="noopener noreferrer" className="mobile-wa">
+              💬 WhatsApp Order (059 215 3306)
+            </a>
+          </nav>
+        </div>
+      )}
 
       <style jsx>{`
-        .hdr { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #ece5e8; transition: box-shadow .25s; }
-        .hdr--up { box-shadow: 0 2px 20px rgba(0,0,0,.07); }
-        .hdr-strip { background: #1a1117; color: rgba(255,255,255,.7); text-align: center; padding: 8px 16px; font: 500 11px/1 var(--font-primary, sans-serif); letter-spacing: .04em; }
-        .hdr-strip a { color: #25d366; text-decoration: none; font-weight: 600; }
-        .hdr-strip a:hover { text-decoration: underline; }
-        .hdr-inner { max-width: 1320px; margin: 0 auto; height: 68px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 0 32px; gap: 32px; }
-        .hdr-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; flex-shrink: 0; }
-        .hdr-logo-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid #c59b3f; }
-        .hdr-logo-text { display: flex; flex-direction: column; }
-        .hdr-logo-name { font: 600 15px/1.1 var(--font-display, Georgia, serif); color: #1a1117; letter-spacing: -.01em; }
-        .hdr-logo-sub { font: 600 10px/1 var(--font-primary, sans-serif); color: #6b1733; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
-        .hdr-nav { display: flex; align-items: center; gap: 4px; justify-content: center; }
-        .hdr-nav-a { font: 500 13px/1 var(--font-primary, sans-serif); color: #4a3840; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: color .15s, background .15s; }
-        .hdr-nav-a:hover { color: #6b1733; background: #faf2f5; }
-        .hdr-nav-a--on { color: #6b1733; font-weight: 600; }
-        .hdr-actions { display: flex; align-items: center; gap: 4px; }
-        .hdr-icon { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #4a3840; cursor: pointer; text-decoration: none; position: relative; transition: color .15s, background .15s; }
-        .hdr-icon:hover { color: #6b1733; background: #faf2f5; }
-        .hdr-badge { position: absolute; top: 4px; right: 4px; min-width: 14px; height: 14px; background: #6b1733; color: #fff; border-radius: 99px; font: 700 8px/14px var(--font-primary, sans-serif); text-align: center; padding: 0 3px; }
-        .hdr-burger { background: none; border: none; width: 38px; height: 38px; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; padding: 8px; border-radius: 6px; }
-        .hdr-burger span { display: block; width: 20px; height: 1.5px; background: #1a1117; transition: transform .2s, opacity .2s; }
-        .hdr-burger--x span:first-child { transform: translateY(6.5px) rotate(45deg); }
-        .hdr-burger--x span:nth-child(2) { opacity: 0; }
-        .hdr-burger--x span:last-child { transform: translateY(-6.5px) rotate(-45deg); }
-        .hdr-menu { display: none; position: fixed; inset: 0; background: #fff; z-index: 99; padding: 100px 32px 40px; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .2s; }
-        .hdr-menu--open { opacity: 1; pointer-events: auto; }
-        .hdr-menu nav { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; border-bottom: 1px solid #ece5e8; padding-bottom: 32px; }
-        .hdr-menu-a { font: 400 32px/1 var(--font-display, Georgia, serif); color: #1a1117; text-decoration: none; padding: 12px 0; transition: color .15s; }
-        .hdr-menu-a:hover { color: #6b1733; }
-        .hdr-menu-wa { display: inline-flex; background: #25d366; color: #fff; font: 600 13px/1 var(--font-primary, sans-serif); padding: 14px 24px; border-radius: 6px; text-decoration: none; width: fit-content; margin-bottom: 16px; }
-        .hdr-menu-loc { font: 400 12px/1.5 var(--font-primary, sans-serif); color: #9a8590; }
-        @media (max-width: 860px) {
-          .hdr-inner { height: 60px; grid-template-columns: auto 1fr; padding: 0 20px; }
-          .hdr-nav { display: none; }
-          .hdr-burger { display: flex; }
-          .hdr-menu { display: flex; }
-          .hdr-icon--cart { display: flex; }
+        .top-banner {
+          background: #111111;
+          color: #E5E5E5;
+          text-align: center;
+          font-size: 0.75rem;
+          padding: 6px 1rem;
+          letter-spacing: 0.02em;
         }
-        @media (max-width: 480px) {
-          .hdr-logo-text { display: none; }
-          .hdr-strip { font-size: 10px; }
+
+        .site-header {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          background: #FFFFFF;
+          border-bottom: 1px solid #EAEAEA;
+          transition: box-shadow 0.2s ease;
+        }
+        .site-header.is-scrolled {
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .header-container {
+          max-width: 1240px;
+          margin: 0 auto;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 1.5rem;
+        }
+
+        .brand-logo {
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          line-height: 1;
+        }
+        .brand-title {
+          font-family: var(--font-display, serif);
+          font-size: 1.15rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: #111111;
+        }
+        .brand-tagline {
+          font-size: 0.58rem;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: #7B2347;
+          margin-top: 2px;
+        }
+
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+        .nav-link {
+          font-size: 0.88rem;
+          font-weight: 500;
+          color: #444444;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .nav-link:hover,
+        .nav-link.is-active {
+          color: #111111;
+          font-weight: 600;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+        .action-btn {
+          background: none;
+          border: none;
+          width: 36px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          color: #333333;
+          cursor: pointer;
+          border-radius: 50%;
+          position: relative;
+          text-decoration: none;
+        }
+        .action-btn:hover {
+          background: #F5F5F5;
+          color: #111111;
+        }
+
+        .cart-badge {
+          position: absolute;
+          top: 3px;
+          right: 3px;
+          background: #111111;
+          color: #FFFFFF;
+          font-size: 0.65rem;
+          font-weight: 700;
+          width: 17px;
+          height: 17px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+        }
+
+        .mobile-toggle {
+          display: none;
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          cursor: pointer;
+          color: #111111;
+          padding: 4px 8px;
+        }
+
+        .mobile-menu {
+          background: #FFFFFF;
+          border-bottom: 1px solid #EAEAEA;
+          padding: 1.25rem 1.5rem;
+        }
+        .mobile-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .mobile-nav a {
+          text-decoration: none;
+          font-size: 1rem;
+          color: #222222;
+          font-weight: 500;
+        }
+        .mobile-wa {
+          margin-top: 0.5rem;
+          padding: 10px;
+          background: #25D366;
+          color: #FFF !important;
+          text-align: center;
+          border-radius: 6px;
+          font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+          .nav-links { display: none; }
+          .mobile-toggle { display: block; }
         }
       `}</style>
     </>

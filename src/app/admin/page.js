@@ -11,9 +11,13 @@ export default function SimpleAdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [toastMsg, setToastMsg] = useState('');
 
-  const loadData = () => {
-    setSummary(getOperationalDashboardSummary());
-    setOrders(getAllOrders());
+  const loadData = async () => {
+    const [summaryData, ordersData] = await Promise.all([
+      getOperationalDashboardSummary().catch(() => ({ metrics: {}, pipeline: {}, lowStockAlerts: [] })),
+      getAllOrders().catch(() => []),
+    ]);
+    setSummary(summaryData);
+    setOrders(ordersData);
   };
 
   useEffect(() => {
@@ -22,22 +26,22 @@ export default function SimpleAdminDashboard() {
     return () => window.removeEventListener('cr-store-updated', loadData);
   }, []);
 
-  const handleQuickAdvance = (orderId, nextStatus) => {
+  const handleQuickAdvance = async (orderId, nextStatus) => {
     try {
-      transitionOrderStatus(orderId, nextStatus, 'Store Admin', `Advanced from Dashboard to ${nextStatus}`);
+      await transitionOrderStatus(orderId, nextStatus, 'Store Admin', `Advanced from Dashboard to ${nextStatus}`);
       setToastMsg(`Order #${orderId} moved to ${nextStatus}`);
-      loadData();
+      await loadData();
       setTimeout(() => setToastMsg(''), 3000);
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleVerifyPayment = (orderId) => {
+  const handleVerifyPayment = async (orderId) => {
     try {
-      markOrderPaymentPaid(orderId, `MOMO-${Date.now().toString().slice(-4)}`, 'Store Admin');
+      await markOrderPaymentPaid(orderId, `MOMO-${Date.now().toString().slice(-4)}`, 'Store Admin');
       setToastMsg(`Payment verified for order #${orderId}`);
-      loadData();
+      await loadData();
       setTimeout(() => setToastMsg(''), 3000);
     } catch (err) {
       alert(err.message);

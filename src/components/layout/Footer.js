@@ -2,32 +2,192 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BUSINESS } from '@/utils/constants';
 
 export default function Footer() {
   return (
-    <footer className="cr-ref-footer">
-      <div className="cr-ref-footer-benefits"><div><b>✦</b><span><strong>AUTHENTIC PRODUCTS</strong><small>100% original products</small></span></div><div><b>▣</b><span><strong>SECURE PAYMENT</strong><small>Multiple payment options</small></span></div><div><b>▱</b><span><strong>FAST & RELIABLE DELIVERY</strong><small>Delivered to your door</small></span></div><div><b>♙</b><span><strong>CUSTOMER CARE</strong><small>We are here to help</small></span></div></div>
-      <div className="cr-ref-footer-main">
-        <div className="cr-footer-about">
-          <div className="cr-footer-brand-wrap">
-            <img src="/logo.jpeg" alt="CR Cosmetics & Essentials" className="cr-footer-logo-img" />
-            <div>
-              <span className="cr-footer-label">ABOUT CR COSMETICS &amp; ESSENTIALS</span>
-              <h3>Beauty, care &amp; everyday essentials.</h3>
-            </div>
+    <footer className="clean-footer">
+      <div className="footer-container">
+        
+        {/* Brand Column */}
+        <div className="footer-col brand-col">
+          <div className="brand-logo">
+            <span className="brand-name">CR COSMETICS &amp; ESSENTIALS</span>
           </div>
-          <p>We bring high-quality cosmetics, skincare, fragrances and everyday essentials together in one carefully selected store.</p>
-          <div className="cr-footer-social"><a href="https://wa.me/233592153306" aria-label="WhatsApp">W</a><a href="https://www.instagram.com/" aria-label="Instagram">◎</a><a href="https://www.tiktok.com/" aria-label="TikTok">♪</a></div>
+          <p className="brand-desc">
+            Your neighbourhood store in Botwe, Accra for verified skincare, body lotions, fragrant rice, and daily groceries.
+          </p>
+          <div className="store-meta">
+            <span>📍 Near Galaxy International School, Botwe</span>
+            <span>📞 +233 59 215 3306</span>
+          </div>
         </div>
-        <div className="cr-footer-news"><div className="cr-footer-envelope">✉</div><span className="cr-footer-label">STAY GLOWING</span><h3>Be the first to know.</h3><p>Subscribe for new arrivals, offers and beauty tips.</p><form onSubmit={(e) => e.preventDefault()}><input type="email" placeholder="Enter your email" aria-label="Email address" /><button>Subscribe</button></form></div>
-        <div><span className="cr-footer-label">CUSTOMER CARE</span><ul><li><Link href="/contact">Contact Us</Link></li><li><Link href="/faqs">FAQs</Link></li><li><Link href="/delivery">Delivery &amp; Returns</Link></li><li><Link href="/terms">Terms &amp; Conditions</Link></li><li><Link href="/privacy">Privacy Policy</Link></li></ul></div>
-        <div><span className="cr-footer-label">CONTACT US</span><ul className="cr-footer-contact"><li>☎ <span>+233 59 215 3306</span></li><li>✉ <span>hello@crcosmetics.gh</span></li><li>⌖ <span>Botwe, near Galaxy International School, Accra</span></li><li>◷ <span>Mon–Sat: 9:00am – 8:00pm<br />Sun: 12:00pm – 6:00pm</span></li></ul></div>
+
+        {/* Quick Links */}
+        <div className="footer-col">
+          <span className="col-heading">Shop</span>
+          <ul className="links-list">
+            <li><Link href="/shop">All Products</Link></li>
+            <li><Link href="/shop?category=skincare">Skincare &amp; Beauty</Link></li>
+            <li><Link href="/shop?category=groceries">Groceries &amp; Essentials</Link></li>
+            <li><Link href="/shop?q=sale">Special Offers</Link></li>
+          </ul>
+        </div>
+
+        {/* Customer Care */}
+        <div className="footer-col">
+          <span className="col-heading">Customer Care</span>
+          <ul className="links-list">
+            <li><Link href="/contact">Contact &amp; Map</Link></li>
+            <li><Link href="/delivery">Delivery &amp; Shipping</Link></li>
+            <li><Link href="/returns">Returns &amp; Refunds</Link></li>
+            <li><Link href="/faqs">FAQs</Link></li>
+          </ul>
+        </div>
+
+        {/* Direct WhatsApp Ordering */}
+        <div className="footer-col wa-col">
+          <span className="col-heading">Fast Order</span>
+          <p className="wa-desc">Need immediate delivery or have a question? Order directly on WhatsApp.</p>
+          <a
+            href="https://wa.me/233592153306"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="wa-btn"
+          >
+            💬 Chat on WhatsApp (059 215 3306)
+          </a>
+        </div>
+
       </div>
-      <div className="cr-ref-footer-bottom"><span>© {new Date().getFullYear()} {BUSINESS.name}. All Rights Reserved.</span><div><span className="cr-payment-pill">VISA</span><span className="cr-payment-pill">MC</span><span className="cr-payment-pill">MTN MoMo</span><span className="cr-payment-pill">Telecel</span><span className="cr-payment-pill">G Pay</span></div></div>
+
+      {/* Bottom Bar */}
+      <div className="bottom-bar">
+        <div className="footer-container bottom-flex">
+          <span>&copy; {new Date().getFullYear()} CR Cosmetics &amp; Essentials. All rights reserved.</span>
+          <span>MTN MoMo &bull; Telecel Cash &bull; Cash on Delivery</span>
+        </div>
+      </div>
+
       <style jsx>{`
-        .cr-ref-footer{background:#fff9f7;color:#34252b;border-top:1px solid #eadde1}.cr-ref-footer-benefits{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);background:#f8e8ed;border-block:1px solid #ead8df}.cr-ref-footer-benefits>div{padding:15px 20px;display:flex;align-items:center;gap:10px;border-right:1px solid #ead8df}.cr-ref-footer-benefits>div:last-child{border:0}.cr-ref-footer-benefits b{font-size:19px;color:#9d6077}.cr-ref-footer-benefits span{display:flex;flex-direction:column;gap:3px}.cr-ref-footer-benefits strong,.cr-footer-label{font:700 8px/1.2 var(--font-primary);letter-spacing:.12em;text-transform:uppercase;color:#795665}.cr-ref-footer-benefits small{font:400 8px/1.2 var(--font-primary);color:#99818a}.cr-ref-footer-main{max-width:1480px;margin:auto;padding:38px clamp(20px,5vw,70px);display:grid;grid-template-columns:1.1fr 1.2fr .8fr 1fr;gap:45px;background:#fff}.cr-footer-brand-wrap{display:flex;align-items:center;gap:14px;margin-bottom:10px}.cr-footer-logo-img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold, #c59b3f);box-shadow:0 2px 8px rgba(107,23,51,.1)}.cr-footer-about h3,.cr-footer-news h3{font:400 25px/1.05 var(--font-display);margin:5px 0 0}.cr-footer-about p,.cr-footer-news p{font:400 11px/1.6 var(--font-primary);color:#79676f;max-width:300px}.cr-footer-social{display:flex;gap:8px;margin-top:18px}.cr-footer-social a{width:28px;height:28px;border:1px solid #dfcbd2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#8e4e67;font:700 11px var(--font-primary)}.cr-footer-news{text-align:center;border:1px solid #dfcbd2;padding:20px}.cr-footer-news p{margin:auto}.cr-footer-envelope{font-size:25px;color:#a15f76;margin-bottom:10px}.cr-footer-news form{display:flex;margin-top:17px;border:1px solid #ddcbd1}.cr-footer-news input{min-width:0;flex:1;border:0;padding:10px;font:400 10px var(--font-primary);outline:0}.cr-footer-news button{background:var(--burgundy, #8d4560);color:#fff;border:0;padding:0 13px;text-transform:uppercase;font:700 8px var(--font-primary);letter-spacing:.08em}.cr-ref-footer-main ul{display:flex;flex-direction:column;gap:10px;margin-top:13px}.cr-ref-footer-main li,.cr-ref-footer-main a{font:400 10px/1.5 var(--font-primary);color:#705e66;text-decoration:none}.cr-ref-footer-main a:hover{color:var(--burgundy)}.cr-footer-contact li{display:flex;gap:8px}.cr-footer-contact li:first-letter{color:#9b5b72}.cr-ref-footer-bottom{background:#241b1f;color:#d8cbd0;min-height:48px;padding:10px clamp(20px,5vw,70px);display:flex;align-items:center;justify-content:space-between;gap:15px;font:400 8px var(--font-primary)}.cr-ref-footer-bottom>div{display:flex;gap:5px;flex-wrap:wrap}.cr-payment-pill{background:#fff;color:#33262b;border-radius:3px;padding:5px 7px;font:700 7px var(--font-primary)}
-        @media(max-width:1000px){.cr-ref-footer-main{grid-template-columns:1fr 1fr}.cr-ref-footer-benefits{grid-template-columns:1fr 1fr}.cr-ref-footer-benefits>div:nth-child(2){border-right:0}.cr-ref-footer-benefits>div{border-bottom:1px solid #ead8df}}@media(max-width:600px){.cr-ref-footer-main{grid-template-columns:1fr;gap:28px}.cr-ref-footer-benefits{grid-template-columns:1fr}.cr-ref-footer-benefits>div{border-right:0}.cr-ref-footer-bottom{flex-direction:column;align-items:flex-start}.cr-footer-news{order:0}}
+        .clean-footer {
+          background: #FAFAFA;
+          border-top: 1px solid #EAEAEA;
+          color: #333333;
+          font-family: var(--font-primary, sans-serif);
+          padding-top: 3.5rem;
+        }
+
+        .footer-container {
+          max-width: 1240px;
+          margin: 0 auto;
+          padding: 0 1.5rem;
+          display: grid;
+          grid-template-columns: 1.4fr 0.8fr 0.8fr 1fr;
+          gap: 2.5rem;
+          padding-bottom: 3rem;
+        }
+
+        .brand-name {
+          font-family: var(--font-display, serif);
+          font-size: 1.1rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          color: #111111;
+          display: block;
+          margin-bottom: 0.75rem;
+        }
+        .brand-desc {
+          font-size: 0.85rem;
+          line-height: 1.55;
+          color: #666666;
+          margin: 0 0 1rem;
+          max-width: 320px;
+        }
+        .store-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 0.8rem;
+          color: #555555;
+          font-weight: 500;
+        }
+
+        .col-heading {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #111111;
+          display: block;
+          margin-bottom: 1rem;
+        }
+
+        .links-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+        .links-list a {
+          font-size: 0.85rem;
+          color: #666666;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .links-list a:hover {
+          color: #111111;
+        }
+
+        .wa-desc {
+          font-size: 0.85rem;
+          color: #666666;
+          margin: 0 0 1rem;
+          line-height: 1.5;
+        }
+        .wa-btn {
+          display: inline-flex;
+          align-items: center;
+          background: #25D366;
+          color: #FFFFFF;
+          font-size: 0.82rem;
+          font-weight: 600;
+          padding: 10px 14px;
+          border-radius: 6px;
+          text-decoration: none;
+          transition: background 0.15s;
+        }
+        .wa-btn:hover {
+          background: #1EBE5B;
+        }
+
+        .bottom-bar {
+          border-top: 1px solid #EAEAEA;
+          padding: 1.25rem 0;
+          font-size: 0.78rem;
+          color: #888888;
+        }
+        .bottom-flex {
+          display: flex;
+          justify-content: space-between;
+          padding-bottom: 0;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        @media (max-width: 860px) {
+          .footer-container {
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+          }
+        }
+        @media (max-width: 500px) {
+          .footer-container {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+          }
+        }
       `}</style>
     </footer>
   );
