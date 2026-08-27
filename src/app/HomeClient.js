@@ -1,413 +1,220 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 
-const categories = [
-  { title: 'Skincare', count: '80+ products', href: '/shop?category=skincare', image: '/images/categories/skincare.jpg', accent: '#8d3d59' },
-  { title: 'Body Care', count: 'Oils & Butters', href: '/shop?category=skincare&subcategory=body', image: '/images/products/body-lotion.jpg', accent: '#6b1733' },
-  { title: 'Fragrances', count: 'Imported', href: '/shop?category=skincare&subcategory=fragrances', image: '/images/products/3.jpeg', accent: '#c59b3f' },
-  { title: 'Makeup', count: 'Lips & Eyes', href: '/shop?category=skincare&subcategory=makeup', image: '/images/products/lip-balm.jpg', accent: '#8d3d59' },
-  { title: 'Face Care', count: 'Cleansers & Masks', href: '/shop?category=skincare', image: '/images/products/face-cleanser.jpg', accent: '#6b1733' },
-  { title: 'Groceries', count: 'Everyday Essentials', href: '/shop?category=groceries', image: '/images/categories/groceries.jpg', accent: '#c59b3f' },
+const CATEGORIES = [
+  { label: 'Skincare',    href: '/shop?category=skincare',   img: '/images/categories/skincare.jpg' },
+  { label: 'Body Care',   href: '/shop?category=skincare',   img: '/images/products/body-lotion.jpg' },
+  { label: 'Fragrances',  href: '/shop?category=skincare',   img: '/images/products/3.jpeg' },
+  { label: 'Makeup',      href: '/shop?category=skincare',   img: '/images/products/lip-balm.jpg' },
+  { label: 'Face Care',   href: '/shop?category=skincare',   img: '/images/products/face-cleanser.jpg' },
+  { label: 'Groceries',   href: '/shop?category=groceries',  img: '/images/categories/groceries.jpg' },
 ];
 
-const TABS = [
-  ['bestsellers', 'Bestsellers'],
-  ['beauty', 'Beauty'],
-  ['essentials', 'Essentials'],
-  ['offers', 'On Offer'],
-];
+const TABS = [['all','All'],['beauty','Beauty'],['essentials','Essentials'],['offers','Offers']];
 
 export default function HomeClient({ allProducts = [], featuredProducts = [] }) {
-  const [activeTab, setActiveTab] = React.useState('bestsellers');
+  const [tab, setTab] = React.useState('all');
 
-  const bestSellers = React.useMemo(() => {
-    const marked = allProducts.filter((p) => p.badge === 'bestseller');
-    return (marked.length ? marked : featuredProducts).slice(0, 8);
-  }, [allProducts, featuredProducts]);
-
-  const products = React.useMemo(() => {
-    if (activeTab === 'beauty') return allProducts.filter((p) => p.category !== 'groceries').slice(0, 8);
-    if (activeTab === 'essentials') return allProducts.filter((p) => p.category === 'groceries').slice(0, 8);
-    if (activeTab === 'offers') return allProducts.filter((p) => p.originalPrice > p.price || p.badge === 'sale').slice(0, 8);
-    return bestSellers;
-  }, [activeTab, allProducts, bestSellers]);
+  const shown = React.useMemo(() => {
+    const base = featuredProducts.length ? featuredProducts : allProducts;
+    if (tab === 'beauty')     return allProducts.filter(p => p.category !== 'groceries').slice(0,8);
+    if (tab === 'essentials') return allProducts.filter(p => p.category === 'groceries').slice(0,8);
+    if (tab === 'offers')     return allProducts.filter(p => p.originalPrice > p.price).slice(0,8);
+    return base.slice(0,8);
+  }, [tab, allProducts, featuredProducts]);
 
   return (
-    <main className="cr-home">
+    <main className="h">
 
-      <section className="cr-hero" aria-label="Welcome to CR Cosmetics and Essentials">
-        <div className="cr-hero-left">
-          <div className="cr-hero-badge">
-            <img src="/logo.jpeg" alt="CR Cosmetics and Essentials" className="cr-hero-badge-logo" />
-            <span>Est. Botwe, Accra</span>
-          </div>
-          <h1 className="cr-hero-h1">
-            <span className="cr-hero-line cr-hero-line--serif">Genuine Beauty.</span>
-            <span className="cr-hero-line cr-hero-line--italic">Delivered to</span>
-            <span className="cr-hero-line cr-hero-line--serif">Your Door.</span>
-          </h1>
-          <p className="cr-hero-sub">
-            Accra&rsquo;s trusted destination for 100% authentic skincare, fragrances &amp; household essentials &mdash; near Galaxy International School, Botwe.
-          </p>
-          <div className="cr-hero-ctas">
-            <Link href="/shop" className="cr-btn cr-btn--primary">Shop the Collection &rarr;</Link>
-            <a href="https://wa.me/233592153306" target="_blank" rel="noopener noreferrer" className="cr-btn cr-btn--wa">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.1-.44-.14-.62.14-.19.28-.72.9-.88 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.4-1.66-1.56-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.46.1-.19.05-.35-.02-.49-.07-.14-.62-1.5-.85-2.06-.22-.54-.45-.47-.62-.48-.16-.01-.35-.01-.53-.01-.19 0-.49.07-.74.35-.25.28-.97.95-.97 2.32 0 1.37 1 2.69 1.14 2.88.14.18 1.96 3 4.75 4.2.66.29 1.18.46 1.58.58.67.21 1.27.18 1.75.11.54-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.19-.52-.32ZM12 2a10 10 0 0 0-8.65 14.97L2 22l5.18-1.35A10 10 0 1 0 12 2Z"/></svg>
-              WhatsApp Us
-            </a>
-          </div>
-          <div className="cr-hero-pills">
-            <span>&#127468;&#127469; Same-day Accra</span>
-            <span>&#10022; 100% Genuine</span>
-            <span>&#9889; MTN MoMo</span>
+      {/* Hero */}
+      <section className="h-hero">
+        <div className="h-hero-text">
+          <p className="h-label">CR Cosmetics &amp; Essentials &nbsp;&bull;&nbsp; Botwe, Accra</p>
+          <h1>Beauty you can trust,<br />delivered across Ghana.</h1>
+          <p className="h-sub">100% authentic skincare, fragrances &amp; everyday essentials. Near Galaxy International School, Botwe.</p>
+          <div className="h-hero-btns">
+            <Link href="/shop" className="h-btn h-btn-primary">Shop now</Link>
+            <a href="https://wa.me/233592153306" className="h-btn h-btn-wa" target="_blank" rel="noopener noreferrer">WhatsApp us</a>
           </div>
         </div>
-        <div className="cr-hero-right">
-          <div className="cr-hero-image-wrap">
-            <img src="/images/categories/skincare.jpg" alt="CR Cosmetics skincare collection" className="cr-hero-img" />
-            <div className="cr-hero-float-card">
-              <span className="cr-hero-float-num">500+</span>
-              <span className="cr-hero-float-text">Products in stock</span>
-            </div>
-            <div className="cr-hero-float-card cr-hero-float-card--br">
-              <span className="cr-hero-float-num">&#9733; 4.9</span>
-              <span className="cr-hero-float-text">Customer rating</span>
-            </div>
-          </div>
-          <div className="cr-hero-scroller" aria-hidden="true">
-            <span>SKINCARE &nbsp;&middot;&nbsp; FRAGRANCES &nbsp;&middot;&nbsp; BODY CARE &nbsp;&middot;&nbsp; GROCERIES &nbsp;&middot;&nbsp; MAKEUP &nbsp;&middot;&nbsp; SERUMS &nbsp;&middot;&nbsp; AUTHENTIC &nbsp;&middot;&nbsp; BOTWE ACCRA &nbsp;&middot;&nbsp; SKINCARE &nbsp;&middot;&nbsp; FRAGRANCES &nbsp;&middot;&nbsp; BODY CARE &nbsp;&middot;&nbsp; GROCERIES &nbsp;&middot;&nbsp; MAKEUP &nbsp;&middot;&nbsp; SERUMS &nbsp;&middot;&nbsp; AUTHENTIC &nbsp;&middot;&nbsp; BOTWE ACCRA &nbsp;&middot;&nbsp; </span>
+        <div className="h-hero-img">
+          <img src="/images/categories/skincare.jpg" alt="Skincare collection" />
+          <div className="h-hero-badge">
+            <img src="/logo.jpeg" alt="CR Cosmetics" />
+            <span>Est. Botwe, Accra</span>
           </div>
         </div>
       </section>
 
-      <div className="cr-trust-strip">
-        <div><span className="cr-ts-icon">&#127468;&#127469;</span><div><b>Same-Day Delivery</b><small>Botwe, Spintex, Madina &amp; more</small></div></div>
-        <div><span className="cr-ts-icon">&#10022;</span><div><b>100% Authentic</b><small>Verified genuine brands</small></div></div>
-        <div><span className="cr-ts-icon">&#128242;</span><div><b>MTN MoMo &amp; Telecel</b><small>Fast mobile money checkout</small></div></div>
-        <div><span className="cr-ts-icon">&#127978;</span><div><b>In-Store Pickup</b><small>Near Galaxy Int. School, Botwe</small></div></div>
+      {/* Trust */}
+      <div className="h-trust">
+        <span>🇬🇭 Same-day Accra delivery</span>
+        <span>✓ 100% authentic products</span>
+        <span>📱 MTN MoMo &amp; Telecel Cash</span>
+        <span>🏬 In-store pickup, Botwe</span>
       </div>
 
-      <section className="cr-categories-section">
-        <header className="cr-section-head">
-          <div>
-            <p className="cr-overline">Shop by Category</p>
-            <h2 className="cr-section-h2">Everything you need,<br /><em>curated for you.</em></h2>
-          </div>
-          <Link href="/shop" className="cr-link-more">Browse all &rarr;</Link>
-        </header>
-        <div className="cr-cat-mosaic">
-          {categories.map((cat, i) => (
-            <Link
-              key={cat.title}
-              href={cat.href}
-              className={"cr-cat-tile" + (i === 0 ? " cr-cat-tile--hero" : i === 3 ? " cr-cat-tile--wide" : " cr-cat-tile--std")}
-              style={{ "--cat-accent": cat.accent }}
-            >
-              <img src={cat.image} alt={cat.title} className="cr-cat-img" loading="lazy" />
-              <div className="cr-cat-overlay" />
-              <div className="cr-cat-content">
-                <span className="cr-cat-count">{cat.count}</span>
-                <h3 className="cr-cat-title">{cat.title}</h3>
-                <span className="cr-cat-cta">Shop &#8599;</span>
-              </div>
+      {/* Categories */}
+      <section className="h-section">
+        <h2 className="h-heading">Shop by category</h2>
+        <div className="h-cats">
+          {CATEGORIES.map(c => (
+            <Link key={c.label} href={c.href} className="h-cat">
+              <img src={c.img} alt={c.label} />
+              <span>{c.label}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="cr-story-section">
-        <div className="cr-story-visual">
-          <img src="/images/products/face-moisturizer.jpg" alt="CR Cosmetics in Botwe Accra" className="cr-story-main-img" />
-          <img src="/images/products/shea-butter.jpg" alt="Shea butter and natural beauty products" className="cr-story-side-img" />
-          <div className="cr-story-badge">
-            <img src="/logo.jpeg" alt="CR Cosmetics Logo" />
-          </div>
-        </div>
-        <div className="cr-story-copy">
-          <p className="cr-overline">Our Botwe Story</p>
-          <h2 className="cr-story-h2">Born in Botwe.<br /><em>Trusted across Ghana.</em></h2>
-          <p className="cr-story-body">
-            CR Cosmetics &amp; Essentials was built around one belief: Ghanaian shoppers deserve access to genuine, premium beauty and household products &mdash; without compromise. Located right here near Galaxy International School in Botwe, Accra, we combine the warmth of a neighbourhood store with the quality of a premium beauty retailer.
-          </p>
-          <div className="cr-story-stats">
-            <div><b>500+</b><span>Curated Products</span></div>
-            <div><b>5 yrs+</b><span>Serving Accra</span></div>
-            <div><b>100%</b><span>Authenticity</span></div>
-          </div>
-          <Link href="/about" className="cr-btn cr-btn--outline-light">Read Our Story &rarr;</Link>
-        </div>
-      </section>
-
-      <section className="cr-products-section">
-        <header className="cr-section-head">
-          <div>
-            <p className="cr-overline">The CR Edit</p>
-            <h2 className="cr-section-h2">Beauty &amp; care,<br /><em>chosen well.</em></h2>
-          </div>
-          <Link href="/shop" className="cr-link-more">View all products &rarr;</Link>
-        </header>
-        <div className="cr-product-tabs-bar" role="tablist">
-          {TABS.map(([key, label]) => (
-            <button
-              key={key}
-              role="tab"
-              aria-selected={activeTab === key}
-              className={"cr-ptab" + (activeTab === key ? " cr-ptab--active" : "")}
-              onClick={() => setActiveTab(key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {products.length ? (
-          <div className="cr-product-grid">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+      {/* Products */}
+      <section className="h-section h-section-alt">
+        <div className="h-products-head">
+          <h2 className="h-heading">Featured products</h2>
+          <div className="h-tabs">
+            {TABS.map(([k,l]) => (
+              <button key={k} className={'h-tab' + (tab===k?' h-tab-on':'')} onClick={() => setTab(k)}>{l}</button>
             ))}
           </div>
+        </div>
+        {shown.length ? (
+          <div className="h-grid">
+            {shown.map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
         ) : (
-          <div className="cr-empty-state">
-            <span>&#10022;</span>
-            <p>No products in this collection yet &mdash; check back soon!</p>
-          </div>
+          <p className="h-empty">No products here yet — check back soon.</p>
         )}
+        <div className="h-center"><Link href="/shop" className="h-btn h-btn-outline">View all products</Link></div>
       </section>
 
-      <section className="cr-promo-band">
-        <div className="cr-promo-main">
-          <img src="/images/hero-pedestal.jpg" alt="CR Cosmetics curated collection" className="cr-promo-main-img" />
-          <div className="cr-promo-main-overlay" />
-          <div className="cr-promo-main-copy">
-            <p className="cr-overline cr-overline--light">Limited Offers</p>
-            <h2>This Week&rsquo;s Best<br /><em>Deals in Botwe</em></h2>
-            <Link href="/shop?badge=sale" className="cr-btn cr-btn--white">Shop Offers &rarr;</Link>
-          </div>
+      {/* Story */}
+      <section className="h-story">
+        <div className="h-story-img">
+          <img src="/images/hero-pedestal.jpg" alt="CR Cosmetics store" />
         </div>
-        <div className="cr-promo-side">
-          <div className="cr-promo-card">
-            <img src="/images/products/vitamin-c-serum.jpg" alt="Vitamin C Serum" />
-            <div className="cr-promo-card-copy">
-              <span>FEATURED</span>
-              <h3>Vitamin C &amp; Glow Serums</h3>
-              <Link href="/shop?category=skincare">Shop serums &rarr;</Link>
-            </div>
+        <div className="h-story-text">
+          <p className="h-label">About us</p>
+          <h2>Your neighbourhood beauty store in Botwe.</h2>
+          <p>We stock only genuine, verified products — skincare, fragrances, body care, and household essentials. Visit us near Galaxy International School, Botwe, Accra, or order online for fast delivery.</p>
+          <div className="h-story-facts">
+            <div><b>500+</b><small>Products</small></div>
+            <div><b>100%</b><small>Authentic</small></div>
+            <div><b>Fast</b><small>Delivery</small></div>
           </div>
-          <div className="cr-promo-card cr-promo-card--dark">
-            <img src="/images/products/body-oil.jpg" alt="Body oils" />
-            <div className="cr-promo-card-copy">
-              <span>BESTSELLER</span>
-              <h3>Natural Body Oils &amp; Butters</h3>
-              <Link href="/shop?category=skincare&subcategory=body">Shop body care &rarr;</Link>
-            </div>
-          </div>
+          <Link href="/about" className="h-btn h-btn-outline">Learn more</Link>
         </div>
       </section>
 
-      <section className="cr-wa-section">
-        <div className="cr-wa-inner">
-          <div className="cr-wa-copy">
-            <p className="cr-overline cr-overline--wa">Need Help?</p>
-            <h2 className="cr-wa-h2">Talk to Us on<br /><em>WhatsApp</em></h2>
-            <p>Order directly, ask about products, check delivery times, or get beauty advice &mdash; we&rsquo;re always available.</p>
-            <a href="https://wa.me/233592153306" target="_blank" rel="noopener noreferrer" className="cr-btn cr-btn--wa cr-btn--lg">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.28-.14-1.64-.81-1.9-.9-.25-.1-.44-.14-.62.14-.19.28-.72.9-.88 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.4-1.66-1.56-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.46.1-.19.05-.35-.02-.49-.07-.14-.62-1.5-.85-2.06-.22-.54-.45-.47-.62-.48-.16-.01-.35-.01-.53-.01-.19 0-.49.07-.74.35-.25.28-.97.95-.97 2.32 0 1.37 1 2.69 1.14 2.88.14.18 1.96 3 4.75 4.2.66.29 1.18.46 1.58.58.67.21 1.27.18 1.75.11.54-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.19-.52-.32ZM12 2a10 10 0 0 0-8.65 14.97L2 22l5.18-1.35A10 10 0 1 0 12 2Z"/></svg>
-              Chat on WhatsApp
-            </a>
-          </div>
-          <div className="cr-wa-logo-wrap">
-            <img src="/logo.jpeg" alt="CR Cosmetics and Essentials" className="cr-wa-logo" />
-            <div className="cr-wa-location">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 22s8-4 8-10A8 8 0 0 0 4 12c0 6 8 10 8 10Z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Near Galaxy Int. School, Botwe, Accra</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="cr-newsletter-section">
-        <div className="cr-newsletter-inner">
-          <p className="cr-overline">Stay Glowing with CR</p>
-          <h2 className="cr-nl-h2">Get exclusive deals &amp;<br />beauty tips in your inbox.</h2>
-          <p className="cr-nl-sub">New arrivals, restock alerts, and special offers for Accra shoppers.</p>
-          <form className="cr-newsletter-form" onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder="Your email address" aria-label="Email address" />
-            <button type="submit">Subscribe</button>
-          </form>
+      {/* WhatsApp */}
+      <section className="h-wa">
+        <img src="/logo.jpeg" alt="CR Cosmetics" className="h-wa-logo" />
+        <div>
+          <h2>Order directly on WhatsApp</h2>
+          <p>Message us to place an order, ask about products, or check delivery times.</p>
+          <a href="https://wa.me/233592153306" className="h-btn h-btn-wa h-btn-lg" target="_blank" rel="noopener noreferrer">
+            Chat on WhatsApp
+          </a>
         </div>
       </section>
 
       <style jsx>{`
-        .cr-home{background:var(--bg,#faf8f6);color:var(--text,#161114)}
-        .cr-overline{font:700 .68rem/1 var(--font-primary,sans-serif);letter-spacing:.18em;text-transform:uppercase;color:var(--burgundy,#6b1733);margin:0 0 .7rem;display:block}
-        .cr-overline--light{color:rgba(255,255,255,.65)}
-        .cr-overline--wa{color:#25D366}
-        .cr-section-h2{font-family:var(--font-display,serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.06;letter-spacing:-.03em;margin:0}
-        .cr-section-h2 em{font-style:italic;color:var(--burgundy,#6b1733)}
-        .cr-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;padding:0 0 2.5rem}
-        .cr-link-more{font:700 .7rem/1 var(--font-primary);letter-spacing:.1em;text-transform:uppercase;color:var(--burgundy,#6b1733);text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:3px;white-space:nowrap;flex-shrink:0}
-        .cr-link-more:hover{opacity:.75}
-        .cr-btn{display:inline-flex;align-items:center;gap:.5rem;font:700 .72rem/1 var(--font-primary);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:.9rem 1.6rem;border:none;cursor:pointer;transition:all .25s ease;border-radius:3px}
-        .cr-btn--primary{background:var(--burgundy,#6b1733);color:#fff}
-        .cr-btn--primary:hover{background:#480e21;transform:translateY(-1px);box-shadow:0 6px 18px rgba(107,23,51,.22)}
-        .cr-btn--wa{background:#25D366;color:#fff}
-        .cr-btn--wa:hover{background:#1da851;transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,211,102,.22)}
-        .cr-btn--outline{background:transparent;color:var(--text,#161114);border:1.5px solid var(--text,#161114)}
-        .cr-btn--outline:hover{background:var(--text,#161114);color:#fff}
-        .cr-btn--outline-light{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}
-        .cr-btn--outline-light:hover{background:rgba(255,255,255,.1)}
-        .cr-btn--white{background:#fff;color:var(--burgundy,#6b1733);border:none}
-        .cr-btn--white:hover{background:#f8eff3}
-        .cr-btn--lg{min-height:52px;padding:1rem 2rem;font-size:.78rem}
+        .h { background: #faf9f7; color: #1a1117; font-family: var(--font-primary, 'Outfit', sans-serif); }
+        
+        /* buttons */
+        .h-btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px; font: 600 13px/1 var(--font-primary); text-decoration: none; border-radius: 6px; border: none; cursor: pointer; transition: all .2s; letter-spacing: .01em; }
+        .h-btn-primary { background: #6b1733; color: #fff; }
+        .h-btn-primary:hover { background: #4a0f24; }
+        .h-btn-wa { background: #25d366; color: #fff; }
+        .h-btn-wa:hover { background: #1db954; }
+        .h-btn-outline { background: transparent; color: #1a1117; border: 1.5px solid #d4c8cc; }
+        .h-btn-outline:hover { border-color: #6b1733; color: #6b1733; }
+        .h-btn-lg { padding: 15px 32px; font-size: 14px; }
 
-        .cr-hero{display:grid;grid-template-columns:1fr 1fr;min-height:clamp(540px,78vh,840px);background:#faf0f3;overflow:hidden;max-width:1600px;margin:0 auto}
-        .cr-hero-left{display:flex;flex-direction:column;justify-content:center;padding:clamp(3rem,6vw,6rem) clamp(1.5rem,6vw,5.5rem);position:relative;z-index:2}
-        .cr-hero-badge{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem}
-        .cr-hero-badge-logo{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold,#c59b3f)}
-        .cr-hero-badge span{font:700 .65rem/1 var(--font-primary);letter-spacing:.16em;text-transform:uppercase;color:var(--burgundy,#6b1733)}
-        .cr-hero-h1{display:flex;flex-direction:column;gap:.05em;margin:0 0 1.5rem}
-        .cr-hero-line{display:block}
-        .cr-hero-line--serif{font:400 clamp(2.8rem,5.5vw,5.2rem)/.92 var(--font-display,serif);letter-spacing:-.04em;color:#1a0f14}
-        .cr-hero-line--italic{font:400 clamp(2.8rem,5.5vw,5.2rem)/.92 var(--font-display,serif);letter-spacing:-.04em;color:var(--burgundy,#6b1733);font-style:italic}
-        .cr-hero-sub{font:400 1rem/1.65 var(--font-primary);color:var(--text-secondary,#6b5b63);max-width:460px;margin:0 0 2rem}
-        .cr-hero-ctas{display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:2rem}
-        .cr-hero-pills{display:flex;flex-wrap:wrap;gap:.5rem}
-        .cr-hero-pills span{font:600 .62rem/1 var(--font-primary);letter-spacing:.1em;text-transform:uppercase;background:rgba(107,23,51,.07);color:var(--burgundy,#6b1733);padding:.45rem .8rem;border-radius:20px;border:1px solid rgba(107,23,51,.12)}
-        .cr-hero-right{position:relative;overflow:hidden;background:#f0e0e7}
-        .cr-hero-image-wrap{position:relative;height:100%;min-height:400px}
-        .cr-hero-img{display:block;width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
-        .cr-hero:hover .cr-hero-img{transform:scale(1.03)}
-        .cr-hero-float-card{position:absolute;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:.9rem 1.1rem;border:1px solid rgba(197,155,63,.3);display:flex;flex-direction:column;gap:.2rem;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.1);top:1.5rem;left:1.5rem;min-width:110px}
-        .cr-hero-float-card--br{top:auto;left:auto;bottom:3rem;right:1.5rem}
-        .cr-hero-float-num{font:700 1.5rem/1 var(--font-display,serif);color:var(--burgundy,#6b1733)}
-        .cr-hero-float-text{font:500 .65rem/1 var(--font-primary);letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary,#6b5b63)}
-        .cr-hero-scroller{position:absolute;bottom:0;left:0;right:0;background:var(--burgundy,#6b1733);color:rgba(255,255,255,.85);padding:.7rem 0;white-space:nowrap;overflow:hidden;font:700 .6rem/1 var(--font-primary);letter-spacing:.16em;text-transform:uppercase;animation:cr-scroll 22s linear infinite}
-        @keyframes cr-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        /* hero */
+        .h-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; max-width: 1320px; margin: 0 auto; gap: 0; }
+        .h-hero-text { display: flex; flex-direction: column; justify-content: center; padding: 60px 56px; }
+        .h-label { font: 600 11px/1 var(--font-primary); letter-spacing: .14em; text-transform: uppercase; color: #9b6879; margin: 0 0 18px; }
+        .h-hero-text h1 { font-family: var(--font-display, 'DM Serif Display', serif); font-size: clamp(32px, 4vw, 52px); line-height: 1.1; letter-spacing: -.02em; margin: 0 0 18px; color: #1a1117; font-weight: 400; }
+        .h-sub { font: 400 15px/1.65 var(--font-primary); color: #7a6570; max-width: 420px; margin: 0 0 32px; }
+        .h-hero-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+        .h-hero-img { position: relative; overflow: hidden; background: #f0e4e9; }
+        .h-hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .h-hero-badge { position: absolute; bottom: 24px; left: 24px; background: rgba(255,255,255,.94); display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+        .h-hero-badge img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #c59b3f; }
+        .h-hero-badge span { font: 600 10px/1 var(--font-primary); letter-spacing: .1em; text-transform: uppercase; color: #7a6570; }
 
-        .cr-trust-strip{background:#fff;border-block:1px solid var(--border,#ebe2e6);display:grid;grid-template-columns:repeat(4,1fr);max-width:1600px;margin:0 auto}
-        .cr-trust-strip>div{display:flex;align-items:center;gap:.85rem;padding:1.1rem 1.4rem;border-right:1px solid var(--border,#ebe2e6)}
-        .cr-trust-strip>div:last-child{border-right:none}
-        .cr-ts-icon{font-size:1.25rem;line-height:1;flex-shrink:0}
-        .cr-trust-strip b{display:block;font:700 .72rem/1.2 var(--font-primary);letter-spacing:.06em;text-transform:uppercase;color:var(--text,#161114);margin-bottom:.25rem}
-        .cr-trust-strip small{font:400 .72rem/1.2 var(--font-primary);color:var(--text-secondary,#6b5b63)}
+        /* trust */
+        .h-trust { background: #fff; border-block: 1px solid #ece5e8; display: flex; justify-content: center; align-items: center; gap: 0; flex-wrap: wrap; }
+        .h-trust span { font: 500 12px/1 var(--font-primary); color: #5a4850; padding: 14px 24px; border-right: 1px solid #ece5e8; }
+        .h-trust span:last-child { border-right: none; }
 
-        .cr-categories-section{max-width:1440px;margin:0 auto;padding:clamp(3.5rem,6vw,5rem) clamp(1.25rem,4vw,3.5rem)}
-        .cr-cat-mosaic{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:280px 200px;gap:10px}
-        .cr-cat-tile{position:relative;overflow:hidden;border-radius:6px;display:block;text-decoration:none}
-        .cr-cat-tile--hero{grid-row:1/3}
-        .cr-cat-tile--wide{grid-column:span 2}
-        .cr-cat-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.16,1,.3,1)}
-        .cr-cat-tile:hover .cr-cat-img{transform:scale(1.07)}
-        .cr-cat-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,8,12,.78) 0%,rgba(20,8,12,.1) 55%,transparent 100%);transition:opacity .3s ease}
-        .cr-cat-content{position:absolute;bottom:0;left:0;right:0;padding:1.4rem 1.4rem 1.6rem;color:#fff}
-        .cr-cat-count{display:block;font:600 .6rem/1 var(--font-primary);letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:.4rem}
-        .cr-cat-title{font:400 clamp(1.3rem,2.2vw,2rem)/1 var(--font-display,serif);margin:0 0 .6rem;color:#fff}
-        .cr-cat-cta{display:inline-block;font:700 .65rem/1 var(--font-primary);letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.15);padding:.35rem .75rem;border-radius:20px;border:1px solid rgba(255,255,255,.25);transition:background .2s ease,border-color .2s ease;color:#fff}
-        .cr-cat-tile:hover .cr-cat-cta{background:var(--cat-accent,var(--burgundy,#6b1733));border-color:transparent}
+        /* sections */
+        .h-section { max-width: 1320px; margin: 0 auto; padding: 72px 40px; }
+        .h-section-alt { background: #fff; max-width: none; padding: 72px 0; }
+        .h-section-alt > * { max-width: 1320px; margin-left: auto; margin-right: auto; padding-inline: 40px; }
+        .h-section-alt > .h-grid { max-width: 1320px; padding-inline: 40px; }
+        .h-heading { font-family: var(--font-display, 'DM Serif Display', serif); font-size: clamp(24px, 3vw, 36px); font-weight: 400; letter-spacing: -.02em; color: #1a1117; margin: 0 0 36px; }
 
-        .cr-story-section{background:#24131B;color:#fff;display:grid;grid-template-columns:1fr 1fr;min-height:540px;max-width:1600px;margin:0 auto}
-        .cr-story-visual{position:relative;overflow:hidden;min-height:400px}
-        .cr-story-main-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.72}
-        .cr-story-side-img{position:absolute;bottom:2rem;right:2rem;width:38%;aspect-ratio:3/4;object-fit:cover;border:3px solid rgba(197,155,63,.4);border-radius:4px;box-shadow:0 16px 40px rgba(0,0,0,.4)}
-        .cr-story-badge{position:absolute;top:2rem;left:2rem;width:56px;height:56px;border-radius:50%;overflow:hidden;border:2px solid var(--gold,#c59b3f);box-shadow:0 4px 16px rgba(0,0,0,.4)}
-        .cr-story-badge img{width:100%;height:100%;object-fit:cover}
-        .cr-story-copy{display:flex;flex-direction:column;justify-content:center;padding:clamp(3rem,6vw,5.5rem)}
-        .cr-story-copy .cr-overline{color:var(--gold,#c59b3f)}
-        .cr-story-h2{font-family:var(--font-display,serif);font-size:clamp(2rem,3.5vw,3.2rem);line-height:1.08;letter-spacing:-.03em;margin:0 0 1.5rem;color:#fff}
-        .cr-story-h2 em{font-style:italic;color:var(--gold,#c59b3f)}
-        .cr-story-body{font:400 .95rem/1.72 var(--font-primary);color:#c8b9bf;margin:0 0 2rem;max-width:500px}
-        .cr-story-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.5rem 0 2rem;border-block:1px solid rgba(255,255,255,.1);margin-bottom:2rem}
-        .cr-story-stats b{display:block;font:700 2rem/1 var(--font-display,serif);color:var(--gold,#c59b3f);margin-bottom:.4rem}
-        .cr-story-stats span{font:500 .68rem/1.3 var(--font-primary);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+        /* categories */
+        .h-cats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+        .h-cat { display: flex; flex-direction: column; gap: 10px; text-decoration: none; }
+        .h-cat img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; transition: transform .3s ease; display: block; }
+        .h-cat:hover img { transform: scale(1.04); }
+        .h-cat span { font: 600 12px/1 var(--font-primary); letter-spacing: .04em; color: #1a1117; text-align: center; }
 
-        .cr-products-section{max-width:1440px;margin:0 auto;padding:clamp(3.5rem,6vw,5rem) clamp(1.25rem,4vw,3.5rem)}
-        .cr-product-tabs-bar{display:flex;gap:0;border-bottom:1px solid var(--border,#ebe2e6);margin-bottom:2rem;flex-wrap:wrap}
-        .cr-ptab{background:none;border:none;border-bottom:2px solid transparent;padding:.75rem 1.2rem;font:700 .68rem/1 var(--font-primary);letter-spacing:.1em;text-transform:uppercase;color:var(--text-secondary,#6b5b63);cursor:pointer;transition:color .2s,border-color .2s;margin-bottom:-1px}
-        .cr-ptab:hover{color:var(--burgundy,#6b1733)}
-        .cr-ptab--active{color:var(--burgundy,#6b1733);border-bottom-color:var(--burgundy,#6b1733)}
-        .cr-product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.25rem}
-        .cr-empty-state{text-align:center;padding:4rem;background:#fff;border:1px dashed var(--border,#ebe2e6);border-radius:8px}
-        .cr-empty-state span{font-size:2rem;color:var(--gold,#c59b3f);display:block;margin-bottom:1rem}
-        .cr-empty-state p{color:var(--text-secondary,#6b5b63)}
+        /* products */
+        .h-products-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+        .h-products-head .h-heading { margin: 0; }
+        .h-tabs { display: flex; gap: 4px; background: #f3edf0; border-radius: 8px; padding: 4px; }
+        .h-tab { background: transparent; border: none; padding: 8px 16px; font: 600 12px/1 var(--font-primary); letter-spacing: .04em; color: #7a6570; border-radius: 5px; cursor: pointer; transition: all .2s; }
+        .h-tab-on { background: #fff; color: #6b1733; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+        .h-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
+        .h-center { text-align: center; }
+        .h-empty { color: #9a8590; padding: 48px 0; text-align: center; font-size: 14px; }
 
-        .cr-promo-band{display:grid;grid-template-columns:1.4fr 1fr;gap:0;max-width:1600px;margin:0 auto}
-        .cr-promo-main{position:relative;min-height:480px;overflow:hidden}
-        .cr-promo-main-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s ease}
-        .cr-promo-band:hover .cr-promo-main-img{transform:scale(1.03)}
-        .cr-promo-main-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(24,8,16,.85) 0%,rgba(24,8,16,.35) 60%,transparent 100%)}
-        .cr-promo-main-copy{position:relative;z-index:2;padding:3rem;color:#fff}
-        .cr-promo-main-copy h2{font:400 clamp(2.2rem,4vw,3.2rem)/1.05 var(--font-display,serif);letter-spacing:-.03em;margin:.5rem 0 1.8rem;color:#fff}
-        .cr-promo-main-copy h2 em{font-style:italic;color:var(--gold,#c59b3f)}
-        .cr-promo-side{display:flex;flex-direction:column}
-        .cr-promo-card{position:relative;flex:1;overflow:hidden;min-height:240px}
-        .cr-promo-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease;filter:brightness(.85)}
-        .cr-promo-card:hover img{transform:scale(1.06)}
-        .cr-promo-card--dark img{filter:brightness(.55)}
-        .cr-promo-card-copy{position:absolute;inset:0;z-index:2;padding:1.6rem;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(to top,rgba(20,8,12,.8) 0%,transparent 100%)}
-        .cr-promo-card-copy span{font:700 .6rem/1 var(--font-primary);letter-spacing:.16em;text-transform:uppercase;color:var(--gold,#c59b3f);margin-bottom:.4rem;display:block}
-        .cr-promo-card-copy h3{font:400 1.4rem/1.1 var(--font-display,serif);margin:0 0 .7rem;color:#fff}
-        .cr-promo-card-copy a{font:700 .65rem/1 var(--font-primary);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);padding-bottom:2px;transition:color .2s,border-color .2s;width:fit-content}
-        .cr-promo-card-copy a:hover{color:#fff;border-color:#fff}
+        /* story */
+        .h-story { display: grid; grid-template-columns: 1fr 1fr; max-width: 1320px; margin: 0 auto; gap: 80px; padding: 80px 40px; align-items: center; }
+        .h-story-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 8px; display: block; }
+        .h-story-text h2 { font-family: var(--font-display, 'DM Serif Display', serif); font-size: clamp(26px, 3vw, 38px); font-weight: 400; letter-spacing: -.02em; margin: 0 0 16px; line-height: 1.2; }
+        .h-story-text p { font: 400 15px/1.7 var(--font-primary); color: #7a6570; margin: 0 0 32px; }
+        .h-story-facts { display: flex; gap: 40px; margin-bottom: 32px; padding: 24px 0; border-block: 1px solid #ece5e8; }
+        .h-story-facts b { display: block; font-family: var(--font-display, serif); font-size: 28px; font-weight: 400; color: #6b1733; margin-bottom: 4px; }
+        .h-story-facts small { font: 500 11px/1 var(--font-primary); letter-spacing: .08em; text-transform: uppercase; color: #9a8590; }
 
-        .cr-wa-section{background:linear-gradient(135deg,#1a0e14 0%,#2e1620 100%);padding:clamp(3.5rem,6vw,6rem) clamp(1.25rem,4vw,3.5rem)}
-        .cr-wa-inner{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:4rem;align-items:center}
-        .cr-wa-h2{font:400 clamp(2rem,4vw,3.2rem)/1.05 var(--font-display,serif);letter-spacing:-.03em;margin:.5rem 0 1rem;color:#fff}
-        .cr-wa-h2 em{font-style:italic;color:#25D366}
-        .cr-wa-copy p{font:400 .95rem/1.65 var(--font-primary);color:rgba(255,255,255,.6);max-width:500px;margin:0 0 2rem}
-        .cr-wa-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
-        .cr-wa-logo{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(197,155,63,.5);box-shadow:0 12px 32px rgba(0,0,0,.4)}
-        .cr-wa-location{display:flex;align-items:flex-start;gap:.5rem;font:500 .7rem/1.4 var(--font-primary);color:rgba(255,255,255,.45);text-align:center;max-width:150px}
+        /* whatsapp */
+        .h-wa { background: #1a1117; color: #fff; display: flex; gap: 48px; align-items: center; padding: 72px 40px; max-width: none; }
+        .h-wa > div { max-width: 500px; }
+        .h-wa-logo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid #c59b3f; flex-shrink: 0; margin: 0 auto; }
+        .h-wa h2 { font-family: var(--font-display, 'DM Serif Display', serif); font-size: clamp(24px, 3vw, 36px); font-weight: 400; margin: 0 0 12px; }
+        .h-wa p { font: 400 15px/1.65 var(--font-primary); color: rgba(255,255,255,.6); margin: 0 0 28px; }
+        .h-wa { justify-content: center; }
 
-        .cr-newsletter-section{background:var(--blush,#f8eff3);border-top:1px solid var(--border,#ebe2e6);padding:clamp(3.5rem,6vw,5rem) clamp(1.25rem,4vw,3.5rem);text-align:center}
-        .cr-newsletter-inner{max-width:580px;margin:0 auto}
-        .cr-nl-h2{font:400 clamp(1.9rem,3.5vw,2.8rem)/1.1 var(--font-display,serif);letter-spacing:-.03em;margin:.5rem 0 .75rem}
-        .cr-nl-sub{font:400 .95rem/1.65 var(--font-primary);color:var(--text-secondary,#6b5b63);margin:0 0 2rem}
-        .cr-newsletter-form{display:flex;border:1.5px solid var(--border,#ebe2e6);border-radius:4px;overflow:hidden;background:#fff}
-        .cr-newsletter-form input{flex:1;min-width:0;border:none;padding:.9rem 1rem;font:400 .95rem var(--font-primary);outline:none;background:transparent}
-        .cr-newsletter-form button{background:var(--burgundy,#6b1733);color:#fff;border:none;padding:0 1.4rem;font:700 .68rem/1 var(--font-primary);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
-        .cr-newsletter-form button:hover{background:#480e21}
-
-        @media(max-width:1100px){
-          .cr-cat-mosaic{grid-template-columns:1fr 1fr 1fr;grid-template-rows:250px 190px}
-          .cr-cat-tile--hero{grid-row:auto}
-          .cr-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-          .cr-promo-band{grid-template-columns:1fr 1fr}
-          .cr-trust-strip{grid-template-columns:repeat(2,1fr)}
-          .cr-trust-strip>div:nth-child(2){border-right:none}
-          .cr-trust-strip>div{border-bottom:1px solid var(--border,#ebe2e6)}
-          .cr-trust-strip>div:nth-child(3),.cr-trust-strip>div:nth-child(4){border-bottom:none}
+        /* responsive */
+        @media (max-width: 1024px) {
+          .h-cats { grid-template-columns: repeat(3, 1fr); }
+          .h-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media(max-width:860px){
-          .cr-hero{grid-template-columns:1fr;min-height:auto}
-          .cr-hero-right{min-height:360px}
-          .cr-story-section{grid-template-columns:1fr}
-          .cr-story-visual{min-height:320px}
-          .cr-cat-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:230px 190px}
-          .cr-cat-tile--wide{grid-column:span 2}
-          .cr-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-          .cr-promo-band{grid-template-columns:1fr}
-          .cr-wa-inner{grid-template-columns:1fr;text-align:center}
-          .cr-wa-logo-wrap{flex-direction:row;justify-content:center}
-          .cr-wa-copy h2,.cr-wa-copy p{text-align:center}
-          .cr-section-head{flex-direction:column;align-items:flex-start;gap:1rem;padding-bottom:2rem}
+        @media (max-width: 768px) {
+          .h-hero { grid-template-columns: 1fr; }
+          .h-hero-text { padding: 48px 24px 36px; }
+          .h-hero-img { min-height: 300px; }
+          .h-story { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px; }
+          .h-cats { grid-template-columns: repeat(2, 1fr); }
+          .h-grid { grid-template-columns: repeat(2, 1fr); }
+          .h-section { padding: 60px 24px; }
+          .h-section-alt > *, .h-section-alt > .h-grid { padding-inline: 24px; }
+          .h-trust span { font-size: 11px; padding: 12px 14px; }
+          .h-wa { flex-direction: column; text-align: center; padding: 60px 24px; gap: 28px; }
+          .h-products-head { flex-direction: column; align-items: flex-start; }
         }
-        @media(max-width:540px){
-          .cr-hero-left{padding:2.5rem 1.25rem}
-          .cr-hero-ctas{flex-direction:column;align-items:flex-start}
-          .cr-cat-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:180px 180px}
-          .cr-cat-tile--hero,.cr-cat-tile--wide{grid-column:auto;grid-row:auto}
-          .cr-trust-strip{grid-template-columns:1fr}
-          .cr-trust-strip>div{border-right:none;border-bottom:1px solid var(--border,#ebe2e6)}
-          .cr-trust-strip>div:last-child{border-bottom:none}
-          .cr-newsletter-form{flex-direction:column}
-          .cr-newsletter-form button{min-height:44px}
-        }
-        @media(prefers-reduced-motion:reduce){
-          .cr-hero-scroller{animation:none}
-          .cr-hero:hover .cr-hero-img{transform:none}
-          .cr-cat-tile:hover .cr-cat-img{transform:none}
+        @media (max-width: 480px) {
+          .h-hero-text h1 { font-size: 30px; }
+          .h-trust { flex-direction: column; gap: 0; }
+          .h-trust span { border-right: none; border-bottom: 1px solid #ece5e8; width: 100%; text-align: center; }
+          .h-trust span:last-child { border-bottom: none; }
         }
       `}</style>
     </main>
