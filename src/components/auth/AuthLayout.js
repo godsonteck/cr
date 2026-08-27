@@ -28,7 +28,7 @@ export default function AuthLayout({
 
         <div className="auth-visual-content">
           <Link href="/" className="auth-brand-logo-link">
-            <span className="auth-brand-crown">♛</span>
+            <img src="/logo.jpeg" alt="CR Cosmetics & Essentials" className="auth-brand-logo-img" />
             <div className="auth-brand-text">
               <span className="auth-brand-name">CR COSMETICS</span>
               <span className="auth-brand-sub">AND ESSENTIALS</span>
