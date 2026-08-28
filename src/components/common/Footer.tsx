@@ -1,221 +1,140 @@
-import React, { useState } from 'react';
-import { useToast } from '../../context/ToastContext';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { MessageCircle, ShieldCheck, Truck, RefreshCw, CreditCard, Heart } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Clock, 
-  Instagram, 
-  Facebook, 
-  MessageCircle,
-  Crown
-} from 'lucide-react';
 
-interface FooterProps {
-  onOpenStoreInfo: () => void;
-  onOpenFAQs: () => void;
-  onOpenContact: () => void;
-}
-
-export const Footer: React.FC<FooterProps> = ({
-  onOpenStoreInfo,
-  onOpenFAQs,
-  onOpenContact
-}) => {
-  const { showToast } = useToast();
+export const Footer: React.FC = () => {
   const { storeSettings } = useStore();
-  const [email, setEmail] = useState('');
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) {
-      showToast('Please enter a valid email address');
-      return;
-    }
-    showToast('✨ Thank you for subscribing! Welcome to the CR Beauty Circle.');
-    setEmail('');
-  };
 
   return (
-    <footer className="bg-[#FAF5F4] dark:bg-[#111217] text-gray-800 dark:text-gray-200 text-xs border-t border-rose-100 dark:border-gray-800 transition-colors duration-200">
-      
-      {/* 4-Column Main Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10">
-          
-          {/* COLUMN 1: ABOUT CR COSMETICS & ESSENTIAL (lg:col-span-3) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="font-extrabold text-xs text-gray-900 dark:text-white tracking-wider uppercase">
-              ABOUT CR COSMETICS & ESSENTIAL
-            </h4>
+    <footer className="bg-[#1C1817] text-stone-300 pt-16 pb-12 border-t border-stone-800 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
-              We provide high-quality cosmetics, skincare, fragrances and everyday essentials that make you look good, feel good and live better.
+        {/* Core Trust & Value Pillars */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-stone-800">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-stone-800/80 rounded-xl text-[#C86D51]">
+              <Truck className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Accra Express &amp; Nationwide</h4>
+              <p className="text-xs text-stone-400 mt-1">Same-day dispatch across Greater Accra &amp; intercity express delivery.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-stone-800/80 rounded-xl text-[#C86D51]">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">100% Genuine Authenticity</h4>
+              <p className="text-xs text-stone-400 mt-1">Directly sourced skincare formulations &amp; premium pantry essentials.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-stone-800/80 rounded-xl text-[#C86D51]">
+              <CreditCard className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Mobile Money &amp; Card</h4>
+              <p className="text-xs text-stone-400 mt-1">Pay effortlessly via MTN MoMo, Telecel Cash, AT Money, or Card on delivery.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-stone-800/80 rounded-xl text-[#C86D51]">
+              <RefreshCw className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Customer Satisfaction</h4>
+              <p className="text-xs text-stone-400 mt-1">Dedicated customer care &amp; hassle-free store support line.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Main Footer Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 py-12">
+
+          {/* Brand Info */}
+          <div className="lg:col-span-2 space-y-4">
+            <span className="text-2xl font-extrabold tracking-tight text-white uppercase">
+              CR <span className="text-[#C86D51]">COSMETICS</span>
+            </span>
+            <p className="text-xs text-stone-400 leading-relaxed max-w-sm">
+              Ghana’s premier modern e-commerce platform unifying luxury beauty &amp; dermatological skincare with everyday groceries and essential household provisions under one seamless retail experience.
             </p>
-
-            {/* Social Media Circular Buttons */}
-            <div className="flex items-center gap-2 pt-2">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="w-8 h-8 rounded-full bg-white dark:bg-[#1A1B22] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-white hover:bg-[#8A3D52] hover:border-[#8A3D52] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
-              >
-                <Facebook className="w-3.5 h-3.5" />
-              </a>
-
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="w-8 h-8 rounded-full bg-white dark:bg-[#1A1B22] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-white hover:bg-[#8A3D52] hover:border-[#8A3D52] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
-              >
-                <Instagram className="w-3.5 h-3.5" />
-              </a>
-
-              <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="w-8 h-8 rounded-full bg-white dark:bg-[#1A1B22] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-white hover:bg-[#8A3D52] hover:border-[#8A3D52] flex items-center justify-center transition-colors shadow-2xs font-bold text-[11px] cursor-pointer"
-              >
-                <span>Tk</span>
-              </a>
-
+            <div className="pt-2 flex items-center gap-3">
               <a
                 href={`https://wa.me/${storeSettings.whatsappNumber || '233551234567'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="w-8 h-8 rounded-full bg-white dark:bg-[#1A1B22] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-white hover:bg-[#8A3D52] hover:border-[#8A3D52] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold px-4 py-2.5 rounded-full transition-colors"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat with Customer Care</span>
               </a>
             </div>
           </div>
 
-          {/* COLUMN 2: STAY GLOWING (Newsletter Card - lg:col-span-4) */}
-          <div className="lg:col-span-4 bg-white dark:bg-[#191A23] rounded-2xl p-5 border border-rose-100/80 dark:border-gray-800 shadow-xs flex flex-col justify-between space-y-3">
-            <div className="text-center space-y-1">
-              <div className="w-8 h-8 bg-rose-50 dark:bg-rose-950/50 text-[#8A3D52] dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-1">
-                <Mail className="w-4 h-4" />
-              </div>
-              <h4 className="font-extrabold text-xs text-gray-900 dark:text-white tracking-wider uppercase">
-                STAY GLOWING
-              </h4>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
-                Subscribe to get updates on new arrivals, deals and beauty tips.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubscribe} className="flex items-center gap-1.5 pt-1">
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#121318] border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#8A3D52]"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-[#8A3D52] hover:bg-[#732F42] text-white rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-colors shadow-2xs shrink-0 cursor-pointer"
-              >
-                SUBSCRIBE
-              </button>
-            </form>
-          </div>
-
-          {/* COLUMN 3: CUSTOMER CARE (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-extrabold text-xs text-gray-900 dark:text-white tracking-wider uppercase">
-              CUSTOMER CARE
+          {/* Department 1: Beauty & Skincare */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Beauty &amp; Skincare
             </h4>
-            <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-xs">
-              <li>
-                <button onClick={onOpenContact} className="hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors cursor-pointer">
-                  Contact Us
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenFAQs} className="hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors cursor-pointer">
-                  FAQs
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenStoreInfo} className="hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors cursor-pointer">
-                  Delivery & Returns
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenStoreInfo} className="hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors cursor-pointer">
-                  Terms & Privacy
-                </button>
-              </li>
+            <ul className="space-y-2.5 text-xs text-stone-400">
+              <li><Link to="/category/skincare" className="hover:text-white transition-colors">Targeted Skincare</Link></li>
+              <li><Link to="/category/makeup" className="hover:text-white transition-colors">Cosmetics &amp; Makeup</Link></li>
+              <li><Link to="/category/fragrances" className="hover:text-white transition-colors">Luxury Fragrances</Link></li>
+              <li><Link to="/category/body-care" className="hover:text-white transition-colors">Nourishing Body Care</Link></li>
+              <li><Link to="/category/beauty-tools" className="hover:text-white transition-colors">Pro Beauty Tools</Link></li>
+              <li><Link to="/routine-builder" className="text-[#C86D51] font-semibold hover:underline">Routine Builder Utility</Link></li>
             </ul>
           </div>
 
-          {/* COLUMN 4: CONTACT US (lg:col-span-3) */}
-          <div className="lg:col-span-3 space-y-3">
-            <h4 className="font-extrabold text-xs text-gray-900 dark:text-white tracking-wider uppercase">
-              CONTACT US
+          {/* Department 2: Groceries & Essentials */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Groceries &amp; Essentials
             </h4>
+            <ul className="space-y-2.5 text-xs text-stone-400">
+              <li><Link to="/category/rice-grains" className="hover:text-white transition-colors">Jasmine Rice &amp; Grains</Link></li>
+              <li><Link to="/category/cooking-oils" className="hover:text-white transition-colors">Pure Cooking Oils</Link></li>
+              <li><Link to="/category/seasoning-spices" className="hover:text-white transition-colors">Tomato Paste &amp; Spices</Link></li>
+              <li><Link to="/category/beverages" className="hover:text-white transition-colors">Milk &amp; Beverages</Link></li>
+              <li><Link to="/category/household-care" className="hover:text-white transition-colors">Laundry &amp; Cleaners</Link></li>
+              <li><Link to="/category/daily-essentials" className="hover:text-white transition-colors">Daily Hygiene Staples</Link></li>
+            </ul>
+          </div>
 
-            <div className="space-y-2.5 text-gray-600 dark:text-gray-400 text-xs">
-              <p className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-[#8A3D52] dark:text-rose-400 shrink-0" />
-                <a href={`tel:${storeSettings.storePhone || '+233551234567'}`} className="hover:text-[#8A3D52] dark:hover:text-rose-400 font-semibold">
-                  {storeSettings.storePhone || '+233 55 123 4567'}
-                </a>
-              </p>
-
-              <p className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-[#8A3D52] dark:text-rose-400 shrink-0" />
-                <a href={`mailto:${storeSettings.storeEmail || 'crcosmetics.essential@gmail.com'}`} className="hover:text-[#8A3D52] dark:hover:text-rose-400 break-all">
-                  {storeSettings.storeEmail || 'crcosmetics.essential@gmail.com'}
-                </a>
-              </p>
-
-              <p className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-[#8A3D52] dark:text-rose-400 shrink-0 mt-0.5" />
-                <span>{storeSettings.storeAddress || 'Botwe School Junction, Accra'}</span>
-              </p>
-
-              <p className="flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400 pt-0.5">
-                <Clock className="w-3.5 h-3.5 text-[#8A3D52] dark:text-rose-400 shrink-0 mt-0.5" />
-                <span>{storeSettings.businessHours || 'Mon - Sat: 9:00am - 8:00pm'}</span>
-              </p>
-            </div>
+          {/* Customer Care & Legal */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Customer Support
+            </h4>
+            <ul className="space-y-2.5 text-xs text-stone-400">
+              <li><Link to="/account" className="hover:text-white transition-colors">My Customer Account</Link></li>
+              <li><Link to="/account/orders" className="hover:text-white transition-colors">Order Tracking &amp; History</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About CR Cosmetics</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Contact Store Support</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition-colors">FAQs &amp; Delivery Policies</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            </ul>
           </div>
 
         </div>
-      </div>
 
-      {/* BOTTOM COPYRIGHT & BRAND BAR */}
-      <div className="bg-[#181415] dark:bg-[#0B0C0E] text-gray-400 py-6 px-4 sm:px-6 lg:px-8 text-[11px] border-t border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          
-          <div className="flex items-center gap-2 text-center sm:text-left">
-            <Crown className="w-3.5 h-3.5 text-[#C5A059] fill-current shrink-0" />
-            <p className="text-gray-400">
-              © {new Date().getFullYear()} <strong className="text-white font-medium">CR Cosmetics & Essential</strong>. All Rights Reserved.
-            </p>
+        {/* Copyright & Location */}
+        <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
+          <p>© {new Date().getFullYear()} CR Cosmetics &amp; Essentials Ltd. All rights reserved.</p>
+          <div className="flex items-center gap-1">
+            <span>Crafted for retail excellence in</span>
+            <span className="text-stone-300 font-semibold">Accra, Ghana 🇬🇭</span>
           </div>
-
-          <div className="flex items-center gap-4 sm:gap-6 text-gray-400 text-xs">
-            <span>Authentic Beauty & Daily Care</span>
-            <span className="w-1 h-1 rounded-full bg-[#C5A059]" />
-            <span>Accra, Ghana</span>
-            <span className="w-1 h-1 rounded-full bg-[#C5A059]" />
-            <span className="text-[#C5A059] font-medium">100% Genuine Guarantee</span>
-          </div>
-
         </div>
-      </div>
 
+      </div>
     </footer>
   );
 };

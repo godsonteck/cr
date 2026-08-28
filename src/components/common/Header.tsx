@@ -1,473 +1,329 @@
 import React, { useState } from 'react';
-import { CategoryType, Product } from '../../types';
-import { useCart } from '../../context/CartContext';
-import { useWishlist } from '../../context/WishlistContext';
-import { useStore } from '../../context/StoreContext';
-import { useTheme } from '../../context/ThemeContext';
-import { PredictiveSearchBar } from '../shop/PredictiveSearchBar';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
-  MessageCircle, 
   Search, 
-  User, 
-  Heart, 
   ShoppingBag, 
-  ChevronDown, 
-  Crown,
+  Heart,
+  User,
   Menu,
   X,
+  ChevronRight,
   Sparkles,
-  Lock,
+  ShoppingBasket,
+  PhoneCall,
   Sun,
   Moon
 } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
+import { useAuth } from '../../context/AuthContext';
+import { useStore } from '../../context/StoreContext';
+import { useTheme } from '../../context/ThemeContext';
+import { CATEGORIES_CONFIG } from '../../data/products';
+import { DepartmentType } from '../../types';
 
 interface HeaderProps {
-  currentCategory: CategoryType;
-  onSelectCategory: (category: CategoryType) => void;
-  selectedBrand: string;
-  onSelectBrand: (brand: string) => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  onOpenProductDetails?: (product: Product) => void;
   onOpenCart: () => void;
   onOpenWishlist: () => void;
-  onOpenAccount: () => void;
-  onOpenMatchFinder: () => void;
-  onOpenAbout: () => void;
-  onGoHome: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  currentCategory,
-  onSelectCategory,
-  selectedBrand,
-  onSelectBrand,
-  searchQuery,
-  onSearchChange,
-  onOpenProductDetails,
-  onOpenCart,
-  onOpenWishlist,
-  onOpenAccount,
-  onOpenMatchFinder,
-  onOpenAbout,
-  onGoHome
-}) => {
-  const { totalItemsCount } = useCart();
-  const { wishlistCount } = useWishlist();
-  const { storeSettings, brands } = useStore();
-  const { isDark, toggleTheme } = useTheme();
+export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { totalItems } = useCart();
+  const { wishlistIds } = useWishlist();
+  const { user, isAuthenticated } = useAuth();
+  const { storeSettings } = useStore();
+  const { isDarkMode, toggleTheme } = useTheme();
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-  const [isBrandsDropdownOpen, setIsBrandsDropdownOpen] = useState(false);
+  const [activeDepartmentTab, setActiveDepartmentTab] = useState<DepartmentType>('beauty');
+  const [searchInput, setSearchInput] = useState('');
 
-  const handleCategoryClick = (cat: CategoryType) => {
-    onSelectCategory(cat);
-    setIsCategoryDropdownOpen(false);
-    setIsShopDropdownOpen(false);
-    setIsMobileMenuOpen(false);
-  };
+  const beautyCategories = CATEGORIES_CONFIG.filter(c => c.department === 'beauty');
+  const groceryCategories = CATEGORIES_CONFIG.filter(c => c.department === 'groceries');
 
-  const handleBrandClick = (brand: string) => {
-    onSelectBrand(brand);
-    setIsBrandsDropdownOpen(false);
-    setIsMobileMenuOpen(false);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
+      setIsMobileMenuOpen(false);
+    }
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-[#121318] shadow-xs select-none border-b border-transparent dark:border-gray-800 transition-colors duration-200">
-      {/* 2. MAIN HEADER NAVIGATION BAR */}
-      <div className="border-b border-gray-100 dark:border-gray-800/80 bg-white dark:bg-[#121318] transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-4">
-          
-          {/* Left: Mobile Hamburger & Desktop Links */}
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-lg cursor-pointer transition-colors"
-              aria-label="Toggle Navigation Menu"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-
-            <nav className="hidden lg:flex items-center gap-6 text-xs font-bold tracking-widest text-gray-700 dark:text-gray-300 uppercase">
-              <button
-                onClick={onGoHome}
-                className={`transition-colors hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer ${
-                  currentCategory === 'all' && selectedBrand === 'All Brands' && !searchQuery ? 'text-[#8A3D52] dark:text-rose-400 font-black' : ''
-                }`}
-              >
-                HOME
-              </button>
-
-              {/* SHOP Dropdown */}
-              <div 
-                className="relative"
-                onMouseEnter={() => setIsShopDropdownOpen(true)}
-                onMouseLeave={() => setIsShopDropdownOpen(false)}
-              >
-                <button
-                  onClick={() => handleCategoryClick('all')}
-                  className="flex items-center gap-1 hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors py-1 cursor-pointer"
-                >
-                  <span>SHOP</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                </button>
-
-                {isShopDropdownOpen && (
-                  <div className="absolute top-full left-0 w-48 bg-white dark:bg-[#1C1D26] border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl p-2 py-2 space-y-1 animate-fadeIn z-50 text-xs normal-case">
-                    <button
-                      onClick={() => handleCategoryClick('all')}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 flex items-center justify-between cursor-pointer"
-                    >
-                      <span>All Products</span>
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500">View all</span>
-                    </button>
-                    <button
-                      onClick={() => handleCategoryClick('new-arrivals')}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 flex items-center justify-between cursor-pointer"
-                    >
-                      <span>New Arrivals</span>
-                      <span className="text-[9px] bg-rose-100 dark:bg-rose-900/50 text-[#8A3D52] dark:text-rose-300 px-1.5 py-0.5 rounded font-bold">New</span>
-                    </button>
-                    <button
-                      onClick={() => handleCategoryClick('best-sellers')}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 flex items-center justify-between cursor-pointer"
-                    >
-                      <span>Best Sellers</span>
-                      <span className="text-[9px] bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">Hot</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* CATEGORIES Dropdown */}
-              <div 
-                className="relative"
-                onMouseEnter={() => setIsCategoryDropdownOpen(true)}
-                onMouseLeave={() => setIsCategoryDropdownOpen(false)}
-              >
-                <button
-                  onClick={() => handleCategoryClick('all')}
-                  className={`flex items-center gap-1 hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors py-1 cursor-pointer ${
-                    currentCategory !== 'all' ? 'text-[#8A3D52] dark:text-rose-400' : ''
-                  }`}
-                >
-                  <span>CATEGORIES</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                </button>
-
-                {isCategoryDropdownOpen && (
-                  <div className="absolute top-full left-0 w-52 bg-white dark:bg-[#1C1D26] border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl p-2 py-2 space-y-1 animate-fadeIn z-50 text-xs normal-case">
-                    <button onClick={() => handleCategoryClick('skincare')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      🧴 Skincare
-                    </button>
-                    <button onClick={() => handleCategoryClick('makeup')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      💄 Makeup
-                    </button>
-                    <button onClick={() => handleCategoryClick('fragrances')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      ✨ Fragrances
-                    </button>
-                    <button onClick={() => handleCategoryClick('body-care')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      🫧 Body Care
-                    </button>
-                    <button onClick={() => handleCategoryClick('beauty-essentials')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      🖌️ Beauty Essentials
-                    </button>
-                    <button onClick={() => handleCategoryClick('everyday-essentials')} className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-gray-200 font-semibold hover:text-[#8A3D52] dark:hover:text-rose-300 cursor-pointer">
-                      🧺 Everyday Essentials
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* BRANDS Dropdown */}
-              <div 
-                className="relative"
-                onMouseEnter={() => setIsBrandsDropdownOpen(true)}
-                onMouseLeave={() => setIsBrandsDropdownOpen(false)}
-              >
-                <button
-                  className={`flex items-center gap-1 hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors py-1 cursor-pointer ${
-                    selectedBrand !== 'All Brands' ? 'text-[#8A3D52] dark:text-rose-400' : ''
-                  }`}
-                >
-                  <span>BRANDS</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                </button>
-
-                {isBrandsDropdownOpen && (
-                  <div className="absolute top-full left-0 w-48 bg-white dark:bg-[#1C1D26] border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl p-2 py-2 space-y-1 animate-fadeIn z-50 text-xs normal-case max-h-80 overflow-y-auto">
-                    {brands.map(brand => (
-                      <button
-                        key={brand}
-                        onClick={() => handleBrandClick(brand)}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                          selectedBrand === brand ? 'bg-rose-50 dark:bg-rose-950/50 text-[#8A3D52] dark:text-rose-300 font-bold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                        }`}
-                      >
-                        {brand}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={onOpenAbout}
-                className="hover:text-[#8A3D52] dark:hover:text-rose-400 transition-colors cursor-pointer"
-              >
-                ABOUT US
-              </button>
-            </nav>
-          </div>
-
-          {/* Center: Exact CR Crown Logo */}
-          <div 
-            onClick={onGoHome}
-            className="flex flex-col items-center justify-center cursor-pointer text-center group"
-          >
-            {/* Crown Icon */}
-            <div className="text-[#C5A059] flex items-center justify-center mb-0.5 group-hover:scale-110 transition-transform">
-              <Crown className="w-5 h-5 fill-current" />
+    <header className="sticky top-0 z-40 bg-[#FDFBF7] dark:bg-[#12100F] border-b border-[#E6DFD7] dark:border-[#36322E] transition-colors">
+      {/* Top Announcement Bar */}
+      {storeSettings.announcementVisible && storeSettings.announcementText && (
+        <div className="bg-[#1C1817] dark:bg-[#24211E] text-white py-1.5 px-4 text-xs font-medium tracking-wide">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2 mx-auto md:mx-0">
+              <span className="bg-[#C86D51] text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded">
+                Ghana Express
+              </span>
+              <span>{storeSettings.announcementText}</span>
             </div>
-
-            {/* CR Monogram */}
-            <span className="font-serif text-3xl sm:text-4xl font-extrabold tracking-tighter text-gray-900 dark:text-white leading-none transition-colors">
-              CR
-            </span>
-
-            {/* Subtext: COSMETICS & ESSENTIAL */}
-            <span className="tracking-[0.25em] text-[9px] sm:text-[10px] font-extrabold text-gray-800 dark:text-gray-300 uppercase mt-0.5 transition-colors">
-              COSMETICS & ESSENTIAL
-            </span>
-
-            {/* Script subtext: Beauty · Care · Essentials */}
-            <span className="font-serif italic text-[11px] sm:text-xs text-[#8A3D52] dark:text-rose-400 tracking-wide mt-0.5 transition-colors">
-              Beauty · Care · Essentials
-            </span>
-          </div>
-
-          {/* Right Action Icons: Dark Mode Toggle, Search, User, Wishlist, Cart */}
-          <div className="flex items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300">
-            
-            {/* Global Dark Mode Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-700 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors cursor-pointer relative group"
-              aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              title={isDark ? 'Switch to Light Mode (Day)' : 'Switch to Dark Mode (Night)'}
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-amber-400 hover:rotate-45 transition-transform duration-300" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700 hover:-rotate-12 transition-transform duration-300" />
-              )}
-              <span className="sr-only">Toggle theme</span>
-            </button>
-
-            {/* Search Toggle */}
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 hover:text-[#8A3D52] dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors cursor-pointer"
-              aria-label="Search Catalog"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* User Account */}
-            <button
-              onClick={onOpenAccount}
-              className="p-2 hover:text-[#8A3D52] dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors cursor-pointer"
-              aria-label="My Account & Orders"
-            >
-              <User className="w-5 h-5" />
-            </button>
-
-            {/* Wishlist */}
-            <button
-              onClick={onOpenWishlist}
-              className="p-2 hover:text-[#8A3D52] dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors relative cursor-pointer"
-              aria-label="Wishlist"
-            >
-              <Heart className="w-5 h-5" />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-[#8A3D52] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </button>
-
-            {/* Cart Bag */}
-            <button
-              onClick={onOpenCart}
-              className="p-2 hover:text-[#8A3D52] dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors relative cursor-pointer"
-              aria-label="Shopping Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {totalItemsCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-[#8A3D52] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {totalItemsCount}
-                </span>
-              )}
-            </button>
-
-          </div>
-
-        </div>
-
-        {/* Inline Expandable Search Bar with Predictive Dropdown */}
-        {isSearchOpen && (
-          <div className="border-t border-gray-100 dark:border-gray-800 bg-[#FDF9F8] dark:bg-[#181920] py-3 px-4 sm:px-6 animate-fadeIn">
-            <div className="max-w-3xl mx-auto flex items-center gap-3">
-              <div className="flex-1">
-                <PredictiveSearchBar
-                  searchQuery={searchQuery}
-                  onSearchChange={onSearchChange}
-                  onSelectProduct={product => {
-                    if (onOpenProductDetails) {
-                      onOpenProductDetails(product);
-                    }
-                    setIsSearchOpen(false);
-                  }}
-                  onSelectCategory={cat => {
-                    handleCategoryClick(cat);
-                    setIsSearchOpen(false);
-                  }}
-                  onSelectBrand={brand => {
-                    handleBrandClick(brand);
-                    setIsSearchOpen(false);
-                  }}
-                  placeholder="Search The Ordinary, CeraVe, perfumes, lipsticks, shea butter..."
-                  autoFocus
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* Mobile Drawer Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex">
-          <div className="w-72 max-w-full bg-white dark:bg-[#16171E] h-full p-5 overflow-y-auto flex flex-col justify-between shadow-2xl animate-slideRight text-gray-900 dark:text-gray-100">
-            <div className="space-y-6">
-              
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-[#C5A059] fill-current" />
-                  <span className="font-serif font-black text-sm tracking-wider">CR COSMETICS</span>
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Mobile Dark Mode Switcher */}
-              <div className="p-3 bg-gray-50 dark:bg-[#1E202A] rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-200">
-                  {isDark ? <Moon className="w-4 h-4 text-rose-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-                  <span>{isDark ? 'Dark Mode (Night)' : 'Light Mode (Day)'}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="px-3 py-1 bg-white dark:bg-[#282A36] text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-700 shadow-2xs text-[#8A3D52] dark:text-rose-400 cursor-pointer"
-                >
-                  Switch
-                </button>
-              </div>
-
-              <nav className="space-y-2 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                <button
-                  onClick={() => {
-                    onGoHome();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left py-2 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer"
-                >
-                  HOME
-                </button>
-
-                <div className="py-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold">Categories</span>
-                  <button onClick={() => handleCategoryClick('makeup')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    💄 Makeup
-                  </button>
-                  <button onClick={() => handleCategoryClick('skincare')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    🧴 Skincare
-                  </button>
-                  <button onClick={() => handleCategoryClick('fragrances')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    ✨ Fragrances
-                  </button>
-                  <button onClick={() => handleCategoryClick('body-care')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    🫧 Body Care
-                  </button>
-                  <button onClick={() => handleCategoryClick('beauty-essentials')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    🖌️ Beauty Essentials
-                  </button>
-                  <button onClick={() => handleCategoryClick('everyday-essentials')} className="w-full text-left py-1.5 text-gray-800 dark:text-gray-200 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer">
-                    🧺 Everyday Essentials
-                  </button>
-                </div>
-
-                <div className="py-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold">Explore</span>
-                  <button 
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      onOpenMatchFinder();
-                    }}
-                    className="w-full text-left py-1.5 text-[#8A3D52] dark:text-rose-400 flex items-center gap-1.5 font-bold cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Find Your Perfect Match</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      onOpenAbout();
-                    }}
-                    className="w-full text-left py-1.5 text-gray-700 dark:text-gray-300 hover:text-[#8A3D52] dark:hover:text-rose-400 cursor-pointer"
-                  >
-                    About Us
-                  </button>
-                </div>
-              </nav>
-
-            </div>
-
-            <div className="pt-6 border-t border-gray-100 dark:border-gray-800 text-center space-y-2 text-xs">
-              <a
-                href={`https://wa.me/${storeSettings.whatsappNumber || '233551234567'}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-2.5 bg-[#8A3D52] hover:bg-[#732F42] text-white rounded-lg font-bold flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp: {storeSettings.storePhone}</span>
+            <div className="hidden md:flex items-center gap-4 text-stone-300">
+              <a href={`tel:${storeSettings.storePhone}`} className="hover:text-white flex items-center gap-1">
+                <PhoneCall className="w-3 h-3" />
+                <span>{storeSettings.storePhone}</span>
               </a>
-              <p className="text-gray-400 dark:text-gray-500 text-[10px]">{storeSettings.storeAddress}</p>
+              <span>•</span>
+              <span className="text-amber-300 font-semibold">Free Accra Delivery &gt; GHS {storeSettings.freeDeliveryThreshold}</span>
             </div>
           </div>
-          <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
         </div>
       )}
 
+      {/* Main Header Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 gap-4">
+          
+          {/* Mobile Hamburger Button */}
+          <div className="flex lg:hidden items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-[#1C1817] dark:text-stone-200 hover:bg-[#F5F0EB] dark:hover:bg-stone-800 rounded-lg"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* Brand Logo & Tagline */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex flex-col group">
+              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1C1817] dark:text-stone-100 uppercase font-sans">
+                CR <span className="text-[#C86D51]">COSMETICS</span>
+              </span>
+              <span className="text-[9px] tracking-[0.2em] font-bold text-[#6E6763] dark:text-stone-400 uppercase">
+                &amp; ESSENTIALS
+              </span>
+            </Link>
+
+            {/* Desktop Department Switcher */}
+            <nav className="hidden lg:flex items-center gap-1 bg-[#F5F0EB] dark:bg-[#1C1917] p-1 rounded-full border border-[#E6DFD7] dark:border-[#36322E]">
+              <Link
+                to="/beauty"
+                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 ${
+                  location.pathname.startsWith('/beauty')
+                    ? 'bg-[#1C1817] text-white dark:bg-amber-100 dark:text-stone-950 shadow-sm'
+                    : 'text-[#6E6763] hover:text-[#1C1817] dark:text-stone-400 dark:hover:text-stone-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#C86D51]" />
+                Beauty &amp; Skincare
+              </Link>
+              <Link
+                to="/groceries"
+                className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 ${
+                  location.pathname.startsWith('/groceries')
+                    ? 'bg-[#4A5D4E] text-white shadow-sm'
+                    : 'text-[#6E6763] hover:text-[#1C1817] dark:text-stone-400 dark:hover:text-stone-200'
+                }`}
+              >
+                <ShoppingBasket className="w-3.5 h-3.5 text-amber-300" />
+                Groceries &amp; Essentials
+              </Link>
+            </nav>
+          </div>
+
+          {/* Desktop Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xs relative">
+            <input
+              type="text"
+              placeholder="Search products, brands, ingredients..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full bg-[#F5F0EB] dark:bg-[#1C1917] text-[#1C1817] dark:text-stone-200 text-xs pl-9 pr-4 py-2.5 rounded-full border border-[#E6DFD7] dark:border-[#36322E] focus:outline-none focus:border-[#C86D51] transition-colors placeholder:text-stone-400"
+            />
+            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+          </form>
+
+          {/* Action Icons (Account, Wishlist, Theme, Cart) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-[#6E6763] dark:text-stone-300 hover:text-[#1C1817] dark:hover:text-white rounded-full hover:bg-[#F5F0EB] dark:hover:bg-stone-800 transition-colors"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            {/* Wishlist Icon */}
+            <button
+              onClick={onOpenWishlist}
+              className="p-2 text-[#6E6763] dark:text-stone-300 hover:text-[#1C1817] dark:hover:text-white rounded-full hover:bg-[#F5F0EB] dark:hover:bg-stone-800 transition-colors relative"
+              aria-label="Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistIds.length > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-[#C86D51] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {wishlistIds.length}
+                </span>
+              )}
+            </button>
+
+            {/* Account Link */}
+            <Link
+              to={isAuthenticated ? "/account" : "/signin"}
+              className="p-2 text-[#6E6763] dark:text-stone-300 hover:text-[#1C1817] dark:hover:text-white rounded-full hover:bg-[#F5F0EB] dark:hover:bg-stone-800 transition-colors flex items-center gap-1"
+              aria-label="Account"
+            >
+              <User className="w-5 h-5" />
+              {isAuthenticated && (
+                <span className="hidden xl:inline text-xs font-semibold text-[#1C1817] dark:text-stone-200">
+                  {user?.fullName.split(' ')[0]}
+                </span>
+              )}
+            </Link>
+
+            {/* Cart Button */}
+            <button
+              onClick={onOpenCart}
+              className="bg-[#1C1817] dark:bg-[#F5F0EB] text-white dark:text-[#1C1817] px-3.5 py-2 rounded-full flex items-center gap-2 font-bold text-xs hover:bg-[#342F2D] dark:hover:bg-white transition-all shadow-sm"
+              aria-label="Open Cart"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline uppercase tracking-wider">Cart</span>
+              <span className="bg-[#C86D51] text-white text-[11px] font-black px-1.5 py-0.5 rounded-full">
+                {totalItems}
+              </span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* Secondary Navigation Links (Desktop) */}
+        <div className="hidden lg:flex items-center justify-between py-2 border-t border-[#E6DFD7]/60 dark:border-[#36322E]/60 text-xs font-bold uppercase tracking-wider text-[#6E6763] dark:text-stone-400">
+          <div className="flex items-center gap-8">
+            <Link to="/shop" className="hover:text-[#1C1817] dark:hover:text-stone-100 transition-colors">
+              All Shop Catalog
+            </Link>
+            <Link to="/beauty" className="hover:text-[#C86D51] transition-colors">
+              Beauty &amp; Skincare
+            </Link>
+            <Link to="/groceries" className="hover:text-[#4A5D4E] transition-colors">
+              Groceries &amp; Essentials
+            </Link>
+            <Link to="/routine-builder" className="text-[#C86D51] hover:underline flex items-center gap-1 font-extrabold">
+              <Sparkles className="w-3 h-3" />
+              Routine Builder
+            </Link>
+            <Link to="/offers" className="hover:text-[#1C1817] dark:hover:text-stone-100 transition-colors">
+              Promotions &amp; Offers
+            </Link>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link to="/about" className="hover:text-[#1C1817] dark:hover:text-stone-100 transition-colors">
+              Our Story
+            </Link>
+            <Link to="/contact" className="hover:text-[#1C1817] dark:hover:text-stone-100 transition-colors">
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Drawer */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex">
+          <div className="w-4/5 max-w-sm bg-[#FDFBF7] dark:bg-[#12100F] h-full flex flex-col p-6 overflow-y-auto animate-fade-in shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E6DFD7] dark:border-[#36322E]">
+              <span className="text-lg font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
+                Navigation
+              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Search Input Mobile */}
+            <form onSubmit={handleSearchSubmit} className="mt-4 relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="w-full bg-[#F5F0EB] dark:bg-[#1C1917] text-xs pl-9 pr-4 py-3 rounded-lg border border-[#E6DFD7] dark:border-[#36322E]"
+              />
+              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3.5" />
+            </form>
+
+            {/* Department Tabs */}
+            <div className="flex gap-2 mt-6 p-1 bg-[#F5F0EB] dark:bg-[#1C1917] rounded-lg">
+              <button
+                onClick={() => setActiveDepartmentTab('beauty')}
+                className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${
+                  activeDepartmentTab === 'beauty' ? 'bg-[#1C1817] text-white' : 'text-stone-500'
+                }`}
+              >
+                Beauty
+              </button>
+              <button
+                onClick={() => setActiveDepartmentTab('groceries')}
+                className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${
+                  activeDepartmentTab === 'groceries' ? 'bg-[#4A5D4E] text-white' : 'text-stone-500'
+                }`}
+              >
+                Groceries
+              </button>
+            </div>
+
+            {/* Categories List */}
+            <div className="mt-6 flex-1 space-y-3">
+              <div className="text-[10px] uppercase font-bold tracking-widest text-[#6E6763]">
+                {activeDepartmentTab === 'beauty' ? 'Beauty Categories' : 'Grocery Categories'}
+              </div>
+
+              {(activeDepartmentTab === 'beauty' ? beautyCategories : groceryCategories).map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.slug}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-2.5 rounded-lg hover:bg-[#F5F0EB] dark:hover:bg-stone-800 text-sm font-semibold text-[#1C1817] dark:text-stone-200"
+                >
+                  <span>{cat.name}</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </Link>
+              ))}
+
+              <hr className="my-4 border-[#E6DFD7] dark:border-[#36322E]" />
+
+              <Link
+                to="/routine-builder"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 text-sm font-bold text-[#C86D51]"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Build Skincare Routine</span>
+              </Link>
+              <Link
+                to="/offers"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block p-2.5 text-sm font-semibold text-stone-700 dark:text-stone-300"
+              >
+                Current Deals &amp; Offers
+              </Link>
+              <Link
+                to="/account"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block p-2.5 text-sm font-semibold text-stone-700 dark:text-stone-300"
+              >
+                My Customer Account
+              </Link>
+            </div>
+
+            <div className="pt-4 border-t border-[#E6DFD7] dark:border-[#36322E] text-xs text-stone-500">
+              Need help ordering? Call us: <span className="font-bold text-stone-900 dark:text-stone-200">{storeSettings.storePhone}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

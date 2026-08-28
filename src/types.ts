@@ -1,19 +1,42 @@
+export type DepartmentType = 'beauty' | 'groceries';
+
 export type CategoryType = 
   | 'all' 
-  | 'makeup' 
+  // Beauty Categories
   | 'skincare' 
+  | 'makeup'
   | 'fragrances' 
   | 'body-care' 
-  | 'beauty-essentials' 
-  | 'everyday-essentials'
+  | 'beauty-tools'
+  // Grocery Categories
+  | 'rice-grains'
+  | 'cooking-oils'
+  | 'seasoning-spices'
+  | 'beverages'
+  | 'snacks-sweets'
+  | 'household-care'
+  | 'daily-essentials'
+  // Special Curations
   | 'new-arrivals'
-  | 'best-sellers';
+  | 'best-sellers'
+  | 'offers';
 
 export interface CategoryConfig {
   id: CategoryType;
+  slug: string;
   name: string;
+  department: DepartmentType;
   image: string;
   description: string;
+}
+
+export interface DepartmentConfig {
+  id: DepartmentType;
+  slug: string;
+  name: string;
+  tagline: string;
+  description: string;
+  image: string;
 }
 
 export interface PromoCode {
@@ -74,16 +97,27 @@ export interface ProductReview {
   adminReply?: string;
 }
 
+export type RoutineStep = 'cleanse' | 'treat' | 'hydrate' | 'protect';
+
+export interface ProductVariant {
+  id: string;
+  name: string; // e.g. "30ml", "100ml", "5kg", "10kg"
+  price: number;
+  originalPrice?: number;
+  inStock: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
   brand: string;
+  department: DepartmentType;
   category: CategoryType;
   categoryLabel: string;
   price: number; // in GHS
   originalPrice?: number;
   discountBadge?: string; // e.g. "-10%"
-  unit: string; // e.g. "30ml Bottle", "454g Tub", "400ml", "100ml EDP", "200ml Jar"
+  unit: string; // e.g. "30ml Dropper Bottle", "5kg Bag", "400ml Bottle"
   image: string;
   images: string[];
   description: string;
@@ -94,10 +128,20 @@ export interface Product {
   rating: number;
   reviewCount: number;
   origin?: string;
+  // Beauty Specific Metadata
+  routineStep?: RoutineStep;
+  skinType?: string[]; // e.g. ["All Skin Types", "Oily", "Combination"]
+  skinConcern?: string[]; // e.g. ["Acne", "Hyperpigmentation", "Dullness"]
+  // Grocery Specific Metadata
+  packSize?: string; // e.g. "5kg", "1 Litre", "Pack of 6"
+  storageInfo?: string;
+  shelfLife?: string;
+  variants?: ProductVariant[];
   details?: {
     howToUse?: string;
     ingredients?: string;
     benefits?: string;
+    nutritionalInfo?: string;
   };
 }
 
@@ -105,6 +149,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedOption?: string;
+  selectedVariant?: ProductVariant;
 }
 
 export interface RiderTrackingInfo {
@@ -159,4 +204,3 @@ export interface UserProfile {
   orders: Order[];
   savedItemIds: string[];
 }
-
