@@ -15,7 +15,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { PRODUCTS } from '../../data/products';
-import { ProductCard } from '../home/DepartmentStorefronts';
+import { ProductCard } from '../product/ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 
 export const AccountPage: React.FC = () => {

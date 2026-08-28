@@ -12,7 +12,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { PRODUCTS } from '../../data/products';
-import { ProductCard } from '../home/DepartmentStorefronts';
+import { ProductCard } from './ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
