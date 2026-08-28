@@ -92,13 +92,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
           {/* Brand Logo & Tagline */}
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex flex-col group">
-              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1C1817] dark:text-stone-100 uppercase font-sans">
-                CR <span className="text-[#C86D51]">COSMETICS</span>
-              </span>
-              <span className="text-[9px] tracking-[0.2em] font-bold text-[#6E6763] dark:text-stone-400 uppercase">
-                &amp; ESSENTIALS
-              </span>
+            <Link to="/" className="flex items-center gap-3 group">
+              <img
+                src="/src/assets/logo.jpeg"
+                alt="CR Cosmetics & Essentials"
+                className="h-10 sm:h-12 w-auto object-contain rounded-md"
+              />
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1C1817] dark:text-stone-100 uppercase font-sans">
+                  CR <span className="text-[#C86D51]">COSMETICS</span>
+                </span>
+                <span className="text-[9px] tracking-[0.2em] font-bold text-[#6E6763] dark:text-stone-400 uppercase">
+                  &amp; ESSENTIALS
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Department Switcher */}
