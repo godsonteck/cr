@@ -4,11 +4,13 @@ import { useStore } from './StoreContext';
 
 interface CartContextType {
   cart: CartItem[];
+  cartItems: CartItem[];
   addToCart: (product: Product, quantity?: number, selectedOption?: string) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   totalItemsCount: number;
+  totalItems: number;
   subtotal: number;
   discount: number;
   promoCode: string;
@@ -157,11 +159,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <CartContext.Provider
       value={{
         cart,
+        cartItems: cart,
         addToCart,
         removeFromCart,
         updateQuantity,
         clearCart,
         totalItemsCount,
+        totalItems: totalItemsCount,
         subtotal,
         discount: discountAmount,
         promoCode,

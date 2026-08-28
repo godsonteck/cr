@@ -21,6 +21,7 @@ import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { CATEGORIES_CONFIG } from '../../data/products';
 import { DepartmentType } from '../../types';
+import logoImg from '../../assets/logo.jpeg';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -94,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-3 group">
               <img
-                src="/src/assets/logo.jpeg"
+                src={logoImg}
                 alt="CR Cosmetics & Essentials"
                 className="h-10 sm:h-12 w-auto object-contain rounded-md"
               />

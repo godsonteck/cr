@@ -4,16 +4,11 @@ import {
   Sparkles,
   ShoppingBasket,
   ArrowRight,
-  CheckCircle2,
-  ShieldCheck,
-  Truck,
-  Clock,
   Heart,
-  Eye,
   ShoppingBag
 } from 'lucide-react';
-import { PRODUCTS, CATEGORIES_CONFIG, DEPARTMENTS } from '../../data/products';
-import { Product, DepartmentType } from '../../types';
+import { PRODUCTS, CATEGORIES_CONFIG } from '../../data/products';
+import { Product } from '../../types';
 import { Badge, Button } from '../common/UIPrimitives';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -23,7 +18,6 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const wishlisted = isInWishlist(product.id);
@@ -34,11 +28,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <div className="group bg-white dark:bg-[#1C1917] rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative">
 
       {/* Product Image Area */}
-      <div className="relative aspect-square overflow-hidden bg-[#F5F0EB] dark:bg-stone-900">
+      <div className="relative aspect-square overflow-hidden bg-[#F5F0EB] dark:bg-stone-900 p-4">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
 
         {/* Badges Overlay */}
@@ -53,25 +47,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )}
         </div>
 
-        {/* Department Indicator */}
-        <div className="absolute top-3 right-3 z-10">
-          <span className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full ${
-            isBeauty ? 'bg-[#1C1817] text-white' : 'bg-[#4A5D4E] text-white'
-          }`}>
-            {isBeauty ? 'Beauty' : 'Grocery'}
-          </span>
-        </div>
-
         {/* Wishlist Button */}
         <button
           onClick={(e) => {
             e.preventDefault();
             toggleWishlist(product.id);
           }}
-          className={`absolute bottom-3 right-3 p-2.5 rounded-full backdrop-blur-md transition-all z-10 ${
+          className={`absolute bottom-3 right-3 p-2 rounded-full backdrop-blur-md transition-all z-10 ${
             wishlisted
               ? 'bg-[#C86D51] text-white'
-              : 'bg-white/80 dark:bg-stone-800/80 text-stone-700 dark:text-stone-200 hover:bg-white'
+              : 'bg-white/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-200 hover:bg-white'
           }`}
           aria-label="Wishlist product"
         >
@@ -80,7 +65,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       {/* Product Information */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
           <div className="flex items-center justify-between text-xs text-[#6E6763] dark:text-stone-400 mb-1">
             <span className="font-semibold uppercase tracking-wider">{product.brand}</span>
@@ -88,16 +73,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
 
           <Link to={`/product/${product.id}`} className="group-hover:text-[#C86D51] transition-colors">
-            <h3 className="text-sm font-bold text-[#1C1817] dark:text-stone-100 line-clamp-2 leading-snug">
+            <h3 className="text-xs sm:text-sm font-bold text-[#1C1817] dark:text-stone-100 line-clamp-2 leading-snug">
               {product.name}
             </h3>
           </Link>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-[#E6DFD7]/60 dark:border-[#36322E]/60 flex items-center justify-between gap-2">
+        <div className="pt-3 border-t border-[#E6DFD7]/60 dark:border-[#36322E]/60 flex items-center justify-between gap-2">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-base font-extrabold text-[#1C1817] dark:text-stone-100">
+              <span className="text-sm sm:text-base font-extrabold text-[#1C1817] dark:text-stone-100">
                 GHS {product.price.toFixed(2)}
               </span>
               {product.originalPrice && (
@@ -125,18 +110,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 };
 
 export const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-
   const bestSellers = PRODUCTS.filter(p => p.badge === 'Bestseller' || p.rating >= 4.9).slice(0, 6);
-  const beautyFeatured = PRODUCTS.filter(p => p.department === 'beauty').slice(0, 4);
-  const groceryFeatured = PRODUCTS.filter(p => p.department === 'groceries').slice(0, 4);
 
   return (
-    <div className="space-y-16 pb-16 font-sans">
+    <div className="space-y-20 pb-20 font-sans">
 
       {/* 1. Hero Storefront Banner */}
       <section className="relative bg-[#1C1817] text-white overflow-hidden rounded-b-3xl">
-        <div className="absolute inset-0 z-0 opacity-40">
+        <div className="absolute inset-0 z-0 opacity-30">
           <img
             src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=2000&q=80"
             alt="Hero background"
@@ -144,7 +125,7 @@ export const HomePage: React.FC = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 flex flex-col items-center text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-36 flex flex-col items-center text-center">
           <span className="bg-[#C86D51] text-white text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full mb-6">
             Ghana Premier Digital Retailer
           </span>
@@ -177,7 +158,7 @@ export const HomePage: React.FC = () => {
 
       {/* 2. Dual-World Department Showcase */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10">
+        <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-xs font-bold tracking-widest uppercase text-[#C86D51]">
             Intelligently Organized Retail
           </h2>
@@ -189,7 +170,7 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* World 1 Card */}
-          <div className="group relative rounded-3xl overflow-hidden bg-[#1C1817] text-white min-h-[380px] flex flex-col justify-end p-8 shadow-xl">
+          <div className="group relative rounded-3xl overflow-hidden bg-[#1C1817] text-white min-h-[380px] flex flex-col justify-end p-8 sm:p-10 shadow-xl">
             <img
               src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=1000&q=80"
               alt="Beauty Department"
@@ -200,7 +181,7 @@ export const HomePage: React.FC = () => {
                 Department 01
               </span>
               <h3 className="text-3xl font-extrabold uppercase">Beauty &amp; Skincare</h3>
-              <p className="text-xs text-stone-300 max-w-md">
+              <p className="text-xs sm:text-sm text-stone-300 max-w-md">
                 Dermatologist-recommended serums, barrier creams, designer perfumes, and professional cosmetic tools.
               </p>
               <Link to="/beauty" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C86D51] hover:text-white pt-2">
@@ -211,7 +192,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* World 2 Card */}
-          <div className="group relative rounded-3xl overflow-hidden bg-[#4A5D4E] text-white min-h-[380px] flex flex-col justify-end p-8 shadow-xl">
+          <div className="group relative rounded-3xl overflow-hidden bg-[#4A5D4E] text-white min-h-[380px] flex flex-col justify-end p-8 sm:p-10 shadow-xl">
             <img
               src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1000&q=80"
               alt="Grocery Department"
@@ -222,7 +203,7 @@ export const HomePage: React.FC = () => {
                 Department 02
               </span>
               <h3 className="text-3xl font-extrabold uppercase">Groceries &amp; Essentials</h3>
-              <p className="text-xs text-stone-200 max-w-md">
+              <p className="text-xs sm:text-sm text-stone-200 max-w-md">
                 Premium Jasmine rice, pure cooking oils, evaporated milk, seasonings, and trusted daily household hygiene.
               </p>
               <Link to="/groceries" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-300 hover:text-white pt-2">
@@ -252,14 +233,14 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
           {CATEGORIES_CONFIG.map((cat) => (
             <Link
               key={cat.id}
               to={`/category/${cat.slug}`}
-              className="group bg-white dark:bg-[#1C1917] p-4 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] flex flex-col items-center text-center hover:shadow-lg transition-all"
+              className="group bg-white dark:bg-[#1C1917] p-5 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] flex flex-col items-center text-center hover:shadow-lg transition-all"
             >
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-stone-100 mb-3 group-hover:scale-110 transition-transform">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-stone-100 mb-3 group-hover:scale-105 transition-transform">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
@@ -304,7 +285,7 @@ export const HomePage: React.FC = () => {
               Skincare Routine Utility
             </span>
             <h3 className="text-3xl font-extrabold uppercase leading-tight">
-              Build Your Personalized 4-Step Regimen
+              Build Your Personalized Regimen
             </h3>
             <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
               Match your exact skin concern with dermatological formulas: Cleanse, Treat, Hydrate, and Protect for radiant results.
@@ -345,7 +326,7 @@ export const BeautyDepartmentPage: React.FC = () => {
   const beautyProducts = PRODUCTS.filter(p => p.department === 'beauty');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
       <div className="bg-[#1C1817] text-white p-8 lg:p-12 rounded-3xl relative overflow-hidden">
         <div className="max-w-2xl space-y-4">
           <Badge variant="terracotta">Department 01</Badge>
@@ -369,7 +350,7 @@ export const GroceryDepartmentPage: React.FC = () => {
   const groceryProducts = PRODUCTS.filter(p => p.department === 'groceries');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
       <div className="bg-[#4A5D4E] text-white p-8 lg:p-12 rounded-3xl relative overflow-hidden">
         <div className="max-w-2xl space-y-4">
           <Badge variant="gold">Department 02</Badge>
