@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -145,6 +146,7 @@ function MainStoreContent() {
           onSelectBrand={handleSelectBrand}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onOpenProductDetails={product => setSelectedProduct(product)}
           onOpenCart={() => setIsCartOpen(true)}
           onOpenWishlist={() => setIsWishlistOpen(true)}
           onOpenAccount={() => setCurrentView('account')}
@@ -347,18 +349,20 @@ function MainStoreContent() {
 
 export default function App() {
   return (
-    <StoreProvider>
-      <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <ToastProvider>
-              <ReviewsProvider>
-                <MainStoreContent />
-              </ReviewsProvider>
-            </ToastProvider>
-          </CartProvider>
-        </WishlistProvider>
-      </AuthProvider>
-    </StoreProvider>
+    <ThemeProvider>
+      <StoreProvider>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <ToastProvider>
+                <ReviewsProvider>
+                  <MainStoreContent />
+                </ReviewsProvider>
+              </ToastProvider>
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
+      </StoreProvider>
+    </ThemeProvider>
   );
 }

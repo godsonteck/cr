@@ -20,19 +20,19 @@ export const BestSellersSection: React.FC<BestSellersSectionProps> = ({
     : products.slice(0, 6);
 
   return (
-    <section className="py-12 sm:py-16 bg-[#FAF6F4] border-t border-b border-gray-100">
+    <section className="py-12 sm:py-16 bg-[#FAF6F4] dark:bg-[#14151B] border-t border-b border-gray-100 dark:border-gray-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Centered Heading with Decorative Diamond Line */}
         <div className="text-center space-y-2 mb-10">
-          <h2 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-[0.2em] uppercase font-sans">
+          <h2 className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white tracking-[0.2em] uppercase font-sans">
             BEST SELLERS
           </h2>
 
-          <div className="flex items-center justify-center gap-3 text-rose-200">
-            <div className="h-px w-16 bg-rose-200" />
+          <div className="flex items-center justify-center gap-3 text-rose-200 dark:text-rose-900/60">
+            <div className="h-px w-16 bg-rose-200 dark:bg-rose-900/60" />
             <div className="w-2 h-2 rotate-45 border border-[#8A3D52] bg-[#8A3D52]" />
-            <div className="h-px w-16 bg-rose-200" />
+            <div className="h-px w-16 bg-rose-200 dark:bg-rose-900/60" />
           </div>
         </div>
 

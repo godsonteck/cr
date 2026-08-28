@@ -129,6 +129,8 @@ export interface ShippingAddress {
   deliveryNotes?: string;
 }
 
+export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered';
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -142,7 +144,7 @@ export interface Order {
   paymentStatus: 'paid' | 'pending';
   deliveryMethod: DeliveryMethod;
   shippingAddress: ShippingAddress;
-  status: 'Confirmed' | 'Packing Order' | 'Out for Delivery' | 'Delivered';
+  status: OrderStatus;
   estimatedDeliveryTime: string;
   appliedPromoCode?: string;
   riderInfo?: RiderTrackingInfo;

@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { CategoryType, Product } from '../../types';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
-import { SlidersHorizontal, ChevronDown, Tag, RefreshCw } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, Tag, RefreshCw, Sparkles } from 'lucide-react';
+import { PredictiveSearchBar } from './PredictiveSearchBar';
 
 interface StoreCatalogProps {
   currentCategory: CategoryType;
@@ -111,31 +112,62 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
   return (
     <section id="catalog-section" className="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      {/* Category Title & Quick Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6 mb-6">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-extrabold text-[#8A3D52] tracking-widest uppercase bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-100">
-              {currentCategory.replace('-', ' ')}
-            </span>
-            {selectedBrand !== 'All Brands' && (
-              <span className="text-[11px] font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <span>{selectedBrand}</span>
-                <button onClick={() => onSelectBrand('All Brands')} className="hover:text-black cursor-pointer" aria-label="Clear brand">✕</button>
-              </span>
-            )}
-            {isCustomPriceActive && (
-              <span className="text-[11px] font-bold text-[#8A3D52] bg-rose-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-rose-200/80">
-                <span>GHS {minPrice} – GHS {maxPrice}</span>
-                <button onClick={() => { setMinPrice(0); setMaxPrice(1500); }} className="hover:text-black font-bold cursor-pointer" aria-label="Clear price">✕</button>
+      {/* Real-time Predictive Search Banner */}
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-rose-50/70 via-white to-rose-50/50 dark:from-[#181922] dark:via-[#1B1D28] dark:to-[#181922] p-4 sm:p-5 rounded-2xl border border-rose-100/80 dark:border-gray-800 shadow-2xs transition-colors">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#8A3D52] dark:text-rose-400 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Instant Predictive Search</span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Type any product name, brand, or active ingredient to get real-time recommendations.
+              </p>
+            </div>
+            {searchQuery && (
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-[#252836] px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 self-start md:self-auto shadow-2xs">
+                Active search: <strong className="text-[#8A3D52] dark:text-rose-400">"{searchQuery}"</strong> ({filteredProducts.length} results)
               </span>
             )}
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mt-1">
+          <PredictiveSearchBar
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange}
+            onSelectProduct={onOpenProductDetails}
+            onSelectCategory={onSelectCategory}
+            onSelectBrand={onSelectBrand}
+            placeholder="Search products, brands, ingredients (e.g. Niacinamide, CeraVe, Fenty)..."
+          />
+        </div>
+      </div>
+
+      {/* Category Title & Quick Filter Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-6 mb-6">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-extrabold text-[#8A3D52] dark:text-rose-400 tracking-widest uppercase bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-100 dark:border-rose-900/40">
+              {currentCategory.replace('-', ' ')}
+            </span>
+            {selectedBrand !== 'All Brands' && (
+              <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#1F212C] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <span>{selectedBrand}</span>
+                <button onClick={() => onSelectBrand('All Brands')} className="hover:text-black dark:hover:text-white cursor-pointer" aria-label="Clear brand">✕</button>
+              </span>
+            )}
+            {isCustomPriceActive && (
+              <span className="text-[11px] font-bold text-[#8A3D52] dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-rose-200/80 dark:border-rose-900/40">
+                <span>GHS {minPrice} – GHS {maxPrice}</span>
+                <button onClick={() => { setMinPrice(0); setMaxPrice(1500); }} className="hover:text-black dark:hover:text-white font-bold cursor-pointer" aria-label="Clear price">✕</button>
+              </span>
+            )}
+          </div>
+
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 dark:text-white mt-1">
             {categoryTitles[currentCategory] || 'Beauty & Essentials'}
           </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Showing {filteredProducts.length} authentic products in Accra, Ghana
           </p>
         </div>
@@ -149,7 +181,7 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
             className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs border cursor-pointer ${
               isCustomPriceActive 
                 ? 'bg-[#8A3D52] text-white border-[#8A3D52]' 
-                : 'bg-white text-gray-800 border-gray-200 hover:bg-gray-50'
+                : 'bg-white dark:bg-[#1E202B] text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#252836]'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -164,13 +196,13 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
             <select
               value={selectedBrand}
               onChange={e => onSelectBrand(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#8A3D52] shadow-2xs cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 bg-white dark:bg-[#1E202B] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#8A3D52] shadow-2xs cursor-pointer"
             >
               {brands.map(brand => (
-                <option key={brand} value={brand}>{brand}</option>
+                <option key={brand} value={brand} className="dark:bg-[#1E202B] dark:text-gray-200">{brand}</option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Sort Selector */}
@@ -178,21 +210,21 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#8A3D52] shadow-2xs cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 bg-white dark:bg-[#1E202B] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#8A3D52] shadow-2xs cursor-pointer"
             >
-              <option value="featured">Featured First</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
+              <option value="featured" className="dark:bg-[#1E202B]">Featured First</option>
+              <option value="price-asc" className="dark:bg-[#1E202B]">Price: Low to High</option>
+              <option value="price-desc" className="dark:bg-[#1E202B]">Price: High to Low</option>
+              <option value="rating" className="dark:bg-[#1E202B]">Highest Rated</option>
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Reset Filters Button */}
           {(currentCategory !== 'all' || selectedBrand !== 'All Brands' || searchQuery || isCustomPriceActive) && (
             <button
               onClick={handleResetAllFilters}
-              className="px-3 py-2 bg-rose-50 text-[#8A3D52] hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-3 py-2 bg-rose-50 dark:bg-rose-950/60 text-[#8A3D52] dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               <span>Reset</span>
@@ -204,19 +236,19 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
 
       {/* PRICE RANGE FILTER PANEL */}
       {isPriceFilterOpen && (
-        <div className="bg-[#FAF5F4] border border-rose-100/80 rounded-2xl p-4 sm:p-5 mb-8 shadow-2xs transition-all">
+        <div className="bg-[#FAF5F4] dark:bg-[#161720] border border-rose-100/80 dark:border-gray-800 rounded-2xl p-4 sm:p-5 mb-8 shadow-2xs transition-all">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             
             {/* Left: Interactive Slider & Range Display */}
             <div className="space-y-3 flex-1 max-w-xl">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
-                  <Tag className="w-3.5 h-3.5 text-[#8A3D52]" />
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-white">
+                  <Tag className="w-3.5 h-3.5 text-[#8A3D52] dark:text-rose-400" />
                   <span>Price Range (GHS)</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#8A3D52] bg-white px-3 py-1 rounded-lg border border-rose-100 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#8A3D52] dark:text-rose-400 bg-white dark:bg-[#1E202B] px-3 py-1 rounded-lg border border-rose-100 dark:border-gray-700 shadow-2xs">
                   <span>GHS {minPrice}</span>
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-400 dark:text-gray-500">—</span>
                   <span>GHS {maxPrice >= 1500 ? '1,500+' : maxPrice}</span>
                 </div>
               </div>
@@ -236,10 +268,10 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
                         setMaxPrice(val);
                       }
                     }}
-                    className="w-full h-2 bg-rose-200/80 rounded-lg appearance-none cursor-pointer accent-[#8A3D52]"
+                    className="w-full h-2 bg-rose-200/80 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#8A3D52] dark:accent-rose-500"
                   />
                 </div>
-                <div className="flex justify-between text-[10px] font-semibold text-gray-400">
+                <div className="flex justify-between text-[10px] font-semibold text-gray-400 dark:text-gray-500">
                   <span>GHS 0</span>
                   <span>GHS 300</span>
                   <span>GHS 750</span>
@@ -250,8 +282,8 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
             </div>
 
             {/* Right: Quick Budget Filter Pills */}
-            <div className="space-y-1.5 lg:border-l lg:border-rose-200/60 lg:pl-6">
-              <span className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider block">
+            <div className="space-y-1.5 lg:border-l lg:border-rose-200/60 dark:lg:border-gray-800 lg:pl-6">
+              <span className="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
                 Quick Budget Select:
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -264,7 +296,7 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         isActive
                           ? 'bg-[#8A3D52] text-white shadow-2xs scale-102'
-                          : 'bg-white text-gray-700 hover:bg-rose-100/60 border border-gray-200/80'
+                          : 'bg-white dark:bg-[#1E202B] text-gray-700 dark:text-gray-300 hover:bg-rose-100/60 dark:hover:bg-gray-800 border border-gray-200/80 dark:border-gray-700'
                       }`}
                     >
                       {preset.label}
@@ -280,12 +312,12 @@ export const StoreCatalog: React.FC<StoreCatalogProps> = ({
 
       {/* Main Product Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center space-y-4 max-w-md mx-auto my-8">
-          <div className="w-12 h-12 rounded-full bg-rose-50 text-[#8A3D52] flex items-center justify-center mx-auto text-xl">
+        <div className="bg-white dark:bg-[#191A23] rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center space-y-4 max-w-md mx-auto my-8">
+          <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/50 text-[#8A3D52] dark:text-rose-400 flex items-center justify-center mx-auto text-xl">
             ✨
           </div>
-          <h3 className="font-bold text-base text-gray-900">No matching products found</h3>
-          <p className="text-xs text-gray-500">
+          <h3 className="font-bold text-base text-gray-900 dark:text-white">No matching products found</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             We couldn't find any items matching your current budget or brand selection. Try adjusting the price slider or resetting your filters.
           </p>
           <button

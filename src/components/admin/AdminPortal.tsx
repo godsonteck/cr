@@ -56,9 +56,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onReturnToStore }) => 
     deleteProduct, 
     duplicateProduct, 
     updateProductStock, 
+    clearAllProducts,
     updateOrderStatus, 
     updatePaymentStatus, 
     deleteOrder,
+    clearAllOrders,
     promoCodes, 
     addPromoCode, 
     togglePromoCode, 
@@ -72,7 +74,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onReturnToStore }) => 
     resetStoreToDefaults
   } = useStore();
 
-  const { reviews, deleteReview, replyToReview } = useReviews();
+  const { reviews, deleteReview, replyToReview, addReview, clearAllReviews } = useReviews();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -105,6 +107,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onReturnToStore }) => 
   const [newPromoFreeShipping, setNewPromoFreeShipping] = useState<boolean>(false);
   const [newPromoDesc, setNewPromoDesc] = useState('');
   const [isAddingPromo, setIsAddingPromo] = useState(false);
+
+  // New Review Form State
+  const [isAddingReview, setIsAddingReview] = useState(false);
+  const [reviewProductId, setReviewProductId] = useState(products[0]?.id || '');
+  const [reviewAuthor, setReviewAuthor] = useState('');
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSkinType, setReviewSkinType] = useState('All Skin Types');
+  const [reviewVerified, setReviewVerified] = useState(true);
 
   // New Brand Input
   const [newBrandName, setNewBrandName] = useState('');
@@ -218,6 +230,29 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onReturnToStore }) => 
     showToast('Store concierge response posted!');
     setReplyingReviewId(null);
     setAdminReplyText('');
+  };
+
+  const handleCreateReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewAuthor.trim() || !reviewComment.trim()) {
+      showToast('Please enter customer name and review comment');
+      return;
+    }
+    const targetProdId = reviewProductId || (products[0]?.id || 'prod-custom');
+    addReview({
+      productId: targetProdId,
+      authorName: reviewAuthor.trim(),
+      rating: Number(reviewRating),
+      title: reviewTitle.trim() || 'Verified Customer Review',
+      comment: reviewComment.trim(),
+      verifiedPurchase: reviewVerified,
+      skinType: reviewSkinType
+    });
+    showToast('Customer review created successfully!');
+    setReviewAuthor('');
+    setReviewTitle('');
+    setReviewComment('');
+    setIsAddingReview(false);
   };
 
   const generateWhatsAppDispatchLink = (order: Order) => {
@@ -619,17 +654,47 @@ Rider: ${order.riderInfo?.riderName || 'Kwame Boateng'} (${order.riderInfo?.ride
                     Store Catalog & Inventory Controller
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Manage prices, stock counts, images, and authenticity badges in real time.
+                    Manage prices, stock counts, images, and authenticity badges in real time. Total catalog items: {products.length}
                   </p>
                 </div>
 
-                <button
-                  onClick={handleOpenAddProduct}
-                  className="px-5 py-2.5 bg-[#8A3D52] hover:bg-[#732F42] text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Product</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {products.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Are you sure you want to remove all products from the catalog?')) {
+                          clearAllProducts();
+                          showToast('All products cleared');
+                        }
+                      }}
+                      className="px-3 py-2 bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear All Items</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      if (confirm('Reset store catalog to standard authentic items?')) {
+                        resetStoreToDefaults();
+                        showToast('Store catalog restored!');
+                      }
+                    }}
+                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Catalog</span>
+                  </button>
+
+                  <button
+                    onClick={handleOpenAddProduct}
+                    className="px-5 py-2 bg-[#8A3D52] hover:bg-[#732F42] text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Product</span>
+                  </button>
+                </div>
               </div>
 
               {/* Search & Filter Controls */}
@@ -845,11 +910,26 @@ Rider: ${order.riderInfo?.riderName || 'Kwame Boateng'} (${order.riderInfo?.ride
                     Customer Orders & Accra Courier Logistics
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Assign delivery riders, update live delivery stages, and notify customers on WhatsApp.
+                    Assign delivery riders, update live delivery stages, and notify customers on WhatsApp. Total orders: {orders.length}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {orders.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Clear all customer orders history?')) {
+                          clearAllOrders();
+                          showToast('All order history cleared');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear All Orders</span>
+                    </button>
+                  )}
+
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -1496,13 +1576,148 @@ Rider: ${order.riderInfo?.riderName || 'Kwame Boateng'} (${order.riderInfo?.ride
         {activeTab === 'reviews' && (
           <div className="space-y-6 animate-fadeIn">
             
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200 shadow-2xs">
-              <h2 className="text-base sm:text-lg font-serif font-bold text-gray-900">
-                Customer Reviews Moderation
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Read, moderate, reply to customer feedback, and verify genuine buyer status.
-              </p>
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base sm:text-lg font-serif font-bold text-gray-900">
+                    Customer Reviews Moderation & Management
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Read, moderate, reply to customer feedback, or record verified buyer testimonials. Total reviews: {reviews.length}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {reviews.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Clear all customer reviews?')) {
+                          clearAllReviews();
+                          showToast('All reviews cleared');
+                        }
+                      }}
+                      className="px-3 py-2 bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear All Reviews</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setIsAddingReview(!isAddingReview)}
+                    className="px-4 py-2 bg-[#8A3D52] hover:bg-[#732F42] text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAddingReview ? 'Cancel' : 'Add Customer Review'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Review Panel */}
+              {isAddingReview && (
+                <form onSubmit={handleCreateReview} className="mt-4 pt-4 border-t border-gray-100 bg-[#FAF6F4] p-5 rounded-2xl border border-rose-100 space-y-4 text-xs">
+                  <h3 className="font-serif font-bold text-sm text-gray-900">
+                    Log Verified Customer Feedback
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">Target Product</label>
+                      <select
+                        value={reviewProductId}
+                        onChange={e => setReviewProductId(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      >
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>{p.brand} - {p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">Customer Full Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Afia Boateng"
+                        value={reviewAuthor}
+                        onChange={e => setReviewAuthor(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">Rating (Stars)</label>
+                      <select
+                        value={reviewRating}
+                        onChange={e => setReviewRating(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl font-bold text-[#D4AF37]"
+                      >
+                        <option value={5}>★★★★★ (5 Stars)</option>
+                        <option value={4}>★★★★☆ (4 Stars)</option>
+                        <option value={3}>★★★☆☆ (3 Stars)</option>
+                        <option value={2}>★★☆☆☆ (2 Stars)</option>
+                        <option value={1}>★☆☆☆☆ (1 Star)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">Review Headline</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Cleared my hyperpigmentation!"
+                        value={reviewTitle}
+                        onChange={e => setReviewTitle(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">Skin Type / Note</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Oily / Combination Skin"
+                        value={reviewSkinType}
+                        onChange={e => setReviewSkinType(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Customer Review Body</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Write customer review comment..."
+                      value={reviewComment}
+                      onChange={e => setReviewComment(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reviewVerified}
+                        onChange={e => setReviewVerified(e.target.checked)}
+                        className="rounded text-[#8A3D52] focus:ring-[#8A3D52]"
+                      />
+                      <span className="font-bold text-gray-700">Display "Verified Buyer" Badge</span>
+                    </label>
+
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-[#8A3D52] hover:bg-[#732F42] text-white font-bold rounded-xl shadow-sm cursor-pointer"
+                    >
+                      Save & Publish Review
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             <div className="space-y-4">
