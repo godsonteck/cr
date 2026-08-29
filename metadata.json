@@ -1,0 +1,6 @@
+{
+  "name": "CR Cosmetics & Essential",
+  "description": "Premium beauty, skincare, designer fragrances, and everyday essentials in Accra, Ghana with same-day delivery and authentic original products.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

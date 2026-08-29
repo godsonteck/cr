@@ -1,0 +1,141 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "CR Cosmetics & Essentials CR Cosmetics & Essential & ESSENTIALS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "CR Cosmetics & Essentials" [ref=e9]
+        - generic [ref=e10]:
+          - generic [ref=e11]: CR Cosmetics & Essential
+          - generic [ref=e12]: "& ESSENTIALS"
+      - navigation [ref=e13]:
+        - link "Shop" [ref=e14] [cursor=pointer]:
+          - /url: /shop
+        - link "Beauty" [ref=e15] [cursor=pointer]:
+          - /url: /beauty
+        - link "Groceries" [ref=e16] [cursor=pointer]:
+          - /url: /groceries
+        - link "About" [ref=e17] [cursor=pointer]:
+          - /url: /about
+      - textbox "Search" [ref=e23]
+      - generic [ref=e24]:
+        - button "Toggle Theme" [ref=e25]
+        - button "Wishlist" [ref=e28]:
+          - generic [ref=e31]: "2"
+        - button "0" [ref=e32]
+  - main [ref=e37]:
+    - generic [ref=e38]:
+      - navigation [ref=e39]:
+        - link "Home" [ref=e40] [cursor=pointer]:
+          - /url: /
+        - link "Shop" [ref=e43] [cursor=pointer]:
+          - /url: /shop
+        - link "Facial Serum" [ref=e46] [cursor=pointer]:
+          - /url: /category/skincare
+        - generic [ref=e49]: Niacinamide 10% + Zinc 1%
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img "Niacinamide 10% + Zinc 1%" [ref=e53]
+            - generic [ref=e54]: Bestseller
+          - generic [ref=e56]:
+            - button [ref=e57]:
+              - img "Thumbnail" [ref=e58]
+            - button [ref=e59]:
+              - img "Thumbnail" [ref=e60]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]: The Ordinary
+              - generic [ref=e65]: 30ml Dropper Bottle
+            - heading "Niacinamide 10% + Zinc 1%" [level=1] [ref=e66]
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]: GHS 120.00
+              - text: Inclusive of all local taxes
+            - generic [ref=e71]: In Stock (48)
+          - generic [ref=e72]:
+            - text: "Key Highlights:"
+            - list [ref=e73]:
+              - listitem [ref=e74]:
+                - generic [ref=e77]: Controls excess oil & sebum
+              - listitem [ref=e78]:
+                - generic [ref=e81]: Visibly minimizes pores
+              - listitem [ref=e82]:
+                - generic [ref=e85]: Reduces appearance of blemishes
+              - listitem [ref=e86]:
+                - generic [ref=e89]: 100% Authentic formula
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - button "-" [ref=e93]
+              - generic [ref=e94]: "1"
+              - button "+" [ref=e95]
+            - button "Add to Cart • GHS 120.00" [ref=e96]
+            - button [ref=e101]
+          - generic [ref=e104]:
+            - generic [ref=e111]:
+              - strong [ref=e112]: Accra Dispatch
+              - text: Same-day or 24hr delivery
+            - generic [ref=e117]:
+              - strong [ref=e118]: 100% Genuine
+              - text: Authenticity Guaranteed
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - button "Description" [ref=e121]
+          - button "Ingredients & Sourcing" [ref=e122]
+          - button "How to Use / Prepare" [ref=e123]
+        - paragraph [ref=e125]: High-strength vitamin and mineral blemish formula. Niacinamide (Vitamin B3) reduces the appearance of skin blemishes and congestion, balanced with Zinc PCA to visibly regulate sebum activity.
+      - generic [ref=e126]:
+        - heading "You May Also Like" [level=3] [ref=e127]
+        - generic [ref=e128]:
+          - generic [ref=e129] [cursor=pointer]:
+            - generic [ref=e130]:
+              - generic [ref=e131]: Bestseller
+              - button "Wishlist" [ref=e133]
+            - img "Moisturising Cream" [ref=e137]
+            - generic [ref=e138]:
+              - generic [ref=e139]: CeraVe
+              - heading "Moisturising Cream" [level=3] [ref=e140]
+              - generic [ref=e141]:
+                - generic [ref=e144]: "5.0"
+                - generic [ref=e145]: (96)
+              - generic [ref=e146]:
+                - generic [ref=e147]: GHS 180.00
+                - button "Add to cart" [ref=e149]
+          - generic [ref=e153] [cursor=pointer]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: "-10%"
+              - button "Wishlist" [ref=e157]
+            - img "Advanced Snail 96 Mucin Power Essence" [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e163]: COSRX
+              - heading "Advanced Snail 96 Mucin Power Essence" [level=3] [ref=e164]
+              - generic [ref=e165]:
+                - generic [ref=e168]: "5.0"
+                - generic [ref=e169]: (58)
+              - generic [ref=e170]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]: GHS 135.00
+                  - generic [ref=e173]: GHS 150.00
+                - button "Add to cart" [ref=e174]
+  - contentinfo [ref=e178]:
+    - generic [ref=e179]:
+      - generic [ref=e180]:
+        - generic [ref=e181]:
+          - img "CR Cosmetics & Essentials" [ref=e182]
+          - generic [ref=e183]:
+            - generic [ref=e184]: CR Cosmetics
+            - generic [ref=e185]: Essentials
+        - generic [ref=e186]:
+          - link "Shop" [ref=e187] [cursor=pointer]:
+            - /url: /shop
+          - link "Beauty" [ref=e188] [cursor=pointer]:
+            - /url: /beauty
+          - link "Groceries" [ref=e189] [cursor=pointer]:
+            - /url: /groceries
+          - link "About" [ref=e190] [cursor=pointer]:
+            - /url: /about
+          - link "Support" [ref=e191] [cursor=pointer]:
+            - /url: /contact
+        - link "Chat" [ref=e192] [cursor=pointer]:
+          - /url: https://wa.me/233551234567
+      - generic [ref=e195]: © 2026 CR Cosmetics & Essentials
