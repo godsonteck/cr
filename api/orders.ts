@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'GET') {
-      const { id, orderNumber, userId, status } = query;
+      const { id, orderNumber, userId, status, limit = '50', offset = '0' } = query;
 
       if (id && typeof id === 'string') {
         const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
@@ -101,8 +101,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         conditions.push(eq(orders.status, status as any));
       }
 
-      const lim = Math.min(parseInt((status as string) || '50', 10), 100);
-      const off = parseInt((status as string) || '0', 10);
+      const lim = Math.min(parseInt(limit as string, 10), 100);
+      const off = parseInt(offset as string, 10);
 
       const baseQuery = db.select().from(orders);
       const whereQuery = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
