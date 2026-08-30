@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import db from '../src/db.ts';
-import { brands } from '../src/db/schema';
+import { brands } from '../src/schema';
 import { eq, asc } from 'drizzle-orm';
 import { z } from 'zod';
 

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import db from '../src/db.ts';
-import { promoCodes } from '../src/db/schema';
+import { promoCodes } from '../src/schema';
 import { eq, desc } from 'drizzle-orm';
 import { z } from 'zod';
 
