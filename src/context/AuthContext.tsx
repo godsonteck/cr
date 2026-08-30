@@ -1,86 +1,72 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, Order, ShippingAddress } from '../types';
+import { api } from '../lib/api';
 
 interface AuthContextType {
   user: UserProfile | null;
+  loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, fullName?: string, phone?: string) => void;
-  logout: () => void;
-  updateProfile: (data: Partial<UserProfile>) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, fullName: string, phone: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   addOrder: (order: Order) => void;
-  saveAddress: (address: ShippingAddress) => void;
+  saveAddress: (address: ShippingAddress) => Promise<void>;
+  fetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'cr_shop_user_session';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(() => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
     try {
-      const saved = localStorage.getItem(USER_STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const data = await api.get<UserProfile>('/users/me');
+        setUser(data);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to fetch user:', e);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_id');
+    } finally {
+      setLoading(false);
     }
-    return null;
-  });
+  }, []);
 
   useEffect(() => {
-    try {
-      if (user) {
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-      } else {
-        localStorage.removeItem(USER_STORAGE_KEY);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [user]);
+    fetchUser();
+  }, [fetchUser]);
 
-  const login = (email: string, fullName = 'Valued Customer', phone = '+233 55 123 4567') => {
-    const newUser: UserProfile = {
-      id: `usr-${Date.now()}`,
-      fullName,
-      email,
-      phone,
-      savedAddresses: [
-        {
-          fullName,
-          phone,
-          email,
-          city: 'Accra',
-          area: 'East Legon / Botwe',
-          landmarkOrGps: 'Near Botwe School Junction'
-        }
-      ],
-      orders: [],
-      savedItemIds: []
-    };
-    setUser(newUser);
+  const login = async (email: string, password: string) => {
+    const result = await api.post<{ token: string; user: UserProfile }>('/auth', { email, password });
+    localStorage.setItem('auth_token', result.token);
+    localStorage.setItem('user_id', result.user.id);
+    setUser(result.user);
   };
 
-  const logout = () => {
+  const register = async (email: string, fullName: string, phone: string, password: string) => {
+    const result = await api.post<{ token: string; user: UserProfile }>('/users', { email, fullName, phone, password });
+    localStorage.setItem('auth_token', result.token);
+    localStorage.setItem('user_id', result.user.id);
+    setUser(result.user);
+  };
+
+  const logout = async () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_id');
     setUser(null);
+    await api.delete('/auth');
   };
 
-  const updateProfile = (data: Partial<UserProfile>) => {
-    if (!user) {
-      // Create user if not existing
-      setUser({
-        id: `usr-${Date.now()}`,
-        fullName: data.fullName || 'Valued Customer',
-        email: data.email || 'customer@gmail.com',
-        phone: data.phone || '+233 55 123 4567',
-        savedAddresses: data.savedAddresses || [],
-        orders: data.orders || [],
-        savedItemIds: data.savedItemIds || []
-      });
-      return;
-    }
-    setUser(prev => prev ? { ...prev, ...data } : null);
+  const updateProfile = async (data: Partial<UserProfile>) => {
+    if (!user) return;
+    const updated = await api.patch<UserProfile>(`/users/${user.id}`, data);
+    setUser(updated);
   };
 
   const addOrder = (order: Order) => {
@@ -93,28 +79,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const saveAddress = (address: ShippingAddress) => {
-    setUser(prev => {
-      if (!prev) return prev;
-      const existing = prev.savedAddresses || [];
-      const updated = [address, ...existing.filter(a => a.area !== address.area)];
-      return {
-        ...prev,
-        savedAddresses: updated
-      };
-    });
+  const saveAddress = async (address: ShippingAddress) => {
+    if (!user) return;
+    const existing = user.savedAddresses || [];
+    const updated = [address, ...existing.filter(a => a.area !== address.area)];
+    await updateProfile({ savedAddresses: updated });
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        loading,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         updateProfile,
         addOrder,
-        saveAddress
+        saveAddress,
+        fetchUser,
       }}
     >
       {children}

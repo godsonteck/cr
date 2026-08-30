@@ -143,8 +143,8 @@ export const FullCartPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-8">
-      <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
-        Shopping Cart Overview
+      <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
+        Your basket
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -283,7 +283,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         estimatedDeliveryTime: '24 Hours'
       };
 
-      if (!user) login(`${phone.replace(/\D/g, '') || 'guest'}@guest.crcosmetics.local`, fullName, phone);
+      if (!user) login(`${phone.replace(/\D/g, '') || 'guest'}@guest.crcosmetics.local`, phone);
       addOrder(createdOrder);
       addStoreOrder(createdOrder);
       saveAddress(createdOrder.shippingAddress);
@@ -297,7 +297,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-10 font-sans space-y-8">
       {/* Checkout Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold uppercase">Secure Checkout</h1>
+        <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
         <p className="text-xs text-stone-500">Fast local payment via MTN MoMo, Telecel Cash, AT Money, or Card.</p>
       </div>
 

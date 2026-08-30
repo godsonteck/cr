@@ -91,6 +91,12 @@ export interface StoreSettings {
   whatsappNumber: string;
   maintenanceMode: boolean;
   bannerAlert: string | null;
+  storeLogo?: string;
+}
+
+export interface StoreSettingsRow {
+  key: string;
+  value: any;
 }
 
 export interface AdminSession {
@@ -141,6 +147,8 @@ export interface Product {
   highlights: string[];
   badge?: 'Bestseller' | 'New In' | 'CR Exclusive' | 'Sale' | '100% Authentic' | 'Popular';
   inStock: boolean;
+  /** Admin-only publication control. Unpublished products never appear in the customer storefront. */
+  isPublished?: boolean;
   stockCount: number;
   rating: number;
   reviewCount: number;

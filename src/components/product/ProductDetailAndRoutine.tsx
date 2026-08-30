@@ -3,8 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import {
   Heart,
   ShoppingBag,
-  Truck,
-  ShieldCheck,
   ChevronRight,
   Check,
   Sparkles,
@@ -20,13 +18,14 @@ import { useWishlist } from '../../context/WishlistContext';
 
 export const ProductDetailPage: React.FC = () => {
   const { products } = useStore();
+  const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   const product = useMemo(() => {
-    return products.find(p => p.id === productId);
-  }, [productId, products]);
+    return publishedProducts.find(p => p.id === productId);
+  }, [productId, publishedProducts]);
 
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
@@ -49,10 +48,10 @@ export const ProductDetailPage: React.FC = () => {
   const currentImage = selectedImage || product.image;
   const activeVariant = selectedVariant || product.variants?.[0];
   const displayPrice = activeVariant?.price ?? product.price;
-  const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const relatedProducts = publishedProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-12">
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs font-semibold text-[#6E6763]">
@@ -107,7 +106,7 @@ export const ProductDetailPage: React.FC = () => {
               <span>{product.brand}</span>
               <span>{product.unit}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1817] dark:text-stone-100 leading-tight">
+            <h1 className="font-serif text-4xl leading-[.98] tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
               {product.name}
             </h1>
           </div>
@@ -199,36 +198,6 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Delivery & Assurance */}
-          <div className="grid grid-cols-2 gap-4 pt-4 text-xs">
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-[#1C1917] border border-[#E6DFD7] dark:border-[#36322E]">
-              <Truck className="w-5 h-5 text-[#C86D51]" />
-              <div>
-                <strong className="block text-stone-900 dark:text-stone-200">Fast Dispatch</strong>
-                <span className="text-[10px] text-stone-400">Express delivery within 24 hours</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-[#1C1917] border border-[#E6DFD7] dark:border-[#36322E]">
-              <ShieldCheck className="w-5 h-5 text-[#4A5D4E]" />
-              <div>
-                <strong className="block text-stone-900 dark:text-stone-200">100% Genuine</strong>
-                <span className="text-[10px] text-stone-400">Authenticity Guaranteed</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] bg-[#F8F4F2] dark:bg-[#201D1B] p-4">
-            <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6E6763]">
-              <Sparkles className="h-3.5 w-3.5 text-[#C86D51]" />
-              Why shoppers love it
-            </div>
-            <ul className="space-y-2 text-xs text-stone-700 dark:text-stone-300">
-              <li className="flex items-start gap-2"><span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#C86D51]" />{product.badge ? `${product.badge} favorite for everyday results.` : 'A highly rated choice for everyday care.'}</li>
-              <li className="flex items-start gap-2"><span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#C86D51]" />Thoughtfully formulated with quality ingredients and a clear benefit profile.</li>
-              <li className="flex items-start gap-2"><span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#C86D51]" />Designed to fit seamlessly into a simple routine and daily use.</li>
-            </ul>
-          </div>
-
         </div>
 
       </div>
@@ -294,12 +263,13 @@ export const ProductDetailPage: React.FC = () => {
 export const RoutineBuilderPage: React.FC = () => {
   const { addToCart } = useCart();
   const { products } = useStore();
+  const publishedProducts = products.filter(product => product.isPublished !== false);
 
   // Find products matching routine steps
-  const cleansers = products.filter(p => p.routineStep === 'cleanse' || p.category === 'skincare').slice(0, 2);
-  const treats = products.filter(p => p.routineStep === 'treat' || p.id === 'the-ordinary-niacinamide');
-  const hydrators = products.filter(p => p.routineStep === 'hydrate' || p.id === 'cerave-moisturising-cream');
-  const protectors = products.filter(p => p.category === 'skincare').slice(2, 4);
+  const cleansers = publishedProducts.filter(p => p.routineStep === 'cleanse' || p.category === 'skincare').slice(0, 2);
+  const treats = publishedProducts.filter(p => p.routineStep === 'treat' || p.id === 'the-ordinary-niacinamide');
+  const hydrators = publishedProducts.filter(p => p.routineStep === 'hydrate' || p.id === 'cerave-moisturising-cream');
+  const protectors = publishedProducts.filter(p => p.category === 'skincare').slice(2, 4);
 
   const [selectedCleanser, setSelectedCleanser] = useState(cleansers[0]);
   const [selectedTreat, setSelectedTreat] = useState(treats[0]);

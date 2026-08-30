@@ -10,17 +10,18 @@ import { useStore } from '../../context/StoreContext';
 
 export const HomePage: React.FC = () => {
   const { products, categories, storeSettings } = useStore();
-  const allProducts = products.slice(0, 18);
+  const publishedProducts = products.filter(product => product.isPublished !== false);
+  const allProducts = publishedProducts.slice(0, 18);
   const activeCategories = categories.filter(cat => cat.isActive);
   const categoryPills = activeCategories.slice(0, 8);
   const topCategories = activeCategories.slice(0, 4);
-  const bestSellers = [...products]
+  const bestSellers = [...publishedProducts]
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 6);
-  const groceryEssentials = products
+  const groceryEssentials = publishedProducts
     .filter(product => product.department === 'groceries')
     .slice(0, 6);
-  const heroProduct = bestSellers[0] || products[0];
+  const heroProduct = bestSellers[0] || publishedProducts[0];
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -182,7 +183,7 @@ export const HomePage: React.FC = () => {
 
 export const BeautyDepartmentPage: React.FC = () => {
   const { products } = useStore();
-  const beautyProducts = products.filter(p => p.department === 'beauty');
+  const beautyProducts = products.filter(p => p.isPublished !== false && p.department === 'beauty');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-sans">
@@ -214,7 +215,7 @@ export const BeautyDepartmentPage: React.FC = () => {
 
 export const GroceryDepartmentPage: React.FC = () => {
   const { products } = useStore();
-  const groceryProducts = products.filter(p => p.department === 'groceries');
+  const groceryProducts = products.filter(p => p.isPublished !== false && p.department === 'groceries');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-sans">

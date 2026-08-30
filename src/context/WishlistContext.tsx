@@ -1,46 +1,54 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product } from '../types';
 import { useStore } from './StoreContext';
+import { api } from '../lib/api';
 
 interface WishlistContextType {
   wishlistIds: string[];
   wishlistProducts: Product[];
-  toggleWishlist: (productId: string) => void;
+  loading: boolean;
+  toggleWishlist: (productId: string) => Promise<void>;
   isInWishlist: (productId: string) => boolean;
   wishlistCount: number;
+  fetchWishlist: () => Promise<void>;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { products } = useStore();
-  const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchWishlist = useCallback(async () => {
+    setLoading(true);
     try {
-      const saved = localStorage.getItem('cr_cosmetics_wishlist');
-      if (saved) {
-        return JSON.parse(saved);
-      }
+      const data = await api.get<{ productId: string }[]>('/wishlist');
+      setWishlistIds(data.map(item => item.productId));
     } catch (e) {
-      console.error(e);
+      console.error('Failed to fetch wishlist:', e);
+    } finally {
+      setLoading(false);
     }
-    return ['raw-ivory-shea-butter', 'royal-aroma-jasmine-rice-5kg'];
-  });
+  }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('cr_cosmetics_wishlist', JSON.stringify(wishlistIds));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [wishlistIds]);
+    fetchWishlist();
+  }, [fetchWishlist]);
 
-  const toggleWishlist = (productId: string) => {
+  const toggleWishlist = async (productId: string) => {
     setWishlistIds(prev => {
       if (prev.includes(productId)) {
         return prev.filter(id => id !== productId);
       }
       return [...prev, productId];
     });
+
+    try {
+      await api.post('/wishlist', { productId });
+    } catch (e) {
+      console.error('Failed to toggle wishlist:', e);
+    }
   };
 
   const isInWishlist = (productId: string) => {
@@ -54,9 +62,11 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       value={{
         wishlistIds,
         wishlistProducts,
+        loading,
         toggleWishlist,
         isInWishlist,
-        wishlistCount: wishlistIds.length
+        wishlistCount: wishlistIds.length,
+        fetchWishlist,
       }}
     >
       {children}

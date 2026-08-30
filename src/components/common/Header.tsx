@@ -14,8 +14,6 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
-import { CATEGORIES_CONFIG } from '../../data/products';
-import { DepartmentType } from '../../types';
 import logoImg from '../../assets/logo.jpeg';
 
 interface HeaderProps {
@@ -62,9 +60,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(255,247,250,0.9)] backdrop-blur-xl transition-colors dark:border-[#4d3f2a] dark:bg-[rgba(16,13,11,0.88)]">
+    <header className="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(251,248,245,0.92)] backdrop-blur-xl transition-colors dark:bg-[rgba(25,20,21,0.92)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between gap-4">
+        <div className="flex h-[4.7rem] items-center justify-between gap-4">
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -75,14 +73,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           </button>
 
           <Link to="/" className="flex shrink-0 items-center gap-3">
-            <div className="rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] p-2 dark:border-[#4d3f2a] dark:bg-[#1a1715]">
-              <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-9 w-auto object-contain sm:h-10" />
+            <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
+              <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-auto object-contain sm:h-9" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-bold uppercase tracking-[-0.06em] text-[var(--text-primary)] dark:text-[var(--text-primary)] sm:text-lg">
+              <span className="font-serif text-lg font-bold tracking-[-0.06em] text-[var(--text-primary)] sm:text-xl">
                 {storeSettings.storeName.split(' ')[0] || 'CR'} <span className="text-[var(--accent)]">{storeSettings.storeName.split(' ').slice(1).join(' ') || 'COSMETICS'}</span>
               </span>
-              <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)] dark:text-[var(--text-muted)]">
+              <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)]">
                 &amp; ESSENTIALS
               </span>
             </div>
@@ -96,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`text-[10px] font-medium uppercase tracking-[0.14em] transition-colors ${
+                  className={`text-[10px] font-bold uppercase tracking-[0.14em] transition-colors ${
                     isActive
                       ? 'text-[var(--text-primary)] dark:text-[var(--text-primary)]'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:text-[var(--text-muted)] dark:hover:text-[var(--text-primary)]'
@@ -116,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 placeholder="Search"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)] dark:border-[#4d3f2a] dark:bg-[#1d1a19] dark:text-[var(--text-primary)]"
+                className="w-full rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]"
               />
             </div>
           </form>

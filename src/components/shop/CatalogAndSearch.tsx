@@ -14,6 +14,7 @@ import { ProductCard } from '../product/ProductCard';
 
 export const ShopCatalogPage: React.FC = () => {
   const { products, categories, brands } = useStore();
+  const publishedProducts = products.filter(product => product.isPublished !== false);
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -31,7 +32,7 @@ export const ShopCatalogPage: React.FC = () => {
 
   // Filter products based on URL parameters
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    return publishedProducts.filter((product) => {
       // Category filter
       if (currentCategoryObj) {
         if (product.category !== currentCategoryObj.id) return false;
@@ -56,7 +57,7 @@ export const ShopCatalogPage: React.FC = () => {
       if (selectedSort === 'best-sellers') return b.reviewCount - a.reviewCount;
       return 0; // default featured
     });
-  }, [currentCategoryObj, selectedDepartment, selectedBrand, selectedSort, onlyInStock, products]);
+  }, [currentCategoryObj, selectedDepartment, selectedBrand, selectedSort, onlyInStock, publishedProducts]);
 
   const updateFilter = (key: string, value: string | null) => {
     const newParams = new URLSearchParams(searchParams);
@@ -73,7 +74,7 @@ export const ShopCatalogPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-7">
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500">
@@ -90,7 +91,7 @@ export const ShopCatalogPage: React.FC = () => {
 
       {/* Catalog Header */}
       <div className="pb-6 border-b border-[#E8E2DA] dark:border-[#2A2725]">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1817] dark:text-stone-100 uppercase tracking-tight">
+        <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
           {currentCategoryObj ? currentCategoryObj.name : 'All Products & Essentials'}
         </h1>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl">
@@ -101,7 +102,7 @@ export const ShopCatalogPage: React.FC = () => {
       </div>
 
       {/* Catalog Grid with Desktop Sidebar */}
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col gap-8 lg:flex-row">
 
         {/* Desktop Sidebar Filters */}
         <aside className="hidden lg:block w-60 space-y-6 shrink-0 border-r border-[#E8E2DA] dark:border-[#2A2725] pr-6">
@@ -269,13 +270,14 @@ export const ShopCatalogPage: React.FC = () => {
 
 export const SearchResultsPage: React.FC = () => {
   const { products } = useStore();
+  const publishedProducts = products.filter(product => product.isPublished !== false);
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
 
   const matchedProducts = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase().trim();
-    return products.filter((p) => {
+    return publishedProducts.filter((p) => {
       return (
         p.name.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q) ||
@@ -284,7 +286,7 @@ export const SearchResultsPage: React.FC = () => {
         p.highlights.some(h => h.toLowerCase().includes(q))
       );
     });
-  }, [query, products]);
+  }, [query, publishedProducts]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans space-y-6">

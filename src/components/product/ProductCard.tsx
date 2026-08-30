@@ -48,16 +48,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.4rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(18,18,18,0.06)] ${className}`}
+      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.15rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_35px_rgba(56,35,29,0.12)] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           {product.discountBadge ? (
-            <span className="inline-flex items-center rounded-full bg-[#ff7d2a] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+            <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
               {product.discountBadge}
             </span>
           ) : product.badge ? (
-            <span className="inline-flex items-center rounded-full bg-[#f3efe9] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#1d1d1d]">
+            <span className="inline-flex items-center rounded-full bg-[var(--bg-soft)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
               {product.badge}
             </span>
           ) : (
@@ -74,7 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
       </div>
 
-      <div className="relative mb-3 overflow-hidden rounded-[1rem] bg-[var(--bg-soft)]">
+        <div className="relative mb-3 overflow-hidden rounded-[.85rem] bg-[var(--bg-soft)]">
         <img
           src={product.image}
           alt={product.name}
@@ -124,7 +124,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleAddToCart}
-            className="rounded-full bg-[#111111] p-2.5 text-white transition-colors hover:bg-[#2b2b2b]"
+            disabled={!product.inStock || product.stockCount <= 0}
+            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Add to cart"
           >
             <ShoppingBag className="h-4 w-4" />

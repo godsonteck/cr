@@ -57,7 +57,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [unit, setUnit] = useState('30ml Dropper Bottle');
   const [image, setImage] = useState(BEAUTY_IMAGE_PRESETS[0].url);
   const [description, setDescription] = useState('');
-  const [highlights, setHighlights] = useState<string[]>(['100% Authentic Formula', 'Fast Dispatch']);
+  const [highlights, setHighlights] = useState<string[]>([]);
   const [newHighlight, setNewHighlight] = useState('');
   const [badge, setBadge] = useState<Product['badge']>('Bestseller');
   const [inStock, setInStock] = useState(true);
@@ -82,11 +82,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setUnit(productToEdit.unit || 'Standard Size');
       setImage(productToEdit.image);
       setDescription(productToEdit.description);
-      setHighlights(productToEdit.highlights && productToEdit.highlights.length > 0 ? productToEdit.highlights : ['100% Authentic Product']);
+      setHighlights(productToEdit.highlights || []);
       setBadge(productToEdit.badge);
       setInStock(productToEdit.inStock);
       setStockCount(productToEdit.stockCount || 20);
-      setOrigin(productToEdit.origin || 'Imported Genuine');
+      setOrigin(productToEdit.origin || '');
       setHowToUse(productToEdit.details?.howToUse || '');
       setIngredients(productToEdit.details?.ingredients || '');
       setBenefits(productToEdit.details?.benefits || '');
@@ -101,12 +101,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDiscountBadge('');
       setUnit('30ml Bottle');
       setImage(BEAUTY_IMAGE_PRESETS[0].url);
-      setDescription('High-potency original beauty formula for clear, radiant skin and confident everyday care.');
-      setHighlights(['100% Guaranteed Authentic', 'Direct Imported Stock', 'Fast Dispatch']);
+      setDescription('');
+      setHighlights([]);
       setBadge('New In');
       setInStock(true);
       setStockCount(40);
-      setOrigin('Genuine Original');
+      setOrigin('');
       setHowToUse('Apply evenly on clean skin morning and evening.');
       setIngredients('Aqua, Vitamin Complex, Antioxidants, Botanical Extracts.');
       setBenefits('Hydrates, protects barrier, and enhances natural glow.');
@@ -135,9 +135,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
     const finalBrand = brand === '__NEW__' && newBrandInput.trim() ? newBrandInput.trim() : brand;
 
+    const getDepartmentFromCategory = (cat: CategoryType): 'beauty' | 'groceries' => {
+      const beautyCategories: CategoryType[] = ['skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools'];
+      return beautyCategories.includes(cat) ? 'beauty' : 'groceries';
+    };
+
     const productPayload = {
       name: name.trim(),
       brand: finalBrand,
+      department: getDepartmentFromCategory(category),
       category,
       categoryLabel: categoryLabel.trim() || 'Beauty Item',
       price: Number(price),
@@ -250,8 +256,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <option value="makeup">Makeup</option>
                 <option value="fragrances">Fragrances</option>
                 <option value="body-care">Body Care</option>
-                <option value="beauty-essentials">Beauty Essentials</option>
-                <option value="everyday-essentials">Everyday Essentials</option>
+                <option value="beauty-tools">Beauty Tools</option>
+                <option value="rice-grains">Rice & Grains</option>
+                <option value="cooking-oils">Cooking Oils</option>
+                <option value="seasoning-spices">Seasoning & Spices</option>
+                <option value="beverages">Beverages & Milk</option>
+                <option value="household-care">Household Care</option>
+                <option value="daily-essentials">Daily Essentials</option>
               </select>
             </div>
 

@@ -1,135 +1,123 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ProductReview } from '../types';
+import { api } from '../lib/api';
 
 interface ReviewsContextType {
   reviews: ProductReview[];
-  getReviewsForProduct: (productId: string) => ProductReview[];
-  getProductRatingStats: (productId: string, defaultRating?: number, defaultCount?: number) => {
+  loading: boolean;
+  getReviewsForProduct: (productId: string) => Promise<ProductReview[]>;
+  getProductRatingStats: (productId: string, defaultRating?: number, defaultCount?: number) => Promise<{
     averageRating: number;
     totalReviews: number;
-    distribution: Record<number, number>; // 5, 4, 3, 2, 1 star percentages
-  };
-  addReview: (review: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => void;
-  deleteReview: (reviewId: string) => void;
-  replyToReview: (reviewId: string, replyText: string) => void;
-  markHelpful: (reviewId: string) => void;
-  clearAllReviews: () => void;
+    distribution: Record<number, number>;
+  }>;
+  addReview: (review: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => Promise<void>;
+  deleteReview: (reviewId: string) => Promise<void>;
+  replyToReview: (reviewId: string, replyText: string) => Promise<void>;
+  markHelpful: (reviewId: string) => Promise<void>;
+  clearAllReviews: () => Promise<void>;
 }
 
 const ReviewsContext = createContext<ReviewsContextType | undefined>(undefined);
 
-const REVIEWS_STORAGE_KEY = 'cr_product_reviews';
-
 export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [reviews, setReviews] = useState<ProductReview[]>(() => {
-    try {
-      const saved = localStorage.getItem(REVIEWS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return [];
-  });
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const getReviewsForProduct = async (productId: string) => {
     try {
-      localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
+      const data = await api.get<{ reviews: ProductReview[] }>(`/reviews?productId=${productId}&approved=true`);
+      return data.reviews;
     } catch (e) {
-      console.error(e);
+      console.error('Failed to fetch reviews:', e);
+      return [];
     }
-  }, [reviews]);
-
-  const getReviewsForProduct = (productId: string) => {
-    if (!Array.isArray(reviews)) return [];
-    return reviews.filter(r => r.productId === productId);
   };
 
-  const getProductRatingStats = (productId: string, defaultRating: number = 5.0, defaultCount: number = 0) => {
-    const productReviews = (Array.isArray(reviews) ? reviews : []).filter(r => r.productId === productId);
-    
-    if (productReviews.length === 0) {
+  const getProductRatingStats = async (productId: string, defaultRating = 5.0, defaultCount = 0) => {
+    try {
+      const data = await api.get<{
+        reviews: ProductReview[];
+        stats: { averageRating: number; totalReviews: number; distribution: Record<number, number> };
+      }>(`/reviews?productId=${productId}`);
+      return data.stats || {
+        averageRating: defaultRating,
+        totalReviews: defaultCount,
+        distribution: { 5: 100, 4: 0, 3: 0, 2: 0, 1: 0 }
+      };
+    } catch (e) {
       return {
         averageRating: defaultRating,
         totalReviews: defaultCount,
         distribution: { 5: 100, 4: 0, 3: 0, 2: 0, 1: 0 }
       };
     }
-
-    const totalReviews = productReviews.length;
-    const sum = productReviews.reduce((acc, r) => acc + r.rating, 0);
-    const averageRating = Number((sum / totalReviews).toFixed(1));
-
-    const counts: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    productReviews.forEach(r => {
-      counts[r.rating] = (counts[r.rating] || 0) + 1;
-    });
-
-    const distribution: Record<number, number> = {
-      5: Math.round((counts[5] / totalReviews) * 100),
-      4: Math.round((counts[4] / totalReviews) * 100),
-      3: Math.round((counts[3] / totalReviews) * 100),
-      2: Math.round((counts[2] / totalReviews) * 100),
-      1: Math.round((counts[1] / totalReviews) * 100)
-    };
-
-    return {
-      averageRating,
-      totalReviews,
-      distribution
-    };
   };
 
-  const addReview = (reviewData: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => {
-    const newReview: ProductReview = {
-      ...reviewData,
-      id: `rev-${Date.now()}`,
-      date: 'Just now',
-      helpfulCount: 0
-    };
-    setReviews(prev => [newReview, ...(Array.isArray(prev) ? prev : [])]);
+  const addReview = async (reviewData: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => {
+    try {
+      const newReview = await api.post<ProductReview>('/reviews', reviewData);
+      setReviews(prev => [newReview, ...prev]);
+    } catch (e) {
+      console.error('Failed to add review:', e);
+      throw e;
+    }
   };
 
-  const deleteReview = (reviewId: string) => {
-    setReviews(prev => (Array.isArray(prev) ? prev.filter(r => r.id !== reviewId) : []));
+  const deleteReview = async (reviewId: string) => {
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+    } catch (e) {
+      console.error('Failed to delete review:', e);
+      throw e;
+    }
   };
 
-  const replyToReview = (reviewId: string, replyText: string) => {
-    setReviews(prev =>
-      (Array.isArray(prev) ? prev : []).map(r => 
-        r.id === reviewId ? { ...r, adminReply: replyText } : r
-      )
-    );
+  const replyToReview = async (reviewId: string, replyText: string) => {
+    try {
+      await api.patch(`/reviews/${reviewId}`, { adminReply: replyText });
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, adminReply: replyText } : r));
+    } catch (e) {
+      console.error('Failed to reply to review:', e);
+      throw e;
+    }
   };
 
-  const markHelpful = (reviewId: string) => {
-    setReviews(prev =>
-      (Array.isArray(prev) ? prev : []).map(r => 
-        r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount || 0) + 1 } : r
-      )
-    );
+  const markHelpful = async (reviewId: string) => {
+    try {
+      const review = reviews.find(r => r.id === reviewId);
+      if (review) {
+        await api.patch(`/reviews/${reviewId}`, { helpfulCount: (review.helpfulCount || 0) + 1 });
+        setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount || 0) + 1 } : r));
+      }
+    } catch (e) {
+      console.error('Failed to mark helpful:', e);
+      throw e;
+    }
   };
 
-  const clearAllReviews = () => {
-    setReviews([]);
+  const clearAllReviews = async () => {
+    try {
+      await api.delete('/reviews');
+      setReviews([]);
+    } catch (e) {
+      console.error('Failed to clear reviews:', e);
+      throw e;
+    }
   };
-
-  const safeReviews = Array.isArray(reviews) ? reviews : [];
 
   return (
-    <ReviewsContext.Provider value={{ 
-      reviews: safeReviews, 
-      getReviewsForProduct, 
-      getProductRatingStats, 
-      addReview, 
+    <ReviewsContext.Provider value={{
+      reviews,
+      loading,
+      getReviewsForProduct,
+      getProductRatingStats,
+      addReview,
       deleteReview,
       replyToReview,
       markHelpful,
-      clearAllReviews
+      clearAllReviews,
     }}>
       {children}
     </ReviewsContext.Provider>

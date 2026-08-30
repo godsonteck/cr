@@ -1,90 +1,99 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  Product, 
-  CategoryConfig, 
-  PromoCode, 
-  StoreSettings, 
-  AdminSession, 
-  Order, 
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  Product,
+  CategoryConfig,
+  PromoCode,
+  StoreSettings,
+  StoreSettingsRow,
+  AdminSession,
+  Order,
   CategoryType,
   RiderTrackingInfo,
-  FlashDeal
+  FlashDeal,
 } from '../types';
-import { PRODUCTS, BRANDS_LIST, CATEGORIES_CONFIG } from '../data/products';
+import { api } from '../lib/api';
 
 interface StoreContextType {
-  // Products
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => Product;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  duplicateProduct: (id: string) => void;
-  updateProductStock: (id: string, stockCount: number, inStock?: boolean) => void;
-  clearAllProducts: () => void;
-  
-  // Brands
+  loading: boolean;
+  error: string | null;
+  fetchProducts: (params?: { category?: string; department?: string; published?: boolean }) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  toggleProductPublication: (id: string) => Promise<void>;
+  duplicateProduct: (id: string) => Promise<void>;
+  updateProductStock: (id: string, stockCount: number, inStock?: boolean) => Promise<void>;
+  clearAllProducts: () => Promise<void>;
+
   brands: string[];
-  addBrand: (brand: string) => void;
-  deleteBrand: (brand: string) => void;
+  loadingBrands: boolean;
+  fetchBrands: () => Promise<void>;
+  addBrand: (brand: string) => Promise<void>;
+  deleteBrand: (brand: string) => Promise<void>;
 
-  // Categories
   categories: CategoryConfig[];
-  updateCategory: (id: CategoryType, updates: Partial<CategoryConfig>) => void;
-  addCategory: (category: CategoryConfig) => void;
-  deleteCategory: (id: string) => void;
-  toggleCategory: (id: CategoryType) => void;
+  loadingCategories: boolean;
+  fetchCategories: () => Promise<void>;
+  updateCategory: (id: CategoryType, updates: Partial<CategoryConfig>) => Promise<void>;
+  addCategory: (category: CategoryConfig) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  toggleCategory: (id: CategoryType) => Promise<void>;
 
-  // Orders & Dispatch Management
   orders: Order[];
-  addOrder: (order: Order) => void;
-  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => void;
-  updatePaymentStatus: (orderId: string, paymentStatus: 'paid' | 'pending') => void;
-  deleteOrder: (orderId: string) => void;
-  clearAllOrders: () => void;
+  loadingOrders: boolean;
+  fetchOrders: (params?: { userId?: string; status?: Order['status'] }) => Promise<void>;
+  addOrder: (order: Order) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => Promise<void>;
+  updatePaymentStatus: (orderId: string, paymentStatus: 'paid' | 'pending') => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
+  clearAllOrders: () => Promise<void>;
   getOrderById: (orderIdOrNumber: string) => Order | undefined;
 
-  // Promo Codes
   promoCodes: PromoCode[];
-  addPromoCode: (promo: Omit<PromoCode, 'id' | 'usageCount'>) => void;
-  togglePromoCode: (code: string) => void;
-  deletePromoCode: (id: string) => void;
-  validatePromoCode: (code: string, subtotal: number) => { 
-    valid: boolean; 
-    discountAmount: number; 
-    freeShipping: boolean; 
+  loadingPromos: boolean;
+  fetchPromoCodes: () => Promise<void>;
+  addPromoCode: (promo: Omit<PromoCode, 'id' | 'usageCount'>) => Promise<void>;
+  togglePromoCode: (code: string) => Promise<void>;
+  deletePromoCode: (id: string) => Promise<void>;
+  validatePromoCode: (code: string, subtotal: number) => Promise<{
+    valid: boolean;
+    discountAmount: number;
+    freeShipping: boolean;
     message: string;
     promo?: PromoCode;
-  };
+  }>;
 
-  // Store & Website Settings
   storeSettings: StoreSettings;
-  updateStoreSettings: (updates: Partial<StoreSettings>) => void;
+  loadingSettings: boolean;
+  fetchSettings: () => Promise<void>;
+  updateStoreSettings: (updates: Partial<StoreSettings>) => Promise<void>;
 
-  // Admin Session & Authentication
   adminSession: AdminSession;
-  loginAdmin: (pin: string, name?: string, role?: AdminSession['adminRole']) => boolean;
-  logoutAdmin: () => void;
-  switchAdminRole: (role: AdminSession['adminRole']) => void;
+  loadingAdmin: boolean;
+  loginAdmin: (pin: string, name?: string, role?: AdminSession['adminRole']) => Promise<boolean>;
+  logoutAdmin: () => Promise<void>;
+  switchAdminRole: (role: AdminSession['adminRole']) => Promise<void>;
 
-  // Flash Deals (Admin Controlled)
-  flashDeals: import('../types').FlashDeal[];
-  addFlashDeal: (deal: Omit<import('../types').FlashDeal, 'id' | 'createdAt'>) => void;
-  updateFlashDeal: (id: string, updates: Partial<import('../types').FlashDeal>) => void;
-  deleteFlashDeal: (id: string) => void;
-  toggleFlashDeal: (id: string) => void;
+  flashDeals: FlashDeal[];
+  loadingFlashDeals: boolean;
+  fetchFlashDeals: () => Promise<void>;
+  addFlashDeal: (deal: Omit<FlashDeal, 'id' | 'createdAt'>) => Promise<void>;
+  updateFlashDeal: (id: string, updates: Partial<FlashDeal>) => Promise<void>;
+  deleteFlashDeal: (id: string) => Promise<void>;
+  toggleFlashDeal: (id: string) => Promise<void>;
 
-  // Utility & Full Reset
-  resetStoreToDefaults: () => void;
+  resetStoreToDefaults: () => Promise<void>;
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeName: 'CR Cosmetics & Essential',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
   heroHeadline: 'Your Beauty. Your Essentials. Your Glow.',
-  heroSubtitle: 'Carefully selected beauty and everyday essentials chosen to help you feel your best.',
+  heroSubtitle: 'Shop beauty, personal care and household essentials.',
   heroBadge: '100% ORIGINAL & AUTHENTIC',
   heroButtonText: 'SHOP NOW',
-  announcementText: 'Free Delivery on Orders GHS 300+ • 100% Authentic Products • Fast Dispatch',
+  announcementText: 'Free delivery on orders GHS 300+ • Delivery options shown at checkout',
   announcementVisible: true,
   announcementBg: '#5B2333',
   freeDeliveryThreshold: 300,
@@ -98,366 +107,252 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
   whatsappNumber: '233551234567',
   maintenanceMode: false,
-  bannerAlert: null
+  bannerAlert: null,
 };
-
-const DEFAULT_PROMO_CODES: PromoCode[] = [
-  {
-    id: 'promo-cr10',
-    code: 'CR10',
-    discountType: 'percentage',
-    discountValue: 10,
-    minSpend: 150,
-    freeShipping: false,
-    isActive: true,
-    usageCount: 0,
-    description: '10% off for orders above GHS 150',
-    expiryDate: '2026-12-31'
-  },
-  {
-    id: 'promo-welcome20',
-    code: 'WELCOME20',
-    discountType: 'fixed',
-    discountValue: 20,
-    minSpend: 100,
-    freeShipping: false,
-    isActive: true,
-    usageCount: 0,
-    description: 'GHS 20 instant discount for beauty shoppers',
-    expiryDate: '2026-12-31'
-  }
-];
-
-const DEFAULT_FLASH_DEALS: FlashDeal[] = [];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-const ADMIN_STORAGE_KEY = 'cr_admin_session';
-const PRODUCTS_STORAGE_KEY = 'cr_store_products';
-const BRANDS_STORAGE_KEY = 'cr_store_brands';
-const ORDERS_STORAGE_KEY = 'cr_store_orders';
-const SETTINGS_STORAGE_KEY = 'cr_store_settings';
-const PROMOS_STORAGE_KEY = 'cr_store_promos';
-const CATEGORIES_STORAGE_KEY = 'cr_store_categories';
-const FLASH_DEALS_STORAGE_KEY = 'cr_store_flash_deals';
-
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Products State (Editable and manageable via Admin)
-  const [products, setProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-    return PRODUCTS;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [brands, setBrands] = useState<string[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+
+  const [categories, setCategories] = useState<CategoryConfig[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [loadingPromos, setLoadingPromos] = useState(true);
+
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  const [adminSession, setAdminSession] = useState<AdminSession>({
+    isLoggedIn: false,
+    adminName: 'CR Admin',
+    adminRole: 'Super Admin',
+    email: 'admin@crcosmetics.com',
   });
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
 
-  // 2. Brands State
-  const [brands, setBrands] = useState<string[]>(() => {
+  const [flashDeals, setFlashDeals] = useState<FlashDeal[]>([]);
+  const [loadingFlashDeals, setLoadingFlashDeals] = useState(true);
+
+  const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
+    setLoading(true);
+    setError(null);
     try {
-      const saved = localStorage.getItem(BRANDS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      const query = new URLSearchParams();
+      if (params?.category) query.set('category', params.category);
+      if (params?.department) query.set('department', params.department);
+      if (params?.published !== undefined) query.set('published', params.published.toString());
+      const data = await api.get<{ products: Product[] }>(`/products?${query}`);
+      setProducts(data.products);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : 'Failed to fetch products');
+    } finally {
+      setLoading(false);
     }
-    return BRANDS_LIST;
-  });
+  }, []);
 
-  // 3. Categories State
-  const [categories, setCategories] = useState<CategoryConfig[]>(() => {
+  const fetchBrands = useCallback(async () => {
+    setLoadingBrands(true);
     try {
-      const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const activeCount = parsed.filter((item: CategoryConfig) => item?.isActive).length;
-          if (activeCount > 0 || parsed.some((item: CategoryConfig) => item && !item.isActive)) {
-            return parsed;
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
+      const data = await api.get<string[]>('/brands');
+      setBrands(data);
+    } finally {
+      setLoadingBrands(false);
     }
-    return CATEGORIES_CONFIG as CategoryConfig[];
-  });
+  }, []);
 
-  // 4. Orders State - Clean real store orders (starts empty unless customers place orders)
-  const [orders, setOrders] = useState<Order[]>(() => {
+  const fetchCategories = useCallback(async () => {
+    setLoadingCategories(true);
     try {
-      const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.error(e);
+      const data = await api.get<CategoryConfig[]>('/categories');
+      setCategories(data);
+    } finally {
+      setLoadingCategories(false);
     }
-    return [];
-  });
+  }, []);
 
-  // 5. Promo Codes State
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => {
+  const fetchOrders = useCallback(async (params?: { userId?: string; status?: Order['status'] }) => {
+    setLoadingOrders(true);
     try {
-      const saved = localStorage.getItem(PROMOS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const query = new URLSearchParams();
+      if (params?.userId) query.set('userId', params.userId);
+      if (params?.status) query.set('status', params.status);
+      const data = await api.get<{ orders: Order[] }>(`/orders?${query}`);
+      setOrders(data.orders);
+    } finally {
+      setLoadingOrders(false);
     }
-    return DEFAULT_PROMO_CODES;
-  });
+  }, []);
 
-  // 6. Store Settings State
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+  const fetchPromoCodes = useCallback(async () => {
+    setLoadingPromos(true);
     try {
-      const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const data = await api.get<PromoCode[]>('/promo-codes');
+      setPromoCodes(data);
+    } finally {
+      setLoadingPromos(false);
     }
-    return DEFAULT_STORE_SETTINGS;
-  });
+  }, []);
 
-  // 7. Admin Session State
-  const [adminSession, setAdminSession] = useState<AdminSession>(() => {
+  const fetchSettings = useCallback(async () => {
+    setLoadingSettings(true);
     try {
-      const saved = localStorage.getItem(ADMIN_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const data = await api.get<StoreSettingsRow[]>('/settings');
+      const settings = data.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as StoreSettings);
+      setStoreSettings(prev => ({ ...prev, ...settings }));
+    } finally {
+      setLoadingSettings(false);
     }
-    return {
-      isLoggedIn: false,
-      adminName: 'CR Admin',
-      adminRole: 'Super Admin',
-      email: 'admin@crcosmetics.com'
-    };
-  });
+  }, []);
 
-  // 8. Flash Deals State (Admin Controlled)
-  const [flashDeals, setFlashDeals] = useState<FlashDeal[]>(() => {
+  const fetchFlashDeals = useCallback(async () => {
+    setLoadingFlashDeals(true);
     try {
-      const saved = localStorage.getItem(FLASH_DEALS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const activeDeals = parsed.filter((deal: FlashDeal) => deal?.isActive);
-          if (activeDeals.length > 0 || parsed.some((deal: FlashDeal) => deal && !deal.isActive)) {
-            return parsed;
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
+      const data = await api.get<FlashDeal[]>('/flash-deals');
+      setFlashDeals(data);
+    } finally {
+      setLoadingFlashDeals(false);
     }
-    return DEFAULT_FLASH_DEALS;
-  });
+  }, []);
 
-  // Persist to localStorage
+  // Initial data fetch
   useEffect(() => {
-    try {
-      localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [products]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(BRANDS_STORAGE_KEY, JSON.stringify(brands));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [brands]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [categories]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [orders]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(PROMOS_STORAGE_KEY, JSON.stringify(promoCodes));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [promoCodes]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(FLASH_DEALS_STORAGE_KEY, JSON.stringify(flashDeals));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [flashDeals]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(storeSettings));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [storeSettings]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminSession));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [adminSession]);
+    fetchProducts();
+    fetchBrands();
+    fetchCategories();
+    fetchOrders();
+    fetchPromoCodes();
+    fetchSettings();
+    fetchFlashDeals();
+  }, [fetchProducts, fetchBrands, fetchCategories, fetchOrders, fetchPromoCodes, fetchSettings, fetchFlashDeals]);
 
   // Product Actions
-  const addProduct = (productData: Omit<Product, 'id'>): Product => {
-    const newId = `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    const newProduct: Product = {
-      ...productData,
-      id: newId,
-      rating: productData.rating || 5.0,
-      reviewCount: productData.reviewCount || 0,
-      images: productData.images && productData.images.length > 0 ? productData.images : [productData.image]
-    };
+  const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
+    const newProduct = await api.post<Product>('/products', productData);
     setProducts(prev => [newProduct, ...prev]);
-
-    // If new brand is introduced, add to brands list automatically
     if (productData.brand && !brands.includes(productData.brand)) {
-      addBrand(productData.brand);
+      await addBrand(productData.brand);
     }
-
     return newProduct;
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === id) {
-        const updated = { ...p, ...updates };
-        if (updates.image && (!updates.images || updates.images.length === 0)) {
-          updated.images = [updates.image];
-        }
-        return updated;
-      }
-      return p;
-    }));
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    await api.patch<Product>(`/products/${id}`, updates);
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    await api.delete(`/products/${id}`);
     setProducts(prev => prev.filter(p => p.id !== id));
   };
 
-  const duplicateProduct = (id: string) => {
+  const toggleProductPublication = async (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    await updateProduct(id, { isPublished: product.isPublished === false });
+  };
+
+  const duplicateProduct = async (id: string): Promise<void> => {
     const original = products.find(p => p.id === id);
     if (!original) return;
-    const duplicated: Product = {
-      ...original,
-      id: `prod-${Date.now()}`,
+    const { id: _, ...originalData } = original;
+    await addProduct({
+      ...originalData,
       name: `${original.name} (Copy)`,
-      stockCount: Math.max(10, original.stockCount)
-    };
-    setProducts(prev => [duplicated, ...prev]);
+      stockCount: Math.max(10, original.stockCount),
+    });
   };
 
-  const updateProductStock = (id: string, stockCount: number, inStock?: boolean) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === id) {
-        return {
-          ...p,
-          stockCount,
-          inStock: inStock !== undefined ? inStock : stockCount > 0
-        };
-      }
-      return p;
-    }));
+  const updateProductStock = async (id: string, stockCount: number, inStock?: boolean) => {
+    await updateProduct(id, { stockCount, inStock: inStock !== undefined ? inStock : stockCount > 0 });
   };
 
-  const clearAllProducts = () => {
+  const clearAllProducts = async () => {
+    await api.delete('/products');
     setProducts([]);
   };
 
   // Brand Actions
-  const addBrand = (brand: string) => {
+  const addBrand = async (brand: string) => {
     const trimmed = brand.trim();
     if (trimmed && !brands.includes(trimmed)) {
+      await api.post('/brands', { name: trimmed });
       setBrands(prev => [...prev, trimmed]);
     }
   };
 
-  const deleteBrand = (brand: string) => {
+  const deleteBrand = async (brand: string) => {
     if (brand === 'All Brands') return;
+    await api.delete(`/brands/${encodeURIComponent(brand)}`);
     setBrands(prev => prev.filter(b => b !== brand));
   };
 
   // Category Actions
-  const updateCategory = (id: CategoryType, updates: Partial<CategoryConfig>) => {
+  const updateCategory = async (id: CategoryType, updates: Partial<CategoryConfig>) => {
+    await api.patch(`/categories/${id}`, updates);
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
-  const addCategory = (category: CategoryConfig) => {
+  const addCategory = async (category: CategoryConfig) => {
+    await api.post('/categories', category);
     setCategories(prev => [...prev, category]);
   };
 
-  const deleteCategory = (id: string) => {
+  const deleteCategory = async (id: string) => {
+    await api.delete(`/categories/${id}`);
     setCategories(prev => prev.filter(c => c.id !== id));
   };
 
-  const toggleCategory = (id: CategoryType) => {
-    setCategories(prev => prev.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c));
+  const toggleCategory = async (id: CategoryType) => {
+    const category = categories.find(c => c.id === id);
+    if (!category) return;
+    await updateCategory(id, { isActive: !category.isActive });
   };
 
   // Orders Actions
-  const addOrder = (order: Order) => {
+  const addOrder = async (order: Order) => {
+    await api.post('/orders', order);
     setOrders(prev => [order, ...prev]);
-    // Deduct stock from products
-    order.items.forEach(item => {
-      updateProductStock(
-        item.product.id, 
-        Math.max(0, (item.product.stockCount || 10) - item.quantity),
-        (item.product.stockCount || 10) - item.quantity > 0
-      );
-    });
   };
 
-  const updateOrderStatus = (
-    orderId: string, 
-    status: Order['status'], 
+  const updateOrderStatus = async (
+    orderId: string,
+    status: Order['status'],
     riderInfoUpdates?: Partial<RiderTrackingInfo>
   ) => {
+    const order = orders.find(o => o.id === orderId || o.orderNumber === orderId);
+    if (!order) return;
+    const stageIndex = status === 'Delivered' ? 3 : status === 'Out for Delivery' ? 2 : status === 'Packing Order' ? 1 : 0;
+    const existingRider = order.riderInfo || {
+      riderName: 'Kwame Boateng (Accra Courier)',
+      riderPhone: '+233 24 987 6543',
+      riderLocation: 'Departed Botwe Fulfillment Hub',
+      estimatedArrival: 'Within 45 mins',
+      stageIndex: 0,
+    };
+    await api.patch(`/orders/${orderId}`, {
+      status,
+      riderInfo: { ...existingRider, stageIndex, ...riderInfoUpdates },
+    });
     setOrders(prev => prev.map(o => {
       if (o.id === orderId || o.orderNumber === orderId) {
-        const stageIndex = status === 'Delivered' ? 3 : status === 'Out for Delivery' ? 2 : status === 'Packing Order' ? 1 : 0;
-        const existingRider = o.riderInfo || {
-          riderName: 'Kwame Boateng (Accra Courier)',
-          riderPhone: '+233 24 987 6543',
-          riderLocation: 'Departed Botwe Fulfillment Hub',
-          estimatedArrival: 'Within 45 mins',
-          stageIndex: 0
-        };
-        return {
-          ...o,
-          status,
-          riderInfo: {
-            ...existingRider,
-            stageIndex,
-            ...(riderInfoUpdates || {})
-          }
-        };
+        return { ...o, status, riderInfo: { ...existingRider, stageIndex, ...riderInfoUpdates } };
       }
       return o;
     }));
   };
 
-  const updatePaymentStatus = (orderId: string, paymentStatus: 'paid' | 'pending') => {
+  const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {
+    await api.patch(`/orders/${orderId}`, { paymentStatus });
     setOrders(prev => prev.map(o => {
       if (o.id === orderId || o.orderNumber === orderId) {
         return { ...o, paymentStatus };
@@ -466,179 +361,164 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
   };
 
-  const deleteOrder = (orderId: string) => {
+  const deleteOrder = async (orderId: string) => {
+    await api.delete(`/orders/${orderId}`);
     setOrders(prev => prev.filter(o => o.id !== orderId && o.orderNumber !== orderId));
   };
 
-  const clearAllOrders = () => {
+  const clearAllOrders = async () => {
+    await api.delete('/orders');
     setOrders([]);
   };
 
   const getOrderById = (orderIdOrNumber: string): Order | undefined => {
     const clean = orderIdOrNumber.trim().toUpperCase();
-    return orders.find(o => 
-      o.id.toUpperCase() === clean || 
+    return orders.find(o =>
+      o.id.toUpperCase() === clean ||
       o.orderNumber.toUpperCase() === clean ||
       o.orderNumber.toUpperCase().includes(clean)
     );
   };
 
   // Promo Code Actions
-  const addPromoCode = (promoData: Omit<PromoCode, 'id' | 'usageCount'>) => {
-    const newPromo: PromoCode = {
-      ...promoData,
-      id: `promo-${Date.now()}`,
-      code: promoData.code.trim().toUpperCase(),
-      usageCount: 0
-    };
+  const addPromoCode = async (promoData: Omit<PromoCode, 'id' | 'usageCount'>) => {
+    const newPromo = await api.post<PromoCode>('/promo-codes', promoData);
     setPromoCodes(prev => [newPromo, ...prev]);
   };
 
-  const togglePromoCode = (code: string) => {
-    setPromoCodes(prev => prev.map(p => {
-      if (p.code.toUpperCase() === code.toUpperCase()) {
-        return { ...p, isActive: !p.isActive };
-      }
-      return p;
-    }));
+  const togglePromoCode = async (code: string) => {
+    const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase());
+    if (!promo) return;
+    await api.patch(`/promo-codes/${promo.id}`, { isActive: !promo.isActive });
+    setPromoCodes(prev => prev.map(p =>
+      p.code.toUpperCase() === code.toUpperCase() ? { ...p, isActive: !p.isActive } : p
+    ));
   };
 
-  const deletePromoCode = (id: string) => {
+  const deletePromoCode = async (id: string) => {
+    await api.delete(`/promo-codes/${id}`);
     setPromoCodes(prev => prev.filter(p => p.id !== id && p.code !== id));
   };
 
-  const validatePromoCode = (code: string, subtotal: number) => {
-    const cleanCode = code.trim().toUpperCase();
-    const matched = promoCodes.find(p => p.code.toUpperCase() === cleanCode);
-
-    if (!matched) {
-      return { valid: false, discountAmount: 0, freeShipping: false, message: 'Invalid promo code' };
+  const validatePromoCode = async (code: string, subtotal: number) => {
+    try {
+      return await api.get<{
+        valid: boolean;
+        discountAmount: number;
+        freeShipping: boolean;
+        message: string;
+        promo?: PromoCode;
+      }>(`/promo-codes/validate?code=${encodeURIComponent(code)}&subtotal=${subtotal}`);
+    } catch (e) {
+      return { valid: false, discountAmount: 0, freeShipping: false, message: 'Validation failed' };
     }
-
-    if (!matched.isActive) {
-      return { valid: false, discountAmount: 0, freeShipping: false, message: 'This promo code is currently disabled.' };
-    }
-
-    if (matched.minSpend && subtotal < matched.minSpend) {
-      return { 
-        valid: false, 
-        discountAmount: 0, 
-        freeShipping: false, 
-        message: `Requires minimum order of GHS ${matched.minSpend.toFixed(2)}` 
-      };
-    }
-
-    let discountAmount = 0;
-    if (matched.discountType === 'percentage') {
-      discountAmount = (subtotal * matched.discountValue) / 100;
-    } else {
-      discountAmount = matched.discountValue;
-    }
-
-    return {
-      valid: true,
-      discountAmount,
-      freeShipping: !!matched.freeShipping,
-      message: `${matched.code} applied! ${matched.description}`,
-      promo: matched
-    };
   };
 
   // Store Settings
-  const updateStoreSettings = (updates: Partial<StoreSettings>) => {
+  const updateStoreSettings = async (updates: Partial<StoreSettings>) => {
+    for (const [key, value] of Object.entries(updates)) {
+      await api.post('/settings', { key, value });
+    }
     setStoreSettings(prev => ({ ...prev, ...updates }));
   };
 
   // Admin Auth
-  const loginAdmin = (pin: string, name = 'CR Store Admin', role: AdminSession['adminRole'] = 'Super Admin') => {
-    if (pin.trim() === '1234' || pin.trim() === 'admin' || pin.trim() === 'cr2026' || pin.trim() === '0000' || pin.length >= 4) {
-      const session: AdminSession = {
-        isLoggedIn: true,
-        adminName: name,
-        adminRole: role,
-        email: 'admin@crcosmetics.com'
-      };
-      setAdminSession(session);
+  const loginAdmin = async (pin: string, name = 'CR Store Admin', role: AdminSession['adminRole'] = 'Super Admin'): Promise<boolean> => {
+    try {
+      const result = await api.post<{ token: string; admin: AdminSession }>('/auth?action=admin', { pin });
+      localStorage.setItem('auth_token', result.token);
+      localStorage.setItem('admin_session', JSON.stringify(result.admin));
+      setAdminSession(result.admin);
       return true;
+    } catch {
+      return false;
     }
-    return false;
   };
 
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('admin_session');
     setAdminSession({
       isLoggedIn: false,
       adminName: 'CR Admin',
       adminRole: 'Super Admin',
-      email: 'admin@crcosmetics.com'
+      email: 'admin@crcosmetics.com',
     });
   };
 
-  const switchAdminRole = (role: AdminSession['adminRole']) => {
+  const switchAdminRole = async (role: AdminSession['adminRole']) => {
     setAdminSession(prev => ({ ...prev, adminRole: role }));
   };
 
   // Flash Deal Actions
-  const addFlashDeal = (dealData: Omit<FlashDeal, 'id' | 'createdAt'>) => {
-    const newDeal: FlashDeal = {
-      ...dealData,
-      id: `deal-${Date.now()}`,
-      createdAt: new Date().toISOString()
-    };
+  const addFlashDeal = async (dealData: Omit<FlashDeal, 'id' | 'createdAt'>) => {
+    const newDeal = await api.post<FlashDeal>('/flash-deals', dealData);
     setFlashDeals(prev => [newDeal, ...prev]);
   };
 
-  const updateFlashDeal = (id: string, updates: Partial<FlashDeal>) => {
-    setFlashDeals(prev => prev.map(deal => {
-      if (deal.id === id) {
-        return { ...deal, ...updates };
-      }
-      return deal;
-    }));
+  const updateFlashDeal = async (id: string, updates: Partial<FlashDeal>) => {
+    await api.patch(`/flash-deals/${id}`, updates);
+    setFlashDeals(prev => prev.map(deal => deal.id === id ? { ...deal, ...updates } : deal));
   };
 
-  const deleteFlashDeal = (id: string) => {
+  const deleteFlashDeal = async (id: string) => {
+    await api.delete(`/flash-deals/${id}`);
     setFlashDeals(prev => prev.filter(deal => deal.id !== id));
   };
 
-  const toggleFlashDeal = (id: string) => {
-    setFlashDeals(prev => prev.map(deal => {
-      if (deal.id === id) {
-        return { ...deal, isActive: !deal.isActive };
-      }
-      return deal;
-    }));
+  const toggleFlashDeal = async (id: string) => {
+    const deal = flashDeals.find(d => d.id === id);
+    if (!deal) return;
+    await updateFlashDeal(id, { isActive: !deal.isActive });
   };
 
-  // Reset to initial catalog data
-  const resetStoreToDefaults = () => {
-    setProducts(PRODUCTS);
-    setBrands(BRANDS_LIST);
-    setCategories(CATEGORIES_CONFIG as CategoryConfig[]);
+  const resetStoreToDefaults = async () => {
+    await Promise.all([
+      api.delete('/products'),
+      api.delete('/categories'),
+      api.delete('/brands'),
+      api.delete('/orders'),
+      api.delete('/promo-codes'),
+      api.delete('/flash-deals'),
+    ]);
+    setProducts([]);
+    setBrands([]);
+    setCategories([]);
     setOrders([]);
-    setPromoCodes(DEFAULT_PROMO_CODES);
+    setPromoCodes([]);
+    setFlashDeals([]);
     setStoreSettings(DEFAULT_STORE_SETTINGS);
-    setFlashDeals(DEFAULT_FLASH_DEALS);
   };
 
   return (
     <StoreContext.Provider
       value={{
         products,
+        loading,
+        error,
+        fetchProducts,
         addProduct,
         updateProduct,
         deleteProduct,
+        toggleProductPublication,
         duplicateProduct,
         updateProductStock,
         clearAllProducts,
         brands,
+        loadingBrands,
+        fetchBrands,
         addBrand,
         deleteBrand,
         categories,
+        loadingCategories,
+        fetchCategories,
         updateCategory,
         addCategory,
         deleteCategory,
         toggleCategory,
         orders,
+        loadingOrders,
+        fetchOrders,
         addOrder,
         updateOrderStatus,
         updatePaymentStatus,
@@ -646,22 +526,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         clearAllOrders,
         getOrderById,
         promoCodes,
+        loadingPromos,
+        fetchPromoCodes,
         addPromoCode,
         togglePromoCode,
         deletePromoCode,
         validatePromoCode,
         storeSettings,
+        loadingSettings,
+        fetchSettings,
         updateStoreSettings,
         adminSession,
+        loadingAdmin,
         loginAdmin,
         logoutAdmin,
         switchAdminRole,
         flashDeals,
+        loadingFlashDeals,
+        fetchFlashDeals,
         addFlashDeal,
         updateFlashDeal,
         deleteFlashDeal,
         toggleFlashDeal,
-        resetStoreToDefaults
+        resetStoreToDefaults,
       }}
     >
       {children}

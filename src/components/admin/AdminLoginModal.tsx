@@ -34,11 +34,11 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const success = loginAdmin(pin, adminName, role);
+    const success = await loginAdmin(pin, adminName, role);
     if (success) {
       showToast(`Welcome to CR Admin Portal (${role})`);
       onSuccess();

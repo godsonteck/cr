@@ -55,7 +55,7 @@ export const AccountPage: React.FC = () => {
             {user?.fullName.charAt(0)}
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#1C1817] dark:text-stone-100">{user?.fullName}</h1>
+            <h1 className="font-serif text-3xl tracking-[-0.05em] text-[var(--text-primary)]">{user?.fullName}</h1>
             <span className="text-xs text-stone-400 font-semibold">{user?.email} • {user?.phone}</span>
           </div>
         </div>
@@ -186,7 +186,7 @@ export const SignInPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(email);
+    login(email, password);
     navigate('/account');
   };
 
@@ -237,7 +237,7 @@ export const SignInPage: React.FC = () => {
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -246,7 +246,7 @@ export const SignUpPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, fullName, phone);
+    register(email, fullName, phone, password);
     navigate('/account');
   };
 
