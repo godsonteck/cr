@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import db from '../src/db.ts';
-import { products } from '../src/schema';
+import { db } from '../src/db';
+import { products } from '../src/db/schema';
 import { eq, and, or, ilike, desc, asc, sql } from 'drizzle-orm';
 import { z } from 'zod';
 

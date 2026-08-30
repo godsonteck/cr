@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import db from '../src/db.ts';
-import { users } from '../src/schema';
+import { db } from '../src/db';
+import { users } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
