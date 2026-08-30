@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'GET') {
-      const { productId, id } = query;
+      const { productId, id, approved } = query;
 
       if (id && typeof id === 'string') {
         const [review] = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
