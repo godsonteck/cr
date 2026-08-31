@@ -535,6 +535,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const apiResult = await api.post<Product>('/products', productData);
       setProducts(prev => [apiResult, ...prev]);
+      await fetchProducts();
       return apiResult;
     } catch (e: any) {
       setError('Failed to add product to server. Changes saved locally only.');
@@ -550,6 +551,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     try {
       await api.patch<Product>(`/products/${id}`, updates);
+      await fetchProducts();
     } catch (e: any) {
       setError('Failed to update product on server.');
     }
@@ -559,6 +561,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(prev => prev.filter(p => p.id !== id));
     try {
       await api.delete(`/products/${id}`);
+      await fetchProducts();
     } catch (e: any) {
       setError('Failed to delete product from server.');
     }
@@ -600,6 +603,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setBrands(prev => [...prev, trimmed]);
       try {
         await api.post('/brands', { name: trimmed });
+        await fetchBrands();
       } catch (e: any) { setError(e.message || "Operation failed"); }
     }
   };
@@ -608,6 +612,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBrands(prev => prev.filter(b => b !== brand));
     try {
       await api.delete(`/brands/${encodeURIComponent(brand)}`);
+      await fetchBrands();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -616,6 +621,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
     try {
       await api.patch<CategoryConfig>(`/categories/${id}`, updates);
+      await fetchCategories();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -623,6 +629,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCategories(prev => [...prev, category]);
     try {
       await api.post<CategoryConfig>('/categories', category);
+      await fetchCategories();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -630,6 +637,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCategories(prev => prev.filter(c => c.id !== id));
     try {
       await api.delete(`/categories/${id}`);
+      await fetchCategories();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -640,7 +648,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Order Actions
-  const addOrder = async (order: Order) => {
+const addOrder = async (order: Order) => {
     setOrders(prev => [order, ...prev]);
     // Deduct stock from products automatically
     order.items.forEach(item => {
@@ -652,9 +660,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
     });
-
     try {
       await api.post('/orders', order);
+      await fetchOrders();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
