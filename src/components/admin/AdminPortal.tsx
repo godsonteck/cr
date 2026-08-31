@@ -422,7 +422,7 @@ export const AdminPortal: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F6] text-stone-900 flex flex-col font-sans selection:bg-[#1E1719] selection:text-[#FAF6F0]">
+    <div className="min-h-screen bg-[#FBF9F6] text-cr-espresso flex flex-col font-sans selection:bg-[#1E1719] selection:text-[#FAF6F0]">
       
       {/* Top Operations Header */}
       <header className="bg-[#140D10] text-stone-100 border-b border-stone-800/80 sticky top-0 z-40 shadow-sm">
@@ -487,7 +487,7 @@ export const AdminPortal: React.FC = () => {
               >
                 <Bell className="w-4 h-4" />
                 {unreadNotifsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C89B3C] text-stone-900 text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C89B3C] text-cr-espresso text-[9px] font-bold flex items-center justify-center">
                     {unreadNotifsCount}
                   </span>
                 )}
@@ -562,7 +562,7 @@ export const AdminPortal: React.FC = () => {
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     currentTab === id 
                       ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' 
-                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                      : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -587,7 +587,7 @@ export const AdminPortal: React.FC = () => {
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       isActive 
                         ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' 
-                        : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                        : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -627,7 +627,7 @@ export const AdminPortal: React.FC = () => {
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       isActive 
                         ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' 
-                        : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                        : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -681,7 +681,7 @@ export const AdminPortal: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E8E2D8] shadow-xs">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-serif font-bold text-stone-900">
+                    <h2 className="text-xl font-serif font-bold text-cr-espresso">
                       Welcome, {store.adminSession.adminName}
                     </h2>
                     <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
@@ -707,7 +707,7 @@ export const AdminPortal: React.FC = () => {
 
                   <button
                     onClick={() => setCurrentTab('orders')}
-                    className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 bg-cr-ivory hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <ClipboardList className="w-3.5 h-3.5" />
                     <span>Check Orders ({pendingOrdersCount})</span>
@@ -725,7 +725,7 @@ export const AdminPortal: React.FC = () => {
                       <TrendingUp className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold font-serif text-stone-900">
+                  <p className="text-2xl font-bold font-serif text-cr-espresso">
                     GHS {revenueTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                   <p className="text-[11px] text-emerald-700 font-semibold">From {store.orders.length} customer orders</p>
@@ -738,7 +738,7 @@ export const AdminPortal: React.FC = () => {
                       <ClipboardList className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold font-serif text-stone-900">
+                  <p className="text-2xl font-bold font-serif text-cr-espresso">
                     {pendingOrdersCount}
                   </p>
                   <p className="text-[11px] text-stone-500 font-medium">
@@ -753,7 +753,7 @@ export const AdminPortal: React.FC = () => {
                       <Users className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold font-serif text-stone-900">
+                  <p className="text-2xl font-bold font-serif text-cr-espresso">
                     {customers.length}
                   </p>
                   <p className="text-[11px] text-stone-500 font-medium">
@@ -764,11 +764,11 @@ export const AdminPortal: React.FC = () => {
                 <div className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-xs space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-stone-500">Items Low in Stock</span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
+                    <div className="p-2 rounded-xl bg-cr-terracotta text-amber-700">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold font-serif text-stone-900">
+                  <p className="text-2xl font-bold font-serif text-cr-espresso">
                     {lowStockProducts.length + outOfStockProducts.length}
                   </p>
                   <p className="text-[11px] text-amber-700 font-semibold">
@@ -780,7 +780,7 @@ export const AdminPortal: React.FC = () => {
 
               {/* Attention Alerts */}
               {(lowStockProducts.length > 0 || pendingOrdersCount > 0) && (
-                <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 bg-cr-terracotta/90 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-100 text-amber-800 rounded-xl shrink-0">
                       <AlertCircle className="w-5 h-5" />
@@ -796,7 +796,7 @@ export const AdminPortal: React.FC = () => {
                     {pendingOrdersCount > 0 && (
                       <button
                         onClick={() => setCurrentTab('orders')}
-                        className="px-3 py-1.5 bg-amber-900 text-white rounded-xl font-bold text-xs hover:bg-amber-950 cursor-pointer"
+                        className="px-3 py-1.5 bg-cr-terracotta text-white rounded-xl font-bold text-xs hover:bg-amber-950 cursor-pointer"
                       >
                         Pack Orders ({pendingOrdersCount})
                       </button>
@@ -804,7 +804,7 @@ export const AdminPortal: React.FC = () => {
                     {lowStockProducts.length > 0 && (
                       <button
                         onClick={() => setCurrentTab('inventory')}
-                        className="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 rounded-xl font-bold text-xs hover:bg-amber-50 cursor-pointer"
+                        className="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 rounded-xl font-bold text-xs hover:bg-cr-terracotta cursor-pointer"
                       >
                         Check Stock
                       </button>
@@ -817,16 +817,16 @@ export const AdminPortal: React.FC = () => {
               <div className="bg-white p-6 rounded-2xl border border-[#E8E2D8] shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
                   <div>
-                    <h3 className="font-bold text-sm text-stone-900">Money Made from Sales (in Ghana Cedis)</h3>
+                    <h3 className="font-bold text-sm text-cr-espresso">Money Made from Sales (in Ghana Cedis)</h3>
                     <p className="text-xs text-stone-500">See how much money your shop has made over time.</p>
                   </div>
-                  <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+                  <div className="flex items-center gap-1 bg-cr-ivory p-1 rounded-xl">
                     {(['today', '7d', '30d'] as const).map(r => (
                       <button
                         key={r}
                         onClick={() => setAnalyticsRange(r)}
                         className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          analyticsRange === r ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                          analyticsRange === r ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600 hover:text-cr-espresso'
                         }`}
                       >
                         {r === 'today' ? 'Today' : r === '7d' ? 'Past 7 Days' : 'Past Month'}
@@ -865,7 +865,7 @@ export const AdminPortal: React.FC = () => {
                 <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden">
                   <div className="p-4 border-b border-stone-100 flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-stone-900 text-sm">Recent Customer Orders</h3>
+                      <h3 className="font-bold text-cr-espresso text-sm">Recent Customer Orders</h3>
                       <p className="text-xs text-stone-500">Orders placed by customers that need to be delivered.</p>
                     </div>
                     <button
@@ -887,11 +887,11 @@ export const AdminPortal: React.FC = () => {
                             setSelectedOrder(order);
                             setOrderDrawerOpen(true);
                           }}
-                          className="p-3.5 flex items-center justify-between hover:bg-stone-50/70 transition-colors cursor-pointer"
+                          className="p-3.5 flex items-center justify-between hover:bg-cr-sand/70 transition-colors cursor-pointer"
                         >
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-xs text-stone-900">{order.orderNumber}</span>
+                              <span className="font-mono font-bold text-xs text-cr-espresso">{order.orderNumber}</span>
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' :
                                 order.status === 'Out for Delivery' ? 'bg-blue-100 text-blue-800' :
@@ -903,7 +903,7 @@ export const AdminPortal: React.FC = () => {
                             <p className="text-xs text-stone-500 mt-0.5">{order.shippingAddress.fullName} • {order.items.length} item(s)</p>
                           </div>
                           <div className="text-right">
-                            <span className="font-bold text-xs text-stone-900">GHS {order.total.toFixed(2)}</span>
+                            <span className="font-bold text-xs text-cr-espresso">GHS {order.total.toFixed(2)}</span>
                             <p className="text-[10px] text-stone-400">{order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}</p>
                           </div>
                         </div>
@@ -916,7 +916,7 @@ export const AdminPortal: React.FC = () => {
                 <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden">
                   <div className="p-4 border-b border-stone-100 flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-stone-900 text-sm">Top Selling Products</h3>
+                      <h3 className="font-bold text-cr-espresso text-sm">Top Selling Products</h3>
                       <p className="text-xs text-stone-500">Live products in your store catalog.</p>
                     </div>
                     <button
@@ -929,17 +929,17 @@ export const AdminPortal: React.FC = () => {
 
                   <div className="divide-y divide-stone-100">
                     {store.products.slice(0, 4).map(product => (
-                      <div key={product.id} className="p-3.5 flex items-center justify-between hover:bg-stone-50/70 transition-colors">
+                      <div key={product.id} className="p-3.5 flex items-center justify-between hover:bg-cr-sand/70 transition-colors">
                         <div className="flex items-center gap-3">
-                          <img src={product.image} alt="" className="w-10 h-10 rounded-lg object-cover bg-stone-100 shrink-0" />
+                          <img src={product.image} alt="" className="w-10 h-10 rounded-lg object-cover bg-cr-ivory shrink-0" />
                           <div>
-                            <p className="font-bold text-xs text-stone-900 line-clamp-1">{product.name}</p>
+                            <p className="font-bold text-xs text-cr-espresso line-clamp-1">{product.name}</p>
                             <p className="text-[11px] text-stone-500">{product.brand} • GHS {product.price.toFixed(2)}</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            product.stockCount <= 5 ? 'bg-red-100 text-red-800' : 'bg-stone-100 text-stone-700'
+                            product.stockCount <= 5 ? 'bg-red-100 text-red-800' : 'bg-cr-ivory text-stone-700'
                           }`}>
                             {product.stockCount} left in shop
                           </span>
@@ -962,7 +962,7 @@ export const AdminPortal: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-cr-espresso">
                     Products & Items for Sale
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -976,7 +976,7 @@ export const AdminPortal: React.FC = () => {
                       exportProductsCSV(filteredProducts);
                       showToast(`Exported ${filteredProducts.length} products to CSV`);
                     }}
-                    className="px-3.5 py-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                    className="px-3.5 py-2.5 bg-white hover:bg-cr-sand border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                   >
                     <Download className="w-4 h-4 text-stone-500" />
                     <span>Export CSV</span>
@@ -1006,16 +1006,16 @@ export const AdminPortal: React.FC = () => {
                       value={productSearch}
                       onChange={e => setProductSearch(e.target.value)}
                       placeholder="Search by product name, brand, or category..."
-                      className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
+                      className="w-full pl-9 pr-4 py-2 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
                     />
                   </div>
 
                   {/* Section Switcher */}
-                  <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl self-start sm:self-auto">
+                  <div className="flex items-center gap-1 bg-cr-ivory p-1 rounded-xl self-start sm:self-auto">
                     <button
                       onClick={() => setProductDeptFilter('all')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        productDeptFilter === 'all' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600'
+                        productDeptFilter === 'all' ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600'
                       }`}
                     >
                       All Items ({store.products.length})
@@ -1023,7 +1023,7 @@ export const AdminPortal: React.FC = () => {
                     <button
                       onClick={() => setProductDeptFilter('beauty')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        productDeptFilter === 'beauty' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600'
+                        productDeptFilter === 'beauty' ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600'
                       }`}
                     >
                       Beauty & Skincare
@@ -1031,7 +1031,7 @@ export const AdminPortal: React.FC = () => {
                     <button
                       onClick={() => setProductDeptFilter('groceries')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        productDeptFilter === 'groceries' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600'
+                        productDeptFilter === 'groceries' ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600'
                       }`}
                     >
                       Groceries & Food
@@ -1049,7 +1049,7 @@ export const AdminPortal: React.FC = () => {
                         key={st}
                         onClick={() => setProductStockFilter(st)}
                         className={`px-2.5 py-1 rounded-lg text-[11px] font-bold capitalize ${
-                          productStockFilter === st ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                          productStockFilter === st ? 'bg-stone-900 text-white' : 'bg-cr-ivory text-stone-600 hover:bg-stone-200'
                         }`}
                       >
                         {st === 'all' ? 'All' : st === 'in' ? 'In Stock' : st === 'low' ? 'Low Stock (5 or less)' : 'Finished (0 left)'}
@@ -1059,8 +1059,8 @@ export const AdminPortal: React.FC = () => {
 
                   {/* Bulk selection actions */}
                   {selectedProductIds.length > 0 && (
-                    <div className="flex items-center gap-2 bg-stone-100 px-3 py-1.5 rounded-xl border border-stone-300">
-                      <span className="font-bold text-stone-900 text-xs">
+                    <div className="flex items-center gap-2 bg-cr-ivory px-3 py-1.5 rounded-xl border border-stone-300">
+                      <span className="font-bold text-cr-espresso text-xs">
                         {selectedProductIds.length} items chosen
                       </span>
                       <button
@@ -1071,7 +1071,7 @@ export const AdminPortal: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleBulkPublish(false)}
-                        className="px-2.5 py-1 bg-white hover:bg-stone-100 text-stone-700 rounded-lg font-bold text-[11px] border border-stone-200 cursor-pointer"
+                        className="px-2.5 py-1 bg-white hover:bg-cr-ivory text-stone-700 rounded-lg font-bold text-[11px] border border-stone-200 cursor-pointer"
                       >
                         Hide from Shop
                       </button>
@@ -1092,7 +1092,7 @@ export const AdminPortal: React.FC = () => {
               <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-cr-sand border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-3.5 px-4 w-10">
                           <input
@@ -1102,7 +1102,7 @@ export const AdminPortal: React.FC = () => {
                               if (e.target.checked) setSelectedProductIds(filteredProducts.map(p => p.id));
                               else setSelectedProductIds([]);
                             }}
-                            className="rounded text-stone-900"
+                            className="rounded text-cr-espresso"
                           />
                         </th>
                         <th className="py-3.5 px-4">Item Name & Brand</th>
@@ -1124,7 +1124,7 @@ export const AdminPortal: React.FC = () => {
                         filteredProducts.map(product => {
                           const isSelected = selectedProductIds.includes(product.id);
                           return (
-                            <tr key={product.id} className={`hover:bg-stone-50/60 transition-colors ${isSelected ? 'bg-amber-50/40' : ''}`}>
+                            <tr key={product.id} className={`hover:bg-cr-sand/60 transition-colors ${isSelected ? 'bg-cr-terracotta/40' : ''}`}>
                               <td className="py-3.5 px-4">
                                 <input
                                   type="checkbox"
@@ -1133,26 +1133,26 @@ export const AdminPortal: React.FC = () => {
                                     if (e.target.checked) setSelectedProductIds(prev => [...prev, product.id]);
                                     else setSelectedProductIds(prev => prev.filter(id => id !== product.id));
                                   }}
-                                  className="rounded text-stone-900"
+                                  className="rounded text-cr-espresso"
                                 />
                               </td>
                               <td className="py-3.5 px-4 flex items-center gap-3 min-w-[220px]">
-                                <img src={product.image} alt="" className="w-11 h-11 rounded-xl object-cover bg-stone-100 shrink-0 border border-stone-200" />
+                                <img src={product.image} alt="" className="w-11 h-11 rounded-xl object-cover bg-cr-ivory shrink-0 border border-stone-200" />
                                 <div>
-                                  <p className="font-bold text-stone-900 line-clamp-1">{product.name}</p>
+                                  <p className="font-bold text-cr-espresso line-clamp-1">{product.name}</p>
                                   <p className="text-[11px] text-stone-400">{product.brand} • {product.unit || 'Standard Unit'}</p>
                                 </div>
                               </td>
                               <td className="py-3.5 px-4">
                                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                                  product.department === 'beauty' ? 'bg-rose-50 text-stone-900' : 'bg-emerald-50 text-emerald-800'
+                                  product.department === 'beauty' ? 'bg-rose-50 text-cr-espresso' : 'bg-emerald-50 text-emerald-800'
                                 }`}>
                                   {product.department === 'beauty' ? 'Beauty' : 'Groceries'}
                                 </span>
                                 <p className="text-[11px] text-stone-500 capitalize mt-0.5">{product.category}</p>
                               </td>
                               <td className="py-3.5 px-4">
-                                <span className="font-bold text-stone-900">GHS {product.price.toFixed(2)}</span>
+                                <span className="font-bold text-cr-espresso">GHS {product.price.toFixed(2)}</span>
                                 {product.originalPrice && (
                                   <p className="text-[10px] text-stone-400 line-through">GHS {product.originalPrice.toFixed(2)}</p>
                                 )}
@@ -1167,7 +1167,7 @@ export const AdminPortal: React.FC = () => {
                                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition-colors ${
                                     product.stockCount === 0 ? 'bg-red-100 text-red-800' :
                                     product.stockCount <= 5 ? 'bg-amber-100 text-amber-800' :
-                                    'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                                    'bg-cr-ivory text-stone-700 hover:bg-stone-200'
                                   }`}
                                   title="Click to change stock quantity"
                                 >
@@ -1180,7 +1180,7 @@ export const AdminPortal: React.FC = () => {
                                   onClick={() => store.toggleProductPublication(product.id)}
                                   className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${
                                     product.isPublished === false 
-                                      ? 'bg-stone-100 text-stone-500 hover:bg-stone-200' 
+                                      ? 'bg-cr-ivory text-stone-500 hover:bg-stone-200' 
                                       : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                   }`}
                                 >
@@ -1194,7 +1194,7 @@ export const AdminPortal: React.FC = () => {
                                       setProductToEdit(product);
                                       setProductModalOpen(true);
                                     }}
-                                    className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                                    className="p-1.5 text-stone-600 hover:text-cr-espresso hover:bg-cr-ivory rounded-lg transition-colors cursor-pointer"
                                     title="Edit Product"
                                   >
                                     <Edit3 className="w-4 h-4" />
@@ -1233,7 +1233,7 @@ export const AdminPortal: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-cr-espresso">
                     Customer Orders & Delivery
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -1246,7 +1246,7 @@ export const AdminPortal: React.FC = () => {
                     exportOrdersCSV(filteredOrders);
                     showToast(`Exported ${filteredOrders.length} orders to CSV`);
                   }}
-                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  className="px-3.5 py-2 bg-white hover:bg-cr-sand border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-stone-500" />
                   <span>Export Orders CSV</span>
@@ -1262,17 +1262,17 @@ export const AdminPortal: React.FC = () => {
                     value={orderSearch}
                     onChange={e => setOrderSearch(e.target.value)}
                     placeholder="Search by order #, customer name, phone..."
-                    className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
+                    className="w-full pl-9 pr-4 py-2 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
+                <div className="flex items-center gap-1 bg-cr-ivory p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
                   {['all', 'Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map(st => (
                     <button
                       key={st}
                       onClick={() => setOrderStatusFilter(st)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                        orderStatusFilter === st ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600'
+                        orderStatusFilter === st ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600'
                       }`}
                     >
                       {st === 'all' ? 'All Orders' : st}
@@ -1285,7 +1285,7 @@ export const AdminPortal: React.FC = () => {
               <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-cr-sand border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-3.5 px-4">Order Number</th>
                         <th className="py-3.5 px-4">Customer & Phone</th>
@@ -1306,12 +1306,12 @@ export const AdminPortal: React.FC = () => {
                         </tr>
                       ) : (
                         filteredOrders.map(order => (
-                          <tr key={order.id} className="hover:bg-stone-50/60 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-stone-900">
+                          <tr key={order.id} className="hover:bg-cr-sand/60 transition-colors">
+                            <td className="py-3.5 px-4 font-mono font-bold text-cr-espresso">
                               {order.orderNumber}
                             </td>
                             <td className="py-3.5 px-4">
-                              <p className="font-bold text-stone-900">{order.shippingAddress.fullName}</p>
+                              <p className="font-bold text-cr-espresso">{order.shippingAddress.fullName}</p>
                               <p className="text-[11px] text-stone-500">{order.shippingAddress.phone} • {order.shippingAddress.city}</p>
                             </td>
                             <td className="py-3.5 px-4 text-stone-500 text-[11px]">
@@ -1320,7 +1320,7 @@ export const AdminPortal: React.FC = () => {
                             <td className="py-3.5 px-4">
                               <span className="font-bold text-stone-800">{order.items.length} item(s)</span>
                             </td>
-                            <td className="py-3.5 px-4 font-bold text-stone-900">
+                            <td className="py-3.5 px-4 font-bold text-cr-espresso">
                               GHS {order.total.toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4">
@@ -1346,7 +1346,7 @@ export const AdminPortal: React.FC = () => {
                                     setInvoiceOrderToPrint(order);
                                     setIsInvoiceModalOpen(true);
                                   }}
-                                  className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                                  className="p-1.5 text-stone-600 hover:text-cr-espresso hover:bg-cr-ivory rounded-lg transition-colors cursor-pointer"
                                   title="Print Receipt / Invoice"
                                 >
                                   <Printer className="w-4 h-4" />
@@ -1393,7 +1393,7 @@ export const AdminPortal: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-cr-espresso">
                     Stock & Inventory Quantities
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -1406,7 +1406,7 @@ export const AdminPortal: React.FC = () => {
                     exportStockHistoryCSV(inventoryMovements);
                     showToast(`Exported ${inventoryMovements.length} stock ledger records to CSV`);
                   }}
-                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  className="px-3.5 py-2 bg-white hover:bg-cr-sand border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-stone-500" />
                   <span>Export Stock Ledger</span>
@@ -1418,7 +1418,7 @@ export const AdminPortal: React.FC = () => {
                 
                 <div className="p-5 bg-white border border-[#E8E2D8] rounded-2xl shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-stone-900 text-sm flex items-center gap-1.5">
+                    <h3 className="font-bold text-cr-espresso text-sm flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-amber-600" />
                       <span>Items Running Low on Stock ({lowStockProducts.length})</span>
                     </h3>
@@ -1428,17 +1428,17 @@ export const AdminPortal: React.FC = () => {
                   ) : (
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {lowStockProducts.map(p => (
-                        <div key={p.id} className="flex items-center justify-between p-2 bg-amber-50/60 rounded-xl text-xs border border-amber-100">
+                        <div key={p.id} className="flex items-center justify-between p-2 bg-cr-terracotta/60 rounded-xl text-xs border border-amber-100">
                           <div className="flex items-center gap-2 truncate">
                             <img src={p.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-white shrink-0" />
-                            <span className="font-bold text-stone-900 truncate">{p.name}</span>
+                            <span className="font-bold text-cr-espresso truncate">{p.name}</span>
                           </div>
                           <button
                             onClick={() => {
                               setProductForStockAdjustment(p);
                               setAdjustStockModalOpen(true);
                             }}
-                            className="px-2.5 py-1 bg-amber-900 text-white rounded-lg font-bold text-[10px] shrink-0 cursor-pointer"
+                            className="px-2.5 py-1 bg-cr-terracotta text-white rounded-lg font-bold text-[10px] shrink-0 cursor-pointer"
                           >
                             Add Stock ({p.stockCount} left)
                           </button>
@@ -1450,7 +1450,7 @@ export const AdminPortal: React.FC = () => {
 
                 <div className="p-5 bg-white border border-[#E8E2D8] rounded-2xl shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-stone-900 text-sm flex items-center gap-1.5">
+                    <h3 className="font-bold text-cr-espresso text-sm flex items-center gap-1.5">
                       <AlertCircle className="w-4 h-4 text-red-600" />
                       <span>Items Finished / Out of Stock ({outOfStockProducts.length})</span>
                     </h3>
@@ -1463,7 +1463,7 @@ export const AdminPortal: React.FC = () => {
                         <div key={p.id} className="flex items-center justify-between p-2 bg-red-50/60 rounded-xl text-xs border border-red-100">
                           <div className="flex items-center gap-2 truncate">
                             <img src={p.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-white shrink-0" />
-                            <span className="font-bold text-stone-900 truncate">{p.name}</span>
+                            <span className="font-bold text-cr-espresso truncate">{p.name}</span>
                           </div>
                           <button
                             onClick={() => {
@@ -1486,14 +1486,14 @@ export const AdminPortal: React.FC = () => {
               <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden space-y-3">
                 <div className="p-4 border-b border-stone-100 flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm">Stock Change History</h3>
+                    <h3 className="font-bold text-cr-espresso text-sm">Stock Change History</h3>
                     <p className="text-xs text-stone-500">Every time someone adds or removes stock, it is recorded here.</p>
                   </div>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-cr-sand border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-3 px-4">Date & Time</th>
                         <th className="py-3 px-4">Product Name</th>
@@ -1506,16 +1506,16 @@ export const AdminPortal: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-stone-100">
                       {inventoryMovements.map(m => (
-                        <tr key={m.id} className="hover:bg-stone-50/60">
+                        <tr key={m.id} className="hover:bg-cr-sand/60">
                           <td className="py-3.5 px-4 text-stone-500 font-mono text-[11px]">
                             {new Date(m.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                           </td>
                           <td className="py-3.5 px-4 flex items-center gap-2 min-w-[180px]">
-                            <img src={m.productImage} alt="" className="w-8 h-8 rounded-lg object-cover bg-stone-100 shrink-0" />
-                            <span className="font-bold text-stone-900 truncate">{m.productName}</span>
+                            <img src={m.productImage} alt="" className="w-8 h-8 rounded-lg object-cover bg-cr-ivory shrink-0" />
+                            <span className="font-bold text-cr-espresso truncate">{m.productName}</span>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-700">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cr-ivory text-stone-700">
                               {m.reason}
                             </span>
                           </td>
@@ -1524,7 +1524,7 @@ export const AdminPortal: React.FC = () => {
                               {m.adjustment > 0 ? `+${m.adjustment}` : m.adjustment}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 font-bold text-stone-900">
+                          <td className="py-3.5 px-4 font-bold text-cr-espresso">
                             {m.newQuantity} units
                           </td>
                           <td className="py-3.5 px-4 text-stone-600 font-medium">
@@ -1551,7 +1551,7 @@ export const AdminPortal: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-cr-espresso">
                     Customers & Buyers ({customers.length})
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -1564,7 +1564,7 @@ export const AdminPortal: React.FC = () => {
                     exportCustomersCSV(filteredCustomers);
                     showToast(`Exported ${filteredCustomers.length} customer records to CSV`);
                   }}
-                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  className="px-3.5 py-2 bg-white hover:bg-cr-sand border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-stone-500" />
                   <span>Export Customers CSV</span>
@@ -1580,17 +1580,17 @@ export const AdminPortal: React.FC = () => {
                     value={customerSearch}
                     onChange={e => setCustomerSearch(e.target.value)}
                     placeholder="Search by customer name, phone number, email..."
-                    className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
+                    className="w-full pl-9 pr-4 py-2 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
+                <div className="flex items-center gap-1 bg-cr-ivory p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
                   {['all', 'High Value', 'Returning', 'New'].map(seg => (
                     <button
                       key={seg}
                       onClick={() => setCustomerSegmentFilter(seg)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        customerSegmentFilter === seg ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600'
+                        customerSegmentFilter === seg ? 'bg-white text-cr-espresso shadow-xs' : 'text-stone-600'
                       }`}
                     >
                       {seg === 'all' ? 'All Customers' : seg === 'High Value' ? 'Top Spenders' : seg}
@@ -1603,7 +1603,7 @@ export const AdminPortal: React.FC = () => {
               <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-cr-sand border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-3.5 px-4">Customer Name</th>
                         <th className="py-3.5 px-4">Phone Number</th>
@@ -1616,8 +1616,8 @@ export const AdminPortal: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-stone-100">
                       {filteredCustomers.map(customer => (
-                        <tr key={customer.id} className="hover:bg-stone-50/60 transition-colors">
-                          <td className="py-3.5 px-4 font-bold text-stone-900">
+                        <tr key={customer.id} className="hover:bg-cr-sand/60 transition-colors">
+                          <td className="py-3.5 px-4 font-bold text-cr-espresso">
                             {customer.fullName}
                           </td>
                           <td className="py-3.5 px-4 text-stone-600 font-semibold">
@@ -1629,14 +1629,14 @@ export const AdminPortal: React.FC = () => {
                           <td className="py-3.5 px-4 font-bold text-stone-800">
                             {customer.ordersCount} order(s)
                           </td>
-                          <td className="py-3.5 px-4 font-serif font-bold text-stone-900">
+                          <td className="py-3.5 px-4 font-serif font-bold text-cr-espresso">
                             GHS {customer.totalSpent.toFixed(2)}
                           </td>
                           <td className="py-3.5 px-4">
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               customer.segment === 'High Value' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                               customer.segment === 'Returning' ? 'bg-emerald-100 text-emerald-800' :
-                              'bg-stone-100 text-stone-600'
+                              'bg-cr-ivory text-stone-600'
                             }`}>
                               {customer.segment === 'High Value' ? 'Top Buyer' : customer.segment}
                             </span>
@@ -1687,7 +1687,7 @@ export const AdminPortal: React.FC = () => {
                 showToast(`Coupon ${promoForm.code.toUpperCase()} is now live on your store.`);
               }} className="bg-white p-6 rounded-2xl border border-[#E8E2D8] shadow-xs space-y-4">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-sm">Create New Discount Code</h3>
+                  <h3 className="font-bold text-cr-espresso text-sm">Create New Discount Code</h3>
                   <p className="text-xs text-stone-500">Give customers a code to enter at checkout for money off.</p>
                 </div>
 
@@ -1699,7 +1699,7 @@ export const AdminPortal: React.FC = () => {
                     value={promoForm.code}
                     onChange={e => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
                     placeholder="e.g. CRGLOW15"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-mono font-bold uppercase text-stone-900 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-sm font-mono font-bold uppercase text-cr-espresso outline-none"
                   />
                 </div>
 
@@ -1711,7 +1711,7 @@ export const AdminPortal: React.FC = () => {
                     value={promoForm.description}
                     onChange={e => setPromoForm({ ...promoForm, description: e.target.value })}
                     placeholder="e.g. 15% off orders above GHS 150"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none"
                   />
                 </div>
 
@@ -1721,7 +1721,7 @@ export const AdminPortal: React.FC = () => {
                     <select
                       value={promoForm.discountType}
                       onChange={e => setPromoForm({ ...promoForm, discountType: e.target.value as any })}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                      className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                     >
                       <option value="percentage">Percentage Off (%)</option>
                       <option value="fixed">Fixed Ghana Cedis Off (GHS)</option>
@@ -1733,7 +1733,7 @@ export const AdminPortal: React.FC = () => {
                       type="number"
                       value={promoForm.discountValue}
                       onChange={e => setPromoForm({ ...promoForm, discountValue: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                      className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                 </div>
@@ -1745,7 +1745,7 @@ export const AdminPortal: React.FC = () => {
                     value={promoForm.minSpend}
                     onChange={e => setPromoForm({ ...promoForm, minSpend: e.target.value })}
                     placeholder="e.g. 100"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                   />
                 </div>
 
@@ -1759,12 +1759,12 @@ export const AdminPortal: React.FC = () => {
 
               {/* Active Coupons List */}
               <div className="space-y-3">
-                <h3 className="font-bold text-stone-900 text-sm">Active Discount Codes ({store.promoCodes.length})</h3>
+                <h3 className="font-bold text-cr-espresso text-sm">Active Discount Codes ({store.promoCodes.length})</h3>
                 {store.promoCodes.map(p => (
                   <div key={p.id} className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-xs flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-sm text-stone-900 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
+                        <span className="font-mono font-bold text-sm text-cr-espresso bg-cr-ivory px-2.5 py-0.5 rounded-lg border border-stone-200">
                           {p.code}
                         </span>
                         <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
@@ -1781,7 +1781,7 @@ export const AdminPortal: React.FC = () => {
                       <button
                         onClick={() => store.togglePromoCode(p.code)}
                         className={`px-3 py-1 rounded-xl text-xs font-bold cursor-pointer ${
-                          p.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'
+                          p.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-cr-ivory text-stone-500'
                         }`}
                       >
                         {p.isActive ? 'Active' : 'Turned Off'}
@@ -1839,7 +1839,7 @@ export const AdminPortal: React.FC = () => {
                 showToast('Flash deal created and published on the homepage!');
               }} className="bg-white p-6 rounded-2xl border border-[#E8E2D8] shadow-xs space-y-4">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-sm">Create New Flash Deal</h3>
+                  <h3 className="font-bold text-cr-espresso text-sm">Create New Flash Deal</h3>
                   <p className="text-xs text-stone-500">Show a promotional countdown banner on the website home page.</p>
                 </div>
 
@@ -1851,7 +1851,7 @@ export const AdminPortal: React.FC = () => {
                     value={flashForm.title}
                     onChange={e => setFlashForm({ ...flashForm, title: e.target.value })}
                     placeholder="e.g. Glow Weekend Skincare Sale"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                   />
                 </div>
 
@@ -1862,7 +1862,7 @@ export const AdminPortal: React.FC = () => {
                     value={flashForm.subtitle}
                     onChange={e => setFlashForm({ ...flashForm, subtitle: e.target.value })}
                     placeholder="e.g. Up to 30% off Korean serums & toners"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none"
                   />
                 </div>
 
@@ -1874,7 +1874,7 @@ export const AdminPortal: React.FC = () => {
                     value={flashForm.description}
                     onChange={e => setFlashForm({ ...flashForm, description: e.target.value })}
                     placeholder="e.g. Save big on all dermatological skincare and fragrances while stocks last."
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none"
                   />
                 </div>
 
@@ -1886,7 +1886,7 @@ export const AdminPortal: React.FC = () => {
                       value={flashForm.badgeText}
                       onChange={e => setFlashForm({ ...flashForm, badgeText: e.target.value })}
                       placeholder="e.g. ⚡ WEEKEND SALE"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                      className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div>
@@ -1896,7 +1896,7 @@ export const AdminPortal: React.FC = () => {
                       value={flashForm.discountPercentage}
                       onChange={e => setFlashForm({ ...flashForm, discountPercentage: e.target.value })}
                       placeholder="e.g. 25"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                      className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                 </div>
@@ -1908,7 +1908,7 @@ export const AdminPortal: React.FC = () => {
                     value={flashForm.hoursRemaining}
                     onChange={e => setFlashForm({ ...flashForm, hoursRemaining: e.target.value })}
                     placeholder="e.g. 48"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold outline-none"
                   />
                 </div>
 
@@ -1922,7 +1922,7 @@ export const AdminPortal: React.FC = () => {
 
               {/* Active Flash Deals List */}
               <div className="space-y-4">
-                <h3 className="font-bold text-stone-900 text-sm">Active Flash Deals ({store.flashDeals.length})</h3>
+                <h3 className="font-bold text-cr-espresso text-sm">Active Flash Deals ({store.flashDeals.length})</h3>
                 {store.flashDeals.length === 0 ? (
                   <div className="p-8 bg-white border border-[#E8E2D8] rounded-2xl text-center text-xs text-stone-400">
                     No flash deals currently running. Use the form on the left to create one.
@@ -1994,7 +1994,7 @@ export const AdminPortal: React.FC = () => {
                 showToast(`Category added: ${categoryForm.name}`);
               }} className="bg-white p-6 rounded-2xl border border-[#E8E2D8] shadow-xs space-y-4">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-sm">Add New Shop Category</h3>
+                  <h3 className="font-bold text-cr-espresso text-sm">Add New Shop Category</h3>
                   <p className="text-xs text-stone-500">Group your products so customers can find them easily.</p>
                 </div>
 
@@ -2006,7 +2006,7 @@ export const AdminPortal: React.FC = () => {
                     value={categoryForm.name}
                     onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })}
                     placeholder="e.g. Face Creams & Serums"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none"
                   />
                 </div>
 
@@ -2018,7 +2018,7 @@ export const AdminPortal: React.FC = () => {
                     value={categoryForm.slug}
                     onChange={e => setCategoryForm({ ...categoryForm, slug: e.target.value })}
                     placeholder="e.g. face-creams"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-mono outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-mono outline-none"
                   />
                 </div>
 
@@ -2027,7 +2027,7 @@ export const AdminPortal: React.FC = () => {
                   <select
                     value={categoryForm.department}
                     onChange={e => setCategoryForm({ ...categoryForm, department: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs font-bold"
                   >
                     <option value="beauty">Beauty & Cosmetics</option>
                     <option value="groceries">Groceries & Everyday Essentials</option>
@@ -2041,7 +2041,7 @@ export const AdminPortal: React.FC = () => {
                     value={categoryForm.image}
                     onChange={e => setCategoryForm({ ...categoryForm, image: e.target.value })}
                     placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl text-xs outline-none"
                   />
                 </div>
 
@@ -2055,15 +2055,15 @@ export const AdminPortal: React.FC = () => {
 
               {/* Categories list */}
               <div className="space-y-3">
-                <h3 className="font-bold text-stone-900 text-sm">Shop Categories ({store.categories.length})</h3>
+                <h3 className="font-bold text-cr-espresso text-sm">Shop Categories ({store.categories.length})</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {store.categories.map(c => (
                     <div key={c.id} className="bg-white border border-[#E8E2D8] rounded-2xl p-3.5 shadow-xs flex items-center gap-3">
-                      <img src={c.image} alt="" className="w-12 h-12 rounded-xl object-cover bg-stone-100 shrink-0" />
+                      <img src={c.image} alt="" className="w-12 h-12 rounded-xl object-cover bg-cr-ivory shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold text-xs text-stone-900 truncate">{c.name}</p>
+                        <p className="font-bold text-xs text-cr-espresso truncate">{c.name}</p>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                          c.department === 'beauty' ? 'bg-rose-50 text-stone-900' : 'bg-emerald-50 text-emerald-800'
+                          c.department === 'beauty' ? 'bg-rose-50 text-cr-espresso' : 'bg-emerald-50 text-emerald-800'
                         }`}>
                           {c.department === 'beauty' ? 'Beauty' : 'Groceries'}
                         </span>
@@ -2072,7 +2072,7 @@ export const AdminPortal: React.FC = () => {
                         <button
                           onClick={() => store.toggleCategory(c.id)}
                           className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer ${
-                            c.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'
+                            c.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-cr-ivory text-stone-500'
                           }`}
                         >
                           {c.isActive ? 'Visible' : 'Hidden'}
@@ -2105,7 +2105,7 @@ export const AdminPortal: React.FC = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-cr-espresso">
                     Live Sales & Category Breakdown
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -2119,7 +2119,7 @@ export const AdminPortal: React.FC = () => {
                 {categorySplitData.map(cat => (
                   <div key={cat.name} className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-xs space-y-2">
                     <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">{cat.name}</span>
-                    <p className="text-2xl font-bold font-serif text-stone-900">{cat.count} items ({cat.percentage}%)</p>
+                    <p className="text-2xl font-bold font-serif text-cr-espresso">{cat.count} items ({cat.percentage}%)</p>
                     <p className="text-xs text-emerald-700 font-semibold">Active in store catalog</p>
                   </div>
                 ))}
@@ -2134,7 +2134,7 @@ export const AdminPortal: React.FC = () => {
             <div className="bg-white p-6 rounded-2xl border border-[#E8E2D8] shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-base">Alerts & Messages</h3>
+                  <h3 className="font-bold text-cr-espresso text-base">Alerts & Messages</h3>
                   <p className="text-xs text-stone-500">Important messages about customer orders and low stock.</p>
                 </div>
                 <button
@@ -2150,13 +2150,13 @@ export const AdminPortal: React.FC = () => {
 
               <div className="divide-y divide-stone-100">
                 {notifications.map(n => (
-                  <div key={n.id} className={`py-3.5 flex items-start gap-3.5 ${!n.read ? 'bg-amber-50/40 p-3 rounded-xl' : ''}`}>
-                    <div className="p-2 rounded-xl bg-stone-100 text-stone-700 mt-0.5">
+                  <div key={n.id} className={`py-3.5 flex items-start gap-3.5 ${!n.read ? 'bg-cr-terracotta/40 p-3 rounded-xl' : ''}`}>
+                    <div className="p-2 rounded-xl bg-cr-ivory text-stone-700 mt-0.5">
                       <Bell className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-bold text-xs text-stone-900">{n.title}</p>
+                        <p className="font-bold text-xs text-cr-espresso">{n.title}</p>
                         <span className="text-[10px] text-stone-400">{n.timestamp}</span>
                       </div>
                       <p className="text-xs text-stone-600 mt-0.5">{n.message}</p>
@@ -2175,14 +2175,14 @@ export const AdminPortal: React.FC = () => {
               
               <div className="bg-white rounded-2xl border border-[#E8E2D8] p-6 sm:p-8 shadow-xs space-y-8">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-lg">Website Customizer &amp; Shop Settings</h3>
+                  <h3 className="font-bold text-cr-espresso text-lg">Website Customizer &amp; Shop Settings</h3>
                   <p className="text-xs text-stone-500 mt-0.5">
                     Customize your homepage hero banner, top announcement bar, store details, and delivery charges. Changes take effect immediately.
                   </p>
                 </div>
 
                 {/* Maintenance switch */}
-                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                <div className="p-4 rounded-2xl bg-cr-terracotta border border-amber-200 flex items-center justify-between">
                   <div>
                     <h4 className="font-bold text-xs text-amber-900">Pause Online Shop (Under Maintenance)</h4>
                     <p className="text-[11px] text-amber-800 mt-0.5">
@@ -2206,7 +2206,7 @@ export const AdminPortal: React.FC = () => {
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                      <h4 className="font-bold text-sm text-cr-espresso uppercase tracking-wider">
                         1. Homepage Hero Banner Customizer
                       </h4>
                       <p className="text-xs text-stone-500">Edit the main banner that appears at the top of your homepage.</p>
@@ -2217,13 +2217,13 @@ export const AdminPortal: React.FC = () => {
                   <div className="space-y-1.5">
                     <span className="text-[11px] font-bold text-stone-600 block">Live Preview (How Customers See It):</span>
                     <div className="overflow-hidden rounded-2xl border border-stone-300 bg-[#f3e6df] p-5 sm:p-7 shadow-xs text-left space-y-3.5">
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-900 shadow-2xs">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cr-espresso shadow-2xs">
                         <span className="h-2 w-2 rounded-full bg-[#8A3D52]"></span>
                         <span>{store.storeSettings.heroBadge || '100% ORIGINAL & AUTHENTIC'}</span>
                       </div>
 
                       <div className="space-y-1.5">
-                        <h2 className="font-serif text-xl sm:text-3xl font-bold text-stone-900 leading-tight">
+                        <h2 className="font-serif text-xl sm:text-3xl font-bold text-cr-espresso leading-tight">
                           {store.storeSettings.heroHeadline || 'Your Beauty. Your Essentials. Your Glow.'}
                         </h2>
                         <p className="text-xs sm:text-sm text-stone-700 max-w-xl leading-relaxed">
@@ -2235,7 +2235,7 @@ export const AdminPortal: React.FC = () => {
                         <span className="rounded-full bg-[#8A3D52] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
                           {store.storeSettings.heroButtonText || 'Shop now'}
                         </span>
-                        <span className="rounded-full border border-stone-400 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-stone-900">
+                        <span className="rounded-full border border-stone-400 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-cr-espresso">
                           {store.storeSettings.heroSecondaryButtonText || 'Explore beauty'}
                         </span>
                       </div>
@@ -2251,7 +2251,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.heroBadge}
                         onChange={e => handleSaveSettings('heroBadge', e.target.value)}
                         placeholder="e.g. 100% ORIGINAL & AUTHENTIC"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2262,7 +2262,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.heroHeadline}
                         onChange={e => handleSaveSettings('heroHeadline', e.target.value)}
                         placeholder="e.g. Your Beauty. Your Essentials. Your Glow."
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-900"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold text-cr-espresso"
                       />
                     </div>
 
@@ -2273,7 +2273,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.heroSubtitle}
                         onChange={e => handleSaveSettings('heroSubtitle', e.target.value)}
                         placeholder="e.g. Carefully selected beauty and everyday essentials chosen to help you feel your best."
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2284,7 +2284,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.heroButtonText}
                         onChange={e => handleSaveSettings('heroButtonText', e.target.value)}
                         placeholder="e.g. SHOP NOW"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
 
@@ -2295,7 +2295,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.heroSecondaryButtonText || 'EXPLORE BEAUTY'}
                         onChange={e => handleSaveSettings('heroSecondaryButtonText', e.target.value)}
                         placeholder="e.g. EXPLORE BEAUTY"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
                   </div>
@@ -2307,7 +2307,7 @@ export const AdminPortal: React.FC = () => {
                 <div className="pt-6 border-t border-stone-100 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                      <h4 className="font-bold text-sm text-cr-espresso uppercase tracking-wider">
                         2. Top Website Announcement Bar
                       </h4>
                       <p className="text-xs text-stone-500">The message displayed at the very top of your website header.</p>
@@ -2331,7 +2331,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.announcementText}
                         onChange={e => handleSaveSettings('announcementText', e.target.value)}
                         placeholder="e.g. Free delivery on orders GHS 300+ • Same-day dispatch"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2348,7 +2348,7 @@ export const AdminPortal: React.FC = () => {
                           type="text"
                           value={store.storeSettings.announcementBg || '#1E1719'}
                           onChange={e => handleSaveSettings('announcementBg', e.target.value)}
-                          className="flex-1 px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-mono text-xs"
+                          className="flex-1 px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-mono text-xs"
                         />
                       </div>
                     </div>
@@ -2360,7 +2360,7 @@ export const AdminPortal: React.FC = () => {
                 {/* ========================================================= */}
                 <div className="pt-6 border-t border-stone-100 space-y-4">
                   <div>
-                    <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                    <h4 className="font-bold text-sm text-cr-espresso uppercase tracking-wider">
                       3. Store Identity &amp; Contact Numbers
                     </h4>
                     <p className="text-xs text-stone-500">Official business information used across customer checkout, invoices, and footer.</p>
@@ -2373,7 +2373,7 @@ export const AdminPortal: React.FC = () => {
                         type="text"
                         value={store.storeSettings.storeName}
                         onChange={e => handleSaveSettings('storeName', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
 
@@ -2383,7 +2383,7 @@ export const AdminPortal: React.FC = () => {
                         type="text"
                         value={store.storeSettings.storeTagline}
                         onChange={e => handleSaveSettings('storeTagline', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2394,7 +2394,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.storePhone || '+233 59 215 3306'}
                         onChange={e => handleSaveSettings('storePhone', e.target.value)}
                         placeholder="e.g. 0592153306"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2405,7 +2405,7 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.whatsappNumber}
                         onChange={e => handleSaveSettings('whatsappNumber', e.target.value)}
                         placeholder="e.g. 233592153306"
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2415,7 +2415,7 @@ export const AdminPortal: React.FC = () => {
                         type="email"
                         value={store.storeSettings.storeEmail}
                         onChange={e => handleSaveSettings('storeEmail', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
 
@@ -2425,7 +2425,7 @@ export const AdminPortal: React.FC = () => {
                         type="text"
                         value={store.storeSettings.storeAddress}
                         onChange={e => handleSaveSettings('storeAddress', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl"
                       />
                     </div>
                   </div>
@@ -2436,7 +2436,7 @@ export const AdminPortal: React.FC = () => {
                 {/* ========================================================= */}
                 <div className="pt-6 border-t border-stone-100 space-y-4">
                   <div>
-                    <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                    <h4 className="font-bold text-sm text-cr-espresso uppercase tracking-wider">
                       4. Delivery Charges (Ghana Cedis)
                     </h4>
                     <p className="text-xs text-stone-500">Shipping rates calculated automatically at checkout.</p>
@@ -2449,7 +2449,7 @@ export const AdminPortal: React.FC = () => {
                         type="number"
                         value={store.storeSettings.standardShippingFee}
                         onChange={e => handleSaveSettings('standardShippingFee', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
                     <div>
@@ -2458,7 +2458,7 @@ export const AdminPortal: React.FC = () => {
                         type="number"
                         value={store.storeSettings.expressShippingFee}
                         onChange={e => handleSaveSettings('expressShippingFee', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
                     <div>
@@ -2467,7 +2467,7 @@ export const AdminPortal: React.FC = () => {
                         type="number"
                         value={store.storeSettings.intercityShippingFee}
                         onChange={e => handleSaveSettings('intercityShippingFee', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
                     <div>
@@ -2476,7 +2476,7 @@ export const AdminPortal: React.FC = () => {
                         type="number"
                         value={store.storeSettings.freeDeliveryThreshold}
                         onChange={e => handleSaveSettings('freeDeliveryThreshold', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                        className="w-full px-3.5 py-2.5 bg-cr-sand border border-stone-200 rounded-xl font-bold"
                       />
                     </div>
                   </div>
@@ -2486,15 +2486,15 @@ export const AdminPortal: React.FC = () => {
 
               {/* Admin Staff */}
               <div className="bg-white rounded-2xl border border-[#E8E2D8] p-6 shadow-xs space-y-4">
-                <h3 className="font-bold text-stone-900 text-sm">Shop Staff & Team Members</h3>
+                <h3 className="font-bold text-cr-espresso text-sm">Shop Staff & Team Members</h3>
                 <div className="divide-y divide-stone-100 text-xs">
                   {adminUsers.map(user => (
                     <div key={user.id} className="py-3 flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-stone-900">{user.name}</p>
+                        <p className="font-bold text-cr-espresso">{user.name}</p>
                         <p className="text-[11px] text-stone-500">{user.email}</p>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-800 border border-stone-200">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cr-ivory text-stone-800 border border-stone-200">
                         {user.role}
                       </span>
                     </div>
@@ -2504,10 +2504,10 @@ export const AdminPortal: React.FC = () => {
 
               {/* Security Audit History Log */}
               <div className="bg-white rounded-2xl border border-[#E8E2D8] p-6 shadow-xs space-y-4">
-                <h3 className="font-bold text-stone-900 text-sm">Shop Action History</h3>
+                <h3 className="font-bold text-cr-espresso text-sm">Shop Action History</h3>
                 <div className="overflow-x-auto text-xs">
                   <table className="w-full text-left">
-                    <thead className="bg-stone-50 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-cr-sand text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-2.5 px-3">Date & Time</th>
                         <th className="py-2.5 px-3">Person</th>
@@ -2517,13 +2517,13 @@ export const AdminPortal: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-stone-100">
                       {auditLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-stone-50/50">
+                        <tr key={log.id} className="hover:bg-cr-sand/50">
                           <td className="py-2.5 px-3 font-mono text-[11px] text-stone-500">
                             {new Date(log.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                           </td>
-                          <td className="py-2.5 px-3 font-bold text-stone-900">{log.actor}</td>
+                          <td className="py-2.5 px-3 font-bold text-cr-espresso">{log.actor}</td>
                           <td className="py-2.5 px-3">
-                            <span className="font-mono text-[10px] font-bold bg-stone-100 px-2 py-0.5 rounded text-stone-700">
+                            <span className="font-mono text-[10px] font-bold bg-cr-ivory px-2 py-0.5 rounded text-stone-700">
                               {log.action}
                             </span>
                           </td>
@@ -2639,3 +2639,12 @@ export const AdminPortal: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
