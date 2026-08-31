@@ -26,7 +26,7 @@ const DEFAULT_STORE_SETTINGS = {
   standardShippingFee: 30,
   expressShippingFee: 50,
   intercityShippingFee: 70,
-  storePhone: '+233 55 123 4567',
+  storePhone: '+233 59 215 3306',
   storeEmail: 'contact@crcosmetics.com',
   storeAddress: 'Online store support desk',
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
