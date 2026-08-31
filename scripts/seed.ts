@@ -28,7 +28,7 @@ const DEFAULT_STORE_SETTINGS = {
   intercityShippingFee: 70,
   storePhone: '+233 59 215 3306',
   storeEmail: 'contact@crcosmetics.com',
-  storeAddress: 'Online store support desk',
+  storeAddress: 'CR Cosmetics & Essential • Accra, Ghana (Google Maps: https://maps.app.goo.gl/iZj5aqj13gCaYZ1m9)',
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
   whatsappNumber: '233551234567',
   maintenanceMode: false,
