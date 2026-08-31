@@ -1,10 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Sparkles,
-  ShoppingBasket,
-  ArrowRight
-} from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
@@ -25,35 +21,8 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
-      <div className="mx-auto max-w-[1400px] px-3 pb-2 pt-3 sm:px-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="w-full max-w-[820px] lg:ml-auto">
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2.5 shadow-sm sm:px-4 sm:py-3">
-              <span className="text-xs font-medium text-[var(--text-muted)] sm:text-sm">Search</span>
-              <span className="ml-2 flex-1 border-l border-[var(--border-color)] pl-2 text-xs text-[var(--text-subtle)] sm:pl-3 sm:text-sm">beauty, groceries, skincare...</span>
-              <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white sm:h-9 sm:w-9">
-                <Sparkles className="h-4 w-4" />
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden items-center gap-2 lg:flex sm:gap-3">
-            <button className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] sm:px-4 sm:text-[11px]">
-              Orders
-            </button>
-            <button className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] sm:px-4 sm:text-[11px]">
-              Support
-            </button>
-            <button className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white sm:px-4 sm:text-[11px]">
-              <ShoppingBasket className="h-4 w-4" />
-              Cart
-            </button>
-          </div>
-        </div>
-      </div>
-
       {categoryPills.length > 0 && (
-        <div className="mx-auto max-w-[1400px] px-3 pb-2 sm:px-4">
+        <div className="mx-auto max-w-[1400px] px-3 pb-2 pt-3 sm:px-4">
           <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link

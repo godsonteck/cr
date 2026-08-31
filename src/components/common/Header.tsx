@@ -77,11 +77,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-auto object-contain sm:h-9" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-lg font-bold tracking-[-0.06em] text-[var(--text-primary)] sm:text-xl">
-                {storeSettings.storeName.split(' ')[0] || 'CR'} <span className="text-[var(--accent)]">{storeSettings.storeName.split(' ').slice(1).join(' ') || 'COSMETICS'}</span>
+              <span className="font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl leading-none">
+                {storeSettings.storeName}
               </span>
-              <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)]">
-                &amp; ESSENTIALS
+              <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--accent)] mt-1">
+                Beauty &amp; Essentials
               </span>
             </div>
           </Link>
