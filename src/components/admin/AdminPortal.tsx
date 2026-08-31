@@ -45,7 +45,10 @@ import {
   EyeOff, 
   ChevronRight, 
   MessageCircle, 
-  Command 
+  Command,
+  Download,
+  Printer,
+  FileDown
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
@@ -56,6 +59,13 @@ import { AdjustStockModal } from './components/AdjustStockModal';
 import { OrderDetailDrawer } from './components/OrderDetailDrawer';
 import { CustomerDetailDrawer } from './components/CustomerDetailDrawer';
 import { GlobalCommandPalette } from './components/GlobalCommandPalette';
+import { InvoicePrintModal } from './components/InvoicePrintModal';
+import { 
+  exportProductsCSV, 
+  exportOrdersCSV, 
+  exportCustomersCSV, 
+  exportStockHistoryCSV 
+} from '../../lib/exportUtils';
 import { 
   CategoryConfig, 
   Product, 
@@ -132,6 +142,9 @@ export const AdminPortal: React.FC = () => {
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false);
+
+  const [invoiceOrderToPrint, setInvoiceOrderToPrint] = useState<Order | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   // Data state
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>(INITIAL_INVENTORY_MOVEMENTS);
@@ -957,16 +970,29 @@ export const AdminPortal: React.FC = () => {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setProductToEdit(null);
-                    setProductModalOpen(true);
-                  }}
-                  className="px-4 py-2.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                >
-                  <PackagePlus className="w-4 h-4" />
-                  <span>Add New Item</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      exportProductsCSV(filteredProducts);
+                      showToast(`Exported ${filteredProducts.length} products to CSV`);
+                    }}
+                    className="px-3.5 py-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-stone-500" />
+                    <span>Export CSV</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setProductToEdit(null);
+                      setProductModalOpen(true);
+                    }}
+                    className="px-4 py-2.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <PackagePlus className="w-4 h-4" />
+                    <span>Add New Item</span>
+                  </button>
+                </div>
               </div>
 
               {/* Department & Stock Filter Switchers */}
@@ -1214,6 +1240,17 @@ export const AdminPortal: React.FC = () => {
                     See customer details, assign delivery riders in Accra, and send WhatsApp messages.
                   </p>
                 </div>
+
+                <button
+                  onClick={() => {
+                    exportOrdersCSV(filteredOrders);
+                    showToast(`Exported ${filteredOrders.length} orders to CSV`);
+                  }}
+                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-stone-500" />
+                  <span>Export Orders CSV</span>
+                </button>
               </div>
 
               {/* Filters */}
@@ -1306,6 +1343,16 @@ export const AdminPortal: React.FC = () => {
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   onClick={() => {
+                                    setInvoiceOrderToPrint(order);
+                                    setIsInvoiceModalOpen(true);
+                                  }}
+                                  className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Print Receipt / Invoice"
+                                >
+                                  <Printer className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
                                     setSelectedOrder(order);
                                     setOrderDrawerOpen(true);
                                   }}
@@ -1353,6 +1400,17 @@ export const AdminPortal: React.FC = () => {
                     Keep track of items in your shop, see what is finishing, and record new shipments.
                   </p>
                 </div>
+
+                <button
+                  onClick={() => {
+                    exportStockHistoryCSV(inventoryMovements);
+                    showToast(`Exported ${inventoryMovements.length} stock ledger records to CSV`);
+                  }}
+                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-stone-500" />
+                  <span>Export Stock Ledger</span>
+                </button>
               </div>
 
               {/* Low Stock Warning Cards */}
@@ -1500,6 +1558,17 @@ export const AdminPortal: React.FC = () => {
                     Live customer profiles calculated directly from all storefront checkouts and orders.
                   </p>
                 </div>
+
+                <button
+                  onClick={() => {
+                    exportCustomersCSV(filteredCustomers);
+                    showToast(`Exported ${filteredCustomers.length} customer records to CSV`);
+                  }}
+                  className="px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-stone-500" />
+                  <span>Export Customers CSV</span>
+                </button>
               </div>
 
               {/* Search & Segments */}
@@ -2357,6 +2426,10 @@ export const AdminPortal: React.FC = () => {
           store.deleteOrder(orderId);
           showToast('Order deleted.');
         }}
+        onPrintReceipt={order => {
+          setInvoiceOrderToPrint(order);
+          setIsInvoiceModalOpen(true);
+        }}
         onUpdateStatus={(orderId, status, riderInfo) => {
           store.updateOrderStatus(orderId, status, riderInfo);
           if (selectedOrder) {
@@ -2370,6 +2443,17 @@ export const AdminPortal: React.FC = () => {
             setSelectedOrder({ ...selectedOrder, paymentStatus });
           }
           showToast(`Payment marked as ${paymentStatus}`);
+        }}
+      />
+
+      {/* Official Invoice / Receipt Print Modal */}
+      <InvoicePrintModal
+        order={invoiceOrderToPrint}
+        storeSettings={store.storeSettings}
+        isOpen={isInvoiceModalOpen}
+        onClose={() => {
+          setIsInvoiceModalOpen(false);
+          setInvoiceOrderToPrint(null);
         }}
       />
 

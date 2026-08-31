@@ -14,7 +14,8 @@ import {
   Send,
   AlertCircle,
   PackageCheck,
-  Trash2
+  Trash2,
+  Printer
 } from 'lucide-react';
 import { Order, OrderStatus } from '../../../types';
 
@@ -25,6 +26,7 @@ interface OrderDetailDrawerProps {
   onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any) => void;
   onUpdatePayment: (orderId: string, paymentStatus: 'paid' | 'pending') => void;
   onDeleteOrder?: (orderId: string) => void;
+  onPrintReceipt?: (order: Order) => void;
 }
 
 export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
@@ -34,6 +36,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   onUpdateStatus,
   onUpdatePayment,
   onDeleteOrder,
+  onPrintReceipt,
 }) => {
   if (!isOpen || !order) return null;
 
@@ -79,6 +82,15 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onPrintReceipt && (
+              <button
+                onClick={() => onPrintReceipt(order)}
+                className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 rounded-lg transition-colors cursor-pointer"
+                title="Print Official Customer Receipt / Invoice"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+            )}
             {onDeleteOrder && (
               <button
                 onClick={() => {
