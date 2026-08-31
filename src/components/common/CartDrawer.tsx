@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
+import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { 
   X, 
@@ -22,6 +23,7 @@ interface CartDrawerProps {
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheckout }) => {
+  const { storeSettings } = useStore();
   const {
     cart,
     updateQuantity,
@@ -77,7 +79,8 @@ ${discount > 0 ? `*Discount (${promoCode}):* -GHS ${discount.toFixed(2)}\n` : ''
 
 Please confirm my order details. Thank you!`;
 
-    return `https://wa.me/233551234567?text=${encodeURIComponent(message)}`;
+    const phone = storeSettings.whatsappNumber || '233592153306';
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
   return (
@@ -306,7 +309,7 @@ Please confirm my order details. Thank you!`;
                 className="w-full py-2.5 bg-white hover:bg-rose-50 text-[#8A3D52] border border-[#8A3D52]/30 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-3.5 h-3.5 text-[#8A3D52]" />
-                <span>Instant Order via WhatsApp (+233 55 123 4567)</span>
+                <span>Instant Order via WhatsApp ({storeSettings.storePhone || '0592153306'})</span>
               </a>
             </div>
 

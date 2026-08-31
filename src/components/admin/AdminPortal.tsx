@@ -2236,7 +2236,7 @@ export const AdminPortal: React.FC = () => {
                       type="text"
                       value={store.storeSettings.whatsappNumber}
                       onChange={e => handleSaveSettings('whatsappNumber', e.target.value)}
-                      placeholder="e.g. 233551234567"
+                      placeholder="e.g. 233592153306"
                       className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
                     />
                   </div>
