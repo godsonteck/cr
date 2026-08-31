@@ -2173,10 +2173,12 @@ export const AdminPortal: React.FC = () => {
           {currentTab === 'settings' && (
             <div className="space-y-6">
               
-              <div className="bg-white rounded-2xl border border-[#E8E2D8] p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="bg-white rounded-2xl border border-[#E8E2D8] p-6 sm:p-8 shadow-xs space-y-8">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-base">Shop Information & Delivery Charges</h3>
-                  <p className="text-xs text-stone-500">Changes here immediately update the website header, checkout, and footer.</p>
+                  <h3 className="font-bold text-stone-900 text-lg">Website Customizer &amp; Shop Settings</h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Customize your homepage hero banner, top announcement bar, store details, and delivery charges. Changes take effect immediately.
+                  </p>
                 </div>
 
                 {/* Maintenance switch */}
@@ -2198,55 +2200,248 @@ export const AdminPortal: React.FC = () => {
                   </label>
                 </div>
 
-                {/* Basic Details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">Shop Name</label>
-                    <input
-                      type="text"
-                      value={store.storeSettings.storeName}
-                      onChange={e => handleSaveSettings('storeName', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
-                    />
+                {/* ========================================================= */}
+                {/* 1. HOMEPAGE HERO BANNER CUSTOMIZER (WITH LIVE PREVIEW) */}
+                {/* ========================================================= */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                        1. Homepage Hero Banner Customizer
+                      </h4>
+                      <p className="text-xs text-stone-500">Edit the main banner that appears at the top of your homepage.</p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">Shop Tagline (Motto)</label>
-                    <input
-                      type="text"
-                      value={store.storeSettings.storeTagline}
-                      onChange={e => handleSaveSettings('storeTagline', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
-                    />
+                  {/* LIVE VISUAL PREVIEW OF HERO BANNER */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-bold text-stone-600 block">Live Preview (How Customers See It):</span>
+                    <div className="overflow-hidden rounded-2xl border border-stone-300 bg-[#f3e6df] p-5 sm:p-7 shadow-xs text-left space-y-3.5">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-900 shadow-2xs">
+                        <span className="h-2 w-2 rounded-full bg-[#8A3D52]"></span>
+                        <span>{store.storeSettings.heroBadge || '100% ORIGINAL & AUTHENTIC'}</span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h2 className="font-serif text-xl sm:text-3xl font-bold text-stone-900 leading-tight">
+                          {store.storeSettings.heroHeadline || 'Your Beauty. Your Essentials. Your Glow.'}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-stone-700 max-w-xl leading-relaxed">
+                          {store.storeSettings.heroSubtitle || 'Carefully selected beauty and everyday essentials chosen to help you feel your best.'}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <span className="rounded-full bg-[#8A3D52] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
+                          {store.storeSettings.heroButtonText || 'Shop now'}
+                        </span>
+                        <span className="rounded-full border border-stone-400 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-stone-900">
+                          {store.storeSettings.heroSecondaryButtonText || 'Explore beauty'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">Home Page Big Headline</label>
-                    <input
-                      type="text"
-                      value={store.storeSettings.heroHeadline}
-                      onChange={e => handleSaveSettings('heroHeadline', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
-                    />
-                  </div>
+                  {/* Hero Form Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2">
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Small Pill Badge Text</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.heroBadge}
+                        onChange={e => handleSaveSettings('heroBadge', e.target.value)}
+                        placeholder="e.g. 100% ORIGINAL & AUTHENTIC"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">WhatsApp Customer Service Number</label>
-                    <input
-                      type="text"
-                      value={store.storeSettings.whatsappNumber}
-                      onChange={e => handleSaveSettings('whatsappNumber', e.target.value)}
-                      placeholder="e.g. 233592153306"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
-                    />
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Big Main Headline</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.heroHeadline}
+                        onChange={e => handleSaveSettings('heroHeadline', e.target.value)}
+                        placeholder="e.g. Your Beauty. Your Essentials. Your Glow."
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-900"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-stone-700 mb-1">Subtitle / Description Paragraph</label>
+                      <textarea
+                        rows={2}
+                        value={store.storeSettings.heroSubtitle}
+                        onChange={e => handleSaveSettings('heroSubtitle', e.target.value)}
+                        placeholder="e.g. Carefully selected beauty and everyday essentials chosen to help you feel your best."
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Primary Button Text (Wine Pill)</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.heroButtonText}
+                        onChange={e => handleSaveSettings('heroButtonText', e.target.value)}
+                        placeholder="e.g. SHOP NOW"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Secondary Button Text (White Pill)</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.heroSecondaryButtonText || 'EXPLORE BEAUTY'}
+                        onChange={e => handleSaveSettings('heroSecondaryButtonText', e.target.value)}
+                        placeholder="e.g. EXPLORE BEAUTY"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Delivery Rates */}
-                <div className="pt-4 border-t border-stone-100 space-y-4">
-                  <h4 className="font-bold text-xs text-stone-900 uppercase tracking-wider text-[11px]">
-                    Delivery Charges (in Ghana Cedis)
-                  </h4>
+                {/* ========================================================= */}
+                {/* 2. TOP ANNOUNCEMENT BAR CUSTOMIZER */}
+                {/* ========================================================= */}
+                <div className="pt-6 border-t border-stone-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                        2. Top Website Announcement Bar
+                      </h4>
+                      <p className="text-xs text-stone-500">The message displayed at the very top of your website header.</p>
+                    </div>
+                    <label className="flex items-center gap-2 text-xs font-bold text-stone-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={store.storeSettings.announcementVisible}
+                        onChange={e => handleSaveSettings('announcementVisible', e.target.checked)}
+                        className="rounded border-stone-300"
+                      />
+                      <span>Show on Website</span>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-stone-700 mb-1">Announcement Message</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.announcementText}
+                        onChange={e => handleSaveSettings('announcementText', e.target.value)}
+                        placeholder="e.g. Free delivery on orders GHS 300+ • Same-day dispatch"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Banner Background Color</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={store.storeSettings.announcementBg || '#1E1719'}
+                          onChange={e => handleSaveSettings('announcementBg', e.target.value)}
+                          className="w-10 h-10 rounded-xl border border-stone-200 cursor-pointer p-0.5 bg-white"
+                        />
+                        <input
+                          type="text"
+                          value={store.storeSettings.announcementBg || '#1E1719'}
+                          onChange={e => handleSaveSettings('announcementBg', e.target.value)}
+                          className="flex-1 px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ========================================================= */}
+                {/* 3. STORE DETAILS & CONTACT NUMBERS */}
+                {/* ========================================================= */}
+                <div className="pt-6 border-t border-stone-100 space-y-4">
+                  <div>
+                    <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                      3. Store Identity &amp; Contact Numbers
+                    </h4>
+                    <p className="text-xs text-stone-500">Official business information used across customer checkout, invoices, and footer.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Shop Name</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.storeName}
+                        onChange={e => handleSaveSettings('storeName', e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Shop Tagline (Motto)</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.storeTagline}
+                        onChange={e => handleSaveSettings('storeTagline', e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Customer Service Hotline (Phone)</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.storePhone || '+233 59 215 3306'}
+                        onChange={e => handleSaveSettings('storePhone', e.target.value)}
+                        placeholder="e.g. 0592153306"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Official WhatsApp Number (No plus sign)</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.whatsappNumber}
+                        onChange={e => handleSaveSettings('whatsappNumber', e.target.value)}
+                        placeholder="e.g. 233592153306"
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Customer Support Email</label>
+                      <input
+                        type="email"
+                        value={store.storeSettings.storeEmail}
+                        onChange={e => handleSaveSettings('storeEmail', e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Store Physical Location / Hub</label>
+                      <input
+                        type="text"
+                        value={store.storeSettings.storeAddress}
+                        onChange={e => handleSaveSettings('storeAddress', e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ========================================================= */}
+                {/* 4. DELIVERY CHARGES & FREE SHIPPING */}
+                {/* ========================================================= */}
+                <div className="pt-6 border-t border-stone-100 space-y-4">
+                  <div>
+                    <h4 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+                      4. Delivery Charges (Ghana Cedis)
+                    </h4>
+                    <p className="text-xs text-stone-500">Shipping rates calculated automatically at checkout.</p>
+                  </div>
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                     <div>
                       <label className="block font-bold text-stone-700 mb-1">Standard Accra Delivery</label>
@@ -2282,33 +2477,6 @@ export const AdminPortal: React.FC = () => {
                         value={store.storeSettings.freeDeliveryThreshold}
                         onChange={e => handleSaveSettings('freeDeliveryThreshold', e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-bold"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Announcement Bar */}
-                <div className="pt-4 border-t border-stone-100 space-y-4">
-                  <h4 className="font-bold text-xs text-stone-900 uppercase tracking-wider text-[11px]">
-                    Top Website Message Banner
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <label className="block font-bold text-stone-700 mb-1">Message Shown at Top of Website</label>
-                      <input
-                        type="text"
-                        value={store.storeSettings.announcementText}
-                        onChange={e => handleSaveSettings('announcementText', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-stone-700 mb-1">Banner Color Code (HEX)</label>
-                      <input
-                        type="text"
-                        value={store.storeSettings.announcementBg}
-                        onChange={e => handleSaveSettings('announcementBg', e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-mono"
                       />
                     </div>
                   </div>

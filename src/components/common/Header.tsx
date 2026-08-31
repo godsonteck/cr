@@ -7,7 +7,8 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  MessageCircle
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -185,6 +186,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 Cart
               </button>
             </div>
+
+            <a
+              href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-white shadow-xs"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>WhatsApp (0592153306)</span>
+            </a>
           </div>
         </div>
       )}

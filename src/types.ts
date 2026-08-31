@@ -76,6 +76,7 @@ export interface StoreSettings {
   heroSubtitle: string;
   heroBadge: string;
   heroButtonText: string;
+  heroSecondaryButtonText?: string;
   announcementText: string;
   announcementVisible: boolean;
   announcementBg: string;

@@ -76,7 +76,7 @@ export const HomePage: React.FC = () => {
                 to="/beauty" 
                 className="rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[#8A3D52] px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] transition-all cursor-pointer"
               >
-                Explore beauty
+                {storeSettings.heroSecondaryButtonText || 'Explore beauty'}
               </Link>
             </div>
 

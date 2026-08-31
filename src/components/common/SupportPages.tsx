@@ -36,11 +36,24 @@ export const ContactPage: React.FC = () => {
         <p className="text-xs text-stone-500">We are here to assist with product inquiries, delivery status, and Mobile Money orders.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#1C1917] p-6 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] text-center space-y-2">
           <Phone className="w-6 h-6 text-[#C86D51] mx-auto" />
           <h4 className="text-xs font-bold uppercase">Customer Line</h4>
-          <span className="text-xs text-stone-600 block">{storeSettings.storePhone}</span>
+          <span className="text-xs font-bold text-stone-800 dark:text-stone-200 block">{storeSettings.storePhone || '0592153306'}</span>
+        </div>
+
+        <div className="bg-white dark:bg-[#1C1917] p-6 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] text-center space-y-2">
+          <MessageCircle className="w-6 h-6 text-[#25D366] mx-auto" />
+          <h4 className="text-xs font-bold uppercase">WhatsApp Official</h4>
+          <a
+            href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-bold text-[#25D366] block hover:underline"
+          >
+            0592153306 (Click to Chat)
+          </a>
         </div>
 
         <div className="bg-white dark:bg-[#1C1917] p-6 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] text-center space-y-2">

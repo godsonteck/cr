@@ -94,6 +94,7 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   heroSubtitle: 'Authentic dermatological skincare, fragrances, and trusted household pantry essentials.',
   heroBadge: '100% ORIGINAL & AUTHENTIC',
   heroButtonText: 'SHOP NOW',
+  heroSecondaryButtonText: 'EXPLORE BEAUTY',
   announcementText: 'Free delivery in Accra on orders GHS 300+ • Same-day dispatch available',
   announcementVisible: true,
   announcementBg: '#1E1719',
@@ -326,7 +327,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
     try {
       const saved = localStorage.getItem('cr_store_settings');
-      if (saved) return { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(saved) };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure official business number 0592153306 is always active
+        if (!parsed.whatsappNumber || parsed.whatsappNumber === '233551234567' || parsed.whatsappNumber.includes('1234567')) {
+          parsed.whatsappNumber = '233592153306';
+        }
+        if (!parsed.storePhone || parsed.storePhone.includes('123 4567') || parsed.storePhone === '+233 55 123 4567') {
+          parsed.storePhone = '0592153306';
+        }
+        return { ...DEFAULT_STORE_SETTINGS, ...parsed };
+      }
     } catch {}
     return DEFAULT_STORE_SETTINGS;
   });
