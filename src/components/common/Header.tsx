@@ -76,12 +76,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
               <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-auto object-contain sm:h-9" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl leading-none">
+            <div className="flex items-center">
+              <span className="font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
                 {storeSettings.storeName}
-              </span>
-              <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--accent)] mt-1">
-                Beauty &amp; Essentials
               </span>
             </div>
           </Link>
