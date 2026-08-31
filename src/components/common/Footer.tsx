@@ -34,13 +34,13 @@ export const Footer: React.FC = () => {
           </div>
 
           <a
-            href={`https://wa.me/${storeSettings.whatsappNumber || '233551234567'}`}
+            href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#20bd5a]"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Chat
+            <span>WhatsApp (0592153306)</span>
           </a>
         </div>
 
