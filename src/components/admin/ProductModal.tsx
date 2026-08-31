@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product, CategoryType, DepartmentType } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
@@ -17,7 +17,10 @@ import {
   Eye,
   EyeOff,
   Globe,
-  Sliders
+  Sliders,
+  Upload,
+  Star,
+  ImageOff
 } from 'lucide-react';
 
 interface ProductModalProps {
@@ -61,6 +64,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [discountBadge, setDiscountBadge] = useState<string>('');
   const [unit, setUnit] = useState('30ml Bottle');
   const [image, setImage] = useState(BEAUTY_IMAGE_PRESETS[0].url);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState('');
   const [highlights, setHighlights] = useState<string[]>([]);
   const [newHighlight, setNewHighlight] = useState('');
@@ -88,6 +94,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDiscountBadge(productToEdit.discountBadge || '');
       setUnit(productToEdit.unit || 'Standard Size');
       setImage(productToEdit.image);
+      // Populate uploaded images from existing product
+      const existingImgs = productToEdit.images && productToEdit.images.length > 0
+        ? productToEdit.images
+        : [productToEdit.image];
+      setUploadedImages(existingImgs);
       setDescription(productToEdit.description);
       setHighlights(productToEdit.highlights || []);
       setBadge(productToEdit.badge);
@@ -109,6 +120,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDiscountBadge('');
       setUnit('30ml Bottle');
       setImage(BEAUTY_IMAGE_PRESETS[0].url);
+      setUploadedImages([]);
       setDescription('');
       setHighlights([]);
       setBadge('New In');
@@ -123,6 +135,55 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   }, [productToEdit, isOpen, brands]);
 
   if (!isOpen) return null;
+
+  // ---- Image Upload Handlers ----
+  const readFileAsDataURL = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const processFiles = async (files: FileList | File[]) => {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const validFiles = Array.from(files).filter(f => validTypes.includes(f.type) && f.size <= 5 * 1024 * 1024);
+    if (validFiles.length === 0) {
+      showToast('Please use JPG, PNG, or WEBP images under 5MB');
+      return;
+    }
+    const dataUrls = await Promise.all(validFiles.map(readFileAsDataURL));
+    setUploadedImages(prev => {
+      const merged = [...prev, ...dataUrls];
+      if (merged.length === 1 || !prev.includes(image)) setImage(merged[0]);
+      return merged;
+    });
+    // Set primary image to first uploaded if none set yet
+    setImage(prev => prev === BEAUTY_IMAGE_PRESETS[0].url && dataUrls.length > 0 ? dataUrls[0] : prev);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) processFiles(e.target.files);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
+  };
+
+  const handleRemoveImage = (idx: number) => {
+    setUploadedImages(prev => {
+      const next = prev.filter((_, i) => i !== idx);
+      if (image === prev[idx]) setImage(next[0] || '');
+      return next;
+    });
+  };
+
+  const handleSetPrimary = (url: string) => {
+    setImage(url);
+  };
+  // ---- End Image Upload Handlers ----
 
   const handleAddHighlight = () => {
     if (newHighlight.trim()) {
@@ -154,8 +215,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       originalPrice: originalPrice ? Number(originalPrice) : undefined,
       discountBadge: discountBadge.trim() || undefined,
       unit: unit.trim() || 'Standard Pack',
-      image,
-      images: [image],
+      image: image || (uploadedImages[0] || BEAUTY_IMAGE_PRESETS[0].url),
+      images: uploadedImages.length > 0 ? uploadedImages : [image],
       description: description.trim(),
       highlights: highlights.length > 0 ? highlights : ['100% Original & Authentic'],
       badge: badge || undefined,
@@ -516,42 +577,140 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* TAB 3: PICTURES */}
           {activeSection === 'media' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+
+              {/* Drag & Drop Upload Zone */}
               <div>
-                <label className="block font-bold text-stone-700 mb-1">Picture Link / Web Address *</label>
-                <div className="flex items-center gap-3">
+                <label className="block font-bold text-stone-900 text-sm mb-1">Product Pictures</label>
+                <p className="text-[11px] text-stone-500 mb-3">
+                  Upload clear pictures of the product. The first picture (or the one marked with a star ★) becomes the main image that customers see. You can upload multiple pictures.
+                </p>
+
+                {/* Drop Zone */}
+                <div
+                  onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? 'border-[#1E1719] bg-stone-100 scale-[1.01]'
+                      : 'border-stone-300 bg-stone-50 hover:bg-stone-100 hover:border-stone-400'
+                  }`}
+                >
                   <input
-                    type="url"
-                    required
-                    value={image}
-                    onChange={e => setImage(e.target.value)}
-                    placeholder="https://..."
-                    className="flex-1 px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:bg-white focus:border-stone-900 outline-none"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    multiple
+                    className="sr-only"
+                    onChange={handleFileInputChange}
                   />
-                  <div className="w-14 h-14 rounded-2xl bg-stone-50 border border-stone-200 p-1 flex items-center justify-center shrink-0 overflow-hidden">
-                    <img src={image} alt="Preview" className="w-full h-full object-contain" onError={() => {}} />
-                  </div>
+                  <Upload className={`w-8 h-8 mx-auto mb-2 transition-colors ${
+                    isDragging ? 'text-[#1E1719]' : 'text-stone-400'
+                  }`} />
+                  <p className="font-bold text-stone-700 text-sm">
+                    {isDragging ? 'Drop your pictures here' : 'Click to choose pictures, or drag and drop them here'}
+                  </p>
+                  <p className="text-[11px] text-stone-400 mt-1">JPG, PNG, WEBP — up to 5MB per image</p>
                 </div>
               </div>
 
-              <div>
-                <span className="text-[11px] font-bold text-stone-500 block mb-2">Or Click Any Sample Picture Below to Use It:</span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {BEAUTY_IMAGE_PRESETS.map((preset, i) => (
+              {/* Uploaded Image Gallery */}
+              {uploadedImages.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-700">
+                      {uploadedImages.length} picture{uploadedImages.length > 1 ? 's' : ''} uploaded
+                    </span>
+                    <span className="text-[11px] text-stone-400">Click ★ to set main picture · Click 🗑 to remove</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {uploadedImages.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative group rounded-2xl overflow-hidden border-2 transition-all ${
+                          image === url
+                            ? 'border-[#1E1719] shadow-md ring-2 ring-[#1E1719]/20'
+                            : 'border-stone-200 hover:border-stone-400'
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={`Product image ${idx + 1}`}
+                          className="w-full aspect-square object-cover bg-stone-100"
+                        />
+
+                        {/* Primary badge */}
+                        {image === url && (
+                          <div className="absolute top-1.5 left-1.5 bg-[#1E1719] text-[#FAF6F0] text-[9px] font-bold px-1.5 py-0.5 rounded-lg flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5 fill-[#C89B3C] text-[#C89B3C]" />
+                            <span>Main</span>
+                          </div>
+                        )}
+
+                        {/* Actions overlay on hover */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          {image !== url && (
+                            <button
+                              type="button"
+                              onClick={e => { e.stopPropagation(); handleSetPrimary(url); }}
+                              className="p-1.5 bg-white/90 hover:bg-white rounded-lg text-stone-900 cursor-pointer"
+                              title="Set as main picture"
+                            >
+                              <Star className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); handleRemoveImage(idx); }}
+                            className="p-1.5 bg-white/90 hover:bg-red-100 rounded-lg text-rose-600 cursor-pointer"
+                            title="Remove this picture"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Add more button */}
                     <button
-                      key={i}
                       type="button"
-                      onClick={() => setImage(preset.url)}
-                      className={`p-2 rounded-xl border text-[11px] text-left flex items-center gap-2 transition-all cursor-pointer ${
-                        image === preset.url ? 'border-stone-900 bg-stone-100 font-bold text-stone-900' : 'border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700'
-                      }`}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="aspect-square rounded-2xl border-2 border-dashed border-stone-300 hover:border-stone-400 hover:bg-stone-50 flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-stone-600 transition-all cursor-pointer"
                     >
-                      <img src={preset.url} alt="" className="w-8 h-8 rounded-lg object-contain shrink-0 bg-white" />
-                      <span className="truncate">{preset.label}</span>
+                      <Plus className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">Add more</span>
                     </button>
-                  ))}
+                  </div>
                 </div>
+              )}
+
+              {/* No images yet */}
+              {uploadedImages.length === 0 && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-2.5">
+                  <ImageOff className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-amber-800">No picture uploaded yet</p>
+                    <p className="text-[11px] text-amber-700 mt-0.5">
+                      Products without a picture are less likely to be purchased. Upload at least one clear product photo.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tips */}
+              <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-2xl space-y-1.5">
+                <p className="text-xs font-bold text-stone-700">📸 Tips for great product photos:</p>
+                <ul className="text-[11px] text-stone-500 space-y-1 list-disc list-inside">
+                  <li>Use a plain white or light background</li>
+                  <li>Make sure the product is in focus and well-lit</li>
+                  <li>Show the front label clearly so customers can read it</li>
+                  <li>Add multiple angles — front, side, and back</li>
+                </ul>
               </div>
+
             </div>
           )}
 
