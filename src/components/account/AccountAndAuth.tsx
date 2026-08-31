@@ -17,6 +17,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
 import { ProductCard } from '../product/ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
+import logoImg from '../../assets/logo.jpeg';
 
 export const AccountPage: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -193,7 +194,10 @@ export const SignInPage: React.FC = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-16 font-sans">
       <div className="bg-white dark:bg-[#1C1917] p-8 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] space-y-6 shadow-sm">
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-2">
+          <div className="inline-flex p-1 rounded-2xl bg-white border border-[#E6DFD7] shadow-sm">
+            <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-14 h-14 rounded-xl object-contain" />
+          </div>
           <h1 className="text-2xl font-extrabold uppercase">Sign In to Store</h1>
           <p className="text-xs text-stone-400">Manage orders, saved items, and local addresses.</p>
         </div>
@@ -253,7 +257,10 @@ export const SignUpPage: React.FC = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-16 font-sans">
       <div className="bg-white dark:bg-[#1C1917] p-8 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] space-y-6 shadow-sm">
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-2">
+          <div className="inline-flex p-1 rounded-2xl bg-white border border-[#E6DFD7] shadow-sm">
+            <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-14 h-14 rounded-xl object-contain" />
+          </div>
           <h1 className="text-2xl font-extrabold uppercase">Create Account</h1>
           <p className="text-xs text-[#6E6763]">Join CR Cosmetics &amp; Essentials.</p>
         </div>

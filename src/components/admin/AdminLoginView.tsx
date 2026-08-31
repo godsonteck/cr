@@ -13,6 +13,7 @@ import {
   Mail
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import logoImg from '../../assets/logo.jpeg';
 
 interface AdminLoginProps {
   onSuccess: () => void;
@@ -94,8 +95,8 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           
           {/* Brand Header */}
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1E1719] text-[#FAF6F0] border border-stone-800 shadow-md mb-1">
-              <Shield className="w-7 h-7 text-[#C89B3C]" />
+            <div className="inline-flex items-center justify-center p-1 rounded-2xl bg-white border border-[#E8E2D8] shadow-sm mb-1">
+              <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-16 h-16 rounded-xl object-contain" />
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#C89B3C]">

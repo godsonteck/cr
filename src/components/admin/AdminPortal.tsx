@@ -50,6 +50,7 @@ import {
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { AdminLoginView } from './AdminLoginView';
+import logoImg from '../../assets/logo.jpeg';
 import { ProductModal } from './ProductModal';
 import { AdjustStockModal } from './components/AdjustStockModal';
 import { OrderDetailDrawer } from './components/OrderDetailDrawer';
@@ -417,9 +418,11 @@ export const AdminPortal: React.FC = () => {
           {/* Left: Brand Identity */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#1E1719] flex items-center justify-center text-[#E8B792] font-serif font-bold text-base shadow-sm border border-stone-700">
-                CR
-              </div>
+              <img 
+                src={logoImg} 
+                alt="CR Cosmetics & Essentials" 
+                className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-sm border border-stone-700" 
+              />
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-serif font-bold text-sm tracking-wide text-white">
