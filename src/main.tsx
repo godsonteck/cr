@@ -2,6 +2,7 @@ import React from 'react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 import { StoreProvider } from './context/StoreContext';
@@ -14,22 +15,24 @@ import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <ThemeProvider>
-        <StoreProvider>
-          <AuthProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <ToastProvider>
-                  <ReviewsProvider>
-                    <App />
-                  </ReviewsProvider>
-                </ToastProvider>
-              </CartProvider>
-            </WishlistProvider>
-          </AuthProvider>
-        </StoreProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <ThemeProvider>
+          <StoreProvider>
+            <AuthProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <ToastProvider>
+                    <ReviewsProvider>
+                      <App />
+                    </ReviewsProvider>
+                  </ToastProvider>
+                </CartProvider>
+              </WishlistProvider>
+            </AuthProvider>
+          </StoreProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>,
 );

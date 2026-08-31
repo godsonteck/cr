@@ -98,9 +98,5 @@ function AppLayout() {
 }
 
 export default function App() {
-  return (
-    <Helmet>
-      <AppLayout />
-    </Helmet>
-  );
+  return <AppLayout />;
 }

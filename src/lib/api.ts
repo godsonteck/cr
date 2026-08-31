@@ -28,7 +28,9 @@ async function request<T>(
   } else {
     let sessionId = localStorage.getItem('session_id');
     if (!sessionId) {
-      sessionId = crypto.randomUUID();
+      sessionId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID()
+        : 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
       localStorage.setItem('session_id', sessionId);
     }
     headers['x-session-id'] = sessionId;
