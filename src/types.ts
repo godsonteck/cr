@@ -229,3 +229,63 @@ export interface UserProfile {
   orders: Order[];
   savedItemIds: string[];
 }
+
+export interface InventoryMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  productImage: string;
+  previousQuantity: number;
+  adjustment: number;
+  newQuantity: number;
+  reason: 'Stock received' | 'Sale' | 'Damaged' | 'Expired' | 'Manual adjustment' | 'Returned' | 'Correction';
+  actor: string;
+  timestamp: string;
+  notes?: string;
+}
+
+export interface Customer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderDate?: string;
+  segment: 'High Value' | 'Returning' | 'New' | 'Inactive';
+  status: 'Active' | 'Blocked';
+  addresses: ShippingAddress[];
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  actor: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+  timestamp: string;
+  details: string;
+}
+
+export interface AdminNotification {
+  id: string;
+  type: 'order' | 'inventory' | 'customer' | 'system';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  actionUrl?: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Super Admin' | 'Store Manager' | 'Catalog Manager' | 'Order Manager' | 'Marketing Manager' | 'Inventory Dispatcher';
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+

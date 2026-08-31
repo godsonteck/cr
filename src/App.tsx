@@ -28,6 +28,27 @@ function AppLayout() {
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  if (isAdminRoute) {
+    return (
+      <>
+        <Helmet>
+          <html lang="en" />
+          <meta charSet="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>CR Cosmetics & Essential • Operations Command Center</title>
+        </Helmet>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/admin/*" element={<AdminPortal />} />
+            <Route path="/admin" element={<AdminPortal />} />
+          </Routes>
+        </ErrorBoundary>
+      </>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -80,7 +101,6 @@ function AppLayout() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/offers" element={<ShopCatalogPage />} />
-                <Route path="/admin" element={<AdminPortal />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
