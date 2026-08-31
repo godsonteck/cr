@@ -125,7 +125,8 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
 };
 
 export const FullCartPage: React.FC = () => {
-  const { cartItems, removeFromCart, updateQuantity, subtotal, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, subtotal, shippingFee, total, clearCart } = useCart();
+  const { storeSettings } = useStore();
   const navigate = useNavigate();
 
   if (cartItems.length === 0) {
@@ -142,10 +143,14 @@ export const FullCartPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-8">
-      <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
-        Your basket
-      </h1>
+    <div className="max-w-6xl mx-auto px-4 py-10 font-sans space-y-8">
+      <div className="flex justify-between items-end border-b border-[#E6DFD7] pb-4">
+        <div>
+          <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Shopping Cart</h1>
+          <p className="text-xs text-stone-500">Review your chosen items before fast checkout.</p>
+        </div>
+        <button onClick={clearCart} className="text-xs text-red-500 hover:underline">Clear Entire Cart</button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -206,11 +211,13 @@ export const FullCartPage: React.FC = () => {
             </div>
             <div className="flex justify-between text-stone-600">
               <span>Standard delivery:</span>
-              <span className="font-bold text-stone-900 dark:text-stone-100">GHS 25.00</span>
+              <span className="font-bold text-stone-900 dark:text-stone-100">
+                {shippingFee === 0 ? <span className="text-emerald-700 font-bold">FREE</span> : `GHS ${shippingFee.toFixed(2)}`}
+              </span>
             </div>
             <div className="pt-3 border-t border-[#E6DFD7] flex justify-between text-base font-extrabold">
               <span>Estimated Total:</span>
-              <span className="text-[#C86D51]">GHS {(subtotal + 25.0).toFixed(2)}</span>
+              <span className="text-[#C86D51]">GHS {total.toFixed(2)}</span>
             </div>
           </div>
 

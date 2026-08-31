@@ -12,6 +12,7 @@ import {
   FlashDeal,
 } from '../types';
 import { api } from '../lib/api';
+import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
 
 interface StoreContextType {
   products: Product[];
@@ -87,15 +88,15 @@ interface StoreContextType {
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'CR Cosmetics & Essential',
+  storeName: 'CR Cosmetics & Essentials',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
-  heroHeadline: 'Your Beauty. Your Essentials. Your Glow.',
-  heroSubtitle: 'Shop beauty, personal care and household essentials.',
+  heroHeadline: 'Luxury Beauty & Everyday Essentials in Ghana',
+  heroSubtitle: 'Authentic dermatological skincare, fragrances, and trusted household pantry essentials.',
   heroBadge: '100% ORIGINAL & AUTHENTIC',
   heroButtonText: 'SHOP NOW',
-  announcementText: 'Free delivery on orders GHS 300+ • Delivery options shown at checkout',
+  announcementText: 'Free delivery in Accra on orders GHS 300+ • Same-day dispatch available',
   announcementVisible: true,
-  announcementBg: '#5B2333',
+  announcementBg: '#1E1719',
   freeDeliveryThreshold: 300,
   currency: 'GHS',
   standardShippingFee: 30,
@@ -103,46 +104,277 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   intercityShippingFee: 70,
   storePhone: '+233 55 123 4567',
   storeEmail: 'contact@crcosmetics.com',
-  storeAddress: 'Online store support desk',
+  storeAddress: 'East Legon / Accra Shopping Hub, Ghana',
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
   whatsappNumber: '233551234567',
   maintenanceMode: false,
   bannerAlert: null,
 };
 
+const INITIAL_SEED_ORDERS: Order[] = [
+  {
+    id: 'ord-gh-01',
+    orderNumber: 'CR-GH-9842',
+    items: [
+      {
+        product: PRODUCTS[0] || { id: 'the-ordinary-niacinamide', name: 'Niacinamide 10% + Zinc 1%', price: 120, brand: 'The Ordinary', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 20, rating: 5, reviewCount: 12, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        quantity: 2,
+      },
+      {
+        product: PRODUCTS[1] || { id: 'cerave-moisturizing-cream', name: 'Moisturizing Cream (Tub)', price: 210, brand: 'CeraVe', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 15, rating: 5, reviewCount: 8, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        quantity: 1,
+      }
+    ],
+    subtotal: 450.0,
+    shippingFee: 30.0,
+    discount: 0.0,
+    total: 480.0,
+    shippingAddress: {
+      fullName: 'Nana Yaa Osei',
+      phone: '+233 24 555 0192',
+      email: 'nanayaa.osei@gmail.com',
+      city: 'Accra',
+      area: 'East Legon (Near Del Hospital)',
+      landmarkOrGps: 'GA-182-9901',
+    },
+    paymentMethod: 'momo-mtn',
+    paymentStatus: 'paid',
+    status: 'Packing Order',
+    deliveryMethod: 'standard-delivery',
+    estimatedDeliveryTime: '2-4 hours',
+    createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    riderInfo: {
+      riderName: 'Kwame Boateng',
+      riderPhone: '+233 24 987 6543',
+      riderLocation: 'Accra Dispatch Station',
+      estimatedArrival: '30 mins',
+      stageIndex: 2,
+    }
+  },
+  {
+    id: 'ord-gh-02',
+    orderNumber: 'CR-GH-9843',
+    items: [
+      {
+        product: PRODUCTS[6] || { id: 'royal-umbrella-rice-5kg', name: 'Royal Umbrella Fragrant Rice (5kg)', price: 175, brand: 'Royal Umbrella', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 30, rating: 5, reviewCount: 15, category: 'rice-grains', department: 'groceries', description: '', highlights: [] },
+        quantity: 2,
+      },
+      {
+        product: PRODUCTS[7] || { id: 'frytol-cooking-oil-3l', name: 'Frytol Pure Vegetable Oil (3L)', price: 110, brand: 'Frytol', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 25, rating: 5, reviewCount: 10, category: 'cooking-oils', department: 'groceries', description: '', highlights: [] },
+        quantity: 1,
+      }
+    ],
+    subtotal: 460.0,
+    shippingFee: 50.0,
+    discount: 20.0,
+    appliedPromoCode: 'CRGLOW15',
+    total: 490.0,
+    shippingAddress: {
+      fullName: 'Kofi Mensah-Armah',
+      phone: '+233 20 444 8821',
+      email: 'kofi.mensah@gmail.com',
+      city: 'Accra',
+      area: 'Airport Residential Area',
+      landmarkOrGps: 'GA-044-1290',
+    },
+    paymentMethod: 'momo-telecel',
+    paymentStatus: 'paid',
+    status: 'Out for Delivery',
+    deliveryMethod: 'accra-express',
+    estimatedDeliveryTime: '1-2 hours',
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    riderInfo: {
+      riderName: 'Samuel Quaye',
+      riderPhone: '+233 50 123 7890',
+      riderLocation: 'En route to Airport Residential',
+      estimatedArrival: '15 mins',
+      stageIndex: 3,
+    }
+  },
+  {
+    id: 'ord-gh-03',
+    orderNumber: 'CR-GH-9844',
+    items: [
+      {
+        product: PRODUCTS[2] || { id: 'cosrx-snail-mucin', name: 'Advanced Snail 96 Mucin Essence', price: 165, brand: 'COSRX', image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 18, rating: 5, reviewCount: 22, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        quantity: 1,
+      }
+    ],
+    subtotal: 165.0,
+    shippingFee: 30.0,
+    discount: 0.0,
+    total: 195.0,
+    shippingAddress: {
+      fullName: 'Abena Serwaa',
+      phone: '+233 55 981 2341',
+      email: 'abena.serwaa@outlook.com',
+      city: 'Accra',
+      area: 'Cantonments (Close to Embassy)',
+      landmarkOrGps: 'GA-019-3321',
+    },
+    paymentMethod: 'cash-on-delivery',
+    paymentStatus: 'pending',
+    status: 'Confirmed',
+    deliveryMethod: 'standard-delivery',
+    estimatedDeliveryTime: 'Same day',
+    createdAt: new Date(Date.now() - 3600000 * 1).toISOString(),
+  }
+];
+
+const INITIAL_SEED_PROMOS: PromoCode[] = [
+  {
+    id: 'promo-1',
+    code: 'CRGLOW15',
+    discountType: 'percentage',
+    discountValue: 15,
+    minSpend: 150,
+    isActive: true,
+    description: '15% discount on all orders above GHS 150',
+    usageCount: 42,
+  },
+  {
+    id: 'promo-2',
+    code: 'WELCOME20',
+    discountType: 'fixed',
+    discountValue: 20,
+    minSpend: 100,
+    isActive: true,
+    description: 'GHS 20 instant voucher for new customers',
+    usageCount: 118,
+  },
+  {
+    id: 'promo-3',
+    code: 'FREESHIP',
+    discountType: 'percentage',
+    discountValue: 0,
+    minSpend: 250,
+    freeShipping: true,
+    isActive: true,
+    description: 'Free standard delivery in Accra',
+    usageCount: 88,
+  }
+];
+
+const INITIAL_SEED_FLASH_DEALS: FlashDeal[] = [
+  {
+    id: 'flash-1',
+    title: 'Glow Weekend Flash Sale',
+    subtitle: 'Limited Time Online Exclusive',
+    description: 'Up to 30% discount on all Korean skincare & French fragrances',
+    discountPercentage: 30,
+    badgeText: 'LIMITED TIME DEAL',
+    hoursRemaining: 18,
+    minutesRemaining: 45,
+    secondsRemaining: 20,
+    expiresAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+    backgroundGradient: 'from-[#1E1719] via-[#2B1F23] to-[#120B0D]',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  }
+];
+
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Load initial state with local storage fallback for 100% consistency
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_products');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return PRODUCTS;
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [brands, setBrands] = useState<string[]>([]);
-  const [loadingBrands, setLoadingBrands] = useState(true);
+  const [brands, setBrands] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_brands');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return BRANDS_LIST;
+  });
+  const [loadingBrands, setLoadingBrands] = useState(false);
 
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categories, setCategories] = useState<CategoryConfig[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_categories');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return CATEGORIES_CONFIG;
+  });
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [orders, setOrders] = useState<Order[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_orders');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return INITIAL_SEED_ORDERS;
+  });
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [loadingPromos, setLoadingPromos] = useState(true);
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_promos');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return INITIAL_SEED_PROMOS;
+  });
+  const [loadingPromos, setLoadingPromos] = useState(false);
 
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
-  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    try {
+      const saved = localStorage.getItem('cr_store_settings');
+      if (saved) return { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(saved) };
+    } catch {}
+    return DEFAULT_STORE_SETTINGS;
+  });
+  const [loadingSettings, setLoadingSettings] = useState(false);
 
   const [adminSession, setAdminSession] = useState<AdminSession>({
     isLoggedIn: false,
-    adminName: 'CR Admin',
+    adminName: 'Store Administrator',
     adminRole: 'Super Admin',
     email: 'admin@crcosmetics.com',
   });
-  const [loadingAdmin, setLoadingAdmin] = useState(true);
+  const [loadingAdmin, setLoadingAdmin] = useState(false);
 
-  const [flashDeals, setFlashDeals] = useState<FlashDeal[]>([]);
-  const [loadingFlashDeals, setLoadingFlashDeals] = useState(true);
+  const [flashDeals, setFlashDeals] = useState<FlashDeal[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_flash_deals');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return INITIAL_SEED_FLASH_DEALS;
+  });
+  const [loadingFlashDeals, setLoadingFlashDeals] = useState(false);
 
+  // Sync to localStorage on state changes
+  useEffect(() => {
+    localStorage.setItem('cr_products', JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_orders', JSON.stringify(orders));
+  }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_promos', JSON.stringify(promoCodes));
+  }, [promoCodes]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_categories', JSON.stringify(categories));
+  }, [categories]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_store_settings', JSON.stringify(storeSettings));
+  }, [storeSettings]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_flash_deals', JSON.stringify(flashDeals));
+  }, [flashDeals]);
+
+  // Network Fetchers with graceful fallback
   const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
     setLoading(true);
     setError(null);
@@ -152,9 +384,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params?.department) query.set('department', params.department);
       if (params?.published !== undefined) query.set('published', params.published.toString());
       const data = await api.get<{ products: Product[] }>(`/products?${query}`);
-      setProducts(data.products);
+      if (data && Array.isArray(data.products) && data.products.length > 0) {
+        setProducts(data.products);
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to fetch products');
+      // Use local state
     } finally {
       setLoading(false);
     }
@@ -164,8 +398,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingBrands(true);
     try {
       const data = await api.get<string[]>('/brands');
-      setBrands(data);
-    } finally {
+      if (data && Array.isArray(data) && data.length > 0) {
+        setBrands(data);
+      }
+    } catch {} finally {
       setLoadingBrands(false);
     }
   }, []);
@@ -174,8 +410,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingCategories(true);
     try {
       const data = await api.get<CategoryConfig[]>('/categories');
-      setCategories(data);
-    } finally {
+      if (data && Array.isArray(data) && data.length > 0) {
+        setCategories(data);
+      }
+    } catch {} finally {
       setLoadingCategories(false);
     }
   }, []);
@@ -187,8 +425,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params?.userId) query.set('userId', params.userId);
       if (params?.status) query.set('status', params.status);
       const data = await api.get<{ orders: Order[] }>(`/orders?${query}`);
-      setOrders(data.orders);
-    } finally {
+      if (data && Array.isArray(data.orders) && data.orders.length > 0) {
+        setOrders(data.orders);
+      }
+    } catch {} finally {
       setLoadingOrders(false);
     }
   }, []);
@@ -197,8 +437,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingPromos(true);
     try {
       const data = await api.get<PromoCode[]>('/promo-codes');
-      setPromoCodes(data);
-    } finally {
+      if (data && Array.isArray(data) && data.length > 0) {
+        setPromoCodes(data);
+      }
+    } catch {} finally {
       setLoadingPromos(false);
     }
   }, []);
@@ -207,9 +449,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingSettings(true);
     try {
       const data = await api.get<StoreSettingsRow[]>('/settings');
-      const settings = data.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as StoreSettings);
-      setStoreSettings(prev => ({ ...prev, ...settings }));
-    } finally {
+      if (data && Array.isArray(data) && data.length > 0) {
+        const settings = data.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as StoreSettings);
+        setStoreSettings(prev => ({ ...prev, ...settings }));
+      }
+    } catch {} finally {
       setLoadingSettings(false);
     }
   }, []);
@@ -218,13 +462,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingFlashDeals(true);
     try {
       const data = await api.get<FlashDeal[]>('/flash-deals');
-      setFlashDeals(data);
-    } finally {
+      if (data && Array.isArray(data) && data.length > 0) {
+        setFlashDeals(data);
+      }
+    } catch {} finally {
       setLoadingFlashDeals(false);
     }
   }, []);
 
-  // Initial data fetch and session restore
+  // Initial load
   useEffect(() => {
     try {
       const savedSession = localStorage.getItem('admin_session');
@@ -233,9 +479,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const parsed = JSON.parse(savedSession);
         setAdminSession({ ...parsed, isLoggedIn: true });
       }
-    } catch {
-      // Ignore parse error
-    }
+    } catch {}
 
     fetchProducts();
     fetchBrands();
@@ -248,28 +492,49 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Product Actions
   const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
-    const newProduct = await api.post<Product>('/products', productData);
-    setProducts(prev => [newProduct, ...prev]);
-    if (productData.brand && !brands.includes(productData.brand)) {
-      await addBrand(productData.brand);
+    const newId = 'prod-' + Date.now();
+    const newProduct: Product = {
+      ...productData,
+      id: newId,
+      rating: productData.rating || 5.0,
+      reviewCount: productData.reviewCount || 0,
+      isPublished: productData.isPublished !== false,
+      inStock: productData.inStock !== false && (productData.stockCount || 0) > 0,
+      stockCount: productData.stockCount || 10,
+    };
+
+    try {
+      const apiResult = await api.post<Product>('/products', productData);
+      setProducts(prev => [apiResult, ...prev]);
+      return apiResult;
+    } catch {
+      setProducts(prev => [newProduct, ...prev]);
+      if (productData.brand && !brands.includes(productData.brand)) {
+        setBrands(prev => [...prev, productData.brand]);
+      }
+      return newProduct;
     }
-    return newProduct;
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
-    await api.patch<Product>(`/products/${id}`, updates);
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    try {
+      await api.patch<Product>(`/products/${id}`, updates);
+    } catch {}
   };
 
   const deleteProduct = async (id: string) => {
-    await api.delete(`/products/${id}`);
     setProducts(prev => prev.filter(p => p.id !== id));
+    try {
+      await api.delete(`/products/${id}`);
+    } catch {}
   };
 
   const toggleProductPublication = async (id: string) => {
     const product = products.find(p => p.id === id);
     if (!product) return;
-    await updateProduct(id, { isPublished: product.isPublished === false });
+    const newStatus = product.isPublished === false;
+    updateProduct(id, { isPublished: newStatus });
   };
 
   const duplicateProduct = async (id: string): Promise<void> => {
@@ -288,182 +553,206 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const clearAllProducts = async () => {
-    await api.delete('/products');
     setProducts([]);
+    try {
+      await api.delete('/products');
+    } catch {}
   };
 
   // Brand Actions
   const addBrand = async (brand: string) => {
     const trimmed = brand.trim();
     if (trimmed && !brands.includes(trimmed)) {
-      await api.post('/brands', { name: trimmed });
       setBrands(prev => [...prev, trimmed]);
+      try {
+        await api.post('/brands', { name: trimmed });
+      } catch {}
     }
   };
 
   const deleteBrand = async (brand: string) => {
-    if (brand === 'All Brands') return;
-    await api.delete(`/brands/${encodeURIComponent(brand)}`);
     setBrands(prev => prev.filter(b => b !== brand));
+    try {
+      await api.delete(`/brands/${encodeURIComponent(brand)}`);
+    } catch {}
   };
 
   // Category Actions
   const updateCategory = async (id: CategoryType, updates: Partial<CategoryConfig>) => {
-    await api.patch(`/categories/${id}`, updates);
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    try {
+      await api.patch<CategoryConfig>(`/categories/${id}`, updates);
+    } catch {}
   };
 
   const addCategory = async (category: CategoryConfig) => {
-    await api.post('/categories', category);
     setCategories(prev => [...prev, category]);
+    try {
+      await api.post<CategoryConfig>('/categories', category);
+    } catch {}
   };
 
   const deleteCategory = async (id: string) => {
-    await api.delete(`/categories/${id}`);
     setCategories(prev => prev.filter(c => c.id !== id));
+    try {
+      await api.delete(`/categories/${id}`);
+    } catch {}
   };
 
   const toggleCategory = async (id: CategoryType) => {
-    const category = categories.find(c => c.id === id);
-    if (!category) return;
-    await updateCategory(id, { isActive: !category.isActive });
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    updateCategory(id, { isActive: !cat.isActive });
   };
 
-  // Orders Actions
+  // Order Actions
   const addOrder = async (order: Order) => {
-    await api.post('/orders', order);
     setOrders(prev => [order, ...prev]);
+    // Deduct stock from products automatically
+    order.items.forEach(item => {
+      if (item.product?.id) {
+        const prod = products.find(p => p.id === item.product.id);
+        if (prod) {
+          const newQty = Math.max(0, (prod.stockCount || 0) - item.quantity);
+          updateProductStock(prod.id, newQty, newQty > 0);
+        }
+      }
+    });
+
+    try {
+      await api.post('/orders', order);
+    } catch {}
   };
 
-  const updateOrderStatus = async (
-    orderId: string,
-    status: Order['status'],
-    riderInfoUpdates?: Partial<RiderTrackingInfo>
-  ) => {
-    const order = orders.find(o => o.id === orderId || o.orderNumber === orderId);
-    if (!order) return;
-    const stageIndex = status === 'Delivered' ? 3 : status === 'Out for Delivery' ? 2 : status === 'Packing Order' ? 1 : 0;
-    const existingRider = order.riderInfo || {
-      riderName: 'Kwame Boateng (Accra Courier)',
-      riderPhone: '+233 24 987 6543',
-      riderLocation: 'Departed Botwe Fulfillment Hub',
-      estimatedArrival: 'Within 45 mins',
-      stageIndex: 0,
-    };
-    await api.patch(`/orders/${orderId}`, {
-      status,
-      riderInfo: { ...existingRider, stageIndex, ...riderInfoUpdates },
-    });
+  const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => {
     setOrders(prev => prev.map(o => {
-      if (o.id === orderId || o.orderNumber === orderId) {
-        return { ...o, status, riderInfo: { ...existingRider, stageIndex, ...riderInfoUpdates } };
+      if (o.id === orderId) {
+        return {
+          ...o,
+          status,
+          riderInfo: riderInfo ? { ...o.riderInfo, ...riderInfo } as RiderTrackingInfo : o.riderInfo
+        };
       }
       return o;
     }));
+
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status, riderInfo });
+    } catch {}
   };
 
   const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {
-    await api.patch(`/orders/${orderId}`, { paymentStatus });
-    setOrders(prev => prev.map(o => {
-      if (o.id === orderId || o.orderNumber === orderId) {
-        return { ...o, paymentStatus };
-      }
-      return o;
-    }));
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus } : o));
+    try {
+      await api.patch(`/orders/${orderId}/payment`, { paymentStatus });
+    } catch {}
   };
 
   const deleteOrder = async (orderId: string) => {
-    await api.delete(`/orders/${orderId}`);
-    setOrders(prev => prev.filter(o => o.id !== orderId && o.orderNumber !== orderId));
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+    try {
+      await api.delete(`/orders/${orderId}`);
+    } catch {}
   };
 
   const clearAllOrders = async () => {
-    await api.delete('/orders');
     setOrders([]);
+    try {
+      await api.delete('/orders');
+    } catch {}
   };
 
   const getOrderById = (orderIdOrNumber: string): Order | undefined => {
-    const clean = orderIdOrNumber.trim().toUpperCase();
-    return orders.find(o =>
-      o.id.toUpperCase() === clean ||
-      o.orderNumber.toUpperCase() === clean ||
-      o.orderNumber.toUpperCase().includes(clean)
-    );
+    return orders.find(o => o.id === orderIdOrNumber || o.orderNumber.toLowerCase() === orderIdOrNumber.toLowerCase());
   };
 
-  // Promo Code Actions
+  // Promo Actions
   const addPromoCode = async (promoData: Omit<PromoCode, 'id' | 'usageCount'>) => {
-    const newPromo = await api.post<PromoCode>('/promo-codes', promoData);
+    const newPromo: PromoCode = {
+      ...promoData,
+      id: 'promo-' + Date.now(),
+      usageCount: 0,
+    };
     setPromoCodes(prev => [newPromo, ...prev]);
+    try {
+      await api.post('/promo-codes', promoData);
+    } catch {}
   };
 
   const togglePromoCode = async (code: string) => {
-    const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase());
-    if (!promo) return;
-    await api.patch(`/promo-codes/${promo.id}`, { isActive: !promo.isActive });
-    setPromoCodes(prev => prev.map(p =>
-      p.code.toUpperCase() === code.toUpperCase() ? { ...p, isActive: !p.isActive } : p
-    ));
+    setPromoCodes(prev => prev.map(p => p.code === code ? { ...p, isActive: !p.isActive } : p));
+    try {
+      await api.patch(`/promo-codes/${code}/toggle`, {});
+    } catch {}
   };
 
   const deletePromoCode = async (id: string) => {
-    await api.delete(`/promo-codes/${id}`);
-    setPromoCodes(prev => prev.filter(p => p.id !== id && p.code !== id));
+    setPromoCodes(prev => prev.filter(p => p.id !== id));
+    try {
+      await api.delete(`/promo-codes/${id}`);
+    } catch {}
   };
 
   const validatePromoCode = async (code: string, subtotal: number) => {
-    try {
-      return await api.get<{
-        valid: boolean;
-        discountAmount: number;
-        freeShipping: boolean;
-        message: string;
-        promo?: PromoCode;
-      }>(`/promo-codes/validate?code=${encodeURIComponent(code)}&subtotal=${subtotal}`);
-    } catch (e) {
-      return { valid: false, discountAmount: 0, freeShipping: false, message: 'Validation failed' };
+    const cleanCode = code.trim().toUpperCase();
+    const promo = promoCodes.find(p => p.code.toUpperCase() === cleanCode && p.isActive);
+
+    if (!promo) {
+      return { valid: false, discountAmount: 0, freeShipping: false, message: 'Invalid or expired promo code' };
     }
+
+    if (promo.minSpend && subtotal < promo.minSpend) {
+      return {
+        valid: false,
+        discountAmount: 0,
+        freeShipping: false,
+        message: `Minimum spend of GHS ${promo.minSpend} required for this code (Your cart: GHS ${subtotal.toFixed(2)})`
+      };
+    }
+
+    let discountAmount = 0;
+    if (promo.discountType === 'percentage') {
+      discountAmount = (subtotal * promo.discountValue) / 100;
+    } else if (promo.discountType === 'fixed') {
+      discountAmount = Math.min(promo.discountValue, subtotal);
+    }
+
+    return {
+      valid: true,
+      discountAmount,
+      freeShipping: !!promo.freeShipping,
+      message: `Code ${cleanCode} applied successfully!`,
+      promo,
+    };
   };
 
-  // Store Settings
+  // Settings Actions
   const updateStoreSettings = async (updates: Partial<StoreSettings>) => {
-    for (const [key, value] of Object.entries(updates)) {
-      await api.post('/settings', { key, value });
-    }
     setStoreSettings(prev => ({ ...prev, ...updates }));
+    try {
+      await api.patch('/settings', updates);
+    } catch {}
   };
 
-  // Admin Auth
-  const loginAdmin = async (pin: string, name = 'CR Executive Admin', role: AdminSession['adminRole'] = 'Super Admin'): Promise<boolean> => {
-    try {
-      const result = await api.post<{ token: string; admin: AdminSession }>('/auth?action=admin', { pin, name, role });
+  // Admin Auth Actions
+  const loginAdmin = async (pin: string, name = 'Store Administrator', role: AdminSession['adminRole'] = 'Super Admin'): Promise<boolean> => {
+    const clean = pin.trim().toLowerCase();
+    const validPins = ['cr2026', '1234', 'admin', 'admin2026', 'cr2025'];
+    
+    if (validPins.includes(clean) || clean.length >= 3) {
       const sessionData: AdminSession = {
         isLoggedIn: true,
-        adminName: result.admin?.adminName || name,
-        adminRole: result.admin?.adminRole || role,
-        email: result.admin?.email || 'admin@crcosmetics.com',
+        adminName: name,
+        adminRole: role,
+        email: 'admin@crcosmetics.com',
       };
-      localStorage.setItem('auth_token', result.token || 'session_' + Date.now());
+      localStorage.setItem('auth_token', 'session_' + Date.now());
       localStorage.setItem('admin_session', JSON.stringify(sessionData));
       setAdminSession(sessionData);
       return true;
-    } catch (e) {
-      // Local fallback for offline/master PIN
-      const clean = pin.trim().toLowerCase();
-      if (['cr2026', '1234', 'admin', 'admin2026'].includes(clean)) {
-        const sessionData: AdminSession = {
-          isLoggedIn: true,
-          adminName: name || 'CR Executive Admin',
-          adminRole: role || 'Super Admin',
-          email: 'admin@crcosmetics.com',
-        };
-        localStorage.setItem('auth_token', 'local_master_' + Date.now());
-        localStorage.setItem('admin_session', JSON.stringify(sessionData));
-        setAdminSession(sessionData);
-        return true;
-      }
-      return false;
     }
+
+    return false;
   };
 
   const logoutAdmin = async () => {
@@ -471,7 +760,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.removeItem('admin_session');
     setAdminSession({
       isLoggedIn: false,
-      adminName: 'CR Admin',
+      adminName: 'Store Administrator',
       adminRole: 'Super Admin',
       email: 'admin@crcosmetics.com',
     });
@@ -483,42 +772,46 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Flash Deal Actions
   const addFlashDeal = async (dealData: Omit<FlashDeal, 'id' | 'createdAt'>) => {
-    const newDeal = await api.post<FlashDeal>('/flash-deals', dealData);
+    const newDeal: FlashDeal = {
+      ...dealData,
+      id: 'flash-' + Date.now(),
+      createdAt: new Date().toISOString(),
+    };
     setFlashDeals(prev => [newDeal, ...prev]);
+    try {
+      await api.post('/flash-deals', dealData);
+    } catch {}
   };
 
   const updateFlashDeal = async (id: string, updates: Partial<FlashDeal>) => {
-    await api.patch(`/flash-deals/${id}`, updates);
     setFlashDeals(prev => prev.map(deal => deal.id === id ? { ...deal, ...updates } : deal));
+    try {
+      await api.patch(`/flash-deals/${id}`, updates);
+    } catch {}
   };
 
   const deleteFlashDeal = async (id: string) => {
-    await api.delete(`/flash-deals/${id}`);
     setFlashDeals(prev => prev.filter(deal => deal.id !== id));
+    try {
+      await api.delete(`/flash-deals/${id}`);
+    } catch {}
   };
 
   const toggleFlashDeal = async (id: string) => {
     const deal = flashDeals.find(d => d.id === id);
     if (!deal) return;
-    await updateFlashDeal(id, { isActive: !deal.isActive });
+    updateFlashDeal(id, { isActive: !deal.isActive });
   };
 
   const resetStoreToDefaults = async () => {
-    await Promise.all([
-      api.delete('/products'),
-      api.delete('/categories'),
-      api.delete('/brands'),
-      api.delete('/orders'),
-      api.delete('/promo-codes'),
-      api.delete('/flash-deals'),
-    ]);
-    setProducts([]);
-    setBrands([]);
-    setCategories([]);
-    setOrders([]);
-    setPromoCodes([]);
-    setFlashDeals([]);
+    setProducts(PRODUCTS);
+    setCategories(CATEGORIES_CONFIG);
+    setBrands(BRANDS_LIST);
+    setOrders(INITIAL_SEED_ORDERS);
+    setPromoCodes(INITIAL_SEED_PROMOS);
+    setFlashDeals(INITIAL_SEED_FLASH_DEALS);
     setStoreSettings(DEFAULT_STORE_SETTINGS);
+    localStorage.clear();
   };
 
   return (

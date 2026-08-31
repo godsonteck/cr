@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Send,
   AlertCircle,
-  PackageCheck
+  PackageCheck,
+  Trash2
 } from 'lucide-react';
 import { Order, OrderStatus } from '../../../types';
 
@@ -23,6 +24,7 @@ interface OrderDetailDrawerProps {
   onClose: () => void;
   onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any) => void;
   onUpdatePayment: (orderId: string, paymentStatus: 'paid' | 'pending') => void;
+  onDeleteOrder?: (orderId: string) => void;
 }
 
 export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
@@ -31,6 +33,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   onClose,
   onUpdateStatus,
   onUpdatePayment,
+  onDeleteOrder,
 }) => {
   if (!isOpen || !order) return null;
 
@@ -75,12 +78,28 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDeleteOrder && (
+              <button
+                onClick={() => {
+                  if (confirm(`Are you sure you want to permanently delete order ${order.orderNumber}?`)) {
+                    onDeleteOrder(order.id);
+                    onClose();
+                  }
+                }}
+                className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                title="Delete this order"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Workspace Body */}
