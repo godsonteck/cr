@@ -204,11 +204,11 @@ export const ProductDetailPage: React.FC = () => {
 
       {/* Product Details Tabs */}
       <div className="bg-white dark:bg-[#1C1917] rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] p-6 sm:p-8 space-y-6">
-        <div className="flex border-b border-[#E6DFD7] dark:border-[#36322E] gap-6 text-xs font-bold uppercase tracking-wider">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 border-b border-[#E6DFD7] dark:border-[#36322E] text-xs font-bold uppercase tracking-wider">
           <button
             onClick={() => setActiveTab('description')}
-            className={`pb-3 border-b-2 transition-colors ${
-              activeTab === 'description' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400'
+            className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === 'description' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
             }`}
           >
             Description
@@ -216,8 +216,8 @@ export const ProductDetailPage: React.FC = () => {
           {product.details?.ingredients && (
             <button
               onClick={() => setActiveTab('ingredients')}
-              className={`pb-3 border-b-2 transition-colors ${
-                activeTab === 'ingredients' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400'
+              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'ingredients' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
               }`}
             >
               Ingredients &amp; Sourcing
@@ -226,19 +226,45 @@ export const ProductDetailPage: React.FC = () => {
           {product.details?.howToUse && (
             <button
               onClick={() => setActiveTab('howToUse')}
-              className={`pb-3 border-b-2 transition-colors ${
-                activeTab === 'howToUse' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400'
+              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'howToUse' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
               }`}
             >
-              How to Use / Prepare
+              How to Use
+            </button>
+          )}
+          {product.details?.benefits && (
+            <button
+              onClick={() => setActiveTab('benefits' as any)}
+              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
+                (activeTab as string) === 'benefits' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
+              }`}
+            >
+              Benefits
             </button>
           )}
         </div>
 
         <div className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
-          {activeTab === 'description' && <p>{product.description}</p>}
-          {activeTab === 'ingredients' && <p>{product.details?.ingredients}</p>}
-          {activeTab === 'howToUse' && <p>{product.details?.howToUse}</p>}
+          {activeTab === 'description' && (
+            <p className="whitespace-pre-line">{product.description}</p>
+          )}
+          {activeTab === 'ingredients' && (
+            <div className="space-y-2">
+              {product.origin && (
+                <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                  Country of Origin: <span className="text-stone-700 dark:text-stone-300 font-semibold normal-case tracking-normal">{product.origin}</span>
+                </p>
+              )}
+              <p className="whitespace-pre-line">{product.details?.ingredients}</p>
+            </div>
+          )}
+          {activeTab === 'howToUse' && (
+            <p className="whitespace-pre-line">{product.details?.howToUse}</p>
+          )}
+          {(activeTab as string) === 'benefits' && (
+            <p className="whitespace-pre-line">{product.details?.benefits}</p>
+          )}
         </div>
       </div>
 

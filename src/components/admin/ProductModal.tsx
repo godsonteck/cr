@@ -557,84 +557,124 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* TAB 4: USAGE & DETAILS */}
           {activeSection === 'details' && (
-            <div className="space-y-4">
-              
-              {/* Feature Highlights */}
-              <div>
-                <label className="block font-bold text-stone-700 mb-1">Key Selling Points (e.g. 100% Original)</label>
-                <div className="flex gap-2 mb-2">
+            <div className="space-y-5">
+
+              {/* Key Selling Points / Highlights */}
+              <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#E8E2D8] space-y-3">
+                <div>
+                  <label className="block font-bold text-stone-900 text-sm mb-0.5">Key Selling Points</label>
+                  <p className="text-[11px] text-stone-500">
+                    Add short punchy reasons customers will love this product. E.g. "100% Original", "Dermatologist Tested", "Free from Parabens".
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={newHighlight}
                     onChange={e => setNewHighlight(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddHighlight();
+                      }
+                    }}
                     placeholder="e.g. Verified genuine batch from Canada"
-                    className="flex-1 px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                    className="flex-1 px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:border-stone-900 focus:bg-white"
                   />
                   <button
                     type="button"
                     onClick={handleAddHighlight}
-                    className="px-4 py-2 bg-[#1E1719] text-[#FAF6F0] rounded-xl font-bold text-xs cursor-pointer hover:bg-[#33282C]"
+                    className="px-4 py-2.5 bg-[#1E1719] text-[#FAF6F0] rounded-xl font-bold text-xs cursor-pointer hover:bg-[#33282C] flex items-center gap-1 shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
+                    <span>Add</span>
                   </button>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                  {highlights.map((h, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1 bg-stone-100 text-stone-800 border border-stone-200 px-3 py-1 rounded-xl text-[11px] font-semibold">
-                      <span>{h}</span>
-                      <button type="button" onClick={() => handleRemoveHighlight(idx)} className="text-stone-400 hover:text-stone-700">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                {highlights.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {highlights.map((h, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 bg-white text-stone-800 border border-stone-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold shadow-2xs">
+                        <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <span>{h}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveHighlight(idx)}
+                          className="text-stone-300 hover:text-rose-500 transition-colors ml-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-stone-400 italic">No selling points added yet. Add at least one above.</p>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div>
-                  <label className="block font-bold text-stone-700 mb-1">How to Use</label>
-                  <textarea
-                    rows={3}
-                    value={howToUse}
-                    onChange={e => setHowToUse(e.target.value)}
-                    placeholder="Instructions for customer..."
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-stone-700 mb-1">Ingredients (What it contains)</label>
-                  <textarea
-                    rows={3}
-                    value={ingredients}
-                    onChange={e => setIngredients(e.target.value)}
-                    placeholder="e.g. Natural oils, Vitamin C..."
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-stone-700 mb-1">Benefits for Customer</label>
-                  <textarea
-                    rows={3}
-                    value={benefits}
-                    onChange={e => setBenefits(e.target.value)}
-                    placeholder="e.g. Hydrates skin and clears blemishes..."
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
-                  />
-                </div>
+              {/* How to Use */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-900 text-sm">How to Use This Product</label>
+                <p className="text-[11px] text-stone-500">Write simple step-by-step instructions. Customers will see this on the product page.</p>
+                <textarea
+                  rows={4}
+                  value={howToUse}
+                  onChange={e => setHowToUse(e.target.value)}
+                  placeholder="e.g. Apply a few drops to entire face morning and evening before heavier creams. Avoid direct eye contact."
+                  className="w-full px-3.5 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900 resize-y leading-relaxed"
+                />
+                <p className="text-[10px] text-stone-400 text-right">{howToUse.length} characters</p>
               </div>
 
-              <div>
-                <label className="block font-bold text-stone-700 mb-1">Made in (Country of Origin)</label>
+              {/* Ingredients */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-900 text-sm">What It Contains (Ingredients)</label>
+                <p className="text-[11px] text-stone-500">List the main ingredients or contents. Customers trust products that are transparent about what is inside.</p>
+                <textarea
+                  rows={4}
+                  value={ingredients}
+                  onChange={e => setIngredients(e.target.value)}
+                  placeholder="e.g. Aqua (Water), Niacinamide 10%, Pentylene Glycol, Zinc PCA 1%, Dimethyl Isosorbide, Tamarindus Indica Seed Gum..."
+                  className="w-full px-3.5 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900 resize-y leading-relaxed"
+                />
+                <p className="text-[10px] text-stone-400 text-right">{ingredients.length} characters</p>
+              </div>
+
+              {/* Benefits */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-900 text-sm">Benefits for the Customer</label>
+                <p className="text-[11px] text-stone-500">What result will the customer see or feel? Write it clearly. E.g. "Reduces pore size and controls shine within 2 weeks."</p>
+                <textarea
+                  rows={3}
+                  value={benefits}
+                  onChange={e => setBenefits(e.target.value)}
+                  placeholder="e.g. Clarifies skin texture, controls shine, and supports skin barrier balance after consistent use."
+                  className="w-full px-3.5 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900 resize-y leading-relaxed"
+                />
+              </div>
+
+              {/* Country of Origin */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-stone-900 text-sm">Made In (Country of Origin)</label>
+                <p className="text-[11px] text-stone-500">Where was this product manufactured? This builds customer trust.</p>
                 <input
                   type="text"
                   value={origin}
                   onChange={e => setOrigin(e.target.value)}
-                  placeholder="e.g. Made in Ghana, Made in Canada, Made in UK"
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none"
+                  placeholder="e.g. Made in South Korea, Made in Canada, Made in Ghana"
+                  className="w-full px-3.5 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:bg-white focus:border-stone-900"
                 />
+              </div>
+
+              {/* Info callout */}
+              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-2.5">
+                <div className="p-1 bg-blue-100 rounded-lg mt-0.5 shrink-0">
+                  <Globe className="w-3.5 h-3.5 text-blue-700" />
+                </div>
+                <p className="text-[11px] text-blue-800 leading-relaxed">
+                  <strong>Where customers see this:</strong> The "How to Use", "Ingredients" and "Benefits" text appears on your product page under a tabbed section. A full, detailed product page builds more customer confidence and leads to more sales.
+                </p>
               </div>
 
             </div>
