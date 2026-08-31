@@ -4,16 +4,15 @@ import { useToast } from '../../context/ToastContext';
 import { 
   ShieldCheck, 
   Lock, 
-  KeyRound, 
   ArrowLeft,
   ArrowRight, 
   User, 
   Shield, 
   Eye, 
-  EyeOff 
+  EyeOff,
+  Mail
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AdminSession } from '../../types';
 
 interface AdminLoginProps {
   onSuccess: () => void;
@@ -24,33 +23,48 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const [pin, setPin] = useState('');
-  const [adminName, setAdminName] = useState('Store Manager');
-  const [role, setRole] = useState<AdminSession['adminRole']>('Super Admin');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pin.trim()) {
-      setError('Please type your PIN code.');
+    if (!password.trim()) {
+      setError('Please enter your password.');
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
+    // Determine identity automatically from credentials
+    const cleanUser = usernameOrEmail.trim().toLowerCase();
+    let autoRole: 'Super Admin' | 'Store Manager' | 'Inventory Dispatcher' = 'Super Admin';
+    let autoName = 'Store Administrator';
+
+    if (cleanUser.includes('rider') || cleanUser.includes('dispatch') || cleanUser.includes('delivery')) {
+      autoRole = 'Inventory Dispatcher';
+      autoName = 'Kwame Boateng (Delivery & Dispatch)';
+    } else if (cleanUser.includes('manager') || cleanUser.includes('shop') || cleanUser.includes('retail')) {
+      autoRole = 'Store Manager';
+      autoName = 'Ama Mensah (Shop Manager)';
+    } else if (cleanUser.length > 0) {
+      autoName = usernameOrEmail.trim().split('@')[0];
+      autoName = autoName.charAt(0).toUpperCase() + autoName.slice(1);
+    }
+
     try {
-      const success = await loginAdmin(pin.trim(), adminName.trim(), role);
+      const success = await loginAdmin(password.trim(), autoName, autoRole);
       if (success) {
-        showToast(`Welcome back, ${adminName}!`);
+        showToast(`Signed in successfully. Welcome, ${autoName}!`);
         onSuccess();
       } else {
-        setError('Incorrect PIN. Please check your PIN and try again.');
+        setError('Incorrect email or password. Please try again.');
       }
     } catch {
-      setError('Could not sign in. Please check your internet connection and try again.');
+      setError('Unable to sign in. Please check your details and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -66,11 +80,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 hover:text-stone-900 transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back to Shopping Website</span>
+          <span>Back to Online Shop</span>
         </Link>
         <div className="flex items-center gap-2 text-xs text-stone-500">
           <ShieldCheck className="w-4 h-4 text-[#2E4A38]" />
-          <span className="text-[11px] font-medium">Safe & Secure Sign In</span>
+          <span className="text-[11px] font-medium">Secure Store Login</span>
         </div>
       </header>
 
@@ -88,68 +102,55 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
                 CR Cosmetics & Essentials
               </p>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 tracking-tight mt-1">
-                Store Manager Sign In
+                Store Manager Login
               </h1>
             </div>
             <p className="text-xs text-stone-500 max-w-xs mx-auto leading-relaxed">
-              Sign in to manage your products, check orders, change prices, and update your shop.
+              Enter your login details to access your store management dashboard.
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             
-            {/* Staff / Admin Name */}
+            {/* Email / Username */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Your Name
+                Email or Username
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
-                  value={adminName}
-                  onChange={e => setAdminName(e.target.value)}
-                  placeholder="e.g. Shop Manager"
+                  autoFocus
+                  value={usernameOrEmail}
+                  onChange={e => {
+                    setUsernameOrEmail(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  placeholder="admin@crcosmetics.com"
                   className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#E2DBD0] rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:border-[#1E1719] focus:ring-1 focus:ring-[#1E1719] transition-all"
                 />
               </div>
             </div>
 
-            {/* Access Role */}
+            {/* Password */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Your Staff Role
-              </label>
-              <select
-                value={role}
-                onChange={e => setRole(e.target.value as AdminSession['adminRole'])}
-                className="w-full px-3.5 py-3 bg-[#FAF8F5] border border-[#E2DBD0] rounded-xl text-xs font-semibold text-stone-900 focus:bg-white focus:outline-none focus:border-[#1E1719] focus:ring-1 focus:ring-[#1E1719] transition-all cursor-pointer"
-              >
-                <option value="Super Admin">Store Owner / Main Admin (Can change everything)</option>
-                <option value="Store Manager">Shop Manager (Products, Orders & Discounts)</option>
-                <option value="Inventory Dispatcher">Delivery & Rider Team (Handles packing and delivery)</option>
-              </select>
-            </div>
-
-            {/* Security Passcode */}
-            <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Admin Passcode / PIN
+                Password
               </label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  autoFocus
-                  value={pin}
+                  value={password}
                   onChange={e => {
-                    setPin(e.target.value);
+                    setPassword(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="Enter your PIN code"
+                  placeholder="Enter your password"
                   className="w-full pl-10 pr-11 py-3 bg-[#FAF8F5] border border-[#E2DBD0] rounded-xl text-sm font-mono tracking-wider text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:border-[#1E1719] focus:ring-1 focus:ring-[#1E1719] transition-all"
                 />
                 <button
@@ -177,11 +178,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
               className="w-full py-3.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50 mt-2"
             >
               {isLoading ? (
-                <span>Checking PIN...</span>
+                <span>Signing In...</span>
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  <span>Sign In to Store</span>
+                  <span>Log In</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </>
               )}
