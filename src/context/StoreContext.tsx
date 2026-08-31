@@ -282,7 +282,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_products');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return PRODUCTS;
   });
   const [loading, setLoading] = useState(false);
@@ -292,7 +292,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_brands');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return BRANDS_LIST;
   });
   const [loadingBrands, setLoadingBrands] = useState(false);
@@ -301,7 +301,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_categories');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return CATEGORIES_CONFIG;
   });
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -310,7 +310,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_orders');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return INITIAL_SEED_ORDERS;
   });
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -319,7 +319,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_promos');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return INITIAL_SEED_PROMOS;
   });
   const [loadingPromos, setLoadingPromos] = useState(false);
@@ -338,7 +338,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         return { ...DEFAULT_STORE_SETTINGS, ...parsed };
       }
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return DEFAULT_STORE_SETTINGS;
   });
   const [loadingSettings, setLoadingSettings] = useState(false);
@@ -355,7 +355,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_flash_deals');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
     return INITIAL_SEED_FLASH_DEALS;
   });
   const [loadingFlashDeals, setLoadingFlashDeals] = useState(false);
@@ -385,7 +385,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('cr_flash_deals', JSON.stringify(flashDeals));
   }, [flashDeals]);
 
-  // Network Fetchers with graceful fallback
   const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
     setLoading(true);
     setError(null);
@@ -398,8 +397,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data.products) && data.products.length > 0) {
         setProducts(data.products);
       }
-    } catch (e) {
-      // Use local state
+    } catch (e: any) {
+      setError('Failed to load products from server. Showing local data.');
+      throw e;
     } finally {
       setLoading(false);
     }
@@ -412,7 +412,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data) && data.length > 0) {
         setBrands(data);
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load brands from server.');
+      throw e;
+    } finally {
       setLoadingBrands(false);
     }
   }, []);
@@ -424,7 +427,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data) && data.length > 0) {
         setCategories(data);
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load categories from server.');
+      throw e;
+    } finally {
       setLoadingCategories(false);
     }
   }, []);
@@ -439,7 +445,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data.orders) && data.orders.length > 0) {
         setOrders(data.orders);
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load orders from server.');
+      throw e;
+    } finally {
       setLoadingOrders(false);
     }
   }, []);
@@ -451,7 +460,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data) && data.length > 0) {
         setPromoCodes(data);
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load promo codes from server.');
+      throw e;
+    } finally {
       setLoadingPromos(false);
     }
   }, []);
@@ -464,7 +476,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const settings = data.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as StoreSettings);
         setStoreSettings(prev => ({ ...prev, ...settings }));
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load store settings from server.');
+      throw e;
+    } finally {
       setLoadingSettings(false);
     }
   }, []);
@@ -476,7 +491,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data && Array.isArray(data) && data.length > 0) {
         setFlashDeals(data);
       }
-    } catch {} finally {
+    } catch (e: any) {
+      setError('Failed to load flash deals from server.');
+      throw e;
+    } finally {
       setLoadingFlashDeals(false);
     }
   }, []);
@@ -490,7 +508,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const parsed = JSON.parse(savedSession);
         setAdminSession({ ...parsed, isLoggedIn: true });
       }
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
 
     fetchProducts();
     fetchBrands();
@@ -518,7 +536,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const apiResult = await api.post<Product>('/products', productData);
       setProducts(prev => [apiResult, ...prev]);
       return apiResult;
-    } catch {
+    } catch (e: any) {
+      setError('Failed to add product to server. Changes saved locally only.');
       setProducts(prev => [newProduct, ...prev]);
       if (productData.brand && !brands.includes(productData.brand)) {
         setBrands(prev => [...prev, productData.brand]);
@@ -531,14 +550,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     try {
       await api.patch<Product>(`/products/${id}`, updates);
-    } catch {}
+    } catch (e: any) {
+      setError('Failed to update product on server.');
+    }
   };
 
   const deleteProduct = async (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     try {
       await api.delete(`/products/${id}`);
-    } catch {}
+    } catch (e: any) {
+      setError('Failed to delete product from server.');
+    }
   };
 
   const toggleProductPublication = async (id: string) => {
@@ -567,7 +590,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts([]);
     try {
       await api.delete('/products');
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   // Brand Actions
@@ -577,7 +600,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setBrands(prev => [...prev, trimmed]);
       try {
         await api.post('/brands', { name: trimmed });
-      } catch {}
+      } catch (e: any) { setError(e.message || "Operation failed"); }
     }
   };
 
@@ -585,7 +608,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBrands(prev => prev.filter(b => b !== brand));
     try {
       await api.delete(`/brands/${encodeURIComponent(brand)}`);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   // Category Actions
@@ -593,21 +616,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
     try {
       await api.patch<CategoryConfig>(`/categories/${id}`, updates);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const addCategory = async (category: CategoryConfig) => {
     setCategories(prev => [...prev, category]);
     try {
       await api.post<CategoryConfig>('/categories', category);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deleteCategory = async (id: string) => {
     setCategories(prev => prev.filter(c => c.id !== id));
     try {
       await api.delete(`/categories/${id}`);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const toggleCategory = async (id: CategoryType) => {
@@ -632,7 +655,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       await api.post('/orders', order);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => {
@@ -649,28 +672,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       await api.patch(`/orders/${orderId}/status`, { status, riderInfo });
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus } : o));
     try {
       await api.patch(`/orders/${orderId}/payment`, { paymentStatus });
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deleteOrder = async (orderId: string) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
     try {
       await api.delete(`/orders/${orderId}`);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const clearAllOrders = async () => {
     setOrders([]);
     try {
       await api.delete('/orders');
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const getOrderById = (orderIdOrNumber: string): Order | undefined => {
@@ -687,21 +710,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setPromoCodes(prev => [newPromo, ...prev]);
     try {
       await api.post('/promo-codes', promoData);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const togglePromoCode = async (code: string) => {
     setPromoCodes(prev => prev.map(p => p.code === code ? { ...p, isActive: !p.isActive } : p));
     try {
       await api.patch(`/promo-codes/${code}/toggle`, {});
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deletePromoCode = async (id: string) => {
     setPromoCodes(prev => prev.filter(p => p.id !== id));
     try {
       await api.delete(`/promo-codes/${id}`);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const validatePromoCode = async (code: string, subtotal: number) => {
@@ -742,7 +765,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStoreSettings(prev => ({ ...prev, ...updates }));
     try {
       await api.patch('/settings', updates);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   // Admin Auth Actions
@@ -791,21 +814,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setFlashDeals(prev => [newDeal, ...prev]);
     try {
       await api.post('/flash-deals', dealData);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updateFlashDeal = async (id: string, updates: Partial<FlashDeal>) => {
     setFlashDeals(prev => prev.map(deal => deal.id === id ? { ...deal, ...updates } : deal));
     try {
       await api.patch(`/flash-deals/${id}`, updates);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deleteFlashDeal = async (id: string) => {
     setFlashDeals(prev => prev.filter(deal => deal.id !== id));
     try {
       await api.delete(`/flash-deals/${id}`);
-    } catch {}
+    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const toggleFlashDeal = async (id: string) => {
@@ -898,3 +921,7 @@ export const useStore = () => {
   }
   return context;
 };
+
+
+
+

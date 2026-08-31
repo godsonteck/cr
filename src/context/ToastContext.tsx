@@ -7,10 +7,12 @@ interface Toast {
   message: string;
   type?: 'success' | 'error' | 'info';
   duration?: number;
+  persistent?: boolean;
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: 'success' | 'error' | 'info', duration?: number) => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info', duration?: number, persistent?: boolean) => void;
+  removeToast: (id: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -18,13 +20,9 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', duration = 3500) => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', duration?: number, persistent = false) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts(prev => [...prev, { id, message, type, duration }]);
-
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, duration);
+    setToasts(prev => [...prev, { id, message, type, duration, persistent }]);
   }, []);
 
   const removeToast = (id: string) => {
@@ -32,7 +30,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
         <AnimatePresence>
@@ -41,7 +39,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               key={toast.id}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              exit={{ opacity: 0, scale: 0.95, transition: { duration: toast.persistent ? 0 : 0.2 } }}
               className="pointer-events-auto flex items-center justify-between gap-3 p-4 rounded-lg bg-[#1E1915] text-[#FAF7F2] border border-[#3E342B] shadow-2xl backdrop-blur-md"
             >
               <div className="flex items-center gap-3">
