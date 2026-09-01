@@ -51,6 +51,7 @@
     font-family: var(--font-sans);
     background: var(--bg-main);
     color: var(--text-primary);
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     transition: background-color 0.25s ease, color 0.25s ease;
@@ -64,6 +65,8 @@
     background: var(--bg-main);
     color: var(--text-primary);
     min-height: 100vh;
+    min-width: 0;
+    overflow-x: hidden;
   }
 
   html.dark body,
@@ -232,6 +235,12 @@
   100% { transform: translateX(-100%); }
 }
 
+@keyframes menu-in {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-pulse-badge { animation: pulse-badge 1.5s ease-in-out infinite; }
 .animate-slide-left { animation: slide-left 15s linear infinite; }
+.animate-menu-in { animation: menu-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }

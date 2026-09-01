@@ -25,8 +25,8 @@ export const HomePage: React.FC = () => {
       
       {/* Category Pills Navigation */}
       {categoryPills.length > 0 && (
-        <div className="mx-auto max-w-[1400px] px-3 sm:px-4 pt-3 pb-2">
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mx-auto min-w-0 max-w-[1400px] overflow-hidden px-3 pb-2 pt-3 sm:px-4">
+          <div className="flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link
                 key={item.id}

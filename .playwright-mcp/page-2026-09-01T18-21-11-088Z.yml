@@ -1,0 +1,425 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - generic [ref=f3e5]: Free delivery in Accra on orders GHS 300+ • Same-day dispatch available
+    - generic [ref=f3e7]:
+      - button "Toggle Menu" [active] [ref=f3e8]
+      - link [ref=f3e10] [cursor=pointer]:
+        - /url: /
+        - img "CR Cosmetics & Essentials" [ref=f3e12]
+      - generic [ref=f3e13]:
+        - button "Toggle Theme" [ref=f3e14]
+        - button "Wishlist" [ref=f3e17]
+        - button "0" [ref=f3e20]
+    - dialog "Mobile navigation" [ref=f3e587]:
+      - generic [ref=f3e589]:
+        - generic [ref=f3e590]:
+          - link "CR Cosmetics & Essentials CR Cosmetics & Essentials" [ref=f3e591] [cursor=pointer]:
+            - /url: /
+            - img "CR Cosmetics & Essentials" [ref=f3e592]
+            - generic [ref=f3e593]: CR Cosmetics & Essentials
+          - button "Close menu" [ref=f3e594]
+        - textbox "Search products..." [ref=f3e602]
+        - navigation [ref=f3e603]:
+          - link "Shop" [ref=f3e604] [cursor=pointer]:
+            - /url: /shop
+          - link "Beauty" [ref=f3e605] [cursor=pointer]:
+            - /url: /beauty
+          - link "Groceries" [ref=f3e606] [cursor=pointer]:
+            - /url: /groceries
+          - link "About" [ref=f3e607] [cursor=pointer]:
+            - /url: /about
+          - link "Offers" [ref=f3e608] [cursor=pointer]:
+            - /url: /offers
+        - generic [ref=f3e609]:
+          - link "Sign in" [ref=f3e610] [cursor=pointer]:
+            - /url: /signin
+          - button "Saved items" [ref=f3e611]
+        - link "Chat on WhatsApp" [ref=f3e612] [cursor=pointer]:
+          - /url: https://wa.me/233592153306
+        - button "Open cart (0)" [ref=f3e616]
+  - main [ref=f3e25]:
+    - generic [ref=f3e26]:
+      - generic [ref=f3e28]:
+        - link "SKINCARE" [ref=f3e29] [cursor=pointer]:
+          - /url: /category/skincare
+        - link "MAKEUP" [ref=f3e30] [cursor=pointer]:
+          - /url: /category/makeup
+        - link "FRAGRANCES" [ref=f3e31] [cursor=pointer]:
+          - /url: /category/fragrances
+        - link "BODY CARE" [ref=f3e32] [cursor=pointer]:
+          - /url: /category/body-care
+        - link "BEAUTY TOOLS" [ref=f3e33] [cursor=pointer]:
+          - /url: /category/beauty-tools
+        - link "RICE & GRAINS" [ref=f3e34] [cursor=pointer]:
+          - /url: /category/rice-grains
+        - link "COOKING OILS" [ref=f3e35] [cursor=pointer]:
+          - /url: /category/cooking-oils
+        - link "SEASONING & PANTRY" [ref=f3e36] [cursor=pointer]:
+          - /url: /category/seasoning-spices
+      - main [ref=f3e37]:
+        - generic [ref=f3e38]:
+          - generic [ref=f3e43]:
+            - paragraph [ref=f3e44]: LIMITED TIME DEAL
+            - heading "Glow Weekend Flash Sale" [level=2] [ref=f3e45]
+            - paragraph [ref=f3e46]: Up to 30% discount on all Korean skincare & French fragrances
+          - link "Save 30%" [ref=f3e47] [cursor=pointer]:
+            - /url: /offers
+        - generic [ref=f3e52]:
+          - generic [ref=f3e53]: 100% ORIGINAL & AUTHENTIC
+          - generic [ref=f3e56]:
+            - heading "Luxury Beauty & Everyday Essentials in Ghana" [level=1] [ref=f3e57]
+            - paragraph [ref=f3e58]: Authentic dermatological skincare, fragrances, and trusted household pantry essentials.
+          - generic [ref=f3e59]:
+            - link "SHOP NOW" [ref=f3e60] [cursor=pointer]:
+              - /url: /shop
+            - link "EXPLORE BEAUTY" [ref=f3e61] [cursor=pointer]:
+              - /url: /beauty
+        - generic [ref=f3e62]:
+          - generic [ref=f3e64]:
+            - paragraph [ref=f3e65]: Shop intentionally
+            - heading "Top categories" [level=3] [ref=f3e66]
+          - generic [ref=f3e67]:
+            - link "SKINCARE beauty SKINCARE Shop" [ref=f3e68] [cursor=pointer]:
+              - /url: /category/skincare
+              - img "SKINCARE" [ref=f3e70]
+              - generic [ref=f3e71]:
+                - generic [ref=f3e72]:
+                  - paragraph [ref=f3e73]: beauty
+                  - heading "SKINCARE" [level=4] [ref=f3e74]
+                - generic [ref=f3e75]: Shop
+            - link "MAKEUP beauty MAKEUP Shop" [ref=f3e76] [cursor=pointer]:
+              - /url: /category/makeup
+              - img "MAKEUP" [ref=f3e78]
+              - generic [ref=f3e79]:
+                - generic [ref=f3e80]:
+                  - paragraph [ref=f3e81]: beauty
+                  - heading "MAKEUP" [level=4] [ref=f3e82]
+                - generic [ref=f3e83]: Shop
+            - link "FRAGRANCES beauty FRAGRANCES Shop" [ref=f3e84] [cursor=pointer]:
+              - /url: /category/fragrances
+              - img "FRAGRANCES" [ref=f3e86]
+              - generic [ref=f3e87]:
+                - generic [ref=f3e88]:
+                  - paragraph [ref=f3e89]: beauty
+                  - heading "FRAGRANCES" [level=4] [ref=f3e90]
+                - generic [ref=f3e91]: Shop
+            - link "BODY CARE beauty BODY CARE Shop" [ref=f3e92] [cursor=pointer]:
+              - /url: /category/body-care
+              - img "BODY CARE" [ref=f3e94]
+              - generic [ref=f3e95]:
+                - generic [ref=f3e96]:
+                  - paragraph [ref=f3e97]: beauty
+                  - heading "BODY CARE" [level=4] [ref=f3e98]
+                - generic [ref=f3e99]: Shop
+        - generic [ref=f3e100]:
+          - generic [ref=f3e101]:
+            - generic [ref=f3e102]:
+              - paragraph [ref=f3e103]: Shop by need
+              - heading "Featured picks" [level=3] [ref=f3e104]
+            - link "View all →" [ref=f3e105] [cursor=pointer]:
+              - /url: /shop
+          - generic [ref=f3e106]:
+            - generic [ref=f3e107] [cursor=pointer]:
+              - generic [ref=f3e108]:
+                - generic [ref=f3e109]: Bestseller
+                - button "Wishlist" [ref=f3e111]
+              - img "Niacinamide 10% + Zinc 1%" [ref=f3e115]
+              - generic [ref=f3e116]:
+                - generic [ref=f3e117]: The Ordinary
+                - heading "Niacinamide 10% + Zinc 1%" [level=3] [ref=f3e118]
+                - generic [ref=f3e119]:
+                  - generic [ref=f3e122]: "5.0"
+                  - generic [ref=f3e123]: (128)
+                - generic [ref=f3e124]:
+                  - generic [ref=f3e125]: GHS 120.00
+                  - button "Add Niacinamide 10% + Zinc 1% to cart" [ref=f3e127]
+            - generic [ref=f3e131] [cursor=pointer]:
+              - generic [ref=f3e132]:
+                - generic [ref=f3e133]: Bestseller
+                - button "Wishlist" [ref=f3e135]
+              - img "Moisturising Cream" [ref=f3e139]
+              - generic [ref=f3e140]:
+                - generic [ref=f3e141]: CeraVe
+                - heading "Moisturising Cream" [level=3] [ref=f3e142]
+                - generic [ref=f3e143]:
+                  - generic [ref=f3e146]: "5.0"
+                  - generic [ref=f3e147]: (96)
+                - generic [ref=f3e148]:
+                  - generic [ref=f3e149]: GHS 180.00
+                  - button "Add Moisturising Cream to cart" [ref=f3e151]
+            - generic [ref=f3e155] [cursor=pointer]:
+              - generic [ref=f3e156]:
+                - generic [ref=f3e157]: "-10%"
+                - button "Wishlist" [ref=f3e159]
+              - img "Advanced Snail 96 Mucin Power Essence" [ref=f3e163]
+              - generic [ref=f3e164]:
+                - generic [ref=f3e165]: COSRX
+                - heading "Advanced Snail 96 Mucin Power Essence" [level=3] [ref=f3e166]
+                - generic [ref=f3e167]:
+                  - generic [ref=f3e170]: "5.0"
+                  - generic [ref=f3e171]: (58)
+                - generic [ref=f3e172]:
+                  - generic [ref=f3e173]:
+                    - generic [ref=f3e174]: GHS 135.00
+                    - generic [ref=f3e175]: GHS 150.00
+                  - button "Add Advanced Snail 96 Mucin Power Essence to cart" [ref=f3e176]
+            - generic [ref=f3e180] [cursor=pointer]:
+              - generic [ref=f3e181]:
+                - generic [ref=f3e182]: Bestseller
+                - button "Wishlist" [ref=f3e184]
+              - img "La Vie Est Belle Eau de Parfum" [ref=f3e188]
+              - generic [ref=f3e189]:
+                - generic [ref=f3e190]: La Vie Est Belle
+                - heading "La Vie Est Belle Eau de Parfum" [level=3] [ref=f3e191]
+                - generic [ref=f3e192]:
+                  - generic [ref=f3e195]: "5.0"
+                  - generic [ref=f3e196]: (58)
+                - generic [ref=f3e197]:
+                  - generic [ref=f3e198]: GHS 650.00
+                  - button "Add La Vie Est Belle Eau de Parfum to cart" [ref=f3e200]
+            - generic [ref=f3e204] [cursor=pointer]:
+              - generic [ref=f3e205]:
+                - generic [ref=f3e206]: "-11%"
+                - button "Wishlist" [ref=f3e208]
+              - img "Coco Mademoiselle Eau de Parfum" [ref=f3e212]
+              - generic [ref=f3e213]:
+                - generic [ref=f3e214]: Chanel
+                - heading "Coco Mademoiselle Eau de Parfum" [level=3] [ref=f3e215]
+                - generic [ref=f3e216]:
+                  - generic [ref=f3e219]: "5.0"
+                  - generic [ref=f3e220]: (42)
+                - generic [ref=f3e221]:
+                  - generic [ref=f3e222]:
+                    - generic [ref=f3e223]: GHS 980.00
+                    - generic [ref=f3e224]: GHS 1100.00
+                  - button "Add Coco Mademoiselle Eau de Parfum to cart" [ref=f3e225]
+            - generic [ref=f3e229] [cursor=pointer]:
+              - generic [ref=f3e230]:
+                - generic [ref=f3e231]: Bestseller
+                - button "Wishlist" [ref=f3e233]
+              - img "Body Lotion (Hydrating)" [ref=f3e237]
+              - generic [ref=f3e238]:
+                - generic [ref=f3e239]: Dove
+                - heading "Body Lotion (Hydrating)" [level=3] [ref=f3e240]
+                - generic [ref=f3e241]:
+                  - generic [ref=f3e244]: "5.0"
+                  - generic [ref=f3e245]: (73)
+                - generic [ref=f3e246]:
+                  - generic [ref=f3e247]: GHS 70.00
+                  - button "Add Body Lotion (Hydrating) to cart" [ref=f3e249]
+        - generic [ref=f3e253]:
+          - generic [ref=f3e254]:
+            - generic [ref=f3e255]:
+              - paragraph [ref=f3e256]: Customer favorites
+              - heading "Best sellers" [level=3] [ref=f3e257]
+            - link "See all →" [ref=f3e258] [cursor=pointer]:
+              - /url: /shop
+          - generic [ref=f3e259]:
+            - generic [ref=f3e260] [cursor=pointer]:
+              - generic [ref=f3e261]:
+                - generic [ref=f3e262]: Bestseller
+                - button "Wishlist" [ref=f3e264]
+              - img "Niacinamide 10% + Zinc 1%" [ref=f3e268]
+              - generic [ref=f3e269]:
+                - generic [ref=f3e270]: The Ordinary
+                - heading "Niacinamide 10% + Zinc 1%" [level=3] [ref=f3e271]
+                - generic [ref=f3e272]:
+                  - generic [ref=f3e275]: "5.0"
+                  - generic [ref=f3e276]: (128)
+                - generic [ref=f3e277]:
+                  - generic [ref=f3e278]: GHS 120.00
+                  - button "Add Niacinamide 10% + Zinc 1% to cart" [ref=f3e280]
+            - generic [ref=f3e284] [cursor=pointer]:
+              - generic [ref=f3e285]:
+                - generic [ref=f3e286]: Bestseller
+                - button "Wishlist" [ref=f3e288]
+              - img "Moisturising Cream" [ref=f3e292]
+              - generic [ref=f3e293]:
+                - generic [ref=f3e294]: CeraVe
+                - heading "Moisturising Cream" [level=3] [ref=f3e295]
+                - generic [ref=f3e296]:
+                  - generic [ref=f3e299]: "5.0"
+                  - generic [ref=f3e300]: (96)
+                - generic [ref=f3e301]:
+                  - generic [ref=f3e302]: GHS 180.00
+                  - button "Add Moisturising Cream to cart" [ref=f3e304]
+            - generic [ref=f3e308] [cursor=pointer]:
+              - generic [ref=f3e309]:
+                - generic [ref=f3e310]: "-10%"
+                - button "Wishlist" [ref=f3e312]
+              - img "Advanced Snail 96 Mucin Power Essence" [ref=f3e316]
+              - generic [ref=f3e317]:
+                - generic [ref=f3e318]: COSRX
+                - heading "Advanced Snail 96 Mucin Power Essence" [level=3] [ref=f3e319]
+                - generic [ref=f3e320]:
+                  - generic [ref=f3e323]: "5.0"
+                  - generic [ref=f3e324]: (58)
+                - generic [ref=f3e325]:
+                  - generic [ref=f3e326]:
+                    - generic [ref=f3e327]: GHS 135.00
+                    - generic [ref=f3e328]: GHS 150.00
+                  - button "Add Advanced Snail 96 Mucin Power Essence to cart" [ref=f3e329]
+            - generic [ref=f3e333] [cursor=pointer]:
+              - generic [ref=f3e334]:
+                - generic [ref=f3e335]: Bestseller
+                - button "Wishlist" [ref=f3e337]
+              - img "La Vie Est Belle Eau de Parfum" [ref=f3e341]
+              - generic [ref=f3e342]:
+                - generic [ref=f3e343]: La Vie Est Belle
+                - heading "La Vie Est Belle Eau de Parfum" [level=3] [ref=f3e344]
+                - generic [ref=f3e345]:
+                  - generic [ref=f3e348]: "5.0"
+                  - generic [ref=f3e349]: (58)
+                - generic [ref=f3e350]:
+                  - generic [ref=f3e351]: GHS 650.00
+                  - button "Add La Vie Est Belle Eau de Parfum to cart" [ref=f3e353]
+            - generic [ref=f3e357] [cursor=pointer]:
+              - generic [ref=f3e358]:
+                - generic [ref=f3e359]: "-11%"
+                - button "Wishlist" [ref=f3e361]
+              - img "Coco Mademoiselle Eau de Parfum" [ref=f3e365]
+              - generic [ref=f3e366]:
+                - generic [ref=f3e367]: Chanel
+                - heading "Coco Mademoiselle Eau de Parfum" [level=3] [ref=f3e368]
+                - generic [ref=f3e369]:
+                  - generic [ref=f3e372]: "5.0"
+                  - generic [ref=f3e373]: (42)
+                - generic [ref=f3e374]:
+                  - generic [ref=f3e375]:
+                    - generic [ref=f3e376]: GHS 980.00
+                    - generic [ref=f3e377]: GHS 1100.00
+                  - button "Add Coco Mademoiselle Eau de Parfum to cart" [ref=f3e378]
+            - generic [ref=f3e382] [cursor=pointer]:
+              - generic [ref=f3e383]:
+                - generic [ref=f3e384]: Bestseller
+                - button "Wishlist" [ref=f3e386]
+              - img "Body Lotion (Hydrating)" [ref=f3e390]
+              - generic [ref=f3e391]:
+                - generic [ref=f3e392]: Dove
+                - heading "Body Lotion (Hydrating)" [level=3] [ref=f3e393]
+                - generic [ref=f3e394]:
+                  - generic [ref=f3e397]: "5.0"
+                  - generic [ref=f3e398]: (73)
+                - generic [ref=f3e399]:
+                  - generic [ref=f3e400]: GHS 70.00
+                  - button "Add Body Lotion (Hydrating) to cart" [ref=f3e402]
+        - generic [ref=f3e406]:
+          - generic [ref=f3e407]:
+            - generic [ref=f3e408]:
+              - paragraph [ref=f3e409]: Home essentials
+              - heading "Groceries & daily care" [level=3] [ref=f3e410]
+            - link "Shop pantry →" [ref=f3e411] [cursor=pointer]:
+              - /url: /shop?category=groceries
+          - generic [ref=f3e412]:
+            - generic [ref=f3e413] [cursor=pointer]:
+              - generic [ref=f3e414]:
+                - generic [ref=f3e415]: Bestseller
+                - button "Wishlist" [ref=f3e417]
+              - img "Royal Umbrella Thai Perfumed Jasmine Rice" [ref=f3e421]
+              - generic [ref=f3e422]:
+                - generic [ref=f3e423]: Royal Umbrella
+                - heading "Royal Umbrella Thai Perfumed Jasmine Rice" [level=3] [ref=f3e424]
+                - generic [ref=f3e425]:
+                  - generic [ref=f3e428]: "5.0"
+                  - generic [ref=f3e429]: (142)
+                - generic [ref=f3e430]:
+                  - generic [ref=f3e431]: GHS 195.00
+                  - button "Add Royal Umbrella Thai Perfumed Jasmine Rice to cart" [ref=f3e433]
+            - generic [ref=f3e437] [cursor=pointer]:
+              - generic [ref=f3e438]:
+                - generic [ref=f3e439]: Popular
+                - button "Wishlist" [ref=f3e441]
+              - img "Frytol Premium Pure Vegetable Oil" [ref=f3e445]
+              - generic [ref=f3e446]:
+                - generic [ref=f3e447]: Frytol
+                - heading "Frytol Premium Pure Vegetable Oil" [level=3] [ref=f3e448]
+                - generic [ref=f3e449]:
+                  - generic [ref=f3e452]: "4.9"
+                  - generic [ref=f3e453]: (88)
+                - generic [ref=f3e454]:
+                  - generic [ref=f3e455]: GHS 175.00
+                  - button "Add Frytol Premium Pure Vegetable Oil to cart" [ref=f3e457]
+            - generic [ref=f3e461] [cursor=pointer]:
+              - generic [ref=f3e462]:
+                - generic [ref=f3e463]: Bestseller
+                - button "Wishlist" [ref=f3e465]
+              - img "Gino Max Tomato Paste (Pack of 10)" [ref=f3e469]
+              - generic [ref=f3e470]:
+                - generic [ref=f3e471]: Gino
+                - heading "Gino Max Tomato Paste (Pack of 10)" [level=3] [ref=f3e472]
+                - generic [ref=f3e473]:
+                  - generic [ref=f3e476]: "4.9"
+                  - generic [ref=f3e477]: (110)
+                - generic [ref=f3e478]:
+                  - generic [ref=f3e479]: GHS 45.00
+                  - button "Add Gino Max Tomato Paste (Pack of 10) to cart" [ref=f3e481]
+            - generic [ref=f3e485] [cursor=pointer]:
+              - generic [ref=f3e486]:
+                - generic [ref=f3e487]: Bestseller
+                - button "Wishlist" [ref=f3e489]
+              - img "Ideal Full Cream Evaporated Milk (Pack of 6)" [ref=f3e493]
+              - generic [ref=f3e494]:
+                - generic [ref=f3e495]: Ideal Milk
+                - heading "Ideal Full Cream Evaporated Milk (Pack of 6)" [level=3] [ref=f3e496]
+                - generic [ref=f3e497]:
+                  - generic [ref=f3e500]: "5.0"
+                  - generic [ref=f3e501]: (164)
+                - generic [ref=f3e502]:
+                  - generic [ref=f3e503]: GHS 68.00
+                  - button "Add Ideal Full Cream Evaporated Milk (Pack of 6) to cart" [ref=f3e505]
+            - generic [ref=f3e509] [cursor=pointer]:
+              - generic [ref=f3e510]:
+                - generic [ref=f3e511]: Popular
+                - button "Wishlist" [ref=f3e513]
+              - img "Ariel Complete Clean Washing Powder" [ref=f3e517]
+              - generic [ref=f3e518]:
+                - generic [ref=f3e519]: Ariel
+                - heading "Ariel Complete Clean Washing Powder" [level=3] [ref=f3e520]
+                - generic [ref=f3e521]:
+                  - generic [ref=f3e524]: "4.8"
+                  - generic [ref=f3e525]: (79)
+                - generic [ref=f3e526]:
+                  - generic [ref=f3e527]: GHS 110.00
+                  - button "Add Ariel Complete Clean Washing Powder to cart" [ref=f3e529]
+            - generic [ref=f3e533] [cursor=pointer]:
+              - generic [ref=f3e534]:
+                - generic [ref=f3e535]: Bestseller
+                - button "Wishlist" [ref=f3e537]
+              - img "Dettol Antiseptic Disinfectant Liquid" [ref=f3e541]
+              - generic [ref=f3e542]:
+                - generic [ref=f3e543]: Dettol
+                - heading "Dettol Antiseptic Disinfectant Liquid" [level=3] [ref=f3e544]
+                - generic [ref=f3e545]:
+                  - generic [ref=f3e548]: "5.0"
+                  - generic [ref=f3e549]: (195)
+                - generic [ref=f3e550]:
+                  - generic [ref=f3e551]: GHS 85.00
+                  - button "Add Dettol Antiseptic Disinfectant Liquid to cart" [ref=f3e553]
+        - generic [ref=f3e557]:
+          - generic [ref=f3e558]:
+            - heading "Need assistance or want to order directly?" [level=4] [ref=f3e559]
+            - paragraph [ref=f3e560]: Chat with our customer care team on WhatsApp (0592153306) for quick delivery across Accra.
+          - link "Chat on WhatsApp" [ref=f3e561] [cursor=pointer]:
+            - /url: https://wa.me/233592153306
+  - contentinfo [ref=f3e565]:
+    - generic [ref=f3e566]:
+      - generic [ref=f3e567]:
+        - generic [ref=f3e568]:
+          - img "CR Cosmetics & Essentials" [ref=f3e569]
+          - generic [ref=f3e570]:
+            - generic [ref=f3e571]: CR Cosmetics
+            - generic [ref=f3e572]: Essentials
+        - generic [ref=f3e573]:
+          - link "Shop" [ref=f3e574] [cursor=pointer]:
+            - /url: /shop
+          - link "Beauty" [ref=f3e575] [cursor=pointer]:
+            - /url: /beauty
+          - link "Groceries" [ref=f3e576] [cursor=pointer]:
+            - /url: /groceries
+          - link "About" [ref=f3e577] [cursor=pointer]:
+            - /url: /about
+          - link "Support" [ref=f3e578] [cursor=pointer]:
+            - /url: /contact
+        - link "WhatsApp (0592153306)" [ref=f3e579] [cursor=pointer]:
+          - /url: https://wa.me/233592153306
+      - generic [ref=f3e583]: © 2026 CR Cosmetics & Essentials

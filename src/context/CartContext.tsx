@@ -54,13 +54,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         hasFreeShippingCoupon: boolean;
         selectedSamples: string[];
       }>('/cart');
-      setCart(data.items);
+      const items = Array.isArray(data.items) ? data.items : [];
+      const hydratedItems = items.flatMap((item: CartItem & { productId?: string }) => {
+        if (item.product) return [item];
+        const product = products.find(candidate => candidate.id === item.productId);
+        return product ? [{ ...item, product }] : [];
+      });
+      setCart(hydratedItems);
       setPromoCode(data.promoCode || '');
       setDiscountAmount(data.discountAmount);
       setHasFreeShippingCoupon(data.hasFreeShippingCoupon);
       setSelectedSamples(data.selectedSamples);
     } catch (e) {
       console.error('Failed to fetch cart:', e);
+      setCart([]);
+      setPromoCode('');
+      setDiscountAmount(0);
+      setHasFreeShippingCoupon(false);
     } finally {
       setLoading(false);
     }
@@ -69,7 +79,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const saveCart = useCallback(async () => {
     try {
       await api.post('/cart', {
-        items: cart,
+        items: cart.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          selectedOption: item.selectedOption,
+          selectedVariant: item.selectedVariant,
+        })),
         promoCode,
         discountAmount,
         hasFreeShippingCoupon,

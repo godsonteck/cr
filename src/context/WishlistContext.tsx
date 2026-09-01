@@ -24,9 +24,11 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     try {
       const data = await api.get<{ productId: string }[]>('/wishlist');
-      setWishlistIds(data.map(item => item.productId));
+      const items = Array.isArray(data) ? data : [];
+      setWishlistIds(items.map(item => item.productId).filter(Boolean));
     } catch (e) {
       console.error('Failed to fetch wishlist:', e);
+      setWishlistIds([]);
     } finally {
       setLoading(false);
     }

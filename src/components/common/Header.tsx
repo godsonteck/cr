@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
@@ -52,6 +53,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,12 +175,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex bg-black/55" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="h-full w-4/5 max-w-sm bg-white p-6 dark:bg-[#141211]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[#E8E2DA] pb-4 dark:border-[#2A2725]">
-              <span className="text-base font-bold uppercase">Menu</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-1">
+      {isMobileMenuOpen && createPortal(
+        <div className="fixed inset-0 z-[100] isolate" role="dialog" aria-modal="true" aria-label="Mobile navigation" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute inset-0 z-[100] bg-black/55" />
+          <div className="relative z-[110] flex h-full w-[min(86vw,23rem)] flex-col overflow-y-auto border-r border-[var(--border-color)] bg-[var(--bg-main)] p-5 shadow-2xl animate-menu-in no-scrollbar dark:bg-[#141211]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
+                <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-8 rounded-lg object-contain" />
+                <span className="font-serif text-lg font-bold text-[var(--text-primary)]">{storeSettings.storeName}</span>
+              </Link>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-full p-2 text-[var(--text-muted)] hover:bg-[var(--bg-soft)]" aria-label="Close menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -188,19 +200,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               />
             </form>
 
-            <div className="mt-6 space-y-2 text-sm">
-              <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-stone-700 dark:text-stone-200">Shop</Link>
-              <Link to="/beauty" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-stone-700 dark:text-stone-200">Beauty</Link>
-              <Link to="/groceries" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-stone-700 dark:text-stone-200">Groceries</Link>
-              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-stone-700 dark:text-stone-200">About</Link>
-            </div>
+            <nav className="mt-6 space-y-1 text-sm">
+              {desktopLinks.map((item) => (
+                <Link key={item.to} to={item.to} onClick={() => setIsMobileMenuOpen(false)} className="block rounded-xl px-3 py-3 font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg-soft)]">{item.label}</Link>
+              ))}
+              <Link to="/offers" onClick={() => setIsMobileMenuOpen(false)} className="block rounded-xl px-3 py-3 font-semibold text-[var(--accent)] transition hover:bg-[var(--accent-soft)]">Offers</Link>
+            </nav>
 
-            <div className="mt-6 flex gap-3">
-              <Link to={isAuthenticated ? "/account" : "/signin"} onClick={() => setIsMobileMenuOpen(false)} className="flex-1 rounded-full border border-[#E8E2DA] px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.14em] dark:border-[#2A2725]">
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <Link to={isAuthenticated ? "/account" : "/signin"} onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl border border-[var(--border-color)] px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
                 {isAuthenticated ? 'Account' : 'Sign in'}
               </Link>
-              <button onClick={onOpenCart} className="flex-1 rounded-full bg-[#1f1a18] px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.14em] text-white">
-                Cart
+              <button onClick={() => { setIsMobileMenuOpen(false); onOpenWishlist(); }} className="rounded-xl border border-[var(--border-color)] px-3 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
+                Saved items
               </button>
             </div>
 
@@ -208,13 +220,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-white shadow-xs"
+              className="mt-5 flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-xs"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>WhatsApp (0592153306)</span>
+              <span>Chat on WhatsApp</span>
             </a>
+
+            <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--text-primary)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--bg-card)]">
+              <ShoppingBag className="h-4 w-4" />
+              <span>Open cart ({totalItems})</span>
+            </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );
