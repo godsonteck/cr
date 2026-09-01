@@ -22,6 +22,8 @@ import { useAlert } from '../../context/AlertContext';
 
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { showAlert } = useAlert();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -109,6 +111,12 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
                 variant="primary"
                 size="sm"
                 onClick={() => {
+                  if (!isAuthenticated) {
+                    onClose();
+                    showAlert('Please sign in to place your order.', 'error');
+                    navigate('/signin');
+                    return;
+                  }
                   onClose();
                   navigate('/checkout');
                 }}
@@ -128,6 +136,8 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
 export const FullCartPage: React.FC = () => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, shippingFee, total, clearCart } = useCart();
   const { storeSettings } = useStore();
+  const { isAuthenticated } = useAuth();
+  const { showAlert } = useAlert();
   const navigate = useNavigate();
 
   if (cartItems.length === 0) {
@@ -225,7 +235,14 @@ export const FullCartPage: React.FC = () => {
           <Button
             variant="primary"
             size="lg"
-            onClick={() => navigate('/checkout')}
+            onClick={() => {
+              if (!isAuthenticated) {
+                showAlert('Please sign in to place your order.', 'error');
+                navigate('/signin');
+                return;
+              }
+              navigate('/checkout');
+            }}
             className="w-full rounded-full py-4 text-xs uppercase tracking-wider font-bold"
           >
             <span>Proceed to Checkout</span>
@@ -241,7 +258,7 @@ export const FullCartPage: React.FC = () => {
 export const MultiStepCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
-  const { user, addOrder, saveAddress, login } = useAuth();
+  const { user, addOrder, saveAddress, login, isAuthenticated } = useAuth();
   const { addOrder: addStoreOrder, storeSettings } = useStore();
   const { showAlert } = useAlert();
 
@@ -262,6 +279,27 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const totalAmount = Math.max(0, subtotal - discount + shippingFee);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-20 text-center font-sans">
+        <div className="space-y-4 rounded-[2rem] border border-[#E6DFD7] bg-white p-8 shadow-sm dark:bg-[#1C1917]">
+          <h2 className="font-serif text-3xl text-[var(--text-primary)]">Sign in required</h2>
+          <p className="text-sm leading-7 text-[var(--text-muted)]">
+            Please sign in to your account before placing an order.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link to="/signin">
+              <Button variant="primary" className="rounded-full px-6">Sign In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button variant="outline" className="rounded-full px-6">Create Account</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
