@@ -4,7 +4,7 @@ import { users } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { requireAuth, signToken } from './_auth';
+import { requireAdmin, requireAuth, signToken } from './_auth';
 
 const userCreateSchema = z.object({
   email: z.string().email(),
@@ -24,6 +24,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (method === 'GET') {
       const { id, email, me } = query;
+
+      if (query.admin === 'true') {
+        const auth = await requireAdmin(req, res);
+        if (!auth) return;
+
+        const allUsers = await db.select({
+          id: users.id,
+          email: users.email,
+          fullName: users.fullName,
+          phone: users.phone,
+          savedAddresses: users.savedAddresses,
+          savedItemIds: users.savedItemIds,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        }).from(users);
+        return res.status(200).json(allUsers);
+      }
 
       if (me === 'true') {
         const auth = await requireAuth(req, res);
@@ -55,6 +73,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       return res.status(400).json({ error: 'User ID or email is required' });
+    }
+
+    if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
+      const id = typeof query.id === 'string' ? query.id : '';
+      if (!id) return res.status(400).json({ error: 'User ID is required' });
+
+      const parsed = z.object({ isActive: z.boolean() }).safeParse(body);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid user update' });
+
+      const [updated] = await db.update(users)
+        .set({ isActive: parsed.data.isActive, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      if (!updated) return res.status(404).json({ error: 'User not found' });
+      return res.status(200).json(stripPassword(updated));
     }
 
     if (method === 'POST') {
