@@ -30,7 +30,7 @@ export const Footer: React.FC = () => {
             <Link to="/beauty" className="hover:text-[var(--text-primary)]">Beauty</Link>
             <Link to="/groceries" className="hover:text-[var(--text-primary)]">Groceries</Link>
             <Link to="/about" className="hover:text-[var(--text-primary)]">About</Link>
-            <Link to="/contact" className="hover:text-[var(--text-primary)]">Support</Link>
+            <Link to="/support" className="hover:text-[var(--text-primary)]">Support</Link>
           </div>
 
           <a

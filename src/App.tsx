@@ -18,7 +18,7 @@ import { ShopCatalogPage, SearchResultsPage } from './components/shop/CatalogAnd
 import { ProductDetailPage, RoutineBuilderPage } from './components/product/ProductDetailAndRoutine';
 import { FullCartPage, MultiStepCheckoutPage, OrderConfirmationPage } from './components/checkout/CartAndCheckout';
 import { AccountPage, SignInPage, SignUpPage } from './components/account/AccountAndAuth';
-import { AboutPage, ContactPage } from './components/common/SupportPages';
+import { AboutPage, ContactPage, SupportPage } from './components/common/SupportPages';
 import { AdminPortal } from './components/admin/AdminPortal';
 
 function AppLayout() {
@@ -99,6 +99,7 @@ function AppLayout() {
                 <Route path="/signup" element={<SignUpPage />} />
 
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/support" element={<SupportPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/offers" element={<ShopCatalogPage />} />
 
