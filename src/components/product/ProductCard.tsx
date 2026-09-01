@@ -74,11 +74,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
       </div>
 
-        <div className="relative mb-3 overflow-hidden rounded-[.85rem] bg-[var(--bg-soft)]">
+        <div className="relative mb-3 aspect-[4/5] overflow-hidden rounded-[.85rem] bg-[var(--bg-soft)]">
         <img
           src={product.image}
           alt={product.name}
-          className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-[1.04] sm:h-52"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           loading="lazy"
         />
 
@@ -126,7 +126,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleAddToCart}
             disabled={!product.inStock || product.stockCount <= 0}
             className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35"
-            aria-label="Add to cart"
+            aria-label={product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
           >
             <ShoppingBag className="h-4 w-4" />
           </button>

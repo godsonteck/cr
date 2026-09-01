@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --font-sans: "Aptos", "Segoe UI", sans-serif;
-    --font-display: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    --font-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
     --bg-main: #fbf8f5;
     --bg-card: #ffffff;
     --bg-card-alt: #f3ebe4;
@@ -14,14 +14,14 @@
     --text-muted: #71635d;
     --text-subtle: #9c8d85;
     --border-color: #e7ddd5;
-    --accent: #8a3d52;
-    --accent-strong: #6f2d40;
-    --accent-soft: #f6e6e9;
-    --violet: #b2664b;
-    --violet-strong: #8e4936;
+    --accent: #a64d45;
+    --accent-strong: #813831;
+    --accent-soft: #f5e4de;
+    --violet: #c28558;
+    --violet-strong: #9f603e;
     --olive: #4c685a;
     --olive-strong: #385245;
-    --shadow-soft: 0 10px 30px rgba(56, 35, 29, 0.08);
+    --shadow-soft: 0 16px 36px rgba(56, 35, 29, 0.1);
   }
 
   html.dark {

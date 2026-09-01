@@ -8,7 +8,8 @@ import {
   X,
   Sun,
   Moon,
-  MessageCircle
+  MessageCircle,
+  UserRound
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -146,6 +147,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 </span>
               )}
             </button>
+
+            <Link
+              to={isAuthenticated ? '/account' : '/signin'}
+              className="hidden rounded-full p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] sm:inline-flex"
+              aria-label={isAuthenticated ? 'Open account' : 'Sign in'}
+            >
+              <UserRound className="h-4 w-4" />
+            </Link>
 
             <button
               onClick={onOpenCart}
