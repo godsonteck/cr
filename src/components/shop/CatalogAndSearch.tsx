@@ -216,6 +216,25 @@ export const ShopCatalogPage: React.FC = () => {
             </div>
           </div>
 
+          {isMobileFilterOpen && (
+            <div className="space-y-4 rounded-2xl border border-[#E8E2DA] bg-white p-4 shadow-sm dark:border-[#2A2725] dark:bg-[#1A1817] lg:hidden">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-primary)]">Filter catalog</h2>
+                <button onClick={() => setIsMobileFilterOpen(false)} aria-label="Close filters" className="rounded-full p-1 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {([['', 'All'], ['beauty', 'Beauty'], ['groceries', 'Groceries']] as const).map(([value, label]) => (
+                  <button key={value || 'all'} onClick={() => updateFilter('dept', value || null)} className={`rounded-xl border px-2 py-2 text-xs font-bold ${selectedDepartment === (value || null) ? 'border-[#1C1817] bg-[#1C1817] text-white' : 'border-stone-200 text-stone-700 dark:border-stone-700 dark:text-stone-300'}`}>{label}</button>
+                ))}
+              </div>
+              <select value={selectedBrand} onChange={e => updateFilter('brand', e.target.value)} className="w-full rounded-xl border border-[#E8E2DA] bg-white p-2.5 text-xs font-semibold dark:border-[#2A2725] dark:bg-[#1C1A19]">
+                {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+              </select>
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300"><input type="checkbox" checked={onlyInStock} onChange={e => updateFilter('instock', e.target.checked ? 'true' : null)} className="rounded accent-[#C86D51]" />In-stock only</label>
+              <button onClick={clearAllFilters} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C86D51]"><RotateCcw className="h-3 w-3" />Reset filters</button>
+            </div>
+          )}
+
           {/* Active Filter Badges */}
           {(selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
             <div className="flex items-center gap-2 flex-wrap text-xs">

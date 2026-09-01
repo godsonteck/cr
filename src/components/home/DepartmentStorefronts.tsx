@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, MessageCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, Flame, MessageCircle } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
 export const HomePage: React.FC = () => {
-  const { products, categories, storeSettings } = useStore();
+  const { products, categories, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const allProducts = publishedProducts.slice(0, 18);
   const activeCategories = categories.filter(cat => cat.isActive);
@@ -46,6 +46,22 @@ export const HomePage: React.FC = () => {
 
       {/* Main Content Layout */}
       <main className="mx-auto max-w-[1400px] space-y-8 sm:space-y-10 px-3 sm:px-4 pb-16">
+
+        {flashDeals.filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now()).slice(0, 1).map(deal => (
+          <section key={deal.id} className="flex flex-col gap-4 rounded-[1.5rem] bg-[#1E1719] p-5 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-[#C86D51] p-2.5"><Flame className="h-5 w-5" /></div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8B792]">{deal.badgeText || 'Limited time offer'}</p>
+                <h2 className="mt-1 font-serif text-xl font-bold sm:text-2xl">{deal.title}</h2>
+                <p className="mt-1 text-xs text-stone-300">{deal.description || deal.subtitle}</p>
+              </div>
+            </div>
+            <Link to="/offers" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-[#1E1719] transition hover:bg-[#F2E3D7]">
+              Save {deal.discountPercentage}% <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </section>
+        ))}
         
         {/* Hero Banner */}
         <section className="overflow-hidden rounded-[1.75rem] border border-[var(--border-color)] bg-[#f3e6df] dark:bg-[#34292b] p-6 sm:p-8 lg:p-12 shadow-sm">

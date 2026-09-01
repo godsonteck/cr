@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
+import { useAlert } from '../../context/AlertContext';
 import { ProductCard } from '../product/ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 import logoImg from '../../assets/logo.jpeg';
@@ -181,14 +182,19 @@ export const AccountPage: React.FC = () => {
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showAlert } = useAlert();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/account');
+    try {
+      await login(email, password);
+      navigate('/account');
+    } catch {
+      showAlert('Sign in failed. Check your email and password and try again.', 'error');
+    }
   };
 
   return (
@@ -242,16 +248,21 @@ export const SignInPage: React.FC = () => {
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { showAlert } = useAlert();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    register(email, fullName, phone, password);
-    navigate('/account');
+    try {
+      await register(email, fullName, phone, password);
+      navigate('/account');
+    } catch {
+      showAlert('Account creation failed. Please check your details and try again.', 'error');
+    }
   };
 
   return (

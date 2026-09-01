@@ -18,6 +18,7 @@ import { Button, Badge } from '../common/UIPrimitives';
 import { PaymentMethod, DeliveryMethod, Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
+import { useAlert } from '../../context/AlertContext';
 
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
@@ -242,6 +243,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
   const { user, addOrder, saveAddress, login } = useAuth();
   const { addOrder: addStoreOrder, storeSettings } = useStore();
+  const { showAlert } = useAlert();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -261,11 +263,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
 
-  const handleCompleteOrder = (e: React.FormEvent) => {
+  const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-
-    setTimeout(() => {
+    try {
       const createdOrder: Order = {
         id: `CR-${Math.floor(100000 + Math.random() * 900000)}`,
         orderNumber: `CR-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -290,14 +291,19 @@ export const MultiStepCheckoutPage: React.FC = () => {
         estimatedDeliveryTime: '24 Hours'
       };
 
-      if (!user) login(`${phone.replace(/\D/g, '') || 'guest'}@guest.crcosmetics.local`, phone);
-      addOrder(createdOrder);
-      addStoreOrder(createdOrder);
-      saveAddress(createdOrder.shippingAddress);
-      clearCart();
-      setIsProcessing(false);
+      if (user) {
+        addOrder(createdOrder);
+        await saveAddress(createdOrder.shippingAddress);
+      }
+      await addStoreOrder(createdOrder);
+      await clearCart();
       navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder } });
-    }, 1500);
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      showAlert('We could not place your order. Please check your details and try again.', 'error', { persistent: true });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -311,7 +317,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
       {/* Progress Bar */}
       <div className="flex items-center justify-center gap-4 text-xs font-bold uppercase">
         <span className={`px-3 py-1 rounded-full ${step >= 1 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>1. Shipping Details</span>
-        <span className="text-stone-300">•</span>
+        <span className="hidden text-stone-300 sm:inline">•</span>
         <span className={`px-3 py-1 rounded-full ${step >= 2 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>2. Payment Method</span>
         <span className="text-stone-300">•</span>
         <span className={`px-3 py-1 rounded-full ${step >= 3 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>3. Review Order</span>
