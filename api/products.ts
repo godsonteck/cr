@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/db';
-import { products } from '../src/db/schema';
+import { categories, products } from '../src/db/schema';
 import { eq, and, or, ilike, desc, asc, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth';
@@ -109,6 +109,41 @@ const productUpdateSchema = z.object({
   }).optional().nullable(),
 }).partial();
 
+const sitemapBaseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cosmeticse.vercel.app');
+
+function sitemapDate(date: Date | null | undefined) {
+  return (date ? new Date(date) : new Date()).toISOString().split('T')[0];
+}
+
+async function sendSitemap(res: VercelResponse) {
+  const [allProducts, allCategories] = await Promise.all([
+    db.select({ id: products.id, updatedAt: products.updatedAt }).from(products).where(eq(products.isPublished, true)),
+    db.select({ id: categories.id, updatedAt: categories.updatedAt }).from(categories).where(eq(categories.isActive, true)),
+  ]);
+
+  const staticRoutes = [
+    ['/', 'daily', 1.0], ['/beauty', 'daily', 0.9], ['/groceries', 'daily', 0.9],
+    ['/shop', 'daily', 0.8], ['/search', 'weekly', 0.7], ['/routine-builder', 'weekly', 0.6],
+    ['/cart', 'hourly', 0.5], ['/about', 'monthly', 0.4], ['/contact', 'monthly', 0.4],
+    ['/offers', 'daily', 0.7], ['/signin', 'yearly', 0.3], ['/signup', 'yearly', 0.3],
+  ].map(([url, changefreq, priority]) => ({ url, lastmod: sitemapDate(new Date()), changefreq, priority }));
+  const productRoutes = allProducts.map(product => ({ url: `/product/${product.id}`, lastmod: sitemapDate(product.updatedAt), changefreq: 'weekly', priority: 0.8 }));
+  const categoryRoutes = allCategories.map(category => ({ url: `/category/${category.id}`, lastmod: sitemapDate(category.updatedAt), changefreq: 'weekly', priority: 0.7 }));
+  const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes];
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${routes.map(route => `  <url>
+    <loc>${sitemapBaseUrl}${route.url}</loc>
+    <lastmod>${route.lastmod}</lastmod>
+    <changefreq>${route.changefreq}</changefreq>
+    <priority>${route.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  return res.status(200).send(sitemap);
+}
+
 function applySort(query: any, sort: string) {
   switch (sort) {
     case 'price-asc':
@@ -130,6 +165,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'GET') {
+      if (query.sitemap === '1') {
+        return sendSitemap(res);
+      }
+
       if (query.id && typeof query.id === 'string') {
         const [product] = await db.select().from(products).where(eq(products.id, query.id)).limit(1);
         if (!product) {

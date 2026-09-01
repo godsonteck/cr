@@ -45,7 +45,7 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
+      "destination": "/api/products?sitemap=1"
     },
     {
       "source": "/(.*)",
