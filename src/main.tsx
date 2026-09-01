@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
+import { AlertProvider } from './context/AlertContext';
 import { ReviewsProvider } from './context/ReviewsContext';
 import './index.css';
 
@@ -23,9 +24,11 @@ createRoot(document.getElementById('root')!).render(
               <WishlistProvider>
                 <CartProvider>
                   <ToastProvider>
-                    <ReviewsProvider>
-                      <App />
-                    </ReviewsProvider>
+                    <AlertProvider>
+                      <ReviewsProvider>
+                        <App />
+                      </ReviewsProvider>
+                    </AlertProvider>
                   </ToastProvider>
                 </CartProvider>
               </WishlistProvider>
