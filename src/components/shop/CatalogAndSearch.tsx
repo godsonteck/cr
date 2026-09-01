@@ -74,7 +74,7 @@ export const ShopCatalogPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-7">
+    <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 font-sans sm:space-y-7 sm:px-6 sm:py-10 lg:px-8">
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500">
@@ -185,7 +185,7 @@ export const ShopCatalogPage: React.FC = () => {
         <main className="flex-1 space-y-4">
 
           {/* Toolbar (Mobile Filter toggle + Count + Sort) */}
-          <div className="bg-[#FAF8F5] dark:bg-[#1A1817] p-3 rounded border border-[#E8E2DA] dark:border-[#2A2725] flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E8E2DA] bg-[#FAF8F5] p-3 dark:border-[#2A2725] dark:bg-[#1A1817] sm:gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
@@ -194,8 +194,8 @@ export const ShopCatalogPage: React.FC = () => {
                 <Filter className="w-3.5 h-3.5" />
                 <span>Filters</span>
               </button>
-              <span className="text-xs text-stone-600 dark:text-stone-400 font-semibold">
-                Showing <strong className="text-[#1C1817] dark:text-stone-100">{filteredProducts.length}</strong> products
+              <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400 sm:text-xs">
+                <strong className="text-[#1C1817] dark:text-stone-100">{filteredProducts.length}</strong> products
               </span>
             </div>
 
@@ -205,7 +205,7 @@ export const ShopCatalogPage: React.FC = () => {
               <select
                 value={selectedSort}
                 onChange={(e) => updateFilter('sort', e.target.value)}
-                className="bg-white dark:bg-[#1C1A19] text-xs font-semibold px-2.5 py-1.5 rounded border border-[#E8E2DA] focus:outline-none"
+                className="max-w-[10.5rem] bg-white px-2 py-2 text-[11px] font-semibold dark:bg-[#1C1A19] sm:max-w-none sm:px-2.5 sm:text-xs"
               >
                 <option value="featured">Featured</option>
                 <option value="best-sellers">Best Sellers</option>

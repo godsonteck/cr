@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
           style={{ backgroundImage: topCategories[0]?.image ? `url(${topCategories[0].image})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="absolute inset-0 bg-[#1E1719]/65" />
-          <div className="relative flex min-h-[30rem] max-w-3xl flex-col justify-end p-6 sm:p-10 lg:p-14">
+          <div className="relative flex min-h-[25rem] max-w-3xl flex-col justify-end p-5 sm:min-h-[30rem] sm:p-10 lg:p-14">
             
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-white/70 dark:bg-[#1d1a19]/80 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)] shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-[#8A3D52]"></span>
@@ -77,7 +77,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <h1 className="font-serif text-3xl font-bold leading-[1.02] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <h1 className="font-serif text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {storeSettings.heroHeadline || 'Your Beauty. Your Essentials. Your Glow.'}
               </h1>
               <p className="max-w-2xl text-sm leading-relaxed text-stone-200 sm:text-base">

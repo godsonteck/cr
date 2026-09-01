@@ -145,7 +145,7 @@ export const FullCartPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 font-sans space-y-8">
-      <div className="flex justify-between items-end border-b border-[#E6DFD7] pb-4">
+      <div className="flex flex-col items-start gap-3 border-b border-[#E6DFD7] pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Shopping Cart</h1>
           <p className="text-xs text-stone-500">Review your chosen items before fast checkout.</p>
@@ -315,12 +315,12 @@ export const MultiStepCheckoutPage: React.FC = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="flex items-center justify-center gap-4 text-xs font-bold uppercase">
-        <span className={`px-3 py-1 rounded-full ${step >= 1 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>1. Shipping Details</span>
+      <div className="grid grid-cols-3 gap-1.5 text-center text-[9px] font-bold uppercase sm:flex sm:items-center sm:justify-center sm:gap-4 sm:text-xs">
+        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 1 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>1. Shipping</span>
         <span className="hidden text-stone-300 sm:inline">•</span>
-        <span className={`px-3 py-1 rounded-full ${step >= 2 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>2. Payment Method</span>
-        <span className="text-stone-300">•</span>
-        <span className={`px-3 py-1 rounded-full ${step >= 3 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>3. Review Order</span>
+        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 2 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>2. Payment</span>
+        <span className="hidden text-stone-300 sm:inline">•</span>
+        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 3 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>3. Review</span>
       </div>
 
       <div className="bg-white dark:bg-[#1C1917] p-6 sm:p-10 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] shadow-sm">

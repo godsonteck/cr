@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
         </div>
       )}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-[4.7rem] items-center justify-between gap-4">
+        <div className="flex min-h-[4.25rem] items-center justify-between gap-2 sm:h-[4.7rem] sm:gap-4">
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -82,18 +82,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <Link to="/" className="flex shrink-0 items-center gap-3">
-            <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
-              <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-auto object-contain sm:h-9" />
+          <Link to="/" className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
+            <div className="shrink-0 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
+              <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-8 object-contain sm:h-9 sm:w-auto" />
             </div>
-            <div className="flex items-center">
-              <span className="font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
+            <div className="hidden min-w-0 items-center sm:flex">
+              <span className="truncate font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
                 {storeSettings.storeName}
               </span>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-4 md:flex lg:gap-6">
+          <nav className="hidden items-center gap-3 lg:flex lg:gap-6">
             {desktopLinks.map((item) => {
               const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             })}
           </nav>
 
-          <form onSubmit={handleSearchSubmit} className="hidden flex-1 max-w-xs md:flex">
+          <form onSubmit={handleSearchSubmit} className="hidden min-w-0 max-w-xs flex-1 md:flex">
             <div className="relative w-full">
               <Search className="absolute left-3.5 top-3 h-4 w-4 text-stone-400" />
               <input
@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </div>
           </form>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <button
               onClick={toggleTheme}
               className="rounded-full p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
