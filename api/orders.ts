@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/db';
 import { orders, products } from '../src/db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin, requireAuth } from './_auth';
 
 const orderCreateSchema = z.object({
   userId: z.string().uuid().optional().nullable(),
@@ -76,11 +77,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (method === 'GET') {
       const { id, orderNumber, userId, status, limit = '50', offset = '0' } = query;
+      const auth = await requireAuth(req, res);
+      if (!auth) return;
 
       if (id && typeof id === 'string') {
         const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
         if (!order) {
           return res.status(404).json({ error: 'Order not found' });
+        }
+        if (auth.role !== 'admin' && order.userId !== auth.sub) {
+          return res.status(403).json({ error: 'You do not have access to this order' });
         }
         return res.status(200).json(order);
       }
@@ -90,12 +96,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!order) {
           return res.status(404).json({ error: 'Order not found' });
         }
+        if (auth.role !== 'admin' && order.userId !== auth.sub) {
+          return res.status(403).json({ error: 'You do not have access to this order' });
+        }
         return res.status(200).json(order);
       }
 
       const conditions = [];
-      if (userId && typeof userId === 'string') {
-        conditions.push(eq(orders.userId, userId));
+      const effectiveUserId = auth.role === 'admin' ? (typeof userId === 'string' ? userId : undefined) : auth.sub;
+      if (effectiveUserId) {
+        conditions.push(eq(orders.userId, effectiveUserId));
       }
       if (status && typeof status === 'string') {
         conditions.push(eq(orders.status, status as any));
@@ -126,6 +136,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
       }
 
+      const productIds = parsed.data.items.map((item) => item.product.id);
+      const productRows = await db.select().from(products).where(inArray(products.id, productIds));
+      const productMap = new Map(productRows.map((product) => [product.id, product]));
+
+      for (const item of parsed.data.items) {
+        const product = productMap.get(item.product.id);
+        if (!product) {
+          throw new Error(`Product not found: ${item.product.id}`);
+        }
+        if (product.stockCount < item.quantity) {
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${item.quantity}`);
+        }
+      }
+
       const orderNumber = generateOrderNumber();
       const orderData = {
         ...parsed.data,
@@ -136,23 +160,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total: parsed.data.total.toString(),
       };
 
-      const [newOrder] = await db.insert(orders).values(orderData).returning();
+      const newOrder = await db.transaction(async (tx) => {
+        const [createdOrder] = await tx.insert(orders).values(orderData).returning();
 
-      for (const item of parsed.data.items) {
-        const [product] = await db.select().from(products).where(eq(products.id, item.product.id)).limit(1);
-        if (product) {
-          const newStock = Math.max(0, product.stockCount - item.quantity);
-          await db
+        for (const item of parsed.data.items) {
+          const product = productMap.get(item.product.id);
+          if (!product) continue;
+          const nextStock = product.stockCount - item.quantity;
+          await tx
             .update(products)
-            .set({ stockCount: newStock, inStock: newStock > 0, updatedAt: new Date() })
+            .set({ stockCount: nextStock, inStock: nextStock > 0, updatedAt: new Date() })
             .where(eq(products.id, item.product.id));
         }
-      }
+
+        return createdOrder;
+      });
 
       return res.status(201).json(newOrder);
     }
 
     if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const { id } = query;
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ error: 'Order ID is required' });
@@ -176,6 +206,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'DELETE') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const { id } = query;
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ error: 'Order ID is required' });

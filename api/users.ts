@@ -3,17 +3,19 @@ import { db } from '../src/db';
 import { users } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { requireAuth, signToken } from './_auth';
 
 const userCreateSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(1).max(100),
   phone: z.string().min(1).max(50),
-  password: z.string().min(8).optional(),
+  password: z.string().min(8),
 });
 
-function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+function stripPassword(user: typeof users.$inferSelect) {
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -21,15 +23,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'GET') {
-      const { id, email } = query;
-      
+      const { id, email, me } = query;
+
+      if (me === 'true') {
+        const auth = await requireAuth(req, res);
+        if (!auth) {
+          return;
+        }
+
+        const [user] = await db.select().from(users).where(eq(users.id, auth.sub)).limit(1);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        return res.status(200).json(stripPassword(user));
+      }
+
       if (id && typeof id === 'string') {
         const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
         if (!user) {
           return res.status(404).json({ error: 'User not found' });
         }
-        const { passwordHash, ...safeUser } = user;
-        return res.status(200).json(safeUser);
+        return res.status(200).json(stripPassword(user));
       }
 
       if (email && typeof email === 'string') {
@@ -37,8 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) {
           return res.status(404).json({ error: 'User not found' });
         }
-        const { passwordHash, ...safeUser } = user;
-        return res.status(200).json(safeUser);
+        return res.status(200).json(stripPassword(user));
       }
 
       return res.status(400).json({ error: 'User ID or email is required' });
@@ -51,13 +64,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const { password, ...userData } = parsed.data;
+
+      const existing = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
+      if (existing[0]) {
+        return res.status(409).json({ error: 'An account with this email already exists' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
       const [newUser] = await db.insert(users).values({
         ...userData,
-        passwordHash: password ? hashPassword(password) : null,
+        passwordHash,
       }).returning();
 
-      const { passwordHash, ...safeUser } = newUser;
-      return res.status(201).json(safeUser);
+      const token = signToken({ sub: newUser.id, email: newUser.email, role: 'customer', name: newUser.fullName });
+      return res.status(201).json({
+        token,
+        user: stripPassword(newUser),
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { categories } from '../src/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const categoryEnum = [
   'all', 'skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools',
@@ -53,6 +54,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const parsed = categoryCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid category data', details: parsed.error.flatten() });

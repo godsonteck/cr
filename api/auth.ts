@@ -1,124 +1,106 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { users, adminSessions } from '../src/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { db } from '../src/db';
+import { adminSessions, users } from '../src/db/schema';
+import { signToken } from './_auth';
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1),
+  password: z.string().min(8),
 });
 
 const adminLoginSchema = z.object({
-  pin: z.string().min(3),
-  email: z.string().email().optional(),
+  email: z.string().email(),
+  pin: z.string().min(4),
   name: z.string().optional(),
   role: z.string().optional(),
 });
 
-function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+function stripPassword(user: typeof users.$inferSelect) {
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
 }
-
-function hashPin(pin: string): string {
-  return crypto.createHash('sha256').update(pin).digest('hex');
-}
-
-function generateSessionToken(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-const MASTER_PINS = ['cr2026', '1234', 'admin', 'admin2026', process.env.ADMIN_PIN].filter(Boolean) as string[];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { method, body, query } = req;
+  const { method, query, body } = req;
 
   try {
     if (method === 'POST') {
-      const { action } = query;
+      const action = typeof query.action === 'string' ? query.action : 'customer';
 
       if (action === 'admin') {
         const parsed = adminLoginSchema.safeParse(body);
         if (!parsed.success) {
-          return res.status(400).json({ error: 'Please enter a valid security passcode', details: parsed.error.flatten() });
+          return res.status(400).json({ error: 'Invalid admin credentials', details: parsed.error.flatten() });
         }
 
-        const { pin, email, name, role } = parsed.data;
-        const normalizedPin = pin.trim().toLowerCase();
-        const pinHash = hashPin(pin.trim());
-        const sessionToken = generateSessionToken();
+        const { email, pin } = parsed.data;
 
-        // 1. Check database first if available
-        try {
-          const conditions = [eq(adminSessions.pinHash, pinHash), eq(adminSessions.isActive, true)];
-          if (email) {
-            conditions.push(eq(adminSessions.email, email));
-          }
+        const [admin] = await db
+          .select()
+          .from(adminSessions)
+          .where(eq(adminSessions.email, email))
+          .limit(1);
 
-          const [admin] = await db.select().from(adminSessions).where(and(...conditions)).limit(1);
-          if (admin) {
-            await db
-              .update(adminSessions)
-              .set({ lastLoginAt: new Date() })
-              .where(eq(adminSessions.id, admin.id));
-
-            return res.status(200).json({
-              token: sessionToken,
-              admin: {
-                id: admin.id,
-                adminName: admin.adminName || name || 'CR Executive Admin',
-                adminRole: admin.adminRole || role || 'Super Admin',
-                email: admin.email || email || 'admin@crcosmetics.com',
-              },
-            });
-          }
-        } catch (dbErr) {
-          console.warn('Database admin session query fallback:', dbErr);
+        if (!admin || !admin.isActive) {
+          return res.status(401).json({ error: 'Invalid admin credentials' });
         }
 
-        // 2. Master passcodes verification
-        const isMasterValid = MASTER_PINS.some(p => p.toLowerCase() === normalizedPin);
-        if (isMasterValid) {
-          return res.status(200).json({
-            token: sessionToken,
-            admin: {
-              id: 'admin-master',
-              adminName: name?.trim() || 'CR Executive Admin',
-              adminRole: role || 'Super Admin',
-              email: email?.trim() || 'admin@crcosmetics.com',
-            },
-          });
+        const validPin = await bcrypt.compare(pin, admin.pinHash);
+        if (!validPin) {
+          return res.status(401).json({ error: 'Invalid admin credentials' });
         }
 
-        return res.status(401).json({ error: 'Invalid security passcode. Please check your admin credentials.' });
+        await db.update(adminSessions).set({ lastLoginAt: new Date() }).where(eq(adminSessions.id, admin.id));
+
+        const token = signToken({
+          sub: admin.id,
+          email: admin.email,
+          role: 'admin',
+          adminRole: admin.adminRole,
+          adminName: admin.adminName,
+        });
+
+        return res.status(200).json({
+          token,
+          admin: {
+            id: admin.id,
+            adminName: admin.adminName,
+            adminRole: admin.adminRole,
+            email: admin.email,
+          },
+        });
       }
 
-      // Regular user login
       const parsed = loginSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid credentials', details: parsed.error.flatten() });
       }
 
       const { email, password } = parsed.data;
-      const passwordHash = hashPassword(password);
+      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(and(eq(users.email, email), eq(users.passwordHash, passwordHash), eq(users.isActive, true)))
-        .limit(1);
-
-      if (!user) {
+      if (!user || !user.isActive) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      const sessionToken = generateSessionToken();
-      const { passwordHash: _, ...safeUser } = user;
+      const validPassword = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      const token = signToken({
+        sub: user.id,
+        email: user.email,
+        role: 'customer',
+        name: user.fullName,
+      });
 
       return res.status(200).json({
-        token: sessionToken,
-        user: safeUser,
+        token,
+        user: stripPassword(user),
       });
     }
 

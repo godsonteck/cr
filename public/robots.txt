@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://crcosmetics.com/sitemap.xml
+Sitemap: https://cosmeticse.vercel.app/sitemap.xml
 
 # Disallow admin and private routes
 Disallow: /admin/

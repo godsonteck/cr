@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
 
-const BASE_URL = process.env.APP_URL || 'https://crcosmetics.com';
+const BASE_URL = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cosmeticse.vercel.app');
 
 async function generateSitemap() {
   console.log('🗺️ Generating sitemap...');

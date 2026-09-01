@@ -7,9 +7,9 @@ import {
   promoCodes,
   adminSessions,
 } from '../src/db/schema';
-import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../src/data/products';
 import { eq } from 'drizzle-orm';
-import crypto from 'crypto';
+import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../src/data/products';
+import bcrypt from 'bcryptjs';
 
 const DEFAULT_STORE_SETTINGS = {
   storeName: 'CR Cosmetics & Essential',
@@ -61,10 +61,6 @@ const DEFAULT_PROMO_CODES = [
     expiryDate: '2026-12-31'
   }
 ];
-
-async function hashPin(pin: string): Promise<string> {
-  return crypto.createHash('sha256').update(pin).digest('hex');
-}
 
 async function seed() {
   console.log('🌱 Starting database seed...');
@@ -219,16 +215,30 @@ async function seed() {
     }
     console.log('✅ Promo codes seeded');
 
-    console.log('👤 Seeding admin session...');
-    const defaultPinHash = await hashPin('cr2026');
-    await db.insert(adminSessions).values({
-      adminName: 'CR Admin',
-      adminRole: 'Super Admin',
-      email: 'admin@crcosmetics.com',
-      pinHash: defaultPinHash,
-      isActive: true,
-    }).onConflictDoNothing();
-    console.log('✅ Admin session seeded');
+    const initialAdminPin = process.env.ADMIN_INITIAL_PIN?.trim();
+    if (initialAdminPin) {
+      console.log('👤 Seeding admin session from ADMIN_INITIAL_PIN...');
+      const defaultPinHash = await bcrypt.hash(initialAdminPin, 12);
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@crcosmetics.com';
+      
+      // Check if admin already exists
+      const [existingAdmin] = await db.select().from(adminSessions).where(eq(adminSessions.email, adminEmail)).limit(1);
+      
+      if (existingAdmin) {
+        console.log('ℹ️ Admin with email ' + adminEmail + ' already exists, skipping insert');
+      } else {
+        await db.insert(adminSessions).values({
+          adminName: 'CR Admin',
+          adminRole: 'Super Admin',
+          email: adminEmail,
+          pinHash: defaultPinHash,
+          isActive: true,
+        });
+        console.log('✅ Admin session seeded');
+      }
+    } else {
+      console.log('ℹ️ No ADMIN_INITIAL_PIN provided; skipping admin session seed. Create the first admin with a secure PIN in the database or via the admin setup flow.');
+    }
 
     console.log('🎉 Database seed completed successfully!');
   } catch (error) {

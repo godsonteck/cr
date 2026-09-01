@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { promoCodes } from '../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const promoCreateSchema = z.object({
   id: z.string().optional(),
@@ -96,6 +97,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const parsed = promoCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid promo code data', details: parsed.error.flatten() });
@@ -110,6 +114,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }).returning();
 
       return res.status(201).json(newPromo);
+    }
+
+    if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
+      const { id } = query;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'Promo code ID is required' });
+      }
+
+      const parsed = z.object({
+        isActive: z.boolean().optional(),
+        discountType: z.enum(['percentage', 'fixed']).optional(),
+        discountValue: z.number().positive().optional(),
+        minSpend: z.number().min(0).optional(),
+        expiryDate: z.string().datetime().optional().nullable(),
+        code: z.string().min(1).max(50).optional(),
+      }).safeParse(body);
+
+      if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid promo update', details: parsed.error.flatten() });
+      }
+
+      const updateData = {
+        ...parsed.data,
+        discountValue: parsed.data.discountValue !== undefined ? parsed.data.discountValue.toString() : undefined,
+        minSpend: parsed.data.minSpend !== undefined ? parsed.data.minSpend.toString() : undefined,
+        expiryDate: parsed.data.expiryDate !== undefined ? (parsed.data.expiryDate ? new Date(parsed.data.expiryDate) : null) : undefined,
+        updatedAt: new Date(),
+      };
+
+      const [updated] = await db.update(promoCodes).set(updateData).where(eq(promoCodes.id, id)).returning();
+      if (!updated) {
+        return res.status(404).json({ error: 'Promo code not found' });
+      }
+      return res.status(200).json(updated);
+    }
+
+    if (method === 'DELETE') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
+      const { id } = query;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'Promo code ID is required' });
+      }
+
+      const [deleted] = await db.delete(promoCodes).where(eq(promoCodes.id, id)).returning({ id: promoCodes.id });
+      if (!deleted) {
+        return res.status(404).json({ error: 'Promo code not found' });
+      }
+      return res.status(200).json({ success: true, id: deleted.id });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

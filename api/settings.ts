@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { storeSettings } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const settingUpdateSchema = z.object({
   key: z.string().min(1).max(100),
@@ -29,6 +30,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const parsed = settingUpdateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid setting data', details: parsed.error.flatten() });
@@ -46,6 +50,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const { key } = query;
       if (!key || typeof key !== 'string') {
         return res.status(400).json({ error: 'Setting key is required' });

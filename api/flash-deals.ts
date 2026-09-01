@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { flashDeals } from '../src/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const flashDealCreateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -50,6 +51,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const parsed = flashDealCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid flash deal data', details: parsed.error.flatten() });
@@ -61,6 +65,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }).returning();
 
       return res.status(201).json(newDeal);
+    }
+
+    if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
+      const { id } = query;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'Flash deal ID is required' });
+      }
+
+      const parsed = z.object({
+        isActive: z.boolean().optional(),
+        title: z.string().min(1).max(200).optional(),
+        discountPercentage: z.number().int().min(1).max(100).optional(),
+      }).partial().safeParse(body);
+
+      if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid flash deal update', details: parsed.error.flatten() });
+      }
+
+      const [updated] = await db.update(flashDeals).set({ ...parsed.data, updatedAt: new Date() }).where(eq(flashDeals.id, id)).returning();
+      if (!updated) {
+        return res.status(404).json({ error: 'Flash deal not found' });
+      }
+      return res.status(200).json(updated);
+    }
+
+    if (method === 'DELETE') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
+      const { id } = query;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'Flash deal ID is required' });
+      }
+
+      const [deleted] = await db.delete(flashDeals).where(eq(flashDeals.id, id)).returning({ id: flashDeals.id });
+      if (!deleted) {
+        return res.status(404).json({ error: 'Flash deal not found' });
+      }
+      return res.status(200).json({ success: true, id: deleted.id });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

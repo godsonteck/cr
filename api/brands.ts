@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { brands } from '../src/db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const brandCreateSchema = z.object({
   name: z.string().min(1).max(100),
@@ -37,6 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const parsed = brandCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid brand data', details: parsed.error.flatten() });

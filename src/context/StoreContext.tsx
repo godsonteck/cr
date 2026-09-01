@@ -778,23 +778,32 @@ const addOrder = async (order: Order) => {
 
   // Admin Auth Actions
   const loginAdmin = async (pin: string, name = 'Store Administrator', role: AdminSession['adminRole'] = 'Super Admin'): Promise<boolean> => {
-    const clean = pin.trim().toLowerCase();
-    const validPins = ['cr2026', '1234', 'admin', 'admin2026', 'cr2025'];
-    
-    if (validPins.includes(clean) || clean.length >= 3) {
-      const sessionData: AdminSession = {
-        isLoggedIn: true,
-        adminName: name,
-        adminRole: role,
+    try {
+      const result = await api.post<{ token: string; admin: { id: string; adminName: string; adminRole: string; email: string } }>('/auth?action=admin', {
         email: 'admin@crcosmetics.com',
-      };
-      localStorage.setItem('auth_token', 'session_' + Date.now());
-      localStorage.setItem('admin_session', JSON.stringify(sessionData));
-      setAdminSession(sessionData);
-      return true;
-    }
+        pin,
+        name,
+        role,
+      });
 
-    return false;
+      localStorage.setItem('auth_token', result.token);
+      localStorage.setItem('admin_session', JSON.stringify({
+        isLoggedIn: true,
+        adminName: result.admin.adminName,
+        adminRole: result.admin.adminRole as AdminSession['adminRole'],
+        email: result.admin.email,
+      }));
+      setAdminSession({
+        isLoggedIn: true,
+        adminName: result.admin.adminName,
+        adminRole: result.admin.adminRole as AdminSession['adminRole'],
+        email: result.admin.email,
+      });
+      return true;
+    } catch (error) {
+      console.error('Admin login failed:', error);
+      return false;
+    }
   };
 
   const logoutAdmin = async () => {

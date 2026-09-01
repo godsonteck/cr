@@ -3,6 +3,7 @@ import { db } from '../src/db';
 import { reviews, products } from '../src/db/schema';
 import { eq, desc, and, sql, avg, count } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAdmin } from './_auth';
 
 const reviewCreateSchema = z.object({
   productId: z.string().uuid(),
@@ -112,6 +113,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const { id } = query;
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ error: 'Review ID is required' });
@@ -157,6 +161,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'DELETE') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+
       const { id } = query;
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ error: 'Review ID is required' });
