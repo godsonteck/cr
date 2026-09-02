@@ -865,10 +865,12 @@ export function AdminSettingsScreen() {
   const { showAlert } = useAlert();
   const [form, setForm] = useState<StoreSettings>(store.storeSettings);
   const [isSaving, setIsSaving] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>(form.storeLogo || '');
 
   // Sync form when store updates
   React.useEffect(() => {
     setForm(store.storeSettings);
+    setLogoPreview(store.storeSettings.storeLogo || '');
   }, [store.storeSettings]);
 
   const update = <K extends keyof StoreSettings>(key: K, value: StoreSettings[K]) =>
@@ -876,6 +878,17 @@ export function AdminSettingsScreen() {
 
   const updateNested = <K extends 'homepageSections' | 'pageVisibility'>(key: K, child: keyof StoreSettings[K], value: boolean) =>
     setForm(prev => ({ ...prev, [key]: { ...prev[key], [child]: value } }));
+
+  const handleLogoUpload = async (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setLogoPreview(base64String);
+      update('storeLogo', base64String);
+      showAlert('Logo selected - save settings to apply', 'info');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -916,6 +929,60 @@ export function AdminSettingsScreen() {
       />
 
       <form onSubmit={save} className="space-y-5 pb-32">
+        {/* STORE LOGO */}
+        <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100 mb-1">Store logo</h2>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mb-4">Upload your store's logo image. Appears everywhere on website and admin.</p>
+          <div className="flex items-start gap-6">
+            {/* Logo Preview */}
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 rounded-xl border-2 border-dashed border-stone-300 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] flex items-center justify-center overflow-hidden">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain p-2" />
+                ) : (
+                  <div className="text-center">
+                    <div className="text-2xl">📸</div>
+                    <p className="text-xs text-stone-400 mt-1">No logo</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Upload */}
+            <div className="flex-1">
+              <label className="block">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleLogoUpload(file);
+                  }}
+                  className="hidden"
+                />
+                <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1E1719] text-white rounded-lg font-medium text-sm hover:bg-[#33282C] transition-colors cursor-pointer">
+                  <Plus className="w-4 h-4" />
+                  Choose image
+                </span>
+              </label>
+              <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+                PNG, JPG, GIF up to 5MB. Square images work best (1:1).
+              </p>
+              {logoPreview && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogoPreview('');
+                    update('storeLogo', '');
+                  }}
+                  className="mt-3 text-xs text-red-600 dark:text-red-400 hover:underline font-medium"
+                >
+                  Remove logo
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* BANNER ANNOUNCEMENT */}
         <div className={`rounded-2xl border-2 p-6 ${
           form.announcementVisible

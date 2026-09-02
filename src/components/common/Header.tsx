@@ -84,7 +84,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
           <Link to="/" className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
             <div className="shrink-0 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
-              <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-8 object-contain sm:h-9 sm:w-auto" />
+              <img 
+                src={storeSettings.storeLogo || logoImg} 
+                alt="CR Cosmetics & Essentials" 
+                className="h-8 w-8 object-contain sm:h-9 sm:w-auto" 
+                onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
+              />
             </div>
             <div className="hidden min-w-0 items-center sm:flex sm:flex-col sm:leading-none">
               <span className="truncate font-serif text-lg font-bold tracking-[-0.04em] text-[var(--text-primary)] sm:text-xl">
@@ -176,7 +181,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           <div className="relative z-[110] flex h-full w-[min(86vw,23rem)] flex-col overflow-y-auto border-r border-[var(--border-color)] bg-[var(--bg-main)] p-5 shadow-2xl animate-menu-in no-scrollbar dark:bg-[#141211]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-8 rounded-lg object-contain" />
+                <img 
+                  src={storeSettings.storeLogo || logoImg} 
+                  alt="CR Cosmetics & Essentials" 
+                  className="h-8 w-8 rounded-lg object-contain" 
+                  onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
+                />
                 <span className="font-serif text-lg font-bold text-[var(--text-primary)]">{storeSettings.storeName}</span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-full p-2 text-[var(--text-muted)] hover:bg-[var(--bg-soft)]" aria-label="Close menu">

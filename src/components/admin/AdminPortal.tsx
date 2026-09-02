@@ -16,9 +16,13 @@ import {
   Search,
   UserCheck,
   ChevronRight,
+  Plus,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AdminLoginView } from './AdminLoginView';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminProductsScreen } from './screens/AdminProductsScreen';
@@ -94,6 +98,7 @@ export const AdminPortal: React.FC = () => {
   const store = useStore();
   const { showAlert } = useAlert();
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   // Default sidebar closed on mobile, open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -189,39 +194,43 @@ export const AdminPortal: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-[#130f10] flex">
+    <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
       {/* Sidebar */}
       <div
-        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#1a1316] border-r border-stone-200 dark:border-[#2e2428] transition-all duration-300 flex flex-col ${
-          sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-[72px] md:translate-x-0'
+        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#131010] border-r border-stone-200 dark:border-[#1f1a1a] transition-all duration-300 flex flex-col ${
+          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-20 md:translate-x-0'
         }`}
       >
-        {/* Sidebar inner — hidden when collapsed on mobile */}
+        {/* Sidebar inner */}
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Logo */}
-          <div className="px-4 py-5 border-b border-stone-200 dark:border-[#2e2428] flex items-center gap-3 min-w-0">
-            <img
-              src={logoImg}
-              alt="CR Cosmetics"
-              className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
-            />
+          {/* Store Logo & Branding */}
+          <div className="px-4 py-6 border-b border-stone-200 dark:border-[#1f1a1a] flex items-center gap-3 min-w-0">
+            <div className="flex-shrink-0 rounded-lg border border-stone-200 dark:border-[#1f1a1a] bg-white dark:bg-[#1a1515] p-2">
+              <img
+                src={store.storeSettings.storeLogo || logoImg}
+                alt={store.storeSettings.storeName}
+                className="w-8 h-8 rounded object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
+              />
+            </div>
             {sidebarOpen && (
-              <div className="min-w-0">
-                <p className="font-bold text-stone-900 dark:text-stone-100 text-sm truncate leading-tight">CR Admin</p>
-                <p className="text-[10px] font-medium text-stone-400 uppercase tracking-wider truncate">Store tools</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-stone-900 dark:text-stone-50 text-sm truncate">
+                  {store.storeSettings.storeName}
+                </p>
+                <p className="text-xs font-medium text-stone-500 dark:text-stone-500 uppercase tracking-wider truncate">Admin panel</p>
               </div>
             )}
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
+          <nav className="flex-1 overflow-y-auto py-6 px-2 space-y-1">
             {navGroups.map(group => {
               const groupItems = navItems.filter(item => item.group === group.key);
               return (
-                <div key={group.key} className="mb-2">
-                  {/* Group label — only visible when sidebar is expanded */}
+                <div key={group.key} className="mb-3">
                   {sidebarOpen && (
-                    <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-600">
+                    <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-600">
                       {group.label}
                     </p>
                   )}
@@ -233,19 +242,14 @@ export const AdminPortal: React.FC = () => {
                         key={item.id}
                         onClick={() => handleTabChange(item.id)}
                         title={!sidebarOpen ? item.label : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-left font-medium text-sm ${
                           isActive
-                            ? 'bg-[#1E1719] text-white shadow-sm'
-                            : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#2a2024]'
-                        } ${!sidebarOpen ? 'justify-center' : ''}`}
+                            ? 'bg-[#1E1719] text-white shadow-md'
+                            : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#1f1a1a]'
+                        } ${!sidebarOpen ? 'justify-center px-2' : ''}`}
                       >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
-                        {sidebarOpen && (
-                          <span className="truncate text-sm font-medium">{item.label}</span>
-                        )}
-                        {sidebarOpen && isActive && (
-                          <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-60" />
-                        )}
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        {sidebarOpen && <span className="truncate">{item.label}</span>}
                       </button>
                     );
                   })}
@@ -254,22 +258,22 @@ export const AdminPortal: React.FC = () => {
             })}
           </nav>
 
-          {/* Logout */}
-          <div className="border-t border-stone-200 dark:border-[#2e2428] p-2">
+          {/* Logout Button */}
+          <div className="border-t border-stone-200 dark:border-[#1f1a1a] p-3 space-y-2">
             {confirmLogout ? (
-              <div className={`flex items-center gap-1 ${!sidebarOpen ? 'flex-col' : ''}`}>
+              <div className={`flex gap-1.5 ${!sidebarOpen ? 'flex-col' : ''}`}>
                 <button
                   onClick={handleLogout}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-red-600 text-white text-xs font-bold transition-colors hover:bg-red-700"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg bg-red-600 text-white text-xs font-bold transition-colors hover:bg-red-700"
                 >
-                  <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
-                  {sidebarOpen && <span>Confirm</span>}
+                  <LogOut className="w-4 h-4" />
+                  {sidebarOpen && <span>Logout</span>}
                 </button>
                 <button
                   onClick={() => setConfirmLogout(false)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 text-xs font-bold transition-colors hover:bg-stone-100 dark:hover:bg-[#2a2024]"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border border-stone-200 dark:border-[#1f1a1a] text-stone-600 dark:text-stone-400 text-xs font-bold transition-colors hover:bg-stone-100 dark:hover:bg-[#1f1a1a]"
                 >
-                  <X className="w-3.5 h-3.5 flex-shrink-0" />
+                  <X className="w-4 h-4" />
                   {sidebarOpen && <span>Cancel</span>}
                 </button>
               </div>
@@ -277,8 +281,8 @@ export const AdminPortal: React.FC = () => {
               <button
                 onClick={handleLogout}
                 title={!sidebarOpen ? 'Logout' : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-stone-600 dark:text-stone-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-400 transition-all text-sm font-medium ${
-                  !sidebarOpen ? 'justify-center' : ''
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-700 dark:hover:text-red-400 transition-all text-sm font-medium ${
+                  !sidebarOpen ? 'justify-center px-2' : ''
                 }`}
               >
                 <LogOut className="w-4 h-4 flex-shrink-0" />
@@ -292,66 +296,41 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <div className="bg-white dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428] px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-4 min-w-0">
             {/* Sidebar toggle */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-[#2a2024] rounded-lg transition-colors flex-shrink-0"
-              aria-label="Toggle sidebar"
+              className="p-2 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] rounded-lg transition-colors flex-shrink-0 md:hidden"
+              title="Toggle sidebar"
             >
-              {sidebarOpen ? <X className="w-4 h-4 text-stone-600 dark:text-stone-400" /> : <Menu className="w-4 h-4 text-stone-600 dark:text-stone-400" />}
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs text-stone-400 dark:text-stone-600 hidden sm:inline">Store</span>
-              <ChevronRight className="w-3 h-3 text-stone-300 dark:text-stone-700 hidden sm:inline flex-shrink-0" />
-              <span className="text-sm font-semibold text-stone-900 dark:text-stone-100 truncate">
-                {tabLabels[currentTab]}
-              </span>
-            </div>
+            {/* Page Title */}
+            <h2 className="text-xl font-bold text-stone-900 dark:text-stone-50 truncate">
+              {tabLabels[currentTab] || 'Dashboard'}
+            </h2>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Quick Search */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="hidden md:flex items-center gap-2 pl-3 pr-4 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 text-xs transition-colors"
-            >
-              <Search className="w-4 h-4 text-stone-400" />
-              <span>Search...</span>
-            </button>
-
-            {/* Notifications */}
-            <button
-              onClick={() => handleTabChange('notifications')}
-              aria-label="Open alerts and messages"
-              className="p-2 hover:bg-stone-100 dark:hover:bg-[#2a2024] rounded-xl transition-colors relative"
-            >
-              <Bell className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-              {unreadNotifications > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-              )}
-            </button>
-
-            {/* User Profile */}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-stone-200 dark:border-[#2e2428]">
-              <div className="hidden sm:block text-right">
-                <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 leading-tight">
-                  {store.adminSession.adminName}
-                </p>
-                <p className="text-[10px] text-stone-400 dark:text-stone-600 leading-tight">
-                  {store.adminSession.adminRole}
-                </p>
-              </div>
+          {/* Right Actions */}
+          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+            {currentTab === 'products' && (
               <button
-                type="button"
-                onClick={() => handleTabChange('accounts')}
-                aria-label="Open account settings"
-                className="w-8 h-8 rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] font-bold text-sm flex-shrink-0 hover:ring-2 hover:ring-[#B27A52] transition-all"
+                onClick={handleAddProduct}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#1E1719] text-white rounded-lg font-medium text-sm hover:bg-[#33282C] transition-colors"
               >
-                {store.adminSession.adminName.charAt(0).toUpperCase()}
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add product</span>
+              </button>
+            )}
+            <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1f1a1a] rounded-lg p-1">
+              <button
+                onClick={toggleTheme}
+                className="p-2 hover:bg-white dark:hover:bg-[#2a2024] rounded transition-colors"
+                title="Toggle dark mode"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
           </div>
