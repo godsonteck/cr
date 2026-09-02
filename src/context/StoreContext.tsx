@@ -590,7 +590,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      const apiResult = await api.post<Product>('/products', productData);
+      const apiResult = await api.post<Product>('/products', { ...productData, id: newId });
       setProducts(prev => [apiResult, ...prev]);
       await fetchProducts();
       return apiResult;
@@ -829,7 +829,10 @@ const addOrder = async (order: Order) => {
   const updateStoreSettings = async (updates: Partial<StoreSettings>) => {
     setStoreSettings(prev => ({ ...prev, ...updates }));
     try {
-      await api.patch('/settings', updates);
+      for (const [key, value] of Object.entries(updates)) {
+        await api.post('/settings', { key, value });
+      }
+      await fetchSettings();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -861,6 +864,14 @@ const addOrder = async (order: Order) => {
           adminRole: result.admin.adminRole as AdminSession['adminRole'],
           email: result.admin.email,
         });
+        // Refresh all data after login
+        await Promise.allSettled([
+          fetchProducts(),
+          fetchOrders(),
+          fetchSettings(),
+          fetchPromoCodes(),
+          fetchFlashDeals(),
+        ]);
         return true;
       }
     } catch {
@@ -898,6 +909,14 @@ const addOrder = async (order: Order) => {
       localStorage.setItem('auth_token', mockToken);
       localStorage.setItem('admin_session', JSON.stringify(sessionData));
       setAdminSession(sessionData);
+      // Refresh data after local login
+      await Promise.allSettled([
+        fetchProducts(),
+        fetchOrders(),
+        fetchSettings(),
+        fetchPromoCodes(),
+        fetchFlashDeals(),
+      ]);
       return true;
     }
 
