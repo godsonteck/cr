@@ -48,6 +48,16 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
+      {/* Announcement Banner */}
+      {storeSettings.announcementVisible && storeSettings.announcementText && (
+        <div 
+          className="w-full px-3 py-2 text-center text-xs font-semibold text-white sm:px-4 sm:py-3"
+          style={{ backgroundColor: storeSettings.announcementBg || '#B27A52' }}
+        >
+          {storeSettings.announcementText}
+        </div>
+      )}
+
       {/* Category pills - sticky scrollable bar */}
       {homepageSections.categories && categoryPills.length > 0 && (
         <div className="sticky top-[4.25rem] z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur sm:top-[4.7rem] sm:px-4">
@@ -194,11 +204,22 @@ export const HomePage: React.FC = () => {
 };
 
 export const BeautyDepartmentPage: React.FC = () => {
-  const { products } = useStore();
+  const { products, storeSettings } = useStore();
   const beautyProducts = products.filter(p => p.isPublished !== false && p.department === 'beauty');
 
   return (
-    <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
+      {/* Announcement Banner */}
+      {storeSettings.announcementVisible && storeSettings.announcementText && (
+        <div 
+          className="w-full px-3 py-2 text-center text-xs font-semibold text-white sm:px-4 sm:py-3"
+          style={{ backgroundColor: storeSettings.announcementBg || '#B27A52' }}
+        >
+          {storeSettings.announcementText}
+        </div>
+      )}
+
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
       <div className="bg-[#1C1817] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
         <div className="space-y-2 max-w-xl">
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#C86D51]">Department 01</span>
@@ -221,16 +242,28 @@ export const BeautyDepartmentPage: React.FC = () => {
           <ProductCard key={p.id} product={p} mode="beauty" />
         ))}
       </div>
+      </div>
     </div>
   );
 };
 
 export const GroceryDepartmentPage: React.FC = () => {
-  const { products } = useStore();
+  const { products, storeSettings } = useStore();
   const groceryProducts = products.filter(p => p.isPublished !== false && p.department === 'groceries');
 
   return (
-    <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
+      {/* Announcement Banner */}
+      {storeSettings.announcementVisible && storeSettings.announcementText && (
+        <div 
+          className="w-full px-3 py-2 text-center text-xs font-semibold text-white sm:px-4 sm:py-3"
+          style={{ backgroundColor: storeSettings.announcementBg || '#B27A52' }}
+        >
+          {storeSettings.announcementText}
+        </div>
+      )}
+
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
       <div className="bg-[#4A5D4E] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
         <div className="space-y-2 max-w-xl">
           <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Department 02</span>
@@ -251,6 +284,7 @@ export const GroceryDepartmentPage: React.FC = () => {
         {groceryProducts.map(p => (
           <ProductCard key={p.id} product={p} mode="grocery" />
         ))}
+      </div>
       </div>
     </div>
   );
