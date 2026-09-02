@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Product, CategoryType, DepartmentType } from '../../types';
+import { Product, CategoryType, DepartmentType, ProductOption, ProductVariant } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { 
@@ -41,6 +41,8 @@ const BEAUTY_IMAGE_PRESETS = [
   { label: 'Pure Vegetable Cooking Oil', url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80' }
 ];
 
+type VariantDraft = ProductVariant & { optionValues: Record<string, string> };
+
 export const ProductModal: React.FC<ProductModalProps> = ({
   isOpen,
   onClose,
@@ -74,6 +76,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [inStock, setInStock] = useState(true);
   const [isPublished, setIsPublished] = useState(true);
   const [stockCount, setStockCount] = useState(50);
+  const [options, setOptions] = useState<ProductOption[]>([]);
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [origin, setOrigin] = useState('Made in Canada');
   
   // Details
@@ -105,6 +109,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setInStock(productToEdit.inStock);
       setIsPublished(productToEdit.isPublished !== false);
       setStockCount(productToEdit.stockCount || 20);
+      setOptions(productToEdit.options || []);
+      setVariants((productToEdit.variants || []).map(variant => ({
+        ...variant,
+        optionValues: variant.options || {},
+      })));
       setOrigin(productToEdit.origin || '');
       setHowToUse(productToEdit.details?.howToUse || '');
       setIngredients(productToEdit.details?.ingredients || '');
@@ -127,6 +136,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setInStock(true);
       setIsPublished(true);
       setStockCount(40);
+      setOptions([]);
+      setVariants([]);
       setOrigin('');
       setHowToUse('Apply gently on clean skin morning and evening.');
       setIngredients('Natural plant extracts and vitamins.');
@@ -196,6 +207,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setHighlights(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const addOption = () => setOptions(prev => [...prev, { name: '', values: [] }]);
+  const addVariant = () => setVariants(prev => [...prev, {
+    id: `variant-${Date.now()}-${prev.length}`,
+    name: '',
+    price: Number(price) || 0,
+    inStock: true,
+    stockCount: 0,
+    optionValues: Object.fromEntries(options.map(option => [option.name, ''])),
+  }]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -223,6 +244,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       inStock,
       isPublished,
       stockCount: Number(stockCount),
+      options: options.filter(option => option.name.trim() && option.values.length > 0),
+      variants: variants.map(({ optionValues, ...variant }) => ({
+        ...variant,
+        name: Object.values(optionValues).filter(Boolean).join(' / ') || variant.name,
+        options: optionValues,
+      })),
       origin: origin.trim(),
       rating: productToEdit ? productToEdit.rating : 5.0,
       reviewCount: productToEdit ? productToEdit.reviewCount : 0,
@@ -515,6 +542,35 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-4 rounded-2xl border border-[#E8E2D8] bg-white p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-stone-900 text-sm">Options and price variations</h3>
+                    <p className="mt-1 text-[11px] text-stone-500">Add options such as Color, Size, or Type / Range, then set a price and stock count for each combination.</p>
+                  </div>
+                  <button type="button" onClick={addOption} className="flex shrink-0 items-center gap-1 rounded-lg bg-stone-900 px-3 py-2 text-[10px] font-bold text-white"><Plus className="h-3 w-3" /> Add option</button>
+                </div>
+
+                {options.map((option, index) => (
+                  <div key={index} className="grid grid-cols-[1fr_1.5fr_auto] items-end gap-2">
+                    <label className="text-[10px] font-bold text-stone-600">Option name<input value={option.name} onChange={e => setOptions(prev => prev.map((item, i) => i === index ? { ...item, name: e.target.value } : item))} placeholder="Color, Size, Type" className="mt-1 w-full rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-xs text-stone-900" /></label>
+                    <label className="text-[10px] font-bold text-stone-600">Values, separated by commas<input value={option.values.join(', ')} onChange={e => setOptions(prev => prev.map((item, i) => i === index ? { ...item, values: e.target.value.split(',').map(value => value.trim()).filter(Boolean) } : item))} placeholder="Red, Blue, Black" className="mt-1 w-full rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-xs text-stone-900" /></label>
+                    <button type="button" onClick={() => setOptions(prev => prev.filter((_, i) => i !== index))} className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600" aria-label="Remove option"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                ))}
+
+                {options.length > 0 && <div className="space-y-3 border-t border-stone-100 pt-4">
+                  <div className="flex items-center justify-between"><h4 className="text-xs font-bold text-stone-800">Variant combinations</h4><button type="button" onClick={addVariant} className="flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900"><Plus className="h-3 w-3" /> Add combination</button></div>
+                  {variants.map((variant, index) => <div key={variant.id} className="rounded-xl border border-stone-200 bg-stone-50 p-3"><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {options.map(option => <label key={option.name} className="text-[10px] font-bold text-stone-600">{option.name}<select value={variant.optionValues[option.name] || ''} onChange={e => setVariants(prev => prev.map((item, i) => i === index ? { ...item, optionValues: { ...item.optionValues, [option.name]: e.target.value } } : item))} className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs text-stone-900"><option value="">Choose</option>{option.values.map(value => <option key={value} value={value}>{value}</option>)}</select></label>)}
+                    <label className="text-[10px] font-bold text-stone-600">Price (GHS)<input type="number" min="0" step="0.01" value={variant.price} onChange={e => setVariants(prev => prev.map((item, i) => i === index ? { ...item, price: Number(e.target.value) || 0 } : item))} className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs font-bold text-stone-900" /></label>
+                    <label className="text-[10px] font-bold text-stone-600">Stock<input type="number" min="0" value={variant.stockCount || 0} onChange={e => setVariants(prev => prev.map((item, i) => i === index ? { ...item, stockCount: Number(e.target.value) || 0, inStock: Number(e.target.value) > 0 } : item))} className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs font-bold text-stone-900" /></label>
+                    <button type="button" onClick={() => setVariants(prev => prev.filter((_, i) => i !== index))} className="self-end rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600" aria-label="Remove combination"><Trash2 className="h-4 w-4" /></button>
+                  </div></div>)}
+                  {variants.length === 0 && <p className="text-[11px] text-stone-500">No combinations yet. Add one for each sellable variation.</p>}
+                </div>}
               </div>
 
               {/* Stock Inventory */}

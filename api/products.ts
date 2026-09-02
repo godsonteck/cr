@@ -43,6 +43,7 @@ const productCreateSchema = z.object({
   inStock: z.boolean().default(true),
   isPublished: z.boolean().default(true),
   stockCount: z.number().int().min(0).default(0),
+  options: z.array(z.object({ name: z.string().min(1), values: z.array(z.string().min(1)).min(1) })).default([]),
   rating: z.string().default('5.0'),
   reviewCount: z.number().int().min(0).default(0),
   origin: z.string().max(100).optional(),
@@ -58,6 +59,8 @@ const productCreateSchema = z.object({
     price: z.number(),
     originalPrice: z.number().optional(),
     inStock: z.boolean(),
+    options: z.record(z.string()).optional(),
+    stockCount: z.number().int().min(0).optional(),
   })).default([]),
   details: z.object({
     howToUse: z.string().optional(),
@@ -85,6 +88,7 @@ const productUpdateSchema = z.object({
   inStock: z.boolean().optional(),
   isPublished: z.boolean().optional(),
   stockCount: z.number().int().min(0).optional(),
+  options: z.array(z.object({ name: z.string().min(1), values: z.array(z.string().min(1)).min(1) })).optional(),
   rating: z.string().optional(),
   reviewCount: z.number().int().min(0).optional(),
   origin: z.string().max(100).optional().nullable(),
@@ -100,6 +104,8 @@ const productUpdateSchema = z.object({
     price: z.number(),
     originalPrice: z.number().optional(),
     inStock: z.boolean(),
+    options: z.record(z.string()).optional(),
+    stockCount: z.number().int().min(0).optional(),
   })).default([]).optional(),
   details: z.object({
     howToUse: z.string().optional(),

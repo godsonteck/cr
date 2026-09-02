@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Heart,
   ShoppingBag,
@@ -26,6 +26,7 @@ export const ProductDetailPage: React.FC = () => {
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   const product = useMemo(() => {
@@ -35,6 +36,7 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
+  const [selectedOptionValues, setSelectedOptionValues] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'description' | 'details' | 'shipping'>('description');
 
   const galleryImages = product?.images?.length ? product.images : [product?.image].filter(Boolean) as string[];
@@ -171,7 +173,23 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {product.variants && product.variants.length > 0 && (
+          {product.options && product.options.length > 0 ? product.options.map(option => (
+            <div key={option.name} className="space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Choose {option.name}</p>
+              <div className="flex flex-wrap gap-2">
+                {option.values.map(value => {
+                  const isSelected = selectedOptionValues[option.name] === value;
+                  const matchingVariant = product.variants?.find(variant => Object.entries({ ...selectedOptionValues, [option.name]: value }).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
+                  return <button key={value} type="button" onClick={() => {
+                    const nextValues = { ...selectedOptionValues, [option.name]: value };
+                    setSelectedOptionValues(nextValues);
+                    const nextVariant = product.variants?.find(variant => Object.entries(nextValues).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
+                    if (nextVariant) setSelectedVariant(nextVariant);
+                  }} disabled={matchingVariant?.inStock === false} className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${isSelected ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--text-primary)]' : 'border-[var(--border-color)] bg-transparent text-[var(--text-primary)]'} disabled:cursor-not-allowed disabled:opacity-50`}>{value}</button>;
+                })}
+              </div>
+            </div>
+          )) : product.variants && product.variants.length > 0 && (
             <div className="space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Choose option</p>
               <div className="flex flex-wrap gap-2">
@@ -234,9 +252,16 @@ export const ProductDetailPage: React.FC = () => {
             <Button
               variant="primary"
               size="lg"
+              onClick={async () => {
+                if (!product.inStock || activeVariant?.inStock === false) return;
+                await addToCart(product, quantity, activeVariant?.name, activeVariant);
+                navigate('/checkout');
+              }}
+              disabled={!product.inStock || activeVariant?.inStock === false}
               className="w-full rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
             >
-              Buy now
+              <ShoppingBag className="h-4 w-4" />
+              <span>{!product.inStock || activeVariant?.inStock === false ? 'Sold out' : 'Buy now'}</span>
             </Button>
           </div>
 

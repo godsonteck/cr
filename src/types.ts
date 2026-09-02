@@ -155,9 +155,16 @@ export type RoutineStep = 'cleanse' | 'treat' | 'hydrate' | 'protect';
 export interface ProductVariant {
   id: string;
   name: string; // e.g. "30ml", "100ml", "5kg", "10kg"
+  options?: Record<string, string>;
   price: number;
   originalPrice?: number;
   inStock: boolean;
+  stockCount?: number;
+}
+
+export interface ProductOption {
+  name: string;
+  values: string[];
 }
 
 export interface Product {
@@ -180,6 +187,7 @@ export interface Product {
   /** Admin-only publication control. Unpublished products never appear in the customer storefront. */
   isPublished?: boolean;
   stockCount: number;
+  options?: ProductOption[];
   rating: number;
   reviewCount: number;
   origin?: string;
