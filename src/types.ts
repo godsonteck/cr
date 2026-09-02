@@ -255,9 +255,18 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phone: string;
+  role?: 'customer' | 'super_admin' | 'admin' | 'manager';
   savedAddresses: ShippingAddress[];
   orders: Order[];
   savedItemIds: string[];
+}
+
+export interface AdminAccount {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: 'super_admin' | 'admin' | 'manager';
 }
 
 export interface InventoryMovement {

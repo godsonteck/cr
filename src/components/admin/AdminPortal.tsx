@@ -49,6 +49,7 @@ const navItems: NavItem[] = [
   { id: 'orders', label: 'Orders', icon: ClipboardList, group: 'shop' },
   { id: 'inventory', label: 'Inventory', icon: Truck, group: 'shop' },
   { id: 'customers', label: 'Customers', icon: Users, group: 'shop' },
+  { id: 'accounts', label: 'Accounts', icon: UserCheck, group: 'system' },
   { id: 'promos', label: 'Promotions', icon: Tag, group: 'shop' },
   { id: 'flash', label: 'Flash Deals', icon: Flame, group: 'shop' },
   { id: 'notifications', label: 'Alerts & Messages', icon: Bell, group: 'system' },
@@ -213,6 +214,7 @@ export const AdminPortal: React.FC = () => {
             {currentTab === 'orders' && <AdminOrdersScreen onViewOrder={handleViewOrder} />}
             {currentTab === 'inventory' && <AdminInventoryScreen />}
             {currentTab === 'customers' && <AdminCustomersScreen />}
+            {currentTab === 'accounts' && <AdminAccountsManagementScreen />}
             {currentTab === 'promos' && <AdminPromotionsScreen />}
             {currentTab === 'flash' && <AdminFlashDealsScreen />}
             {currentTab === 'notifications' && <AdminNotificationsScreen />}

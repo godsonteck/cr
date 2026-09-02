@@ -10,6 +10,7 @@ import {
   CategoryType,
   RiderTrackingInfo,
   FlashDeal,
+  AdminAccount,
 } from '../types';
 import { api } from '../lib/api';
 import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
@@ -71,10 +72,15 @@ interface StoreContextType {
   updateStoreSettings: (updates: Partial<StoreSettings>) => Promise<void>;
 
   adminSession: AdminSession;
+  adminAccounts: AdminAccount[];
   loadingAdmin: boolean;
   loginAdmin: (pin: string, name?: string, role?: AdminSession['adminRole']) => Promise<boolean>;
   logoutAdmin: () => Promise<void>;
   switchAdminRole: (role: AdminSession['adminRole']) => Promise<void>;
+  fetchAdminAccounts: () => Promise<void>;
+  addAdminAccount: (account: Omit<AdminAccount, 'id'>) => Promise<AdminAccount>;
+  updateAdminAccount: (id: string, updates: Partial<AdminAccount>) => Promise<void>;
+  deleteAdminAccount: (id: string) => Promise<void>;
 
   flashDeals: FlashDeal[];
   loadingFlashDeals: boolean;
@@ -90,13 +96,13 @@ interface StoreContextType {
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeName: 'CR Cosmetics & Essentials',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
-  heroHeadline: 'Luxury Beauty & Everyday Essentials in Ghana',
-  heroSubtitle: 'Authentic dermatological skincare, fragrances, and trusted household pantry essentials.',
-  heroBadge: '100% ORIGINAL & AUTHENTIC',
-  heroButtonText: 'SHOP NOW',
-  heroSecondaryButtonText: 'EXPLORE BEAUTY',
-  announcementText: 'Free delivery in Accra on orders GHS 300+ • Same-day dispatch available',
-  announcementVisible: true,
+  heroHeadline: '',
+  heroSubtitle: '',
+  heroBadge: '',
+  heroButtonText: '',
+  heroSecondaryButtonText: '',
+  announcementText: '',
+  announcementVisible: false,
   announcementBg: '#1E1719',
   homepageSections: {
     flashDeal: true,
@@ -136,6 +142,30 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   maintenanceMode: false,
   bannerAlert: null,
 };
+
+const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
+  {
+    id: 'admin-1',
+    fullName: 'Store Administrator',
+    email: 'admin@crcosmetics.com',
+    phone: '+233 20 000 0000',
+    role: 'super_admin',
+  },
+  {
+    id: 'admin-2',
+    fullName: 'Ama Boateng',
+    email: 'operations@crcosmetics.com',
+    phone: '+233 50 123 4567',
+    role: 'admin',
+  },
+  {
+    id: 'admin-3',
+    fullName: 'Kojo Owusu',
+    email: 'manager@crcosmetics.com',
+    phone: '+233 24 765 4321',
+    role: 'manager',
+  },
+];
 
 const INITIAL_SEED_ORDERS: Order[] = [
   {
@@ -247,57 +277,9 @@ const INITIAL_SEED_ORDERS: Order[] = [
   }
 ];
 
-const INITIAL_SEED_PROMOS: PromoCode[] = [
-  {
-    id: 'promo-1',
-    code: 'CRGLOW15',
-    discountType: 'percentage',
-    discountValue: 15,
-    minSpend: 150,
-    isActive: true,
-    description: '15% discount on all orders above GHS 150',
-    usageCount: 42,
-  },
-  {
-    id: 'promo-2',
-    code: 'WELCOME20',
-    discountType: 'fixed',
-    discountValue: 20,
-    minSpend: 100,
-    isActive: true,
-    description: 'GHS 20 instant voucher for new customers',
-    usageCount: 118,
-  },
-  {
-    id: 'promo-3',
-    code: 'FREESHIP',
-    discountType: 'percentage',
-    discountValue: 0,
-    minSpend: 250,
-    freeShipping: true,
-    isActive: true,
-    description: 'Free standard delivery in Accra',
-    usageCount: 88,
-  }
-];
+const INITIAL_SEED_PROMOS: PromoCode[] = [];
 
-const INITIAL_SEED_FLASH_DEALS: FlashDeal[] = [
-  {
-    id: 'flash-1',
-    title: 'Glow Weekend Flash Sale',
-    subtitle: 'Limited Time Online Exclusive',
-    description: 'Up to 30% discount on all Korean skincare & French fragrances',
-    discountPercentage: 30,
-    badgeText: 'LIMITED TIME DEAL',
-    hoursRemaining: 18,
-    minutesRemaining: 45,
-    secondsRemaining: 20,
-    expiresAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-    backgroundGradient: 'from-[#1E1719] via-[#2B1F23] to-[#120B0D]',
-    isActive: true,
-    createdAt: new Date().toISOString(),
-  }
-];
+const INITIAL_SEED_FLASH_DEALS: FlashDeal[] = [];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -386,6 +368,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     email: 'admin@crcosmetics.com',
   });
   const [loadingAdmin, setLoadingAdmin] = useState(false);
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(() => {
+    try {
+      const saved = localStorage.getItem('cr_admin_accounts');
+      if (saved) return JSON.parse(saved);
+    } catch (e: any) { setError(e.message || "Operation failed"); }
+    return INITIAL_ADMIN_ACCOUNTS;
+  });
 
   const [flashDeals, setFlashDeals] = useState<FlashDeal[]>(() => {
     try {
@@ -420,6 +409,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem('cr_flash_deals', JSON.stringify(flashDeals));
   }, [flashDeals]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_admin_accounts', JSON.stringify(adminAccounts));
+  }, [adminAccounts]);
 
   const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
     setLoading(true);
@@ -857,6 +850,37 @@ const addOrder = async (order: Order) => {
     setAdminSession(prev => ({ ...prev, adminRole: role }));
   };
 
+  const fetchAdminAccounts = useCallback(async () => {
+    setLoadingAdmin(true);
+    try {
+      const saved = localStorage.getItem('cr_admin_accounts');
+      if (saved) {
+        setAdminAccounts(JSON.parse(saved));
+      }
+    } catch (e: any) {
+      setError(e.message || "Operation failed");
+    } finally {
+      setLoadingAdmin(false);
+    }
+  }, []);
+
+  const addAdminAccount = async (account: Omit<AdminAccount, 'id'>): Promise<AdminAccount> => {
+    const newAccount: AdminAccount = {
+      ...account,
+      id: `admin-${Date.now()}`,
+    };
+    setAdminAccounts(prev => [newAccount, ...prev]);
+    return newAccount;
+  };
+
+  const updateAdminAccount = async (id: string, updates: Partial<AdminAccount>) => {
+    setAdminAccounts(prev => prev.map(account => account.id === id ? { ...account, ...updates } : account));
+  };
+
+  const deleteAdminAccount = async (id: string) => {
+    setAdminAccounts(prev => prev.filter(account => account.id !== id));
+  };
+
   // Flash Deal Actions
   const addFlashDeal = async (dealData: Omit<FlashDeal, 'id' | 'createdAt'>) => {
     const newDeal: FlashDeal = {
@@ -948,10 +972,15 @@ const addOrder = async (order: Order) => {
         fetchSettings,
         updateStoreSettings,
         adminSession,
+        adminAccounts,
         loadingAdmin,
         loginAdmin,
         logoutAdmin,
         switchAdminRole,
+        fetchAdminAccounts,
+        addAdminAccount,
+        updateAdminAccount,
+        deleteAdminAccount,
         flashDeals,
         loadingFlashDeals,
         fetchFlashDeals,

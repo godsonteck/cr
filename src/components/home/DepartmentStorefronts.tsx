@@ -17,6 +17,10 @@ export const HomePage: React.FC = () => {
     groceryFeed: true,
   };
 
+  const activeFlashDeal = flashDeals
+    .filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now())
+    .slice(0, 1)[0];
+
   const bestSellers = [...publishedProducts]
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 12);
@@ -62,35 +66,41 @@ export const HomePage: React.FC = () => {
 
       <main className="mx-auto max-w-[1500px] space-y-3 px-3 pb-12 sm:px-4 sm:space-y-4">
         {/* Flash Deal Banner */}
-        {homepageSections.flashDeal && flashDeals.filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now()).slice(0, 1).map(deal => (
-          <section key={deal.id} className="mt-3 flex items-center justify-between gap-3 rounded-lg border-l-4 border-[var(--accent)] bg-[#1d1519] p-3 text-white sm:p-4">
+        {homepageSections.flashDeal && activeFlashDeal && (
+          <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-lg border-l-4 border-[var(--accent)] bg-[#1d1519] p-3 text-white sm:p-4">
             <div className="flex items-center gap-2.5">
               <Flame className="h-5 w-5 shrink-0 text-[var(--accent)]" />
               <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">{deal.badgeText || 'Flash Sale'}</p>
-                <h2 className="truncate text-sm font-bold text-white sm:text-base">{deal.title}</h2>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">{activeFlashDeal.badgeText || 'Flash Sale'}</p>
+                <h2 className="truncate text-sm font-bold text-white sm:text-base">{activeFlashDeal.title}</h2>
               </div>
             </div>
             <Link to="/offers" className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
-              -{deal.discountPercentage}% <ArrowRight className="h-3 w-3" />
+              -{activeFlashDeal.discountPercentage}% <ArrowRight className="h-3 w-3" />
             </Link>
           </section>
-        ))}
+        )}
+
+        {!homepageSections.flashDeal || !activeFlashDeal ? null : null}
 
         {/* Compact Hero */}
-        {homepageSections.hero && (
+        {homepageSections.hero && storeSettings.heroHeadline && (
           <section className="rounded-lg border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] dark:bg-[var(--bg-card-alt)] p-4 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl line-clamp-2">
-                  {storeSettings.heroHeadline || 'Beauty, care and everyday essentials'}
+                  {storeSettings.heroHeadline}
                 </h1>
-                <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-1">
-                  {storeSettings.heroSubtitle || 'Free delivery in Accra on orders over GHS 100'}
-                </p>
-                <Link to="/shop" className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
-                  {storeSettings.heroButtonText || 'Shop now'} <ArrowRight className="h-3 w-3" />
-                </Link>
+                {storeSettings.heroSubtitle && (
+                  <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-1">
+                    {storeSettings.heroSubtitle}
+                  </p>
+                )}
+                {storeSettings.heroButtonText && (
+                  <Link to="/shop" className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+                    {storeSettings.heroButtonText} <ArrowRight className="h-3 w-3" />
+                  </Link>
+                )}
               </div>
             </div>
           </section>

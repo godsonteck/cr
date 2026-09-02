@@ -13,13 +13,11 @@ import {
   Key
 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
-import { useAuth } from '../../../context/AuthContext';
 import { useAlert } from '../../../context/AlertContext';
 import { AdminAccount } from '../../../types';
 
 export const AdminAccountsManagementScreen: React.FC = () => {
-  const { adminAccounts = [] } = useStore();
-  const { user: currentUser } = useAuth();
+  const { adminAccounts = [], adminSession, updateAdminAccount, deleteAdminAccount } = useStore();
   const { showAlert } = useAlert();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +30,19 @@ export const AdminAccountsManagementScreen: React.FC = () => {
     phone: '',
     role: 'admin' as 'super_admin' | 'admin' | 'manager',
   });
+
+  const currentAdminAccountId = useMemo(() => {
+    const match = (adminAccounts || []).find(account => account.email.toLowerCase() === adminSession.email.toLowerCase());
+    return match?.id ?? 'self';
+  }, [adminAccounts, adminSession.email]);
+
+  const currentAdminProfile = useMemo(() => ({
+    id: currentAdminAccountId,
+    fullName: adminSession.adminName,
+    email: adminSession.email,
+    phone: '+233 20 000 0000',
+    role: (adminSession.adminRole === 'Super Admin' ? 'super_admin' : adminSession.adminRole === 'Store Manager' ? 'manager' : 'admin') as 'super_admin' | 'admin' | 'manager',
+  }), [adminSession, currentAdminAccountId]);
 
   const filteredAccounts = useMemo(() => {
     return (adminAccounts || []).filter(acc =>
@@ -53,9 +64,14 @@ export const AdminAccountsManagementScreen: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
-    
+
     try {
-      // TODO: Implement admin account update API call
+      await updateAdminAccount(editingId, {
+        fullName: editForm.fullName,
+        email: editForm.email,
+        phone: editForm.phone,
+        role: editForm.role,
+      });
       showAlert('Admin account updated successfully', 'success');
       setEditingId(null);
     } catch (error) {
@@ -64,14 +80,14 @@ export const AdminAccountsManagementScreen: React.FC = () => {
   };
 
   const handleDeleteAdmin = async (id: string) => {
-    if (id === currentUser?.id) {
+    if (id === currentAdminAccountId) {
       showAlert('You cannot delete your own account', 'error');
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this admin account?')) {
       try {
-        // TODO: Implement admin account deletion API call
+        await deleteAdminAccount(id);
         showAlert('Admin account deleted successfully', 'success');
       } catch (error) {
         showAlert('Failed to delete admin account', 'error');
@@ -203,7 +219,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                       <>
                         <td className="px-6 py-4">
                           <div className="font-medium text-gray-900 dark:text-stone-100">{account.fullName}</div>
-                          {account.id === currentUser?.id && (
+                          {account.id === currentAdminAccountId && (
                             <span className="text-xs text-gray-500 dark:text-stone-400">(You)</span>
                           )}
                         </td>
@@ -225,9 +241,9 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteAdmin(account.id)}
-                              disabled={account.id === currentUser?.id}
+                              disabled={account.id === currentAdminAccountId}
                               className="p-1.5 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title={account.id === currentUser?.id ? "Cannot delete your own account" : "Delete account"}
+                              title={account.id === currentAdminAccountId ? "Cannot delete your own account" : "Delete account"}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -250,63 +266,61 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       </div>
 
       {/* My Profile Section */}
-      {currentUser && (
-        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-[#2a3f5f] flex items-center justify-center">
-              <User className="w-8 h-8 text-orange-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-stone-100">My Profile</h2>
-              <p className="text-sm text-gray-500 dark:text-stone-400">Your admin account information</p>
-            </div>
+      <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-[#2a3f5f] flex items-center justify-center">
+            <User className="w-8 h-8 text-orange-600" />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Name</label>
-              <input
-                type="text"
-                value={currentUser.fullName || ''}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Email</label>
-              <input
-                type="email"
-                value={currentUser.email || ''}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Phone</label>
-              <input
-                type="tel"
-                value={currentUser.phone || ''}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Role</label>
-              <input
-                type="text"
-                value={getRoleLabel(currentUser.role)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
-                disabled
-              />
-            </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-stone-100">My Profile</h2>
+            <p className="text-sm text-gray-500 dark:text-stone-400">Your admin account information</p>
           </div>
-
-          <button className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors font-medium">
-            <Key className="w-4 h-4" />
-            Change Password
-          </button>
         </div>
-      )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Name</label>
+            <input
+              type="text"
+              value={currentAdminProfile.fullName || ''}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
+              disabled
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Email</label>
+            <input
+              type="email"
+              value={currentAdminProfile.email || ''}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
+              disabled
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Phone</label>
+            <input
+              type="tel"
+              value={currentAdminProfile.phone || ''}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
+              disabled
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase text-gray-600 dark:text-stone-400 mb-1">Role</label>
+            <input
+              type="text"
+              value={getRoleLabel(currentAdminProfile.role)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100"
+              disabled
+            />
+          </div>
+        </div>
+
+        <button className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors font-medium">
+          <Key className="w-4 h-4" />
+          Change Password
+        </button>
+      </div>
     </div>
   );
 };

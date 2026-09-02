@@ -48,7 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.5rem] border border-[var(--border-color)] bg-[linear-gradient(180deg,#fffdfd_0%,#fff7f8_100%)] dark:bg-[#1a2a47] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_42px_rgba(128,72,93,0.12)] ${className}`}
+      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_42px_rgba(128,72,93,0.12)] dark:bg-[var(--bg-card)] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleToggleWishlist}
           aria-label="Wishlist"
-          className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.9)] dark:bg-[#2a3f5f] p-1.5 text-[var(--text-muted)] transition-all hover:border-[#d5c2b6] hover:text-[var(--text-primary)]"
+          className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.82)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[#d5c2b6] hover:text-[var(--text-primary)] dark:bg-[var(--bg-soft)] dark:text-[var(--text-primary)]"
         >
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#111111] text-[#111111]' : 'stroke-[1.5]'}`} />
         </button>
@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock || product.stockCount <= 0}
-            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35"
+            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35 dark:bg-[var(--accent)] dark:text-white"
             aria-label={product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
           >
             <ShoppingBag className="h-4 w-4" />
