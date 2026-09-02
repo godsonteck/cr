@@ -141,17 +141,16 @@ export const AdminPortal: React.FC = () => {
     return Array.from(map.values());
   }, [store.orders]);
 
-  // Auth gate
-  if (!store.adminSession.isLoggedIn) {
-    return <AdminLoginView onSuccess={() => {}} />;
-  }
-
-  // Unread notification count: pending orders + low/out of stock products
   const unreadNotifications = useMemo(() => {
     const lowStock = (store.products || []).filter(p => p.stockCount <= 5).length;
     const pendingOrders = (store.orders || []).filter(o => o.status !== 'Delivered').length;
     return lowStock + pendingOrders;
   }, [store.products, store.orders]);
+
+  // Auth gate
+  if (!store.adminSession.isLoggedIn) {
+    return <AdminLoginView onSuccess={() => {}} />;
+  }
 
   const handleLogout = () => {
     if (confirmLogout) {
