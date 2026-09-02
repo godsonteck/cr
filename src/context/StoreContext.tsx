@@ -827,6 +827,11 @@ const addOrder = async (order: Order) => {
           console.log(`Successfully saved ${key}:`, result);
         } catch (itemError: any) {
           console.error(`Failed to save ${key}:`, itemError);
+          if (itemError?.status === 401 || itemError?.status === 403) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('admin_session');
+            setAdminSession(prev => ({ ...prev, isLoggedIn: false }));
+          }
           errors.push(`${key}: ${itemError.message}`);
         }
       }

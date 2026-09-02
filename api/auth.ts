@@ -14,7 +14,7 @@ const loginSchema = z.object({
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
-  pin: z.string().min(8),
+  pin: z.string().min(4),
   name: z.string().optional(),
   role: z.string().optional(),
 });
