@@ -1,0 +1,1 @@
+ALTER TABLE "admin_sessions" ADD COLUMN IF NOT EXISTS "phone" varchar(30) NOT NULL DEFAULT '';

@@ -48,7 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_42px_rgba(128,72,93,0.12)] dark:bg-[var(--bg-card)] ${className}`}
+      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_24px_42px_rgba(11,31,56,0.14)] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleToggleWishlist}
           aria-label="Wishlist"
-          className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.82)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[#d5c2b6] hover:text-[var(--text-primary)] dark:bg-[var(--bg-soft)] dark:text-[var(--text-primary)]"
+          className="rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
         >
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#111111] text-[#111111]' : 'stroke-[1.5]'}`} />
         </button>
@@ -102,7 +102,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {product.brand}
         </span>
 
-        <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-[var(--text-primary)]">
+        <h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--text-primary)]">
           {product.name}
         </h3>
 

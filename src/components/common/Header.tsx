@@ -71,14 +71,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(255,247,248,0.82)] backdrop-blur-2xl transition-colors dark:bg-[rgba(23,19,17,0.84)]">
-      {storeSettings.announcementVisible && (storeSettings.announcementText || storeSettings.bannerAlert) && (
-        <div
-          className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white sm:text-xs"
-          style={{ backgroundColor: storeSettings.announcementBg || '#1E1719' }}
-        >
-          {storeSettings.bannerAlert || storeSettings.announcementText}
-        </div>
-      )}
       <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-[4.25rem] items-center justify-between gap-2 py-3 sm:h-[4.7rem] sm:gap-4 sm:py-0">
 

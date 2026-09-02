@@ -57,7 +57,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
     }
 
     try {
-      const success = await loginAdmin(password.trim(), autoName, autoRole);
+      const success = await loginAdmin(password.trim(), autoName, autoRole, cleanUser || 'admin@crcosmetics.com');
       if (success) {
         showToast(`Signed in successfully. Welcome, ${autoName}!`);
         onSuccess();

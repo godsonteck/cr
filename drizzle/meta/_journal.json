@@ -16,5 +16,12 @@
       "tag": "0001_lean_sleepwalker",
       "breakpoints": true
     }
+    ,{
+      "idx": 2,
+      "version": "7",
+      "when": 1788500000000,
+      "tag": "0002_admin_phone",
+      "breakpoints": true
+    }
   ]
 }

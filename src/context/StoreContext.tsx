@@ -74,13 +74,14 @@ interface StoreContextType {
   adminSession: AdminSession;
   adminAccounts: AdminAccount[];
   loadingAdmin: boolean;
-  loginAdmin: (pin: string, name?: string, role?: AdminSession['adminRole']) => Promise<boolean>;
+  loginAdmin: (pin: string, name?: string, role?: AdminSession['adminRole'], email?: string) => Promise<boolean>;
   logoutAdmin: () => Promise<void>;
   switchAdminRole: (role: AdminSession['adminRole']) => Promise<void>;
   fetchAdminAccounts: () => Promise<void>;
-  addAdminAccount: (account: Omit<AdminAccount, 'id'>) => Promise<AdminAccount>;
+  addAdminAccount: (account: Omit<AdminAccount, 'id'> & { pin?: string }) => Promise<AdminAccount>;
   updateAdminAccount: (id: string, updates: Partial<AdminAccount>) => Promise<void>;
   deleteAdminAccount: (id: string) => Promise<void>;
+  changeAdminPassword: (currentPin: string, newPin: string) => Promise<void>;
 
   flashDeals: FlashDeal[];
   loadingFlashDeals: boolean;
@@ -806,10 +807,10 @@ const addOrder = async (order: Order) => {
   };
 
   // Admin Auth Actions
-  const loginAdmin = async (pin: string, name = 'Store Administrator', role: AdminSession['adminRole'] = 'Super Admin'): Promise<boolean> => {
+  const loginAdmin = async (pin: string, name = 'Store Administrator', role: AdminSession['adminRole'] = 'Super Admin', email = 'admin@crcosmetics.com'): Promise<boolean> => {
     try {
       const result = await api.post<{ token: string; admin: { id: string; adminName: string; adminRole: string; email: string } }>('/auth?action=admin', {
-        email: 'admin@crcosmetics.com',
+        email: email.trim().toLowerCase(),
         pin,
         name,
         role,
@@ -853,10 +854,8 @@ const addOrder = async (order: Order) => {
   const fetchAdminAccounts = useCallback(async () => {
     setLoadingAdmin(true);
     try {
-      const saved = localStorage.getItem('cr_admin_accounts');
-      if (saved) {
-        setAdminAccounts(JSON.parse(saved));
-      }
+      const accounts = await api.get<AdminAccount[]>('/admin-accounts');
+      setAdminAccounts(accounts);
     } catch (e: any) {
       setError(e.message || "Operation failed");
     } finally {
@@ -864,7 +863,14 @@ const addOrder = async (order: Order) => {
     }
   }, []);
 
-  const addAdminAccount = async (account: Omit<AdminAccount, 'id'>): Promise<AdminAccount> => {
+  const addAdminAccount = async (account: Omit<AdminAccount, 'id'> & { pin?: string }): Promise<AdminAccount> => {
+    try {
+      const created = await api.post<AdminAccount>('/admin-accounts', account);
+      setAdminAccounts(prev => [created, ...prev]);
+      return created;
+    } catch (e: any) {
+      setError(e.message || 'Operation failed');
+    }
     const newAccount: AdminAccount = {
       ...account,
       id: `admin-${Date.now()}`,
@@ -875,10 +881,31 @@ const addOrder = async (order: Order) => {
 
   const updateAdminAccount = async (id: string, updates: Partial<AdminAccount>) => {
     setAdminAccounts(prev => prev.map(account => account.id === id ? { ...account, ...updates } : account));
+    const account = adminAccounts.find(item => item.id === id);
+    if (account && account.email.toLowerCase() === adminSession.email.toLowerCase()) {
+      setAdminSession(prev => ({
+        ...prev,
+        adminName: updates.fullName ?? prev.adminName,
+        email: updates.email ?? prev.email,
+        adminRole: updates.role === 'super_admin' ? 'Super Admin' : updates.role === 'manager' ? 'Store Manager' : updates.role === 'admin' ? 'Inventory Dispatcher' : prev.adminRole,
+      }));
+    }
+    try {
+      await api.patch(`/admin-accounts/${id}`, updates);
+    } catch (e: any) { setError(e.message || 'Operation failed'); }
   };
 
   const deleteAdminAccount = async (id: string) => {
     setAdminAccounts(prev => prev.filter(account => account.id !== id));
+    try {
+      await api.delete(`/admin-accounts/${id}`);
+    } catch (e: any) { setError(e.message || 'Operation failed'); }
+  };
+
+  const changeAdminPassword = async (currentPin: string, newPin: string) => {
+    const account = adminAccounts.find(item => item.email.toLowerCase() === adminSession.email.toLowerCase());
+    if (!account) throw new Error('Active admin account was not found');
+    await api.patch(`/admin-accounts/${account.id}`, { currentPin, pin: newPin });
   };
 
   // Flash Deal Actions
@@ -981,6 +1008,7 @@ const addOrder = async (order: Order) => {
         addAdminAccount,
         updateAdminAccount,
         deleteAdminAccount,
+        changeAdminPassword,
         flashDeals,
         loadingFlashDeals,
         fetchFlashDeals,

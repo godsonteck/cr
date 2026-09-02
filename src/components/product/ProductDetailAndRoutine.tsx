@@ -7,7 +7,12 @@ import {
   Check,
   Sparkles,
   Info,
-  RotateCcw
+  RotateCcw,
+  Star,
+  Truck,
+  ShieldCheck,
+  PackageCheck,
+  Clock3
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ProductVariant } from '../../types';
@@ -30,7 +35,9 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<'description' | 'ingredients' | 'howToUse'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'details' | 'shipping'>('description');
+
+  const galleryImages = product?.images?.length ? product.images : [product?.image].filter(Boolean) as string[];
 
   if (!product) {
     return (
@@ -51,237 +58,296 @@ export const ProductDetailPage: React.FC = () => {
   const relatedProducts = publishedProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-12">
-
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-xs font-semibold text-[#6E6763]">
-        <Link to="/" className="hover:text-[#1C1817]">Home</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <Link to="/shop" className="hover:text-[#1C1817]">Shop</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <Link to={`/category/${product.category}`} className="hover:text-[#1C1817] uppercase">{product.categoryLabel}</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-[#1C1817] dark:text-stone-200 font-bold truncate max-w-xs">{product.name}</span>
+    <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+      <nav className="mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
+        <Link to="/" className="transition hover:text-[var(--text-primary)]">Home</Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <Link to="/shop" className="transition hover:text-[var(--text-primary)]">Shop</Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="truncate text-[var(--text-primary)]">{product.categoryLabel}</span>
       </nav>
 
-      {/* PDP Main Purchase Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="grid gap-8 lg:grid-cols-[120px_minmax(0,1fr)_440px]">
+        <div className="hidden flex-col gap-3 lg:flex">
+          {galleryImages.map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setSelectedImage(img)}
+              className={`overflow-hidden rounded-2xl border transition-all ${
+                currentImage === img ? 'border-[var(--accent)] shadow-sm' : 'border-[var(--border-color)] opacity-80 hover:opacity-100'
+              }`}
+            >
+              <img src={img} alt={`${product.name} preview ${idx + 1}`} className="h-24 w-full object-cover" />
+            </button>
+          ))}
+        </div>
 
-        {/* Gallery */}
         <div className="space-y-4">
-          <div className="aspect-square rounded-3xl overflow-hidden bg-white dark:bg-[#1C1917] border border-[#E6DFD7] dark:border-[#36322E] relative shadow-md">
-            <img src={currentImage} alt={product.name} className="w-full h-full object-cover" />
-
+          <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-[0_20px_45px_rgba(11,31,56,0.12)]">
             {product.badge && (
-              <div className="absolute top-4 left-4">
-                <Badge variant={product.badge === 'Sale' ? 'terracotta' : 'espresso'}>
-                  {product.badge}
-                </Badge>
+              <div className="absolute left-6 top-6 z-10">
+                <Badge variant={product.badge === 'Sale' ? 'terracotta' : 'secondary'}>{product.badge}</Badge>
               </div>
+            )}
+            <img src={currentImage} alt={product.name} className="h-[440px] w-full rounded-[22px] object-cover sm:h-[560px]" />
+          </div>
+
+          <div className="flex gap-3 lg:hidden">
+            {galleryImages.map((img, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setSelectedImage(img)}
+                className={`h-20 w-20 overflow-hidden rounded-xl border ${
+                  currentImage === img ? 'border-[var(--accent)]' : 'border-[var(--border-color)]'
+                }`}
+              >
+                <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <aside className="space-y-5 rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[0_20px_45px_rgba(11,31,56,0.08)] sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{product.brand}</span>
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product.id)}
+              className={`rounded-full border p-2 transition ${
+                wishlisted
+                  ? 'border-[#C86D51] bg-[#C86D51] text-white'
+                  : 'border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)]'
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${wishlisted ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="text-2xl font-black leading-tight tracking-[-0.05em] text-[var(--text-primary)] sm:text-[2.1rem]">
+              {product.name}
+            </h1>
+
+            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+              <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-yellow-700">
+                <Star className="h-3.5 w-3.5 fill-current" />
+                <span className="font-bold">{product.rating.toFixed(1)}</span>
+              </div>
+              <span>{product.reviewCount} ratings</span>
+              <span className="text-[var(--text-subtle)]">•</span>
+              <span>{product.inStock ? `${product.stockCount} in stock` : 'Out of stock'}</span>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-[var(--bg-soft)] p-4">
+            <div className="flex items-end gap-3">
+              <span className="text-3xl font-black tracking-[-0.06em] text-[var(--text-primary)]">GHS {displayPrice.toFixed(2)}</span>
+              {product.originalPrice && (
+                <span className="text-base text-[var(--text-subtle)] line-through">GHS {product.originalPrice.toFixed(2)}</span>
+              )}
+            </div>
+            {product.originalPrice && (
+              <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-[#C86D51]">
+                Save {Math.round(((product.originalPrice - displayPrice) / product.originalPrice) * 100)}%
+              </p>
             )}
           </div>
 
-          {/* Thumbnail list */}
-          {product.images.length > 1 && (
-            <div className="flex gap-3">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(img)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    currentImage === img ? 'border-[#C86D51]' : 'border-transparent opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
-                </button>
-              ))}
+          <div className="space-y-3 rounded-2xl border border-[var(--border-color)] bg-[rgba(122,167,255,0.04)] p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+              <Truck className="h-4 w-4 text-[var(--accent)]" />
+              <span>Free delivery over GHS 300</span>
             </div>
-          )}
-        </div>
-
-        {/* Purchase Panel */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center justify-between text-xs text-[#6E6763] mb-2 font-bold uppercase tracking-wider">
-              <span>{product.brand}</span>
-              <span>{product.unit}</span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+              <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
+              <span>Secure checkout • Verified seller</span>
             </div>
-            <h1 className="font-serif text-4xl leading-[.98] tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
-              {product.name}
-            </h1>
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+              <PackageCheck className="h-4 w-4 text-[var(--accent)]" />
+              <span>Easy returns within 7 days</span>
+            </div>
           </div>
 
-          {/* Pricing & Stock */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#1C1917] border border-[#E6DFD7] dark:border-[#36322E] flex items-center justify-between">
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold text-[#1C1817] dark:text-stone-100">
-                  GHS {displayPrice.toFixed(2)}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-sm text-stone-400 line-through">
-                    GHS {product.originalPrice.toFixed(2)}
-                  </span>
-                )}
-              </div>
-              <span className="text-[10px] text-stone-400">Inclusive of all local taxes</span>
-            </div>
-
-            <Badge variant={product.inStock ? 'botanical' : 'terracotta'}>
-              {product.inStock ? `In Stock (${product.stockCount})` : 'Sold Out'}
-            </Badge>
-          </div>
-
-          {/* Highlights */}
           {product.variants && product.variants.length > 0 && (
             <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#6E6763]">Select option</span>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Choose option</p>
               <div className="flex flex-wrap gap-2">
-                {product.variants.map(variant => <button key={variant.id} type="button" onClick={() => setSelectedVariant(variant)} className={`rounded-lg border px-3 py-2 text-xs font-bold ${activeVariant?.id === variant.id ? 'border-[#C86D51] bg-[#F5F0EB] text-[#8A3D52]' : 'border-[#E6DFD7]'}`} disabled={!variant.inStock}>{variant.name} · GHS {variant.price.toFixed(2)}</button>)}
+                {product.variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    type="button"
+                    onClick={() => setSelectedVariant(variant)}
+                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                      activeVariant?.id === variant.id
+                        ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--text-primary)]'
+                        : 'border-[var(--border-color)] bg-transparent text-[var(--text-primary)]'
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                    disabled={!variant.inStock}
+                  >
+                    {variant.name} · GHS {variant.price.toFixed(2)}
+                  </button>
+                ))}
               </div>
             </div>
           )}
-          {product.highlights && product.highlights.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#6E6763]">Key Highlights:</span>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {product.highlights.map((h, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300">
-                    <Check className="w-4 h-4 text-[#C86D51] shrink-0" />
-                    <span>{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
-          {/* Actions (Quantity + Add to Cart + Wishlist) */}
-          <div className="space-y-4 pt-4 border-t border-[#E6DFD7] dark:border-[#36322E]">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-[#E6DFD7] dark:border-[#36322E] rounded-full p-1 bg-white dark:bg-[#1C1917]">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+              <span>Quantity</span>
+              <span>{product.unit}</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)]">
                 <button
+                  type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold hover:bg-stone-100 dark:hover:bg-stone-800"
+                  className="h-11 w-11 text-lg font-bold text-[var(--text-primary)] transition hover:bg-[var(--bg-card)]"
                 >
-                  -
+                  −
                 </button>
-                <span className="px-4 text-xs font-bold text-[#1C1817] dark:text-stone-200">{quantity}</span>
+                <span className="min-w-12 text-center text-sm font-bold text-[var(--text-primary)]">{quantity}</span>
                 <button
+                  type="button"
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold hover:bg-stone-100 dark:hover:bg-stone-800"
+                  className="h-11 w-11 text-lg font-bold text-[var(--text-primary)] transition hover:bg-[var(--bg-card)]"
                 >
                   +
                 </button>
               </div>
 
               <Button
+                variant="secondary"
                 size="lg"
-                variant={product.department === 'beauty' ? 'primary' : 'botanical'}
                 onClick={() => addToCart(product, quantity, activeVariant?.name, activeVariant)}
                 disabled={!product.inStock || activeVariant?.inStock === false}
-                className="flex-1 rounded-full py-3.5 text-xs font-bold uppercase tracking-wider"
+                className="flex-1 rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
               >
-                <ShoppingBag className="w-4 h-4" />
-                <span>{!product.inStock || activeVariant?.inStock === false ? 'Sold out' : `Add to Cart • GHS ${(displayPrice * quantity).toFixed(2)}`}</span>
+                <ShoppingBag className="h-4 w-4" />
+                <span>{!product.inStock || activeVariant?.inStock === false ? 'Sold out' : 'Add to cart'}</span>
               </Button>
-
-              <button
-                onClick={() => toggleWishlist(product.id)}
-                className={`p-3.5 rounded-full border transition-all ${
-                  wishlisted
-                    ? 'bg-[#C86D51] border-[#C86D51] text-white'
-                    : 'border-[#E6DFD7] text-stone-600 hover:bg-stone-100 dark:border-[#36322E] dark:text-stone-300'
-                }`}
-              >
-                <Heart className={`w-5 h-5 ${wishlisted ? 'fill-current' : ''}`} />
-              </button>
             </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
+            >
+              Buy now
+            </Button>
           </div>
 
-        </div>
-
+          {product.highlights?.length ? (
+            <ul className="space-y-2 pt-2 text-sm text-[var(--text-primary)]">
+              {product.highlights.map((highlight, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#1aa773]" />
+                  <span>{highlight}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </aside>
       </div>
 
-      {/* Product Details Tabs */}
-      <div className="bg-white dark:bg-[#1C1917] rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] p-6 sm:p-8 space-y-6">
-        <div className="flex flex-wrap gap-x-6 gap-y-2 border-b border-[#E6DFD7] dark:border-[#36322E] text-xs font-bold uppercase tracking-wider">
-          <button
-            onClick={() => setActiveTab('description')}
-            className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'description' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
-            }`}
-          >
-            Description
-          </button>
-          {product.details?.ingredients && (
+      <div className="mt-8 rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[0_12px_28px_rgba(11,31,56,0.04)] sm:p-6">
+        <div className="flex flex-wrap gap-3 border-b border-[var(--border-color)] pb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+          {['description', 'details', 'shipping'].map((tab) => (
             <button
-              onClick={() => setActiveTab('ingredients')}
-              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'ingredients' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab as 'description' | 'details' | 'shipping')}
+              className={`rounded-full px-3 py-2 transition ${
+                activeTab === tab ? 'bg-[var(--bg-soft)] text-[var(--text-primary)]' : 'hover:bg-[var(--bg-soft)]'
               }`}
             >
-              Ingredients &amp; Sourcing
+              {tab === 'description' ? 'Description' : tab === 'details' ? 'Details' : 'Shipping & returns'}
             </button>
-          )}
-          {product.details?.howToUse && (
-            <button
-              onClick={() => setActiveTab('howToUse')}
-              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'howToUse' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
-              }`}
-            >
-              How to Use
-            </button>
-          )}
-          {product.details?.benefits && (
-            <button
-              onClick={() => setActiveTab('benefits' as any)}
-              className={`pb-3 border-b-2 transition-colors whitespace-nowrap ${
-                (activeTab as string) === 'benefits' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-400 hover:text-stone-600'
-              }`}
-            >
-              Benefits
-            </button>
-          )}
+          ))}
         </div>
 
-        <div className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
-          {activeTab === 'description' && (
-            <p className="whitespace-pre-line">{product.description}</p>
-          )}
-          {activeTab === 'ingredients' && (
-            <div className="space-y-2">
-              {product.origin && (
-                <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
-                  Country of Origin: <span className="text-stone-700 dark:text-stone-300 font-semibold normal-case tracking-normal">{product.origin}</span>
-                </p>
-              )}
-              <p className="whitespace-pre-line">{product.details?.ingredients}</p>
+        <div className="pt-5 text-sm leading-7 text-[var(--text-primary)]">
+          {activeTab === 'description' && <p className="whitespace-pre-line">{product.description}</p>}
+
+          {activeTab === 'details' && (
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-3">
+                {product.origin && (
+                  <div className="flex justify-between gap-4 border-b border-[var(--border-color)] pb-2">
+                    <span className="text-[var(--text-subtle)]">Origin</span>
+                    <span className="font-semibold text-[var(--text-primary)]">{product.origin}</span>
+                  </div>
+                )}
+                {product.unit && (
+                  <div className="flex justify-between gap-4 border-b border-[var(--border-color)] pb-2">
+                    <span className="text-[var(--text-subtle)]">Unit</span>
+                    <span className="font-semibold text-[var(--text-primary)]">{product.unit}</span>
+                  </div>
+                )}
+                {product.routineStep && (
+                  <div className="flex justify-between gap-4 border-b border-[var(--border-color)] pb-2">
+                    <span className="text-[var(--text-subtle)]">Routine step</span>
+                    <span className="font-semibold capitalize text-[var(--text-primary)]">{product.routineStep}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {product.details?.ingredients && (
+                  <div>
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Ingredients</p>
+                    <p className="whitespace-pre-line text-[var(--text-primary)]">{product.details.ingredients}</p>
+                  </div>
+                )}
+                {product.details?.benefits && (
+                  <div>
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Benefits</p>
+                    <p className="whitespace-pre-line text-[var(--text-primary)]">{product.details.benefits}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
-          {activeTab === 'howToUse' && (
-            <p className="whitespace-pre-line">{product.details?.howToUse}</p>
-          )}
-          {(activeTab as string) === 'benefits' && (
-            <p className="whitespace-pre-line">{product.details?.benefits}</p>
+
+          {activeTab === 'shipping' && (
+            <div className="grid gap-5 md:grid-cols-3">
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                <Truck className="mb-3 h-5 w-5 text-[var(--accent)]" />
+                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Fast local delivery</p>
+                <p className="text-sm text-[var(--text-muted)]">Same-day dispatch on eligible orders in Accra and nearby areas.</p>
+              </div>
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                <PackageCheck className="mb-3 h-5 w-5 text-[var(--accent)]" />
+                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Secure packaging</p>
+                <p className="text-sm text-[var(--text-muted)]">Every item is packed with protective materials to keep it in premium condition.</p>
+              </div>
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                <Clock3 className="mb-3 h-5 w-5 text-[var(--accent)]" />
+                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Simple returns</p>
+                <p className="text-sm text-[var(--text-muted)]">Return or exchange items within 7 days if the product is unopened or faulty.</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <div className="space-y-6 pt-6">
-          <h3 className="text-xl font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
-            You May Also Like
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map(rel => (
-              <ProductCard key={rel.id} product={rel} />
+        <div className="mt-10 space-y-5">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-xl font-black tracking-[-0.05em] text-[var(--text-primary)]">You may also like</h3>
+            <Link to="/shop" className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
+              View more
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {relatedProducts.map((related) => (
+              <ProductCard key={related.id} product={related} />
             ))}
           </div>
         </div>
       )}
-
     </div>
   );
 };

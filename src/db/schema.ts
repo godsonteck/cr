@@ -294,6 +294,7 @@ export const adminSessions = pgTable('admin_sessions', {
   adminName: varchar('admin_name', { length: 100 }).notNull(),
   adminRole: adminRoleEnum('admin_role').notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  phone: varchar('phone', { length: 30 }).notNull().default(''),
   pinHash: varchar('pin_hash', { length: 255 }).notNull(),
   isActive: boolean('is_active').notNull().default(true),
   lastLoginAt: timestamp('last_login_at'),

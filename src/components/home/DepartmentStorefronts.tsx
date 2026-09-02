@@ -45,7 +45,7 @@ export const HomePage: React.FC = () => {
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
       {/* Category pills - sticky scrollable bar */}
       {homepageSections.categories && categoryPills.length > 0 && (
-        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] px-3 py-2 sm:px-4">
+        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur sm:px-4">
           <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link
@@ -54,7 +54,7 @@ export const HomePage: React.FC = () => {
                 className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all ${
                   index === 0
                     ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                    : 'border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
+                    : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]'
                 }`}
               >
                 {item.name}
@@ -67,12 +67,12 @@ export const HomePage: React.FC = () => {
       <main className="mx-auto max-w-[1500px] space-y-3 px-3 pb-12 sm:px-4 sm:space-y-4">
         {/* Flash Deal Banner */}
         {homepageSections.flashDeal && activeFlashDeal && (
-          <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-lg border-l-4 border-[var(--accent)] bg-[#1d1519] p-3 text-white sm:p-4">
+          <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--accent)]/35 border-l-4 border-l-[var(--accent)] bg-[var(--bg-card-alt)] p-3 text-[var(--text-primary)] sm:p-4">
             <div className="flex items-center gap-2.5">
               <Flame className="h-5 w-5 shrink-0 text-[var(--accent)]" />
               <div className="min-w-0">
                 <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">{activeFlashDeal.badgeText || 'Flash Sale'}</p>
-                <h2 className="truncate text-sm font-bold text-white sm:text-base">{activeFlashDeal.title}</h2>
+                <h2 className="truncate text-sm font-bold text-[var(--text-primary)] sm:text-base">{activeFlashDeal.title}</h2>
               </div>
             </div>
             <Link to="/offers" className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">

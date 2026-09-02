@@ -185,11 +185,11 @@ export const ShopCatalogPage: React.FC = () => {
         <main className="flex-1 space-y-4">
 
           {/* Toolbar (Mobile Filter toggle + Count + Sort) */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E8E2DA] bg-[#FAF8F5] p-3 dark:border-[#2A2725] dark:bg-[#1A1817] sm:gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 sm:gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-stone-800 border border-stone-300 rounded text-xs font-bold uppercase"
+                className="lg:hidden flex items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-1.5 text-xs font-bold uppercase text-[var(--text-primary)]"
               >
                 <Filter className="w-3.5 h-3.5" />
                 <span>Filters</span>
@@ -205,7 +205,7 @@ export const ShopCatalogPage: React.FC = () => {
               <select
                 value={selectedSort}
                 onChange={(e) => updateFilter('sort', e.target.value)}
-                className="max-w-[10.5rem] bg-white px-2 py-2 text-[11px] font-semibold dark:bg-[#1C1A19] sm:max-w-none sm:px-2.5 sm:text-xs"
+                className="max-w-[10.5rem] rounded-lg border border-[var(--border-color)] bg-[var(--bg-soft)] px-2 py-2 text-[11px] font-semibold text-[var(--text-primary)] sm:max-w-none sm:px-2.5 sm:text-xs"
               >
                 <option value="featured">Featured</option>
                 <option value="best-sellers">Best Sellers</option>
@@ -261,7 +261,7 @@ export const ShopCatalogPage: React.FC = () => {
 
           {/* Product Grid */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
