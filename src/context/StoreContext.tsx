@@ -168,6 +168,20 @@ const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   },
 ];
 
+const normalizeProduct = (product: Product): Product => ({
+  ...product,
+  price: Number(product.price),
+  originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
+  stockCount: Number(product.stockCount || 0),
+  rating: Number(product.rating || 0),
+  reviewCount: Number(product.reviewCount || 0),
+  variants: (product.variants || []).map(variant => ({
+    ...variant,
+    price: Number(variant.price),
+    originalPrice: variant.originalPrice == null ? undefined : Number(variant.originalPrice),
+  })),
+});
+
 const INITIAL_SEED_ORDERS: Order[] = [
   {
     id: 'ord-gh-01',
@@ -425,7 +439,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params?.published !== undefined) query.set('published', params.published.toString());
       const data = await api.get<{ products: Product[] }>(`/products?${query}`);
       if (data && Array.isArray(data.products) && data.products.length > 0) {
-        setProducts(data.products);
+        setProducts(data.products.map(normalizeProduct));
       }
     } catch (e: any) {
       setError('Failed to load products from server. Showing local data.');
