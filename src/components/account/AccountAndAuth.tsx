@@ -655,21 +655,43 @@ export const SignInPage: React.FC = () => {
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const { showAlert } = useAlert();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGoogleCredential = async (credential: string) => {
+    try {
+      await loginWithGoogle(credential);
+      navigate('/account');
+    } catch {
+      showAlert('Google sign-up failed. Please try again.', 'error');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 8) {
+      showAlert('Password must be at least 8 characters.', 'error');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showAlert('Passwords do not match.', 'error');
+      return;
+    }
+    setIsSubmitting(true);
     try {
       await register(email, fullName, phone, password);
       navigate('/account');
     } catch {
       showAlert('Account creation failed. Please check your details and try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -695,17 +717,6 @@ export const SignUpPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
-            />
-          </div>
-
-          <div>
             <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Phone Number (MoMo)</label>
             <input
               type="text"
@@ -721,16 +732,35 @@ export const SignUpPage: React.FC = () => {
             <input
               type="password"
               required
+              minLength={8}
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-[0.12em]">
-            Create Account
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Confirm Password</label>
+            <input
+              type="password"
+              required
+              minLength={8}
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
+            />
+          </div>
+
+          <Button type="submit" variant="primary" disabled={isSubmitting} className="w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-[0.12em]">
+            {isSubmitting ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
+        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+          <span className="h-px flex-1 bg-[#E6DFD7] dark:bg-[#36322E]" />
+          <span>Or continue with</span>
+          <span className="h-px flex-1 bg-[#E6DFD7] dark:bg-[#36322E]" />
+        </div>
+        <GoogleSignInButton onCredential={handleGoogleCredential} />
         <div className="border-t border-[var(--border-color)] pt-5 text-center text-sm text-[var(--text-muted)]">
           Already have an account? <Link to="/signin" className="font-bold text-[var(--accent)]">Sign in</Link>
         </div>
