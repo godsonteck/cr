@@ -26,6 +26,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const isFavorited = isInWishlist(product.id);
   const effectiveMode = mode === 'auto' ? (product.department === 'groceries' ? 'grocery' : 'beauty') : mode;
+  const price = Number(product.price || 0);
+  const originalPrice = product.originalPrice == null ? undefined : Number(product.originalPrice);
+  const rating = Number(product.rating || 0);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -109,16 +112,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {product.rating && (
           <div className="flex items-center gap-1 text-[#f4b23d]">
             <Star className="h-3.5 w-3.5 fill-current" />
-            <span className="text-[11px] font-bold text-[var(--text-primary)]">{product.rating.toFixed(1)}</span>
+            <span className="text-[11px] font-bold text-[var(--text-primary)]">{rating.toFixed(1)}</span>
             <span className="text-[10px] text-[var(--text-subtle)]">({product.reviewCount || 0})</span>
           </div>
         )}
 
         <div className="flex items-end justify-between gap-3">
           <div>
-            <span className="text-lg font-black tracking-[-0.05em] text-[var(--text-primary)]">GHS {product.price.toFixed(2)}</span>
-            {product.originalPrice && (
-              <div className="text-[11px] text-[var(--text-subtle)] line-through">GHS {product.originalPrice.toFixed(2)}</div>
+            <span className="text-lg font-black tracking-[-0.05em] text-[var(--text-primary)]">GHS {price.toFixed(2)}</span>
+            {originalPrice && (
+              <div className="text-[11px] text-[var(--text-subtle)] line-through">GHS {originalPrice.toFixed(2)}</div>
             )}
           </div>
 

@@ -51,6 +51,7 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
+  const productRating = Number(product.rating || 0);
   const wishlisted = isInWishlist(product.id);
   const currentImage = selectedImage || product.image;
   const activeVariant = selectedVariant || product.variants?.[0];
@@ -133,7 +134,7 @@ export const ProductDetailPage: React.FC = () => {
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
               <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-yellow-700">
                 <Star className="h-3.5 w-3.5 fill-current" />
-                <span className="font-bold">{product.rating.toFixed(1)}</span>
+                <span className="font-bold">{productRating.toFixed(1)}</span>
               </div>
               <span>{product.reviewCount} ratings</span>
               <span className="text-[var(--text-subtle)]">•</span>

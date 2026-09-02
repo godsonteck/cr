@@ -18,7 +18,7 @@ const cartUpdateSchema = z.object({
     }).optional(),
   })).default([]).optional(),
   promoCode: z.string().max(50).optional().nullable(),
-  discountAmount: z.string().optional(),
+  discountAmount: z.union([z.string(), z.number()]).optional(),
   hasFreeShippingCoupon: z.boolean().optional(),
   selectedSamples: z.array(z.string()).default([]).optional(),
 }).partial();
@@ -73,7 +73,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [existingCart] = await db.select().from(carts).where(and(...conditions)).limit(1);
 
       if (existingCart) {
-        const updateData = { ...parsed.data, updatedAt: new Date() };
+        const updateData = {
+          ...parsed.data,
+          discountAmount: parsed.data.discountAmount == null ? undefined : String(parsed.data.discountAmount),
+          updatedAt: new Date(),
+        };
         const [updated] = await db
           .update(carts)
           .set(updateData)
@@ -86,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           sessionId: sessionId || null,
           items: parsed.data.items || [],
           promoCode: parsed.data.promoCode || null,
-          discountAmount: parsed.data.discountAmount || '0',
+          discountAmount: parsed.data.discountAmount == null ? '0' : String(parsed.data.discountAmount),
           hasFreeShippingCoupon: parsed.data.hasFreeShippingCoupon || false,
           selectedSamples: parsed.data.selectedSamples || [],
         }).returning();
