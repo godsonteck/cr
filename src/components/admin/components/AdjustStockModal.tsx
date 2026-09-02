@@ -61,7 +61,7 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-stone-900 text-base">Change Stock Quantity</h3>
+              <h3 className="font-bold text-stone-900 text-base">Update stock</h3>
               <p className="text-xs text-stone-500">Record when you receive new items or count the shop</p>
             </div>
           </div>
@@ -146,7 +146,7 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
               type="text"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="e.g. Received new shipment at Accra warehouse"
+              placeholder="Optional note about this stock change"
               className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:bg-white focus:border-stone-900 outline-none"
             />
           </div>

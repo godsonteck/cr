@@ -103,11 +103,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
                 CR Cosmetics & Essentials
               </p>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 tracking-tight mt-1">
-                Store Manager Login
+                Admin login
               </h1>
             </div>
             <p className="text-xs text-stone-500 max-w-xs mx-auto leading-relaxed">
-              Enter your login details to access your store management dashboard.
+              Sign in to manage your store.
             </p>
           </div>
 

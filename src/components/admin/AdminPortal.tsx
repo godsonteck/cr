@@ -59,22 +59,22 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'overview',       label: 'Dashboard',        icon: BarChart3,     group: 'main'   },
-  { id: 'products',       label: 'Products',          icon: Boxes,         group: 'shop'   },
-  { id: 'orders',         label: 'Orders',            icon: ClipboardList, group: 'shop'   },
-  { id: 'inventory',      label: 'Inventory',         icon: Truck,         group: 'shop'   },
-  { id: 'customers',      label: 'Customers',         icon: Users,         group: 'shop'   },
-  { id: 'promos',         label: 'Promotions',        icon: Tag,           group: 'shop'   },
-  { id: 'flash',          label: 'Flash Deals',       icon: Flame,         group: 'shop'   },
-  { id: 'accounts',       label: 'Admin Accounts',    icon: UserCheck,     group: 'system' },
-  { id: 'notifications',  label: 'Alerts & Messages', icon: Bell,          group: 'system' },
-  { id: 'settings',       label: 'Settings',          icon: Settings,      group: 'system' },
+  { id: 'overview',       label: 'Dashboard',  icon: BarChart3,      group: 'main'   },
+  { id: 'products',       label: 'Products',   icon: Boxes,          group: 'shop'   },
+  { id: 'orders',         label: 'Orders',     icon: ClipboardList,  group: 'shop'   },
+  { id: 'inventory',      label: 'Stock',      icon: Truck,          group: 'shop'   },
+  { id: 'customers',      label: 'Customers',  icon: Users,          group: 'shop'   },
+  { id: 'promos',         label: 'Discounts',  icon: Tag,            group: 'shop'   },
+  { id: 'flash',          label: 'Deals',      icon: Flame,          group: 'shop'   },
+  { id: 'accounts',       label: 'Team',       icon: UserCheck,      group: 'system' },
+  { id: 'notifications',  label: 'Alerts',     icon: Bell,           group: 'system' },
+  { id: 'settings',       label: 'Settings',   icon: Settings,       group: 'system' },
 ];
 
 const navGroups: { key: NavItem['group']; label: string }[] = [
-  { key: 'main',   label: 'Overview' },
-  { key: 'shop',   label: 'Shop'     },
-  { key: 'system', label: 'System'   },
+  { key: 'main',   label: 'Start here' },
+  { key: 'shop',   label: 'Store'     },
+  { key: 'system', label: 'Manage'    },
 ];
 
 const tabLabels: Record<AdminTab, string> = {
@@ -208,7 +208,7 @@ export const AdminPortal: React.FC = () => {
             {sidebarOpen && (
               <div className="min-w-0">
                 <p className="font-bold text-stone-900 dark:text-stone-100 text-sm truncate leading-tight">CR Admin</p>
-                <p className="text-[10px] font-medium text-stone-400 uppercase tracking-wider truncate">Management Portal</p>
+                <p className="text-[10px] font-medium text-stone-400 uppercase tracking-wider truncate">Store tools</p>
               </div>
             )}
           </div>
@@ -305,7 +305,7 @@ export const AdminPortal: React.FC = () => {
 
             {/* Breadcrumb */}
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs text-stone-400 dark:text-stone-600 hidden sm:inline">Admin</span>
+              <span className="text-xs text-stone-400 dark:text-stone-600 hidden sm:inline">Store</span>
               <ChevronRight className="w-3 h-3 text-stone-300 dark:text-stone-700 hidden sm:inline flex-shrink-0" />
               <span className="text-sm font-semibold text-stone-900 dark:text-stone-100 truncate">
                 {tabLabels[currentTab]}
@@ -320,7 +320,7 @@ export const AdminPortal: React.FC = () => {
               className="hidden md:flex items-center gap-2 pl-3 pr-4 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 text-xs transition-colors"
             >
               <Search className="w-4 h-4 text-stone-400" />
-              <span>Quick search... (⌘K)</span>
+              <span>Search...</span>
             </button>
 
             {/* Notifications */}

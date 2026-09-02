@@ -35,8 +35,8 @@ const productCreateSchema = z.object({
   originalPrice: z.string().optional(),
   discountBadge: z.string().max(20).optional(),
   unit: z.string().min(1).max(100),
-  image: z.string().min(1),
-  images: z.array(z.string().min(1)).min(1),
+  image: z.string().min(1).max(2_100_000), // ~1.5 MB base64 cap
+  images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
   highlights: z.array(z.string()).min(1),
   badge: z.string().max(50).optional(),

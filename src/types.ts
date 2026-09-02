@@ -255,6 +255,7 @@ export interface Order {
   status: OrderStatus;
   estimatedDeliveryTime: string;
   appliedPromoCode?: string;
+  paystackReference?: string;
   riderInfo?: RiderTrackingInfo;
 }
 

@@ -48,6 +48,8 @@ const orderCreateSchema = z.object({
   }),
   estimatedDeliveryTime: z.string().optional(),
   appliedPromoCode: z.string().optional(),
+  // Server-verified Paystack reference — required for paystack/momo payment methods
+  paystackReference: z.string().optional(),
 });
 
 const orderUpdateSchema = z.object({
@@ -137,6 +139,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
       }
+
+      // ── Payment verification gate ─────────────────────────────────────────
+      const onlinePaymentMethods = ['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'card'];
+      if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
+        const reference = parsed.data.paystackReference?.trim();
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!reference || !secretKey) {
+          return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
+        }
+        // Verify the reference directly with Paystack — cannot be forged
+        const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+          headers: { Authorization: `Bearer ${secretKey}` },
+        });
+        const paystackPayload = await paystackRes.json() as {
+          status?: boolean;
+          data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } };
+        };
+        const expectedKobo = Math.round(parsed.data.total * 100);
+        if (
+          !paystackRes.ok ||
+          !paystackPayload.status ||
+          paystackPayload.data?.status !== 'success' ||
+          paystackPayload.data?.amount !== expectedKobo ||
+          paystackPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()
+        ) {
+          return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));

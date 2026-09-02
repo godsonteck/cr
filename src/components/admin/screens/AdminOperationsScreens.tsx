@@ -142,9 +142,9 @@ export function AdminInventoryScreen({ onAddProduct }: { onAddProduct?: () => vo
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Stock control"
+        eyebrow="Store"
         title="Inventory"
-        description="Keep quantities accurate, identify risk early, and update the live catalog without leaving the operations desk."
+        description="Check stock and update quantities."
         action={
           <div className="flex flex-wrap gap-2">
             {onAddProduct && <button className={buttonClass} onClick={onAddProduct}><Plus className="h-4 w-4" />Add product</button>}
@@ -416,9 +416,9 @@ export function AdminCustomersScreen() {
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Customer relations"
+        eyebrow="Store"
         title="Customers"
-        description="Comprehensive customer database automatically built from orders and account registrations."
+        description="View customers and their order history."
         action={
           <button className={mutedButton} onClick={() => void buildCustomerList()}>
             <ExternalLink className="h-4 w-4" />
@@ -571,15 +571,15 @@ export function AdminPromotionsScreen() {
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Campaign tools"
-        title="Promotions"
-        description="Create and control discount codes that customers can use at checkout."
+        eyebrow="Store"
+        title="Discounts"
+        description="Create discount codes for checkout."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         {/* Create Form */}
         <form onSubmit={add} className="space-y-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
-          <h2 className="font-bold text-stone-900 dark:text-stone-100">Create a code</h2>
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">New discount code</h2>
           <input
             required
             className={inputClass}
@@ -722,9 +722,9 @@ export function AdminFlashDealsScreen() {
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Merchandising"
-        title="Flash deals"
-        description="Control limited-time offers shown on the storefront, with one clear active state at a time."
+        eyebrow="Store"
+        title="Deals"
+        description="Create and manage limited-time offers."
         action={
           <span className="rounded-full bg-stone-100 dark:bg-[#2a2024] px-3 py-1.5 text-xs font-bold text-stone-600 dark:text-stone-400">
             {store.flashDeals.filter(d => d.isActive).length} active
@@ -736,7 +736,7 @@ export function AdminFlashDealsScreen() {
         {/* Form */}
         <form onSubmit={save} className="space-y-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">
-            {editing ? 'Edit deal' : 'New flash deal'}
+            {editing ? 'Edit deal' : 'New deal'}
           </h2>
           <input
             required
@@ -877,9 +877,9 @@ export function AdminSettingsScreen() {
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Store configuration"
+        eyebrow="Manage"
         title="Settings"
-        description="Keep the storefront identity, delivery pricing, contact details, and operational mode in one place."
+        description="Update store information, delivery, and website settings."
       />
 
       <form onSubmit={save} className="space-y-6">
@@ -887,7 +887,7 @@ export function AdminSettingsScreen() {
         <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
           <h2 className="flex items-center gap-2 font-bold text-stone-900 dark:text-stone-100">
             <Settings2 className="h-4 w-4 text-[#B27A52]" />
-            Store identity
+            Store details
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
@@ -983,7 +983,7 @@ export function AdminSettingsScreen() {
         <section className="rounded-2xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 p-5">
           <h2 className="flex items-center gap-2 font-bold text-red-900 dark:text-red-300">
             <ShieldCheck className="h-4 w-4" />
-            Operational mode
+            Website status
           </h2>
           <label className="mt-3 flex items-center gap-2 text-sm text-red-900 dark:text-red-300">
             <input
@@ -991,13 +991,13 @@ export function AdminSettingsScreen() {
               checked={form.maintenanceMode}
               onChange={e => update('maintenanceMode', e.target.checked)}
             />
-            Put the customer storefront in maintenance mode
+            Temporarily pause the website
           </label>
         </section>
 
         <button className={buttonClass}>
           <Save className="h-4 w-4" />
-          Save all settings
+          Save settings
         </button>
       </form>
     </div>
@@ -1056,13 +1056,13 @@ export function AdminNotificationsScreen({ notifications = [] }: { notifications
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Operations inbox"
-        title="Alerts & messages"
-        description="A focused view of live exceptions that need a decision from the store team."
+        eyebrow="Manage"
+        title="Alerts"
+        description="See stock and order issues that need attention."
         action={
           <button className={mutedButton} onClick={markAll}>
             <Check className="h-4 w-4" />
-            Review all ({unread})
+            Mark all done ({unread})
           </button>
         }
       />
@@ -1134,7 +1134,7 @@ export function AdminNotificationsScreen({ notifications = [] }: { notifications
             <Check className="mx-auto h-8 w-8 text-emerald-600" />
             <p className="mt-3 font-bold text-stone-900 dark:text-stone-100">All clear</p>
             <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-              There are no unreviewed alerts in this view.
+              There is nothing to review here.
             </p>
           </div>
         )}

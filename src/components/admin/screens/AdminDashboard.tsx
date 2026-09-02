@@ -195,7 +195,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       <ScreenHeader
         eyebrow="Store overview"
         title="Dashboard"
-        description="A real-time snapshot of your store's revenue, orders, and stock health."
+        description="See what needs attention and manage the store from one place."
         action={
           <button
             onClick={handleRefresh}
@@ -241,42 +241,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
-          label="Total Revenue"
+          label="Revenue"
           value={`GHS ${metrics.totalRevenue.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           detail={`From ${metrics.totalOrders} total order${metrics.totalOrders !== 1 ? 's' : ''}`}
           icon={DollarSign}
           accent="green"
         />
         <StatCard
-          label="Avg Order Value"
+          label="Average order"
           value={`GHS ${metrics.avgOrderValue.toFixed(2)}`}
           detail="Per transaction"
           icon={TrendingUp}
           accent="blue"
         />
         <StatCard
-          label="Pending Orders"
+          label="Open orders"
           value={metrics.pendingOrders}
           detail="Awaiting processing"
           icon={Clock}
           accent={metrics.pendingOrders > 0 ? 'amber' : undefined}
         />
         <StatCard
-          label="Total Customers"
+          label="Customers"
           value={metrics.totalCustomers}
           detail="Unique by email"
           icon={Users}
           accent="purple"
         />
         <StatCard
-          label="Published Products"
+          label="Live products"
           value={metrics.published}
           detail={`${metrics.totalProducts} total in catalog`}
           icon={Package}
           accent="orange"
         />
         <StatCard
-          label="Out of Stock"
+          label="Low or out"
           value={metrics.outOfStock}
           detail={`${metrics.lowStock} more are low (≤ 5 units)`}
           icon={AlertCircle}
@@ -287,7 +287,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       {/* Recent Orders */}
       <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] shadow-sm">
         <div className="px-6 py-4 border-b border-stone-200 dark:border-[#2e2428] flex items-center justify-between">
-          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">Recent Orders</h2>
+          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">Latest orders</h2>
           <button
             onClick={() => onNavigate?.('orders')}
             className="text-xs font-semibold text-[#B27A52] hover:underline"

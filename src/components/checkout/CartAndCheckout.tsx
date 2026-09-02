@@ -387,6 +387,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
         status: 'Confirmed',
         estimatedDeliveryTime: '24 Hours',
         appliedPromoCode: promoCode || undefined,
+        // Pass verified reference so the server can independently confirm payment
+        paystackReference: isPaid ? payRef : undefined,
         createdAt: new Date().toISOString(),
       };
 

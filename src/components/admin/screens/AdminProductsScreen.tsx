@@ -168,9 +168,9 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
 
       {/* Header */}
       <ScreenHeader
-        eyebrow="Catalog management"
+        eyebrow="Store"
         title="Products"
-        description="Manage your product listings, control publication status, and track inventory levels."
+        description="Add products, update prices, and keep stock accurate."
         action={
           <div className="flex items-center gap-2">
             <button
@@ -193,11 +193,11 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <StatCard label="Total"         value={stats.total}          detail="In catalog"        icon={Package} />
-        <StatCard label="Published"     value={stats.published}      detail="Live on storefront" icon={Check as any} />
-        <StatCard label="Total Stock"   value={stats.totalInventory} detail="Units on hand"      icon={Package} />
-        <StatCard label="Low Stock"     value={stats.lowStock}       detail="≤ 5 units left"     icon={AlertTriangle} />
-        <StatCard label="Out of Stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />
+        <StatCard label="Products"      value={stats.total}          detail="In catalog"        icon={Package} />
+        <StatCard label="Live"          value={stats.published}      detail="Shown online"       icon={Check as any} />
+        <StatCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} />
+        <StatCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} />
+        <StatCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />
       </div>
 
       {/* Filters */}

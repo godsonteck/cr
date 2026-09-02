@@ -86,7 +86,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search items, customer orders, phone numbers, or actions..."
+            placeholder="Search products, orders, or actions..."
             className="w-full bg-transparent text-sm font-semibold text-stone-900 placeholder-stone-400 outline-none"
           />
           <button

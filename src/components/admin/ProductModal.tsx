@@ -861,8 +861,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {(
             <div className="space-y-5">
               <div className="border-b border-stone-200 pb-3">
-                <h3 className="text-base font-bold text-stone-900">4. Extra details</h3>
-                <p className="mt-1 text-[11px] text-stone-500">Add usage, ingredients, benefits, and product origin when relevant.</p>
+                <h3 className="text-base font-bold text-stone-900">4. Extra details <span className="font-normal text-stone-400">(optional)</span></h3>
+                <p className="mt-1 text-[11px] text-stone-500">Add these details only when they help customers decide.</p>
               </div>
 
               {/* Key Selling Points / Highlights */}

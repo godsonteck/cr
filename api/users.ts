@@ -57,6 +57,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (id && typeof id === 'string') {
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        // Customers may only fetch their own record; admins can fetch any
+        if (auth.role !== 'admin' && auth.sub !== id) {
+          return res.status(403).json({ error: 'You can only view your own profile' });
+        }
         const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
         if (!user) {
           return res.status(404).json({ error: 'User not found' });
@@ -65,6 +71,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (email && typeof email === 'string') {
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        // Customers may only look up their own email; admins can look up any
+        if (auth.role !== 'admin' && auth.email.toLowerCase() !== email.toLowerCase()) {
+          return res.status(403).json({ error: 'You can only view your own profile' });
+        }
         const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
         if (!user) {
           return res.status(404).json({ error: 'User not found' });

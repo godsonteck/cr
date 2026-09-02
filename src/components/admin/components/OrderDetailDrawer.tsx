@@ -40,9 +40,9 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
 }) => {
   if (!isOpen || !order) return null;
 
-  const [riderName, setRiderName] = useState(order.riderInfo?.riderName || 'Kwame Boateng (Accra Courier)');
-  const [riderPhone, setRiderPhone] = useState(order.riderInfo?.riderPhone || '+233 24 987 6543');
-  const [riderLocation, setRiderLocation] = useState(order.riderInfo?.riderLocation || 'Botwe Delivery Hub');
+  const [riderName, setRiderName] = useState(order.riderInfo?.riderName || '');
+  const [riderPhone, setRiderPhone] = useState(order.riderInfo?.riderPhone || '');
+  const [riderLocation, setRiderLocation] = useState(order.riderInfo?.riderLocation || '');
 
   const customerPhoneClean = order.shippingAddress.phone.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean}?text=${encodeURIComponent(`Hello ${order.shippingAddress.fullName}, thank you for shopping with CR Cosmetics & Essentials. We are currently preparing your delivery for order #${order.orderNumber}.`)}`;
@@ -120,7 +120,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           {/* Status Progression Bar */}
           <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
             <h4 className="font-bold text-stone-900 uppercase tracking-wider text-[11px]">
-              Delivery Progress
+              Order progress
             </h4>
             <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
               {stages.map((stage, i) => {
@@ -154,7 +154,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
                   <User className="w-4 h-4 text-[#C89B3C]" />
-                  <span>Customer Details</span>
+                  <span>Customer</span>
                 </h4>
                 <a
                   href={whatsappUrl}
@@ -185,7 +185,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
             <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-3">
               <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
                 <MapPin className="w-4 h-4 text-[#C89B3C]" />
-                <span>Delivery Location</span>
+                <span>Delivery address</span>
               </h4>
 
               <div className="space-y-1 text-xs text-stone-600">
@@ -209,34 +209,37 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-3">
             <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
               <Truck className="w-4 h-4 text-[#C89B3C]" />
-              <span>Delivery Rider Information</span>
+              <span>Delivery details</span>
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
-                <label className="block text-[11px] font-semibold text-stone-500 mb-1">Rider Name</label>
+                  <label className="block text-[11px] font-semibold text-stone-500 mb-1">Name (optional)</label>
                 <input
                   type="text"
                   value={riderName}
                   onChange={e => setRiderName(e.target.value)}
+                  placeholder="Enter name"
                   className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-stone-500 mb-1">Rider Phone</label>
+                  <label className="block text-[11px] font-semibold text-stone-500 mb-1">Phone (optional)</label>
                 <input
                   type="text"
                   value={riderPhone}
                   onChange={e => setRiderPhone(e.target.value)}
+                  placeholder="Enter phone"
                   className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-stone-500 mb-1">Current Hub / Station</label>
+                  <label className="block text-[11px] font-semibold text-stone-500 mb-1">Current location (optional)</label>
                 <input
                   type="text"
                   value={riderLocation}
                   onChange={e => setRiderLocation(e.target.value)}
+                  placeholder="Enter location"
                   className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
                 />
               </div>
@@ -246,7 +249,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           {/* Items Breakdown Table */}
           <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-xs">
             <div className="p-3.5 bg-stone-50 border-b border-stone-200 font-bold text-stone-900 text-xs">
-              Items Ordered ({order.items.length})
+              Items ({order.items.length})
             </div>
             <div className="divide-y divide-stone-100">
               {order.items.map((item, idx) => (
@@ -271,7 +274,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
             {/* Financial Summary */}
             <div className="p-4 bg-stone-50/80 border-t border-stone-200 space-y-1.5 text-xs">
               <div className="flex justify-between text-stone-600">
-                <span>Items Subtotal:</span>
+                <span>Items:</span>
                 <span>GHS {order.subtotal.toFixed(2)}</span>
               </div>
               {order.discount > 0 && (
@@ -281,11 +284,11 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                 </div>
               )}
               <div className="flex justify-between text-stone-600">
-                <span>Delivery Charge:</span>
+                <span>Delivery:</span>
                 <span>GHS {order.shippingFee.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200">
-                <span>Total Amount:</span>
+                <span>Total:</span>
                 <span className="text-stone-900">GHS {order.total.toFixed(2)}</span>
               </div>
             </div>
@@ -294,7 +297,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           {/* Payment Status & Method */}
           <div className="p-4 rounded-2xl border border-stone-200 bg-white flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="font-bold text-stone-900">Payment Status</span>
+              <span className="font-bold text-stone-900">Payment</span>
               <p className="text-stone-500 text-[11px] capitalize">Paid by: {order.paymentMethod.replace('-', ' ')}</p>
             </div>
             <div className="flex items-center gap-2">

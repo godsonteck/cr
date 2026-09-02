@@ -145,26 +145,26 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
 
       {/* Header */}
       <ScreenHeader
-        eyebrow="Fulfillment"
+        eyebrow="Store"
         title="Orders"
-        description="Track and manage customer orders. Click an order to update its status, add rider info, or process payment."
+        description="Review orders and move them through delivery."
         action={
           <button
             onClick={handleExport}
             className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            Export
           </button>
         }
       />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Total Orders"   value={stats.total}                                              detail="All time"              icon={ShoppingCart} />
-        <StatCard label="Pending"        value={stats.pending}                                            detail="Awaiting completion"   icon={Clock} />
-        <StatCard label="Delivered"      value={stats.delivered}                                          detail="Successfully completed" icon={CheckCircle2} />
-        <StatCard label="Total Revenue"  value={`GHS ${stats.totalRevenue.toFixed(2)}`}                  detail="Across all orders"     icon={DollarSign} />
+        <StatCard label="Orders"         value={stats.total}                                              detail="All orders"             icon={ShoppingCart} />
+        <StatCard label="Open"           value={stats.pending}                                            detail="Still in progress"      icon={Clock} />
+        <StatCard label="Delivered"      value={stats.delivered}                                          detail="Completed"              icon={CheckCircle2} />
+        <StatCard label="Sales"          value={`GHS ${stats.totalRevenue.toFixed(2)}`}                  detail="From all orders"        icon={DollarSign} />
       </div>
 
       {/* Filters */}
@@ -174,7 +174,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
             <input
               type="text"
-              placeholder="Search by order ID, customer name, or phone..."
+              placeholder="Search orders or customers..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm"

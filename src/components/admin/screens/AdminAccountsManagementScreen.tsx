@@ -216,16 +216,16 @@ export const AdminAccountsManagementScreen: React.FC = () => {
 
       {/* Header */}
       <ScreenHeader
-        eyebrow="Access control"
-        title="Admin Accounts"
-        description="Manage administrator roles, create new accounts, and update your own profile."
+        eyebrow="Manage"
+        title="Team"
+        description="Add team members, choose their access, and update your profile."
         action={
           <button
             onClick={() => setIsCreatingNew(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#33282C] transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Admin
+            Add team member
           </button>
         }
       />
@@ -237,7 +237,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
           className="space-y-4 rounded-2xl border border-[#B27A52]/30 bg-[#FDF7F2] dark:bg-[#2a1f1a] dark:border-[#3d2a22] p-5"
         >
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-stone-900 dark:text-stone-100">Create new admin account</h2>
+            <h2 className="font-bold text-stone-900 dark:text-stone-100">Add a team member</h2>
             <button
               type="button"
               onClick={() => setIsCreatingNew(false)}
@@ -280,7 +280,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
         <input
           type="text"
-          placeholder="Search by name, email, or phone..."
+          placeholder="Search team members..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           className={`${inputCls} pl-10`}

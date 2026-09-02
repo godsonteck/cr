@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '../src/neon.js';
 import { adminSessions, users } from '../src/db/schema.js';
 import { requireAuth, signToken } from './_auth.js';
+import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -13,7 +14,7 @@ const loginSchema = z.object({
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
-  pin: z.string().min(4),
+  pin: z.string().min(8),
   name: z.string().optional(),
   role: z.string().optional(),
 });
@@ -30,7 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'POST') {
+      // Rate-limit all login attempts: 10 per 15 minutes per IP
+      const clientIp = getClientIp(req.headers as Record<string, string | string[] | undefined>);
       const action = typeof query.action === 'string' ? query.action : 'customer';
+      const rl = checkRateLimit(`auth:${clientIp}:${action}`, 10, 15 * 60 * 1000);
+      if (!rl.allowed) {
+        res.setHeader('Retry-After', Math.ceil((rl.resetAt - Date.now()) / 1000).toString());
+        return res.status(429).json({ error: 'Too many login attempts. Please wait 15 minutes and try again.' });
+      }
 
       if (action === 'admin') {
         const parsed = adminLoginSchema.safeParse(body);
