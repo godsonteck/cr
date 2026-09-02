@@ -18,16 +18,16 @@ import { Button } from '../common/UIPrimitives';
 
 const values = [
   {
-    title: 'Curated beauty essentials',
-    copy: 'We focus on products our customers actually use and trust, from glow-boosting skincare to daily home staples.',
+    title: 'Browse',
+    copy: 'Shop skincare, cosmetics, fragrances, personal care, and household essentials in one catalog.',
   },
   {
-    title: 'Thoughtful service',
-    copy: 'Every order is designed around dependable delivery, responsive support, and clear communication from checkout to doorstep.',
+    title: 'Choose',
+    copy: 'Compare product details, options, prices, and availability before adding an item to your cart.',
   },
   {
-    title: 'Honest product guidance',
-    copy: 'We make shopping easier with dependable product details, transparent pricing, and practical care recommendations.',
+    title: 'Order',
+    copy: 'Pay securely at checkout, receive your order updates, and contact customer care whenever you need help.',
   },
 ];
 
@@ -72,12 +72,12 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="space-y-6 text-center">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Our story</span>
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">CR Cosmetics &amp; Essentials</span>
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-6xl">
-          Beauty, essentials, and everyday care made simpler.
+          Products for your everyday routine.
         </h1>
         <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-          CR Cosmetics &amp; Essentials was built for customers who want trusted beauty products, practical personal care, and household items without the usual hassle.
+          CR Cosmetics &amp; Essentials is an online shop for beauty, personal care, and household essentials. Browse the catalog, choose what suits you, and place your order in a few steps.
         </p>
       </div>
 
@@ -85,15 +85,15 @@ export const AboutPage: React.FC = () => {
         <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F5F0EB] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6F4B3D] dark:bg-stone-800 dark:text-stone-200">
             <Sparkles className="h-3.5 w-3.5" />
-            Why shoppers choose us
+            What we do
           </div>
 
           <div className="space-y-5 text-sm leading-7 text-[var(--text-muted)]">
             <p>
-              We bring together skincare, cosmetics, fragrances, bathroom essentials, and everyday household products in one easy shopping experience. Whether you are restocking your routine or discovering a new favorite, we aim to make every purchase convenient and confidence-building.
+              We bring together skincare, cosmetics, fragrances, personal care, and household products so you can handle everyday shopping in one place.
             </p>
             <p>
-              Our focus is simple: quality products, honest recommendations, and dependable support from order placement to delivery. We believe beauty and essentials should feel as good as they look.
+              Product pages show the available details, options, prices, and stock. Orders are placed through checkout and supported by our customer care team.
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export const AboutPage: React.FC = () => {
         <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
           <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">What we carry</h2>
           <ul className="mt-5 space-y-4 text-sm text-[var(--text-muted)]">
-            {['Skincare and treatment essentials', 'Makeup and beauty tools', 'Fragrances and personal care', 'Household and daily essentials'].map((item) => (
+            {['Skincare and treatment products', 'Makeup and beauty tools', 'Fragrances and personal care', 'Household and daily essentials'].map((item) => (
               <li key={item} className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-[#C86D51]" />
                 <span>{item}</span>
@@ -232,7 +232,7 @@ export const SupportPage: React.FC = () => {
             </div>
             <div className="flex items-start gap-3 text-[var(--text-muted)]">
               <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51]" />
-              <span>Convenient WhatsApp support for local shoppers and repeat customers.</span>
+              <span>Convenient WhatsApp support for shoppers and repeat customers.</span>
             </div>
           </div>
 
