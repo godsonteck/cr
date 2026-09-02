@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { users } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { users } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { requireAdmin, requireAuth, signToken } from './_auth';
+import { requireAdmin, requireAuth, signToken } from './_auth.js';
 
 const userCreateSchema = z.object({
   email: z.string().email(),

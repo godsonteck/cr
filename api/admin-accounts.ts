@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { db } from '../src/db';
-import { adminSessions } from '../src/db/schema';
-import { requireAdmin } from './_auth';
+import { db } from '../src/neon.js';
+import { adminSessions } from '../src/db/schema.js';
+import { requireAdmin } from './_auth.js';
 
 const allowedRoles = ['Super Admin', 'Store Manager', 'Inventory Dispatcher'] as const;
 type AdminRole = typeof allowedRoles[number];

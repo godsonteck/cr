@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { storeSettings } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { storeSettings } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const settingUpdateSchema = z.object({
   key: z.string().min(1).max(100),

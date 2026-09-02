@@ -2,9 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { db } from '../src/db';
-import { adminSessions, users } from '../src/db/schema';
-import { signToken } from './_auth';
+import { db } from '../src/neon.js';
+import { adminSessions, users } from '../src/db/schema.js';
+import { signToken } from './_auth.js';
 
 const loginSchema = z.object({
   email: z.string().email(),

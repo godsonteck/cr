@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { brands, categories } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { brands, categories } from '../src/db/schema.js';
 import { and, asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const categoryEnum = ['all', 'skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools', 'rice-grains', 'cooking-oils', 'seasoning-spices', 'beverages', 'snacks-sweets', 'household-care', 'daily-essentials', 'new-arrivals', 'best-sellers', 'offers'] as const;
 const brandCreateSchema = z.object({ name: z.string().min(1).max(100), isActive: z.boolean().default(true) });

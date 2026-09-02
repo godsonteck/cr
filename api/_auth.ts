@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt, { type SignOptions } from 'jsonwebtoken';
-import { db } from '../src/db';
-import { adminSessions, users } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { adminSessions, users } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 
 const jwtSecret = process.env.JWT_SECRET;

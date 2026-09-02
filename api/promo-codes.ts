@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { promoCodes } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { promoCodes } from '../src/db/schema.js';
 import { eq, desc } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const promoCreateSchema = z.object({
   id: z.string().optional(),

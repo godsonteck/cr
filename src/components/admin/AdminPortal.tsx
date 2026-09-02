@@ -370,7 +370,7 @@ export const AdminPortal: React.FC = () => {
               />
             )}
             {currentTab === 'orders'        && <AdminOrdersScreen onViewOrder={handleViewOrder} />}
-            {currentTab === 'inventory'     && <AdminInventoryScreen />}
+            {currentTab === 'inventory'     && <AdminInventoryScreen onAddProduct={handleAddProduct} />}
             {currentTab === 'customers'     && <AdminCustomersScreen />}
             {currentTab === 'accounts'      && <AdminAccountsManagementScreen />}
             {currentTab === 'promos'        && <AdminPromotionsScreen />}

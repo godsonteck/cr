@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { categories, products } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { categories, products } from '../src/db/schema.js';
 import { eq, and, or, ilike, desc, asc, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const categoryEnum = [
   'all', 'skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools',

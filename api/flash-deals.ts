@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { flashDeals } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { flashDeals } from '../src/db/schema.js';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const flashDealCreateSchema = z.object({
   title: z.string().min(1).max(200),

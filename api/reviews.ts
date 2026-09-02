@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { reviews, products } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { reviews, products } from '../src/db/schema.js';
 import { eq, desc, and, sql, avg, count } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth';
+import { requireAdmin } from './_auth.js';
 
 const reviewCreateSchema = z.object({
   productId: z.string().uuid(),

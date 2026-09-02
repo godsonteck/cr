@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/db';
-import { orders, products } from '../src/db/schema';
+import { db } from '../src/neon.js';
+import { orders, products } from '../src/db/schema.js';
 import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin, requireAuth } from './_auth';
+import { requireAdmin, requireAuth } from './_auth.js';
 
 const orderCreateSchema = z.object({
   userId: z.string().uuid().optional().nullable(),

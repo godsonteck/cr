@@ -92,12 +92,13 @@ function Stat({
 
 // ─── Inventory Screen ─────────────────────────────────────────────────────────
 
-export function AdminInventoryScreen() {
+export function AdminInventoryScreen({ onAddProduct }: { onAddProduct?: () => void }) {
   const store = useStore();
   const { showAlert } = useAlert();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(0);
+  const [adjustmentMode, setAdjustmentMode] = useState<'set' | 'add' | 'remove'>('set');
 
   const rows = useMemo(
     () =>
@@ -116,9 +117,20 @@ export function AdminInventoryScreen() {
 
   const save = async () => {
     if (!selected) return;
-    await store.updateProductStock(selected.id, Math.max(0, quantity));
+    const nextQuantity = adjustmentMode === 'add'
+      ? selected.stockCount + quantity
+      : adjustmentMode === 'remove'
+        ? selected.stockCount - quantity
+        : quantity;
+    await store.updateProductStock(selected.id, Math.max(0, nextQuantity));
     showAlert(`${selected.name} stock updated`, 'success');
     setSelected(null);
+  };
+
+  const removeProduct = async (product: Product) => {
+    if (!window.confirm(`Remove ${product.name} from the catalog and inventory?`)) return;
+    await store.deleteProduct(product.id);
+    showAlert(`${product.name} removed from inventory`, 'success');
   };
 
   const stockBadge = (count: number) => {
@@ -134,10 +146,10 @@ export function AdminInventoryScreen() {
         title="Inventory"
         description="Keep quantities accurate, identify risk early, and update the live catalog without leaving the operations desk."
         action={
-          <button className={mutedButton} onClick={() => setQuery('')}>
-            <Package className="h-4 w-4" />
-            {store.products.length} SKUs
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {onAddProduct && <button className={buttonClass} onClick={onAddProduct}><Plus className="h-4 w-4" />Add product</button>}
+            <button className={mutedButton} onClick={() => setQuery('')}><Package className="h-4 w-4" />{store.products.length} SKUs</button>
+          </div>
         }
       />
 
@@ -178,10 +190,19 @@ export function AdminInventoryScreen() {
                 onClick={() => {
                   setSelected(product);
                   setQuantity(product.stockCount);
+                  setAdjustmentMode('set');
                 }}
               >
                 <Edit3 className="h-4 w-4" />
                 Adjust
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                onClick={() => void removeProduct(product)}
+                title={`Remove ${product.name}`}
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove
               </button>
             </div>
           ))}
@@ -213,8 +234,20 @@ export function AdminInventoryScreen() {
               </button>
             </div>
             <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{selected.name}</p>
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {(['set', 'add', 'remove'] as const).map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => { setAdjustmentMode(mode); setQuantity(mode === 'set' ? selected.stockCount : 1); }}
+                  className={`rounded-xl border px-2 py-2 text-xs font-bold capitalize ${adjustmentMode === mode ? 'border-[#1E1719] bg-[#1E1719] text-white' : 'border-stone-200 bg-white text-stone-600 dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-300'}`}
+                >
+                  {mode === 'set' ? 'Set total' : mode === 'add' ? 'Receive stock' : 'Remove stock'}
+                </button>
+              ))}
+            </div>
             <label className="mt-5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-              New quantity
+              {adjustmentMode === 'set' ? 'New quantity' : 'Units to adjust'}
             </label>
             <input
               className={`${inputClass} mt-2`}
