@@ -452,9 +452,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchBrands = useCallback(async () => {
     setLoadingBrands(true);
     try {
-      const data = await api.get<string[]>('/brands');
+      const data = await api.get<Array<string | { name: string }>>('/brands');
       if (data && Array.isArray(data) && data.length > 0) {
-        setBrands(data);
+        setBrands(data.map(brand => typeof brand === 'string' ? brand : brand.name));
       }
     } catch (e: any) {
       setError('Failed to load brands from server.');
