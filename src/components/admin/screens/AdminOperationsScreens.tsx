@@ -864,14 +864,23 @@ export function AdminSettingsScreen() {
   const store = useStore();
   const { showAlert } = useAlert();
   const [form, setForm] = useState<StoreSettings>(store.storeSettings);
+  const [isSaving, setIsSaving] = useState(false);
 
   const update = <K extends keyof StoreSettings>(key: K, value: StoreSettings[K]) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
+  const updateNested = <K extends 'homepageSections' | 'pageVisibility'>(key: K, child: keyof StoreSettings[K], value: boolean) =>
+    setForm(prev => ({ ...prev, [key]: { ...prev[key], [child]: value } }));
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    await store.updateStoreSettings(form);
-    showAlert('Store settings saved', 'success');
+    setIsSaving(true);
+    try {
+      await store.updateStoreSettings(form);
+      showAlert('Settings saved', 'success');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -907,12 +916,21 @@ export function AdminSettingsScreen() {
               />
             </label>
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
-              Announcement
+              Announcement text
               <input
                 className={`${inputClass} mt-2`}
                 value={form.announcementText}
                 onChange={e => update('announcementText', e.target.value)}
+                placeholder="Optional message shown at the top of the shop"
               />
+            </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
+              Homepage headline
+              <input className={`${inputClass} mt-2`} value={form.heroHeadline} onChange={e => update('heroHeadline', e.target.value)} placeholder="Beauty, care, and everyday essentials." />
+            </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
+              Homepage message
+              <textarea className={`${inputClass} mt-2 min-h-20`} value={form.heroSubtitle} onChange={e => update('heroSubtitle', e.target.value)} placeholder="A short message customers see on the homepage." />
             </label>
           </div>
           <label className="mt-4 flex items-center gap-2 text-sm text-stone-700 dark:text-stone-300">
@@ -921,7 +939,7 @@ export function AdminSettingsScreen() {
               checked={form.announcementVisible}
               onChange={e => update('announcementVisible', e.target.checked)}
             />
-            Show announcement bar
+            Show announcement at the top of the shop
           </label>
         </section>
 
@@ -937,7 +955,7 @@ export function AdminSettingsScreen() {
                 ['standardShippingFee', 'Standard delivery fee'],
                 ['expressShippingFee', 'Express delivery fee'],
                 ['intercityShippingFee', 'Intercity delivery fee'],
-                ['freeDeliveryThreshold', 'Free delivery threshold'],
+                ['freeDeliveryThreshold', 'Free delivery from'],
               ] as const
             ).map(([key, label]) => (
               <label key={key} className="text-xs font-bold text-stone-600 dark:text-stone-400">
@@ -976,6 +994,53 @@ export function AdminSettingsScreen() {
                 onChange={e => update('storeAddress', e.target.value)}
               />
             </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+              Opening hours
+              <input className={`${inputClass} mt-2`} value={form.storeHours} onChange={e => update('storeHours', e.target.value)} placeholder="When customers can reach you" />
+            </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+              WhatsApp number
+              <input className={`${inputClass} mt-2`} value={form.whatsappNumber} onChange={e => update('whatsappNumber', e.target.value)} placeholder="Number for customer messages" />
+            </label>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">What customers see</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Turn homepage sections on or off without deleting anything.</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {([
+              ['flashDeal', 'Flash deal'],
+              ['hero', 'Homepage welcome'],
+              ['categories', 'Categories'],
+              ['hotDeals', 'Hot deals'],
+              ['newArrivals', 'New products'],
+              ['beauty', 'Beauty products'],
+              ['groceryFeed', 'Essentials'],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs font-semibold text-stone-700">
+                <span>{label}</span>
+                <input type="checkbox" checked={form.homepageSections[key]} onChange={e => updateNested('homepageSections', key, e.target.checked)} className="h-4 w-4 accent-[#1E1719]" />
+              </label>
+            ))}
+          </div>
+          <div className="mt-5 border-t border-stone-100 pt-4">
+            <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Customer pages</h3>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {([
+                ['shop', 'Shop'],
+                ['products', 'Product pages'],
+                ['checkout', 'Checkout'],
+                ['account', 'Customer accounts'],
+                ['about', 'About'],
+                ['support', 'Support'],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs font-semibold text-stone-700">
+                  <span>{label}</span>
+                  <input type="checkbox" checked={form.pageVisibility[key]} onChange={e => updateNested('pageVisibility', key, e.target.checked)} className="h-4 w-4 accent-[#1E1719]" />
+                </label>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -995,9 +1060,9 @@ export function AdminSettingsScreen() {
           </label>
         </section>
 
-        <button className={buttonClass}>
+        <button className={`${buttonClass} sticky bottom-4 shadow-lg`} disabled={isSaving}>
           <Save className="h-4 w-4" />
-          Save settings
+          {isSaving ? 'Saving...' : 'Save settings'}
         </button>
       </form>
     </div>
