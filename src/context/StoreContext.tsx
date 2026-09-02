@@ -834,6 +834,7 @@ const addOrder = async (order: Order) => {
       if (errors.length > 0) {
         setError(`Failed to save some settings: ${errors.join(', ')}`);
         console.error('Setting errors:', errors);
+        throw new Error(`Failed to save some settings: ${errors.join(', ')}`);
       }
       
       console.log('Fetching settings from server...');
