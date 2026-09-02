@@ -485,6 +485,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const fetchOrders = useCallback(async (params?: { userId?: string; status?: Order['status'] }) => {
+    if (!localStorage.getItem('auth_token')) {
+      return;
+    }
     setLoadingOrders(true);
     try {
       const query = new URLSearchParams();
@@ -495,6 +498,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setOrders(data.orders);
       }
     } catch (e: any) {
+      if (e?.status === 401 || e?.status === 403) {
+        return;
+      }
       setError('Failed to load orders from server.');
       throw e;
     } finally {
@@ -559,13 +565,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch (e: any) { setError(e.message || "Operation failed"); }
 
-    fetchProducts();
-    fetchBrands();
-    fetchCategories();
-    fetchOrders();
-    fetchPromoCodes();
-    fetchSettings();
-    fetchFlashDeals();
+    void Promise.allSettled([
+      fetchProducts(),
+      fetchBrands(),
+      fetchCategories(),
+      fetchOrders(),
+      fetchPromoCodes(),
+      fetchSettings(),
+      fetchFlashDeals(),
+    ]);
   }, [fetchProducts, fetchBrands, fetchCategories, fetchOrders, fetchPromoCodes, fetchSettings, fetchFlashDeals]);
 
   // Product Actions
