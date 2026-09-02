@@ -517,14 +517,19 @@ export const AccountPage: React.FC = () => {
 
 const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promise<void> }> = ({ onCredential }) => {
   const buttonRef = React.useRef<HTMLDivElement>(null);
+  const onCredentialRef = React.useRef(onCredential);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  useEffect(() => {
+    onCredentialRef.current = onCredential;
+  }, [onCredential]);
 
   useEffect(() => {
     if (!clientId || !buttonRef.current) return;
     const renderButton = () => {
       const google = (window as any).google;
       if (!google?.accounts?.id || !buttonRef.current) return;
-      google.accounts.id.initialize({ client_id: clientId, callback: (response: { credential: string }) => void onCredential(response.credential) });
+      google.accounts.id.initialize({ client_id: clientId, callback: (response: { credential: string }) => void onCredentialRef.current(response.credential) });
       buttonRef.current.innerHTML = '';
       google.accounts.id.renderButton(buttonRef.current, { theme: 'outline', size: 'large', width: 360, text: 'continue_with', shape: 'pill' });
     };
@@ -539,7 +544,7 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
     script.onload = renderButton;
     document.head.appendChild(script);
     return () => { script.onload = null; };
-  }, [clientId, onCredential]);
+  }, [clientId]);
 
   if (!clientId) return null;
   return <div ref={buttonRef} className="flex min-h-10 justify-center" />;
@@ -547,21 +552,7 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
 
 const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode }> = ({ mode, children }) => (
   <div className="relative mx-auto max-w-5xl px-4 py-10 font-sans sm:px-6 sm:py-16">
-    <div className="overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_24px_70px_rgba(11,31,56,0.12)] lg:grid lg:grid-cols-[0.86fr_1.14fr]">
-      <div className="relative hidden min-h-[560px] overflow-hidden bg-[#0e2a4c] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border-[28px] border-[#7aa7ff]/20" />
-        <div className="relative space-y-5">
-          <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-14 w-14 rounded-2xl bg-white p-1 object-contain" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#a9c8ff]">CR Cosmetics & Essentials</p>
-          <h2 className="max-w-xs text-4xl font-black leading-tight tracking-[-0.06em]">Everyday care, chosen with intention.</h2>
-          <p className="max-w-xs text-sm leading-6 text-blue-100/75">Keep your orders, saved products, and delivery details in one place.</p>
-        </div>
-        <div className="relative space-y-3 text-sm text-blue-100/80">
-          <p>✓ Verified products and trusted brands</p>
-          <p>✓ Delivery across Accra and Ghana</p>
-          <p>✓ Personalised shopping history</p>
-        </div>
-      </div>
+    <div className="mx-auto max-w-xl overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_24px_70px_rgba(11,31,56,0.12)]">
       <div className="p-6 sm:p-10 lg:p-12">
         <div className="mb-8 flex items-center justify-between lg:hidden">
           <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain" />
