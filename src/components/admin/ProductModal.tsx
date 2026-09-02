@@ -53,8 +53,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const isEditing = !!productToEdit;
 
-  const [activeSection, setActiveSection] = useState<'general' | 'pricing' | 'media' | 'details'>('general');
-
   const [name, setName] = useState('');
   const [department, setDepartment] = useState<DepartmentType>('beauty');
   const [brand, setBrand] = useState('The Ordinary');
@@ -208,6 +206,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   const addOption = () => setOptions(prev => [...prev, { name: '', values: [] }]);
+  const addPresetOption = (name: string, values: string[]) => {
+    if (options.some(option => option.name.toLowerCase() === name.toLowerCase())) return;
+    setOptions(prev => [...prev, { name, values }]);
+  };
   const addVariant = () => setVariants(prev => [...prev, {
     id: `variant-${Date.now()}-${prev.length}`,
     name: '',
@@ -290,8 +292,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 {isPublished ? 'Visible to Customers' : 'Hidden / Draft'}
               </span>
             </div>
-            <p className="text-xs text-stone-500 mt-0.5">
-              Fill in the name, price in Ghana Cedis, stock quantity, and picture for this product.
+              <p className="text-xs text-stone-500 mt-0.5">
+              Add the product details customers need, then set prices and stock for each option.
             </p>
           </div>
 
@@ -303,35 +305,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </button>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex gap-2 border-b border-stone-100 pb-3 mb-4 text-xs font-bold">
-          {[
-            { id: 'general', label: '1. Basic Info & Section' },
-            { id: 'pricing', label: '2. Price & Stock Quantity' },
-            { id: 'media', label: '3. Product Picture' },
-            { id: 'details', label: '4. How to Use & Details' },
-          ].map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveSection(t.id as any)}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                activeSection === t.id 
-                  ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs' 
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-5 pr-1 text-xs">
           
-          {/* TAB 1: BASIC INFO */}
-          {activeSection === 'general' && (
+          {/* SECTION 1: PRODUCT DETAILS */}
+          {(
             <div className="space-y-4">
+              <div className="border-b border-stone-200 pb-3">
+                <h3 className="text-base font-bold text-stone-900">1. Product details</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Start with the information customers need to identify the item.</p>
+              </div>
               
               {/* Department Switcher */}
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
@@ -493,12 +476,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </button>
               </div>
 
+              <div className="flex w-full items-center justify-between rounded-2xl border-2 border-dashed border-[#C89B3C] bg-[#FFFBF1] p-4 text-left">
+                <div>
+                  <p className="text-sm font-bold text-stone-900">Does this product have different options?</p>
+                  <p className="mt-1 text-[11px] text-stone-600">Set different prices and stock for colors, sizes, types, or ranges.</p>
+                </div>
+                <span className="rounded-lg bg-stone-900 px-3 py-2 text-[10px] font-bold text-white">See below</span>
+              </div>
+
             </div>
           )}
 
-          {/* TAB 2: PRICING & STOCK */}
-          {activeSection === 'pricing' && (
+          {/* SECTION 2: PRICE, OPTIONS & STOCK */}
+          {(
             <div className="space-y-4">
+              <div className="border-b border-stone-200 pb-3">
+                <h3 className="text-base font-bold text-stone-900">2. Price, options and stock</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Use the option builder for products with different colors, sizes, types, or prices.</p>
+              </div>
               
               <div className="bg-[#FAF8F5] p-5 rounded-2xl border border-[#E8E2D8] space-y-4">
                 <h3 className="font-bold text-stone-900 flex items-center gap-1.5 text-sm">
@@ -547,10 +542,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <div className="space-y-4 rounded-2xl border border-[#E8E2D8] bg-white p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm">Options and price variations</h3>
-                    <p className="mt-1 text-[11px] text-stone-500">Add options such as Color, Size, or Type / Range, then set a price and stock count for each combination.</p>
+                    <h3 className="font-bold text-stone-900 text-sm">Options and prices</h3>
+                    <p className="mt-1 text-[11px] text-stone-500">For example: Color = Red, Blue. Size = Small, Large. Each combination can have its own price and stock.</p>
                   </div>
-                  <button type="button" onClick={addOption} className="flex shrink-0 items-center gap-1 rounded-lg bg-stone-900 px-3 py-2 text-[10px] font-bold text-white"><Plus className="h-3 w-3" /> Add option</button>
+                  <button type="button" onClick={addOption} className="flex shrink-0 items-center gap-1 rounded-lg bg-stone-900 px-3 py-2 text-[10px] font-bold text-white"><Plus className="h-3 w-3" /> Custom option</button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="self-center text-[10px] font-bold text-stone-500">Quick add:</span>
+                  <button type="button" onClick={() => addPresetOption('Color', ['Red', 'Blue', 'Black'])} className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900">Color</button>
+                  <button type="button" onClick={() => addPresetOption('Size', ['Small', 'Medium', 'Large'])} className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900">Size</button>
+                  <button type="button" onClick={() => addPresetOption('Type / Range', ['Standard', 'Premium'])} className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900">Type / Range</button>
                 </div>
 
                 {options.map((option, index) => (
@@ -631,9 +633,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: PICTURES */}
-          {activeSection === 'media' && (
+          {/* SECTION 3: PRODUCT PHOTOS */}
+          {(
             <div className="space-y-5">
+              <div className="border-b border-stone-200 pb-3">
+                <h3 className="text-base font-bold text-stone-900">3. Product photos</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Add clear photos so customers know exactly what they are buying.</p>
+              </div>
 
               {/* Drag & Drop Upload Zone */}
               <div>
@@ -770,9 +776,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           )}
 
-          {/* TAB 4: USAGE & DETAILS */}
-          {activeSection === 'details' && (
+          {/* SECTION 4: EXTRA DETAILS */}
+          {(
             <div className="space-y-5">
+              <div className="border-b border-stone-200 pb-3">
+                <h3 className="text-base font-bold text-stone-900">4. Extra details</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Add usage, ingredients, benefits, and product origin when relevant.</p>
+              </div>
 
               {/* Key Selling Points / Highlights */}
               <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#E8E2D8] space-y-3">
