@@ -69,6 +69,33 @@ export interface FlashDeal {
   backgroundGradient: string; // e.g. "from-[var(--accent)] via-[var(--violet)] to-[var(--olive)]"
 }
 
+export interface HomepageSectionVisibility {
+  flashDeal: boolean;
+  hero: boolean;
+  categories: boolean;
+  hotDeals: boolean;
+  bestSellers: boolean;
+  newArrivals: boolean;
+  beauty: boolean;
+  groceryFeed: boolean;
+  recommendedForYou: boolean;
+}
+
+export interface StorefrontPageVisibility {
+  home: boolean;
+  beauty: boolean;
+  groceries: boolean;
+  shop: boolean;
+  products: boolean;
+  search: boolean;
+  account: boolean;
+  checkout: boolean;
+  about: boolean;
+  support: boolean;
+  contact: boolean;
+  offers: boolean;
+}
+
 export interface StoreSettings {
   storeName: string;
   storeTagline: string;
@@ -80,6 +107,8 @@ export interface StoreSettings {
   announcementText: string;
   announcementVisible: boolean;
   announcementBg: string;
+  homepageSections: HomepageSectionVisibility;
+  pageVisibility: StorefrontPageVisibility;
   freeDeliveryThreshold: number; // in GHS
   currency: string;
   standardShippingFee: number;

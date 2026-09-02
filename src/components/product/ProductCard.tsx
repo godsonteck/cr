@@ -48,12 +48,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.15rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_35px_rgba(56,35,29,0.12)] ${className}`}
+      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-[1.5rem] border border-[var(--border-color)] bg-[linear-gradient(180deg,#fffdfd_0%,#fff7f8_100%)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_42px_rgba(128,72,93,0.12)] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           {product.discountBadge ? (
-            <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+            <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white shadow-sm">
               {product.discountBadge}
             </span>
           ) : product.badge ? (
@@ -68,17 +68,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleToggleWishlist}
           aria-label="Wishlist"
-          className="rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] p-1.5 text-[var(--text-muted)] transition-colors hover:border-[#d5c2b6] hover:text-[var(--text-primary)]"
+          className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.9)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[#d5c2b6] hover:text-[var(--text-primary)]"
         >
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#111111] text-[#111111]' : 'stroke-[1.5]'}`} />
         </button>
       </div>
 
-        <div className="relative mb-3 aspect-[4/5] overflow-hidden rounded-[.85rem] bg-[var(--bg-soft)]">
+      <div className="relative mb-3 aspect-[4/5] overflow-hidden rounded-[1rem] bg-[var(--bg-soft)]">
         <img
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
           loading="lazy"
         />
 
@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock || product.stockCount <= 0}
-            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35"
+            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label={product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
           >
             <ShoppingBag className="h-4 w-4" />

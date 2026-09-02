@@ -98,6 +98,31 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   announcementText: 'Free delivery in Accra on orders GHS 300+ • Same-day dispatch available',
   announcementVisible: true,
   announcementBg: '#1E1719',
+  homepageSections: {
+    flashDeal: true,
+    hero: true,
+    categories: true,
+    hotDeals: true,
+    bestSellers: true,
+    newArrivals: true,
+    beauty: true,
+    groceryFeed: true,
+    recommendedForYou: true,
+  },
+  pageVisibility: {
+    home: true,
+    beauty: true,
+    groceries: true,
+    shop: true,
+    products: true,
+    search: true,
+    account: true,
+    checkout: true,
+    about: true,
+    support: true,
+    contact: true,
+    offers: true,
+  },
   freeDeliveryThreshold: 300,
   currency: 'GHS',
   standardShippingFee: 30,
@@ -336,7 +361,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!parsed.storePhone || parsed.storePhone.includes('123 4567') || parsed.storePhone === '+233 55 123 4567') {
           parsed.storePhone = '0592153306';
         }
-        return { ...DEFAULT_STORE_SETTINGS, ...parsed };
+        return {
+          ...DEFAULT_STORE_SETTINGS,
+          ...parsed,
+          homepageSections: {
+            ...DEFAULT_STORE_SETTINGS.homepageSections,
+            ...(parsed.homepageSections || {}),
+          },
+          pageVisibility: {
+            ...DEFAULT_STORE_SETTINGS.pageVisibility,
+            ...(parsed.pageVisibility || {}),
+          },
+        };
       }
     } catch (e: any) { setError(e.message || "Operation failed"); }
     return DEFAULT_STORE_SETTINGS;

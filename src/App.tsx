@@ -27,6 +27,30 @@ function AppLayout() {
   const { storeSettings } = useStore();
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
+  const pageVisibility = storeSettings.pageVisibility || {
+    home: true,
+    beauty: true,
+    groceries: true,
+    shop: true,
+    products: true,
+    search: true,
+    account: true,
+    checkout: true,
+    about: true,
+    support: true,
+    contact: true,
+    offers: true,
+  };
+
+  const renderUnavailable = (label: string) => (
+    <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center px-6 text-center">
+      <p className="text-xs font-bold uppercase tracking-[.2em] text-[#8A3D52]">Temporarily unavailable</p>
+      <h1 className="mt-4 font-serif text-4xl">{label}</h1>
+      <p className="mt-4 text-sm leading-6 text-stone-500">
+        This section has been temporarily disabled by the admin and will be restored when it is ready.
+      </p>
+    </div>
+  );
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -80,28 +104,28 @@ function AppLayout() {
               </div>
             ) : (
               <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/beauty" element={<BeautyDepartmentPage />} />
-                <Route path="/groceries" element={<GroceryDepartmentPage />} />
-                <Route path="/shop" element={<ShopCatalogPage />} />
-                <Route path="/category/:categorySlug" element={<ShopCatalogPage />} />
-                <Route path="/product/:productId" element={<ProductDetailPage />} />
-                <Route path="/search" element={<SearchResultsPage />} />
-                <Route path="/routine-builder" element={<RoutineBuilderPage />} />
+                <Route path="/" element={pageVisibility.home ? <HomePage /> : renderUnavailable('Home page is currently offline')} />
+                <Route path="/beauty" element={pageVisibility.beauty ? <BeautyDepartmentPage /> : renderUnavailable('Beauty collection is currently offline')} />
+                <Route path="/groceries" element={pageVisibility.groceries ? <GroceryDepartmentPage /> : renderUnavailable('Groceries collection is currently offline')} />
+                <Route path="/shop" element={pageVisibility.shop ? <ShopCatalogPage /> : renderUnavailable('Shop is currently offline')} />
+                <Route path="/category/:categorySlug" element={pageVisibility.shop ? <ShopCatalogPage /> : renderUnavailable('Shop is currently offline')} />
+                <Route path="/product/:productId" element={pageVisibility.products ? <ProductDetailPage /> : renderUnavailable('Product details are currently offline')} />
+                <Route path="/search" element={pageVisibility.search ? <SearchResultsPage /> : renderUnavailable('Search is currently offline')} />
+                <Route path="/routine-builder" element={pageVisibility.products ? <RoutineBuilderPage /> : renderUnavailable('Routine builder is currently offline')} />
 
-                <Route path="/cart" element={<FullCartPage />} />
-                <Route path="/checkout" element={<MultiStepCheckoutPage />} />
-                <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+                <Route path="/cart" element={pageVisibility.shop ? <FullCartPage /> : renderUnavailable('Shopping cart is currently offline')} />
+                <Route path="/checkout" element={pageVisibility.checkout ? <MultiStepCheckoutPage /> : renderUnavailable('Checkout is temporarily closed')} />
+                <Route path="/order-confirmation/:orderId" element={pageVisibility.checkout ? <OrderConfirmationPage /> : renderUnavailable('Order confirmation is temporarily unavailable')} />
 
-                <Route path="/account" element={<AccountPage />} />
-                <Route path="/account/orders" element={<AccountPage />} />
-                <Route path="/signin" element={<SignInPage />} />
-                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/account" element={pageVisibility.account ? <AccountPage /> : renderUnavailable('Account area is currently offline')} />
+                <Route path="/account/orders" element={pageVisibility.account ? <AccountPage /> : renderUnavailable('Account area is currently offline')} />
+                <Route path="/signin" element={pageVisibility.account ? <SignInPage /> : renderUnavailable('Sign in is currently offline')} />
+                <Route path="/signup" element={pageVisibility.account ? <SignUpPage /> : renderUnavailable('Sign up is currently offline')} />
 
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/support" element={<SupportPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/offers" element={<ShopCatalogPage />} />
+                <Route path="/about" element={pageVisibility.about ? <AboutPage /> : renderUnavailable('About page is currently offline')} />
+                <Route path="/support" element={pageVisibility.support ? <SupportPage /> : renderUnavailable('Support page is currently offline')} />
+                <Route path="/contact" element={pageVisibility.contact ? <ContactPage /> : renderUnavailable('Contact page is currently offline')} />
+                <Route path="/offers" element={pageVisibility.offers ? <ShopCatalogPage /> : renderUnavailable('Offers are currently closed')} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

@@ -7,34 +7,50 @@ import { useStore } from '../../context/StoreContext';
 export const HomePage: React.FC = () => {
   const { products, categories, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
-  const allProducts = publishedProducts.slice(0, 18);
   const activeCategories = categories.filter(cat => cat.isActive);
-  const categoryPills = activeCategories.slice(0, 8);
-  const topCategories = activeCategories.slice(0, 4);
+  const categoryPills = activeCategories.slice(0, 10);
+  const homepageSections = storeSettings.homepageSections || {
+    flashDeal: true,
+    hero: true,
+    categories: true,
+    bestSellers: true,
+    groceryFeed: true,
+  };
 
   const bestSellers = [...publishedProducts]
     .sort((a, b) => b.rating - a.rating)
-    .slice(0, 6);
+    .slice(0, 12);
 
+  const newArrivals = publishedProducts
+    .filter(p => p.badge === 'New In')
+    .slice(0, 12);
+
+  const hotDeals = publishedProducts
+    .filter(p => p.badge === 'Sale' || (p.originalPrice && p.originalPrice > p.price))
+    .slice(0, 12);
+
+  const beautyProducts = publishedProducts.filter(p => p.department === 'beauty').slice(0, 12);
+  
   const groceryEssentials = publishedProducts
     .filter(product => product.department === 'groceries')
-    .slice(0, 6);
+    .slice(0, 12);
+
+  const recommendedForYou = publishedProducts.slice(0, 12);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
-      
-      {/* Category Pills Navigation */}
-      {categoryPills.length > 0 && (
-        <div className="mx-auto min-w-0 max-w-[1400px] overflow-hidden px-3 pb-2 pt-3 sm:px-4">
-          <div className="flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Category pills - sticky scrollable bar */}
+      {homepageSections.categories && categoryPills.length > 0 && (
+        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-white px-3 py-2 sm:px-4">
+          <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link
                 key={item.id}
                 to={`/category/${item.slug}`}
-                className={`whitespace-nowrap rounded-lg border px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors sm:px-4 sm:py-2 ${
+                className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all ${
                   index === 0
-                    ? 'border-[#8A3D52] bg-[#8A3D52] text-white shadow-xs'
-                    : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[#8A3D52] hover:bg-[var(--bg-soft)]'
+                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                    : 'border-[var(--border-color)] bg-white text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
                 }`}
               >
                 {item.name}
@@ -44,178 +60,146 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content Layout */}
-      <main className="mx-auto max-w-[1400px] space-y-8 sm:space-y-10 px-3 sm:px-4 pb-16">
-
-        {flashDeals.filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now()).slice(0, 1).map(deal => (
-          <section key={deal.id} className="flex flex-col gap-4 rounded-[1.5rem] bg-[#1E1719] p-5 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-[#C86D51] p-2.5"><Flame className="h-5 w-5" /></div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8B792]">{deal.badgeText || 'Limited time offer'}</p>
-                <h2 className="mt-1 font-serif text-xl font-bold sm:text-2xl">{deal.title}</h2>
-                <p className="mt-1 text-xs text-stone-300">{deal.description || deal.subtitle}</p>
+      <main className="mx-auto max-w-[1500px] space-y-3 px-3 pb-12 sm:px-4 sm:space-y-4">
+        {/* Flash Deal Banner */}
+        {homepageSections.flashDeal && flashDeals.filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now()).slice(0, 1).map(deal => (
+          <section key={deal.id} className="mt-3 flex items-center justify-between gap-3 rounded-lg border-l-4 border-[var(--accent)] bg-[#1d1519] p-3 text-white sm:p-4">
+            <div className="flex items-center gap-2.5">
+              <Flame className="h-5 w-5 shrink-0 text-[var(--accent)]" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">{deal.badgeText || 'Flash Sale'}</p>
+                <h2 className="truncate text-sm font-bold text-white sm:text-base">{deal.title}</h2>
               </div>
             </div>
-            <Link to="/offers" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-[#1E1719] transition hover:bg-[#F2E3D7]">
-              Save {deal.discountPercentage}% <ArrowRight className="h-3.5 w-3.5" />
+            <Link to="/offers" className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+              -{deal.discountPercentage}% <ArrowRight className="h-3 w-3" />
             </Link>
           </section>
         ))}
-        
-        {/* Hero Banner */}
-        <section
-          className="relative min-h-[30rem] overflow-hidden rounded-[1.75rem] border border-[var(--border-color)] bg-[#1E1719] shadow-sm"
-          style={{ backgroundImage: topCategories[0]?.image ? `url(${topCategories[0].image})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}
-        >
-          <div className="absolute inset-0 bg-[#1E1719]/65" />
-          <div className="relative flex min-h-[25rem] max-w-3xl flex-col justify-end p-5 sm:min-h-[30rem] sm:p-10 lg:p-14">
-            
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-white/70 dark:bg-[#1d1a19]/80 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)] shadow-2xs">
-              <span className="h-2 w-2 rounded-full bg-[#8A3D52]"></span>
-              <span className="text-white">{storeSettings.heroBadge || '100% ORIGINAL & AUTHENTIC'}</span>
-            </div>
 
-            <div className="space-y-3">
-              <h1 className="font-serif text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {storeSettings.heroHeadline || 'Your Beauty. Your Essentials. Your Glow.'}
-              </h1>
-              <p className="max-w-2xl text-sm leading-relaxed text-stone-200 sm:text-base">
-                {storeSettings.heroSubtitle || 'Carefully selected beauty and everyday essentials chosen to help you feel your best.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link 
-                to="/shop" 
-                className="rounded-full bg-[#8A3D52] hover:bg-[#722f41] px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md transition-all cursor-pointer"
-              >
-                {storeSettings.heroButtonText || 'Shop now'}
-              </Link>
-              <Link 
-                to="/beauty" 
-                className="cursor-pointer rounded-full border border-white/35 bg-white/10 px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-all hover:border-white hover:bg-white/20"
-              >
-                {storeSettings.heroSecondaryButtonText || 'Explore beauty'}
-              </Link>
-            </div>
-
-          </div>
-        </section>
-
-        {/* Top Categories */}
-        {topCategories.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Shop intentionally</p>
-                <h3 className="mt-1 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">Top categories</h3>
+        {/* Compact Hero */}
+        {homepageSections.hero && (
+          <section className="rounded-lg border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl line-clamp-2">
+                  {storeSettings.heroHeadline || 'Beauty, care and everyday essentials'}
+                </h1>
+                <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-1">
+                  {storeSettings.heroSubtitle || 'Free delivery in Accra on orders over GHS 100'}
+                </p>
+                <Link to="/shop" className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+                  {storeSettings.heroButtonText || 'Shop now'} <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
             </div>
+          </section>
+        )}
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {topCategories.map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/category/${category.slug}`}
-                  className="group overflow-hidden rounded-[1.25rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md text-left"
-                >
-                  <div className="overflow-hidden rounded-[1rem] bg-[var(--bg-soft)] aspect-[4/3] mb-3">
-                    <img 
-                      src={category.image} 
-                      alt={category.name} 
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]" 
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">{category.department}</p>
-                      <h4 className="mt-0.5 text-sm font-bold text-[var(--text-primary)] line-clamp-1">{category.name}</h4>
-                    </div>
-                    <span className="rounded-full bg-[#8A3D52] px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white shrink-0">
-                      Shop
-                    </span>
-                  </div>
-                </Link>
+        {/* Hot Deals / Flash Sales Section */}
+        {homepageSections.hotDeals && hotDeals.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex items-center gap-2">
+                <Flame className="h-4 w-4 text-[var(--accent)]" />
+                <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Today's Hot Deals</h3>
+              </div>
+              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {hotDeals.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </section>
         )}
 
-        {/* Featured Picks */}
-        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Shop by need</p>
-              <h3 className="mt-0.5 font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">Featured picks</h3>
+        {/* Best Sellers Section */}
+        {homepageSections.bestSellers && bestSellers.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Best Sellers</h3>
+              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
             </div>
-            <Link to="/shop" className="text-[11px] font-bold text-[#8A3D52] hover:underline">
-              View all →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {allProducts.slice(0, 6).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
-
-        {/* Best Sellers */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Customer favorites</p>
-              <h3 className="mt-0.5 font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">Best sellers</h3>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {bestSellers.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
-            <Link to="/shop" className="text-[11px] font-bold text-[#8A3D52] hover:underline">
-              See all →
-            </Link>
-          </div>
+          </section>
+        )}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
-
-        {/* Groceries & Essentials */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Home essentials</p>
-              <h3 className="mt-0.5 font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">Groceries &amp; daily care</h3>
+        {/* New Arrivals Section */}
+        {homepageSections.newArrivals && newArrivals.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">New In</h3>
+              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
             </div>
-            <Link to="/shop?category=groceries" className="text-[11px] font-bold text-[#8A3D52] hover:underline">
-              Shop pantry →
-            </Link>
-          </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {newArrivals.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {groceryEssentials.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
+        {/* Beauty Section */}
+        {homepageSections.beauty && beautyProducts.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Beauty & Skincare</h3>
+              <Link to="/beauty" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {beautyProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Direct WhatsApp Consultation Strip */}
-        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card-alt)] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1 text-center sm:text-left">
-            <h4 className="font-serif text-lg font-bold text-[var(--text-primary)]">Need assistance or want to order directly?</h4>
-            <p className="text-xs text-[var(--text-muted)]">Chat with our customer care team on WhatsApp (0592153306) for quick delivery across Accra.</p>
-          </div>
-          <a
-            href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors shadow-xs shrink-0"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Chat on WhatsApp</span>
-          </a>
-        </section>
+        {/* Groceries & Essentials Section */}
+        {homepageSections.groceryFeed && groceryEssentials.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Groceries & Essentials</h3>
+              <Link to="/shop?category=groceries" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {groceryEssentials.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
 
+        {/* Recommended For You Section */}
+        {homepageSections.recommendedForYou && recommendedForYou.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Recommended for You</h3>
+              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {recommendedForYou.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

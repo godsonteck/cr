@@ -70,17 +70,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(251,248,245,0.92)] backdrop-blur-xl transition-colors dark:bg-[rgba(25,20,21,0.92)]">
+    <header className="sticky top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(255,247,248,0.82)] backdrop-blur-2xl transition-colors dark:bg-[rgba(23,19,17,0.84)]">
       {storeSettings.announcementVisible && (storeSettings.announcementText || storeSettings.bannerAlert) && (
         <div
-          className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-white sm:text-xs"
+          className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white sm:text-xs"
           style={{ backgroundColor: storeSettings.announcementBg || '#1E1719' }}
         >
           {storeSettings.bannerAlert || storeSettings.announcementText}
         </div>
       )}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-[4.25rem] items-center justify-between gap-2 sm:h-[4.7rem] sm:gap-4">
+      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-[4.25rem] items-center justify-between gap-2 py-3 sm:h-[4.7rem] sm:gap-4 sm:py-0">
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -94,14 +94,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             <div className="shrink-0 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
               <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-8 w-8 object-contain sm:h-9 sm:w-auto" />
             </div>
-            <div className="hidden min-w-0 items-center sm:flex">
-              <span className="truncate font-serif text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
+            <div className="hidden min-w-0 items-center sm:flex sm:flex-col sm:leading-none">
+              <span className="truncate font-serif text-lg font-bold tracking-[-0.04em] text-[var(--text-primary)] sm:text-xl">
                 {storeSettings.storeName}
+              </span>
+              <span className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+                Beauty & essentials
               </span>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-3 lg:flex lg:gap-6">
+          <nav className="hidden items-center gap-1 rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.38)] p-1.5 lg:flex lg:gap-1.5">
             {desktopLinks.map((item) => {
               const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
@@ -109,10 +112,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`text-[10px] font-bold uppercase tracking-[0.14em] transition-colors ${
+                  className={`rounded-full px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] transition-all ${
                     isActive
-                      ? 'text-[var(--text-primary)] dark:text-[var(--text-primary)]'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:text-[var(--text-muted)] dark:hover:text-[var(--text-primary)]'
+                      ? 'bg-[var(--accent)] text-white shadow-sm'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   {item.label}
@@ -137,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <button
               onClick={toggleTheme}
-              className="rounded-full p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
+              className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.45)] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
               aria-label="Toggle Theme"
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-[#d9b26d]" /> : <Moon className="w-4 h-4" />}
