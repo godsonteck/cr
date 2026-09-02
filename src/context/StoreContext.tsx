@@ -351,34 +351,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
   const [loadingPromos, setLoadingPromos] = useState(false);
 
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
-    try {
-      const saved = localStorage.getItem('cr_store_settings');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Ensure official business number 0592153306 is always active
-        if (!parsed.whatsappNumber || parsed.whatsappNumber === '233551234567' || parsed.whatsappNumber.includes('1234567')) {
-          parsed.whatsappNumber = '233592153306';
-        }
-        if (!parsed.storePhone || parsed.storePhone.includes('123 4567') || parsed.storePhone === '+233 55 123 4567') {
-          parsed.storePhone = '0592153306';
-        }
-        return {
-          ...DEFAULT_STORE_SETTINGS,
-          ...parsed,
-          homepageSections: {
-            ...DEFAULT_STORE_SETTINGS.homepageSections,
-            ...(parsed.homepageSections || {}),
-          },
-          pageVisibility: {
-            ...DEFAULT_STORE_SETTINGS.pageVisibility,
-            ...(parsed.pageVisibility || {}),
-          },
-        };
-      }
-    } catch (e: any) { setError(e.message || "Operation failed"); }
-    return DEFAULT_STORE_SETTINGS;
-  });
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [loadingSettings, setLoadingSettings] = useState(false);
 
   const [adminSession, setAdminSession] = useState<AdminSession>({
@@ -421,10 +394,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem('cr_categories', JSON.stringify(categories));
   }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem('cr_store_settings', JSON.stringify(storeSettings));
-  }, [storeSettings]);
 
   useEffect(() => {
     localStorage.setItem('cr_flash_deals', JSON.stringify(flashDeals));
@@ -526,12 +495,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchSettings = useCallback(async () => {
     setLoadingSettings(true);
     try {
+      console.log('Fetching settings from API...');
       const data = await api.get<StoreSettingsRow[]>('/settings');
+      console.log('Settings API response:', data);
+      
       if (data && Array.isArray(data) && data.length > 0) {
-        const settings = data.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as StoreSettings);
+        const settings = data.reduce((acc, s) => {
+          let value = s.value;
+          // If value is a string that looks like JSON, parse it
+          if (typeof value === 'string') {
+            try {
+              value = JSON.parse(value);
+            } catch {
+              // Keep as string if not valid JSON
+            }
+          }
+          return { ...acc, [s.key]: value };
+        }, {} as StoreSettings);
+        
+        console.log('Parsed settings:', settings);
         setStoreSettings(prev => ({ ...prev, ...settings }));
+      } else {
+        console.log('No settings returned from API');
       }
     } catch (e: any) {
+      console.error('Failed to load store settings:', e);
       setError('Failed to load store settings from server.');
       throw e;
     } finally {
@@ -829,11 +817,32 @@ const addOrder = async (order: Order) => {
   const updateStoreSettings = async (updates: Partial<StoreSettings>) => {
     setStoreSettings(prev => ({ ...prev, ...updates }));
     try {
+      console.log('Saving settings:', updates);
+      const errors: string[] = [];
+      
       for (const [key, value] of Object.entries(updates)) {
-        await api.post('/settings', { key, value });
+        try {
+          console.log(`Saving ${key}:`, value);
+          const result = await api.post('/settings', { key, value });
+          console.log(`Successfully saved ${key}:`, result);
+        } catch (itemError: any) {
+          console.error(`Failed to save ${key}:`, itemError);
+          errors.push(`${key}: ${itemError.message}`);
+        }
       }
+      
+      if (errors.length > 0) {
+        setError(`Failed to save some settings: ${errors.join(', ')}`);
+        console.error('Setting errors:', errors);
+      }
+      
+      console.log('Fetching settings from server...');
       await fetchSettings();
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+      console.log('Settings fetched:', storeSettings);
+    } catch (e: any) { 
+      console.error('updateStoreSettings error:', e);
+      setError(e.message || "Operation failed"); 
+    }
   };
 
   // Admin Auth Actions
