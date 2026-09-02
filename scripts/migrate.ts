@@ -11,7 +11,7 @@ async function runMigration() {
     `CREATE TYPE "public"."department" AS ENUM('beauty', 'groceries')`,
     `CREATE TYPE "public"."discount_type" AS ENUM('percentage', 'fixed')`,
     `CREATE TYPE "public"."order_status" AS ENUM('Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered')`,
-    `CREATE TYPE "public"."payment_method" AS ENUM('momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay')`,
+    `CREATE TYPE "public"."payment_method" AS ENUM('paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay')`,
     `CREATE TYPE "public"."payment_status" AS ENUM('paid', 'pending')`,
     `CREATE TYPE "public"."routine_step" AS ENUM('cleanse', 'treat', 'hydrate', 'protect')`,
   ];

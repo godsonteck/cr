@@ -34,7 +34,7 @@ const orderCreateSchema = z.object({
   shippingFee: z.number().min(0),
   discount: z.number().min(0).default(0),
   total: z.number().positive(),
-  paymentMethod: z.enum(['momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
+  paymentMethod: z.enum(['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
   paymentStatus: z.enum(['paid', 'pending']).default('pending'),
   deliveryMethod: z.enum(['accra-express', 'standard-delivery', 'intercity', 'store-pickup']),
   shippingAddress: z.object({
@@ -131,6 +131,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
+      const auth = await requireAuth(req, res);
+      if (!auth) return;
       const parsed = orderCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
@@ -153,6 +155,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const orderNumber = generateOrderNumber();
       const orderData = {
         ...parsed.data,
+        userId: auth.sub,
         orderNumber,
         subtotal: parsed.data.subtotal.toString(),
         shippingFee: parsed.data.shippingFee.toString(),

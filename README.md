@@ -47,6 +47,8 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
    - APP_URL (for local or production URLs)
    - GOOGLE_CLIENT_ID (server-side Google OAuth client ID)
    - VITE_GOOGLE_CLIENT_ID (the same Google OAuth client ID exposed to the Vite frontend)
+   - PAYSTACK_SECRET_KEY (server-side Paystack secret key)
+   - VITE_PAYSTACK_PUBLIC_KEY (Paystack public key exposed to the Vite frontend)
 
 4. Push the schema to your database:
 
@@ -74,6 +76,10 @@ After the seed step, the admin account is created from the `ADMIN_INITIAL_PIN` e
 4. Run `npm run db:push` and redeploy Vercel after setting the variables.
 
 Google customers are created or matched by their verified Google email in Neon and receive the same JWT session as password-based customers. A Google account starts with an empty phone field so it can be completed later from the customer profile.
+
+## Paystack checkout
+
+Paystack is the only online payment option at checkout. It opens Paystack Inline for card and supported mobile-money channels, verifies the transaction server-side, and creates the order only after the transaction is confirmed as successful. Set both Paystack variables in local and Vercel environments, then redeploy. Never expose `PAYSTACK_SECRET_KEY` in frontend code.
 
 ## Useful scripts
 

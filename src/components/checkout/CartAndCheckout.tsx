@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -10,8 +10,6 @@ import {
   X,
   CheckCircle2,
   CreditCard,
-  Smartphone,
-  Banknote
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -19,6 +17,28 @@ import { PaymentMethod, DeliveryMethod, Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
+import { api } from '../../lib/api';
+
+interface PaystackHandler {
+  new (): {
+    newTransaction: (options: {
+    key: string;
+    email: string;
+    amount: number;
+    currency: string;
+    ref: string;
+    metadata: { custom_fields: Array<{ display_name: string; variable_name: string; value: string }> };
+    onSuccess: (response: { reference: string }) => void;
+    onCancel: () => void;
+    }) => void;
+  };
+}
+
+declare global {
+  interface Window {
+    PaystackPop?: PaystackHandler;
+  }
+}
 
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
@@ -258,8 +278,8 @@ export const FullCartPage: React.FC = () => {
 export const MultiStepCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
-  const { user, addOrder, saveAddress, login, isAuthenticated } = useAuth();
-  const { addOrder: addStoreOrder, storeSettings } = useStore();
+  const { user, addOrder, saveAddress, isAuthenticated } = useAuth();
+  const { storeSettings } = useStore();
   const { showAlert } = useAlert();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -272,8 +292,17 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('momo-mtn');
+  const paymentMethod: PaymentMethod = 'paystack';
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (!import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || document.querySelector('script[data-paystack]')) return;
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v2/inline.js';
+    script.async = true;
+    script.dataset.paystack = 'true';
+    document.body.appendChild(script);
+  }, []);
 
   const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : storeSettings.standardShippingFee;
   const totalAmount = Math.max(0, subtotal - discount + shippingFee);
@@ -303,19 +332,38 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    if (!publicKey || !window.PaystackPop) {
+      showAlert('Paystack is not available right now. Please try again shortly.', 'error', { persistent: true });
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      const createdOrder: Order = {
-        id: `CR-${Math.floor(100000 + Math.random() * 900000)}`,
-        orderNumber: `CR-${Math.floor(100000 + Math.random() * 900000)}`,
-        createdAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      const payment = await new Promise<{ reference: string }>((resolve, reject) => {
+        const checkout = new window.PaystackPop!();
+        checkout.newTransaction({
+          key: publicKey,
+          email: email || user?.email || '',
+          amount: Math.round(totalAmount * 100),
+          currency: 'GHS',
+          ref: reference,
+          metadata: { custom_fields: [{ display_name: 'Customer name', variable_name: 'customer_name', value: fullName }] },
+          onSuccess: resolve,
+          onCancel: () => reject(new Error('Payment cancelled')),
+        });
+      });
+
+      await api.post('/auth?action=paystack-verify', { reference: payment.reference, amount: Math.round(totalAmount * 100) });
+      const createdOrder = await api.post<Order>('/orders', {
         items: [...cartItems],
         subtotal,
         shippingFee,
         discount,
         total: totalAmount,
         paymentMethod,
-        paymentStatus: paymentMethod === 'cash-on-delivery' ? 'pending' : 'paid',
+        paymentStatus: 'paid',
         deliveryMethod,
         shippingAddress: {
           fullName,
@@ -323,22 +371,19 @@ export const MultiStepCheckoutPage: React.FC = () => {
           email: email || undefined,
           city,
           area,
-          deliveryNotes: deliveryNotes || undefined
+          deliveryNotes: deliveryNotes || undefined,
         },
-        status: 'Confirmed',
-        estimatedDeliveryTime: '24 Hours'
-      };
+        estimatedDeliveryTime: '24 Hours',
+        appliedPromoCode: promoCode || undefined,
+      });
 
-      if (user) {
-        addOrder(createdOrder);
-        await saveAddress(createdOrder.shippingAddress);
-      }
-      await addStoreOrder(createdOrder);
+      addOrder(createdOrder);
+      await saveAddress(createdOrder.shippingAddress);
       await clearCart();
       navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder } });
     } catch (error) {
       console.error('Checkout failed:', error);
-      showAlert('We could not place your order. Please check your details and try again.', 'error', { persistent: true });
+      showAlert(error instanceof Error && error.message === 'Payment cancelled' ? 'Payment was cancelled. Your cart is still saved.' : 'Payment could not be confirmed, so no order was placed.', 'error', { persistent: true });
     } finally {
       setIsProcessing(false);
     }
@@ -453,37 +498,12 @@ export const MultiStepCheckoutPage: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Payment Provider</h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <label className={`p-4 rounded-2xl border flex items-center gap-3 cursor-pointer ${
-                paymentMethod === 'momo-mtn' ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'
+                'border-[#C86D51] bg-[#F5F0EB]'
               }`}>
-                <input type="radio" name="payment" checked={paymentMethod === 'momo-mtn'} onChange={() => setPaymentMethod('momo-mtn')} />
-                <Smartphone className="w-5 h-5 text-amber-500" />
-                <span className="text-xs font-bold">MTN Mobile Money</span>
-              </label>
-
-              <label className={`p-4 rounded-2xl border flex items-center gap-3 cursor-pointer ${
-                paymentMethod === 'momo-telecel' ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'
-              }`}>
-                <input type="radio" name="payment" checked={paymentMethod === 'momo-telecel'} onChange={() => setPaymentMethod('momo-telecel')} />
-                <Smartphone className="w-5 h-5 text-red-500" />
-                <span className="text-xs font-bold">Telecel Cash</span>
-              </label>
-
-              <label className={`p-4 rounded-2xl border flex items-center gap-3 cursor-pointer ${
-                paymentMethod === 'card' ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'
-              }`}>
-                <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
-                <CreditCard className="w-5 h-5 text-blue-500" />
-                <span className="text-xs font-bold">Debit / Credit Card</span>
-              </label>
-
-              <label className={`p-4 rounded-2xl border flex items-center gap-3 cursor-pointer ${
-                paymentMethod === 'cash-on-delivery' ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'
-              }`}>
-                <input type="radio" name="payment" checked={paymentMethod === 'cash-on-delivery'} onChange={() => setPaymentMethod('cash-on-delivery')} />
-                <Banknote className="w-5 h-5 text-emerald-600" />
-                <span className="text-xs font-bold">Cash on Delivery</span>
+                <CreditCard className="w-5 h-5 text-[#C86D51]" />
+                <span className="text-xs font-bold">Pay securely with Paystack</span>
               </label>
             </div>
 
@@ -519,7 +539,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
               isLoading={isProcessing}
               className="w-full rounded-full py-4 uppercase text-xs font-bold tracking-wider"
             >
-              Confirm Order &amp; Pay GHS {totalAmount.toFixed(2)}
+              Pay securely with Paystack · GHS {totalAmount.toFixed(2)}
             </Button>
           </form>
         )}

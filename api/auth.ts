@@ -4,7 +4,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { db } from '../src/neon.js';
 import { adminSessions, users } from '../src/db/schema.js';
-import { signToken } from './_auth.js';
+import { requireAuth, signToken } from './_auth.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -98,6 +98,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const token = signToken({ sub: user.id, email: user.email, role: 'customer', name: user.fullName });
         return res.status(200).json({ token, user: stripPassword(user) });
+      }
+
+      if (action === 'paystack-verify') {
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+
+        const reference = typeof body?.reference === 'string' ? body.reference.trim() : '';
+        const expectedAmount = typeof body?.amount === 'number' ? body.amount : 0;
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!reference || !expectedAmount || !secretKey) {
+          return res.status(400).json({ error: 'Paystack payment details are incomplete' });
+        }
+
+        const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+          headers: { Authorization: `Bearer ${secretKey}` },
+        });
+        const payload = await paystackResponse.json() as {
+          status?: boolean;
+          message?: string;
+          data?: { status?: string; reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
+        };
+        if (!paystackResponse.ok || !payload.status || payload.data?.status !== 'success' || payload.data.amount !== expectedAmount || payload.data.currency !== 'GHS') {
+          return res.status(402).json({ error: payload.message || 'Payment could not be verified' });
+        }
+        if (payload.data.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+          return res.status(403).json({ error: 'Payment customer does not match this account' });
+        }
+        return res.status(200).json({ verified: true, reference: payload.data.reference || reference });
       }
 
       const parsed = loginSchema.safeParse(body);
