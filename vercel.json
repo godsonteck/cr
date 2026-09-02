@@ -40,6 +40,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/brands",
+      "destination": "/api/catalog?resource=brands"
+    },
+    {
+      "source": "/api/categories",
+      "destination": "/api/catalog?resource=categories"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
