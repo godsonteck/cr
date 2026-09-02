@@ -651,7 +651,6 @@ export const SignUpPage: React.FC = () => {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -677,7 +676,7 @@ export const SignUpPage: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
-      await register(email, fullName, phone, password);
+      await register(email, fullName, password);
       navigate('/account');
     } catch {
       showAlert('Account creation failed. Please check your details and try again.', 'error');
@@ -703,17 +702,6 @@ export const SignUpPage: React.FC = () => {
               required
               value={fullName}
               onChange={e => setFullName(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Phone Number (MoMo)</label>
-            <input
-              type="text"
-              required
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
               className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>

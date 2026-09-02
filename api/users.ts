@@ -9,7 +9,7 @@ import { requireAdmin, requireAuth, signToken } from './_auth.js';
 const userCreateSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(1).max(100),
-  phone: z.string().min(1).max(50),
+  phone: z.string().max(50).default(''),
   password: z.string().min(8),
 });
 
