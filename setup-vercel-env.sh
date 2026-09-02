@@ -24,6 +24,14 @@ vercel env add NODE_ENV production <<< "production"
 vercel env add NODE_ENV preview <<< "development"
 vercel env add NODE_ENV development <<< "development"
 
+# Google Auth
+vercel env add GOOGLE_CLIENT_ID production <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+vercel env add GOOGLE_CLIENT_ID preview <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+vercel env add GOOGLE_CLIENT_ID development <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+vercel env add VITE_GOOGLE_CLIENT_ID production <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+vercel env add VITE_GOOGLE_CLIENT_ID preview <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+vercel env add VITE_GOOGLE_CLIENT_ID development <<< "380650654419-afnk7gdffsvbghr3pk5eu7pb3p9dvmj5.apps.googleusercontent.com"
+
 # AI (Gemini) - ADD YOUR KEY
 echo "⚠️  Add your GEMINI_API_KEY manually:"
 echo "vercel env add GEMINI_API_KEY production"

@@ -18,6 +18,8 @@ const adminLoginSchema = z.object({
   role: z.string().optional(),
 });
 
+const googleLoginSchema = z.object({ credential: z.string().min(20) });
+
 function stripPassword(user: typeof users.$inferSelect) {
   const { passwordHash, ...safeUser } = user;
   return safeUser;
@@ -72,6 +74,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             email: admin.email,
           },
         });
+      }
+
+      if (action === 'google') {
+        const parsed = googleLoginSchema.safeParse(body);
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!parsed.success || !clientId) return res.status(400).json({ error: 'Google sign-in is not configured' });
+
+        const googleResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(parsed.data.credential)}`);
+        if (!googleResponse.ok) return res.status(401).json({ error: 'Google credential could not be verified' });
+        const googleUser = await googleResponse.json() as { sub?: string; email?: string; email_verified?: string; name?: string; aud?: string; iss?: string };
+        if (!googleUser.sub || !googleUser.email || googleUser.email_verified !== 'true' || googleUser.aud !== clientId || (googleUser.iss !== 'accounts.google.com' && googleUser.iss !== 'https://accounts.google.com')) {
+          return res.status(401).json({ error: 'Google account verification failed' });
+        }
+
+        const email = googleUser.email.toLowerCase();
+        let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        if (!user) {
+          [user] = await db.insert(users).values({ email, fullName: googleUser.name || email.split('@')[0], phone: '', passwordHash: null }).returning();
+        } else if (!user.isActive) {
+          return res.status(403).json({ error: 'This account is blocked' });
+        }
+
+        const token = signToken({ sub: user.id, email: user.email, role: 'customer', name: user.fullName });
+        return res.status(200).json({ token, user: stripPassword(user) });
       }
 
       const parsed = loginSchema.safeParse(body);

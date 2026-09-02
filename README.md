@@ -45,6 +45,8 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
    - ADMIN_EMAIL
    - ADMIN_INITIAL_PIN
    - APP_URL (for local or production URLs)
+   - GOOGLE_CLIENT_ID (server-side Google OAuth client ID)
+   - VITE_GOOGLE_CLIENT_ID (the same Google OAuth client ID exposed to the Vite frontend)
 
 4. Push the schema to your database:
 
@@ -63,6 +65,15 @@ The app should run on http://localhost:3000.
 ## Admin login
 
 After the seed step, the admin account is created from the `ADMIN_INITIAL_PIN` environment variable. Use the seeded email and the same pin to sign in through the admin portal.
+
+## Google customer sign-in
+
+1. In Google Cloud Console, create an OAuth 2.0 Client ID with application type **Web application**.
+2. Add `http://localhost:3000` and your Vercel production URL to **Authorized JavaScript origins**. Add any custom production domain too.
+3. Set both `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` to that client ID. `GOOGLE_CLIENT_ID` is used by the Vercel API to verify Google credentials; `VITE_GOOGLE_CLIENT_ID` renders the Google button in the browser.
+4. Run `npm run db:push` and redeploy Vercel after setting the variables.
+
+Google customers are created or matched by their verified Google email in Neon and receive the same JWT session as password-based customers. A Google account starts with an empty phone field so it can be completed later from the customer profile.
 
 ## Useful scripts
 

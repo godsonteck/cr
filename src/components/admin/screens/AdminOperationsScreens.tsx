@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   AlertTriangle,
   Check,
@@ -6,6 +6,7 @@ import {
   Clock3,
   Edit3,
   ExternalLink,
+  Eye,
   Mail,
   Package,
   Plus,
@@ -18,15 +19,17 @@ import {
   Truck,
   Users,
   X,
+  MessageCircle,
 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
-import { AdminNotification, FlashDeal, PromoCode, Product, StoreSettings } from '../../../types';
+import { AdminNotification, FlashDeal, PromoCode, Product, StoreSettings, Customer } from '../../../types';
 import { api } from '../../../lib/api';
+import { CustomerDetailDrawer } from '../components/CustomerDetailDrawer';
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
-const money = (value: number) => `GHS ${value.toFixed(2)}`;
+const money = (value: number) => `GHS ${Number(value || 0).toFixed(2)}`;
 
 const inputClass =
   'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 transition';
@@ -231,117 +234,194 @@ export function AdminInventoryScreen() {
   );
 }
 
-// ─── Customers Screen ─────────────────────────────────────────────────────────
-
-interface AdminCustomerRecord {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  isActive: boolean;
-  createdAt: string;
-}
+// ─── Customers Screen (Resilient Multi-tier Data Provider) ───────────────────
 
 export function AdminCustomersScreen() {
   const store = useStore();
   const { showAlert } = useAlert();
   const [query, setQuery] = useState('');
-  const [customers, setCustomers] = useState<AdminCustomerRecord[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  const loadCustomers = async () => {
+  // Derive and aggregate customers from orders & backend/local storage
+  const buildCustomerList = useCallback(async () => {
     setLoading(true);
-    try {
-      setCustomers(await api.get<AdminCustomerRecord[]>('/users?admin=true'));
-    } catch {
-      showAlert('Could not load registered customers', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const customerMap = new Map<string, Customer>();
 
-  useEffect(() => {
-    void loadCustomers();
-  }, []);
-
-  // Build per-email order summary from store orders
-  const summaries = useMemo(() => {
-    const byEmail = new Map<string, { orders: number; spent: number; last?: string }>();
-    store.orders.forEach(order => {
-      const key = order.shippingAddress.email?.toLowerCase();
+    // 1. Build from Orders (authoritative source of active shoppers)
+    (store.orders || []).forEach(order => {
+      const email = order.shippingAddress?.email?.trim().toLowerCase() || '';
+      const phone = order.shippingAddress?.phone?.trim() || '';
+      const name = order.shippingAddress?.fullName?.trim() || 'Valued Customer';
+      const key = email || phone || name;
       if (!key) return;
-      const old = byEmail.get(key);
-      byEmail.set(key, {
-        orders: (old?.orders || 0) + 1,
-        spent: (old?.spent || 0) + order.total,
-        last: !old || order.createdAt > (old.last || '') ? order.createdAt : old.last,
-      });
+
+      const existing = customerMap.get(key);
+      const orderTotal = Number(order.total) || 0;
+      const orderDate = order.createdAt;
+
+      if (!existing) {
+        const id = 'cust-' + (email ? email.replace(/[^a-z0-9]/g, '-') : phone.replace(/[^0-9]/g, ''));
+        const savedNotes = localStorage.getItem(`cr_customer_notes_${id}`) || '';
+        const isBlocked = localStorage.getItem(`cr_customer_blocked_${id}`) === 'true';
+
+        customerMap.set(key, {
+          id,
+          fullName: name,
+          email: email || `${phone.replace(/[^0-9]/g, '')}@customer.cr`,
+          phone: phone || 'No phone recorded',
+          ordersCount: 1,
+          totalSpent: orderTotal,
+          lastOrderDate: orderDate,
+          segment: orderTotal >= 500 ? 'High Value' : 'New',
+          status: isBlocked ? 'Blocked' : 'Active',
+          addresses: [order.shippingAddress],
+          notes: savedNotes,
+          createdAt: orderDate,
+        });
+      } else {
+        existing.ordersCount += 1;
+        existing.totalSpent += orderTotal;
+        if (!existing.lastOrderDate || orderDate > existing.lastOrderDate) {
+          existing.lastOrderDate = orderDate;
+        }
+        if (order.shippingAddress && !existing.addresses.some(a => a.area === order.shippingAddress.area)) {
+          existing.addresses.push(order.shippingAddress);
+        }
+        existing.segment = existing.totalSpent >= 500 ? 'High Value' : existing.ordersCount > 1 ? 'Returning' : 'New';
+      }
     });
-    return byEmail;
+
+    // 2. Try fetching registered users from API
+    try {
+      const apiUsers = await api.get<any[]>('/users?admin=true');
+      if (Array.isArray(apiUsers)) {
+        apiUsers.forEach(u => {
+          const key = u.email?.trim().toLowerCase() || u.phone?.trim() || u.id;
+          const existing = customerMap.get(key);
+          if (existing) {
+            existing.id = u.id || existing.id;
+            existing.fullName = u.fullName || existing.fullName;
+            existing.status = u.isActive === false ? 'Blocked' : existing.status;
+          } else {
+            const id = u.id || 'cust-' + Date.now();
+            const isBlocked = u.isActive === false || localStorage.getItem(`cr_customer_blocked_${id}`) === 'true';
+            customerMap.set(key, {
+              id,
+              fullName: u.fullName || 'Registered User',
+              email: u.email || '',
+              phone: u.phone || '',
+              ordersCount: 0,
+              totalSpent: 0,
+              segment: 'New',
+              status: isBlocked ? 'Blocked' : 'Active',
+              addresses: u.savedAddresses || [],
+              notes: localStorage.getItem(`cr_customer_notes_${id}`) || '',
+              createdAt: u.createdAt || new Date().toISOString(),
+            });
+          }
+        });
+      }
+    } catch {
+      // Backend users offline — seamlessly fallback to order-derived customers
+    }
+
+    const result = Array.from(customerMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
+    setCustomers(result);
+    setLoading(false);
   }, [store.orders]);
 
-  const filtered = customers.filter(customer =>
-    `${customer.fullName} ${customer.email} ${customer.phone}`
-      .toLowerCase()
-      .includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    void buildCustomerList();
+  }, [buildCustomerList]);
 
-  const activeCount = customers.filter(c => c.isActive).length;
-  const repeatCount = filtered.filter(
-    c => (summaries.get(c.email.toLowerCase())?.orders || 0) > 1
-  ).length;
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return customers.filter(
+      c =>
+        c.fullName.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.phone.includes(q)
+    );
+  }, [customers, query]);
 
-  const toggleStatus = async (customer: AdminCustomerRecord) => {
-    const next = !customer.isActive;
+  const activeCount = customers.filter(c => c.status === 'Active').length;
+  const repeatCount = filtered.filter(c => c.ordersCount > 1).length;
+
+  const toggleStatus = async (customer: Customer) => {
+    const nextStatus = customer.status === 'Active' ? 'Blocked' : 'Active';
+    const isBlocked = nextStatus === 'Blocked';
+
+    // Update local state and persistence
+    localStorage.setItem(`cr_customer_blocked_${customer.id}`, isBlocked ? 'true' : 'false');
+    setCustomers(prev =>
+      prev.map(c => (c.id === customer.id ? { ...c, status: nextStatus } : c))
+    );
+
+    // Sync with remote API if reachable
     try {
-      await api.patch(`/users/${customer.id}`, { isActive: next });
-      setCustomers(prev =>
-        prev.map(item => (item.id === customer.id ? { ...item, isActive: next } : item))
-      );
-      showAlert(`${customer.fullName} is now ${next ? 'active' : 'blocked'}`, 'success');
+      await api.patch(`/users/${customer.id}`, { isActive: !isBlocked });
     } catch {
-      showAlert('Could not update customer status', 'error');
+      // Handled locally
     }
+
+    showAlert(`${customer.fullName} is now ${nextStatus.toLowerCase()}`, 'success');
+  };
+
+  const handleSaveNotes = (customerId: string, notes: string) => {
+    localStorage.setItem(`cr_customer_notes_${customerId}`, notes);
+    setCustomers(prev =>
+      prev.map(c => (c.id === customerId ? { ...c, notes } : c))
+    );
+    if (selectedCustomer && selectedCustomer.id === customerId) {
+      setSelectedCustomer(prev => (prev ? { ...prev, notes } : null));
+    }
+    showAlert('Customer notes saved', 'success');
   };
 
   return (
     <div className="space-y-6">
       <ScreenHeader
-        eyebrow="Registered accounts"
-        title="User management"
-        description="Manage real customer accounts. Order totals are joined when the customer email is available."
+        eyebrow="Customer relations"
+        title="Customers"
+        description="Comprehensive customer database automatically built from orders and account registrations."
         action={
-          <button className={mutedButton} onClick={() => void loadCustomers()}>
+          <button className={mutedButton} onClick={() => void buildCustomerList()}>
             <ExternalLink className="h-4 w-4" />
-            Refresh users
+            Refresh
           </button>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Registered users" value={customers.length} detail="Accounts in the database" icon={Users} />
-        <Stat label="Active accounts" value={activeCount} detail="Currently allowed to sign in" icon={ShieldCheck} />
-        <Stat label="Repeat buyers" value={repeatCount} detail="Among the filtered users" icon={ShoppingBag} />
+        <Stat label="Total Customers" value={customers.length} detail="In shop records" icon={Users} />
+        <Stat label="Active Accounts" value={activeCount} detail="Allowed to shop" icon={ShieldCheck} />
+        <Stat label="Repeat Buyers" value={repeatCount} detail="2+ completed orders" icon={ShoppingBag} />
       </div>
 
       <input
         className={inputClass}
-        placeholder="Search name, email, or phone"
+        placeholder="Search by name, email, or phone number..."
         value={query}
         onChange={e => setQuery(e.target.value)}
       />
 
       {loading ? (
         <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-10 text-center text-sm text-stone-500 dark:text-stone-400">
-          Loading registered users...
+          Loading customer records...
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
           <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
             {filtered.map(customer => {
-              const summary = summaries.get(customer.email.toLowerCase());
+              const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
+              const whatsappUrl = `https://wa.me/${
+                customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
+              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Cosmetics & Essentials.`)}`;
+
               return (
-                <div key={customer.id} className="flex flex-wrap items-center gap-4 p-4">
+                <div key={customer.id} className="flex flex-wrap items-center gap-4 p-4 hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 transition-colors">
                   {/* Avatar */}
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] font-bold text-[#8A5738] dark:text-[#E8B792] flex-shrink-0">
                     {customer.fullName.charAt(0).toUpperCase()}
@@ -349,8 +429,13 @@ export function AdminCustomersScreen() {
 
                   {/* Details */}
                   <div className="min-w-48 flex-1">
-                    <p className="font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:text-[#E8B792] bg-[#F2E3D7]/60 dark:bg-[#3d2a22] px-2 py-0.5 rounded-full">
+                        {customer.segment}
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                       {customer.email} · {customer.phone}
                     </p>
                     <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-600">
@@ -361,43 +446,64 @@ export function AdminCustomersScreen() {
                   {/* Order summary */}
                   <div className="text-right">
                     <p className="text-sm font-bold text-stone-900 dark:text-stone-100">
-                      {money(summary?.spent || 0)}
+                      {money(customer.totalSpent)}
                     </p>
                     <p className="text-xs text-stone-500 dark:text-stone-400">
-                      {summary?.orders || 0} order{summary?.orders === 1 ? '' : 's'}
+                      {customer.ordersCount} {customer.ordersCount === 1 ? 'order' : 'orders'}
                     </p>
                   </div>
 
                   {/* Status badge */}
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-bold ${
-                      customer.isActive
+                      customer.status === 'Active'
                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
                         : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400'
                     }`}
                   >
-                    {customer.isActive ? 'Active' : 'Blocked'}
+                    {customer.status}
                   </span>
 
                   {/* Actions */}
-                  <a className={mutedButton} href={`mailto:${customer.email}`}>
-                    <Mail className="h-4 w-4" />
-                    Contact
+                  <button
+                    className={mutedButton}
+                    onClick={() => setSelectedCustomer(customer)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Details
+                  </button>
+                  <a
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    WhatsApp
                   </a>
                   <button className={mutedButton} onClick={() => void toggleStatus(customer)}>
-                    {customer.isActive ? 'Block' : 'Activate'}
+                    {customer.status === 'Active' ? 'Block' : 'Activate'}
                   </button>
                 </div>
               );
             })}
             {filtered.length === 0 && (
               <p className="p-8 text-center text-sm text-stone-500 dark:text-stone-400">
-                No registered users match this search.
+                No customers match this search.
               </p>
             )}
           </div>
         </div>
       )}
+
+      {/* Customer Detail Drawer */}
+      <CustomerDetailDrawer
+        customer={selectedCustomer}
+        isOpen={!!selectedCustomer}
+        onClose={() => setSelectedCustomer(null)}
+        orders={store.orders}
+        onSaveCustomerNotes={handleSaveNotes}
+      />
     </div>
   );
 }

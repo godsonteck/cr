@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User,
@@ -515,13 +515,52 @@ export const AccountPage: React.FC = () => {
   );
 };
 
+const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promise<void> }> = ({ onCredential }) => {
+  const buttonRef = React.useRef<HTMLDivElement>(null);
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  useEffect(() => {
+    if (!clientId || !buttonRef.current) return;
+    const renderButton = () => {
+      const google = (window as any).google;
+      if (!google?.accounts?.id || !buttonRef.current) return;
+      google.accounts.id.initialize({ client_id: clientId, callback: (response: { credential: string }) => void onCredential(response.credential) });
+      buttonRef.current.innerHTML = '';
+      google.accounts.id.renderButton(buttonRef.current, { theme: 'outline', size: 'large', width: 360, text: 'continue_with', shape: 'pill' });
+    };
+    if ((window as any).google?.accounts?.id) {
+      renderButton();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = renderButton;
+    document.head.appendChild(script);
+    return () => { script.onload = null; };
+  }, [clientId, onCredential]);
+
+  if (!clientId) return null;
+  return <div ref={buttonRef} className="flex min-h-10 justify-center" />;
+};
+
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const { showAlert } = useAlert();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleGoogleCredential = async (credential: string) => {
+    try {
+      await loginWithGoogle(credential);
+      navigate('/account');
+    } catch {
+      showAlert('Google sign-in failed. Please try again.', 'error');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -572,6 +611,13 @@ export const SignInPage: React.FC = () => {
             Sign In
           </Button>
         </form>
+
+        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+          <span className="h-px flex-1 bg-[#E6DFD7] dark:bg-[#36322E]" />
+          <span>Or continue with</span>
+          <span className="h-px flex-1 bg-[#E6DFD7] dark:bg-[#36322E]" />
+        </div>
+        <GoogleSignInButton onCredential={handleGoogleCredential} />
 
         <div className="text-center text-xs text-stone-500">
           Don&apos;t have an account? <Link to="/signup" className="text-[#C86D51] font-bold">Register Here</Link>

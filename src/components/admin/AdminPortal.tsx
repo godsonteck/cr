@@ -16,7 +16,6 @@ import {
   Search,
   UserCheck,
   ChevronRight,
-  AlertTriangle,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -27,6 +26,7 @@ import { AdminOrdersScreen } from './screens/AdminOrdersScreen';
 import { AdminAccountsManagementScreen } from './screens/AdminAccountsManagementScreen';
 import { ProductModal } from './ProductModal';
 import { OrderDetailDrawer } from './components/OrderDetailDrawer';
+import { InvoicePrintModal } from './components/InvoicePrintModal';
 import { GlobalCommandPalette } from './components/GlobalCommandPalette';
 import {
   AdminCustomersScreen,
@@ -37,7 +37,7 @@ import {
   AdminSettingsScreen,
 } from './screens/AdminOperationsScreens';
 import logoImg from '../../assets/logo.jpeg';
-import { Product, Order } from '../../types';
+import { Product, Order, Customer } from '../../types';
 
 type AdminTab =
   | 'overview'
@@ -103,8 +103,43 @@ export const AdminPortal: React.FC = () => {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderToPrint, setOrderToPrint] = useState<Order | null>(null);
   // Inline logout confirm state
   const [confirmLogout, setConfirmLogout] = useState(false);
+
+  // Derive customers from orders for search and quick navigation
+  const derivedCustomers = useMemo<Customer[]>(() => {
+    const map = new Map<string, Customer>();
+    (store.orders || []).forEach(order => {
+      const email = order.shippingAddress?.email?.trim().toLowerCase() || '';
+      const phone = order.shippingAddress?.phone?.trim() || '';
+      const name = order.shippingAddress?.fullName?.trim() || 'Valued Customer';
+      const key = email || phone || name;
+      if (!key) return;
+
+      const existing = map.get(key);
+      const total = Number(order.total) || 0;
+      if (!existing) {
+        map.set(key, {
+          id: 'cust-' + (email ? email.replace(/[^a-z0-9]/g, '-') : phone.replace(/[^0-9]/g, '')),
+          fullName: name,
+          email: email || `${phone.replace(/[^0-9]/g, '')}@customer.cr`,
+          phone: phone || '',
+          ordersCount: 1,
+          totalSpent: total,
+          segment: total >= 500 ? 'High Value' : 'New',
+          status: 'Active',
+          addresses: [order.shippingAddress],
+          createdAt: order.createdAt,
+        });
+      } else {
+        existing.ordersCount += 1;
+        existing.totalSpent += total;
+        existing.segment = existing.totalSpent >= 500 ? 'High Value' : 'Returning';
+      }
+    });
+    return Array.from(map.values());
+  }, [store.orders]);
 
   // Auth gate
   if (!store.adminSession.isLoggedIn) {
@@ -156,7 +191,6 @@ export const AdminPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#130f10] flex">
-
       {/* Sidebar */}
       <div
         className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#1a1316] border-r border-stone-200 dark:border-[#2e2428] transition-all duration-300 flex flex-col ${
@@ -165,7 +199,6 @@ export const AdminPortal: React.FC = () => {
       >
         {/* Sidebar inner — hidden when collapsed on mobile */}
         <div className="flex flex-col h-full overflow-hidden">
-
           {/* Logo */}
           <div className="px-4 py-5 border-b border-stone-200 dark:border-[#2e2428] flex items-center gap-3 min-w-0">
             <img
@@ -259,7 +292,6 @@ export const AdminPortal: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-
         {/* Top Bar */}
         <div className="bg-white dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428] px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3 min-w-0">
@@ -283,29 +315,14 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Search */}
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-              <input
-                type="text"
-                placeholder="Quick search... (⌘K)"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchOpen(true)}
-                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                className="pl-10 pr-4 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 w-56 text-sm"
-              />
-              {searchOpen && searchQuery.trim() && (
-                <button
-                  type="button"
-                  onMouseDown={() => setSearchOpen(false)}
-                  onClick={() => setSearchOpen(false)}
-                  className="absolute left-0 right-0 top-full mt-1 rounded-xl border border-stone-200 bg-white dark:bg-[#2a2024] dark:border-[#2e2428] p-3 text-left text-xs text-stone-600 dark:text-stone-400 shadow-lg"
-                >
-                  Press Enter or use the command palette to search.
-                </button>
-              )}
-            </div>
+            {/* Quick Search */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 pl-3 pr-4 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 text-xs transition-colors"
+            >
+              <Search className="w-4 h-4 text-stone-400" />
+              <span>Quick search... (⌘K)</span>
+            </button>
 
             {/* Notifications */}
             <button
@@ -377,13 +394,20 @@ export const AdminPortal: React.FC = () => {
         onUpdateStatus={(orderId, status, riderInfo) => store.updateOrderStatus(orderId, status, riderInfo)}
         onUpdatePayment={(orderId, paymentStatus) => store.updatePaymentStatus(orderId, paymentStatus)}
         onDeleteOrder={(orderId) => store.deleteOrder(orderId)}
+        onPrintReceipt={(order) => setOrderToPrint(order)}
+      />
+      <InvoicePrintModal
+        order={orderToPrint}
+        storeSettings={store.storeSettings}
+        isOpen={!!orderToPrint}
+        onClose={() => setOrderToPrint(null)}
       />
       <GlobalCommandPalette
         isOpen={searchOpen}
         onClose={() => { setSearchOpen(false); setSearchQuery(''); }}
         products={store.products}
         orders={store.orders}
-        customers={[]}
+        customers={derivedCustomers}
         onSelectProduct={handleEditProduct}
         onSelectOrder={handleViewOrder}
         onSelectCustomer={() => handleTabChange('customers')}
