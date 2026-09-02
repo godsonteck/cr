@@ -60,6 +60,65 @@
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 
+  html.dark body {
+    background: #0f0a09 !important;
+    color: var(--text-primary);
+  }
+
+  html.dark .bg-white,
+  html.dark .bg-gray-50,
+  html.dark .bg-gray-100,
+  html.dark .bg-gray-200,
+  html.dark .bg-stone-50,
+  html.dark .bg-stone-100,
+  html.dark .bg-stone-200 {
+    background-color: #201b1a !important;
+  }
+
+  /* Handle arbitrary background colors from light theme */
+  html.dark [class*="bg-\\[#FDF"],
+  html.dark [class*="bg-\\[#FFF"],
+  html.dark [class*="bg-\\[#FAF"],
+  html.dark [class*="bg-\\[#F5F"],
+  html.dark [class*="bg-\\[#12F"],
+  html.dark [class*="bg-white"],
+  html.dark [class*="bg-\\[rgba(255"],
+  html.dark [class*="bg-\\[rgba(255,"] {
+    background-color: #201b1a !important;
+  }
+
+  html.dark .border-gray-200,
+  html.dark .border-gray-300,
+  html.dark .border-stone-200,
+  html.dark .border-stone-100 {
+    border-color: #483d39 !important;
+  }
+
+  /* Handle arbitrary border colors */
+  html.dark [class*="border-\\[#E"],
+  html.dark [class*="border-\\[#F"] {
+    border-color: #483d39 !important;
+  }
+
+  /* Ensure proper text colors for dark mode */
+  html.dark .text-gray-600,
+  html.dark .text-gray-700,
+  html.dark .text-gray-900,
+  html.dark .text-stone-400,
+  html.dark .text-stone-500,
+  html.dark .text-stone-600,
+  html.dark .text-stone-700,
+  html.dark .text-stone-900 {
+    color: #d3c2b9 !important;
+  }
+
+  /* Background gradients in dark mode */
+  html.dark .bg-gradient-to-r,
+  html.dark .bg-gradient-to-b {
+    background-image: none !important;
+    background-color: #201b1a !important;
+  }
+
   #root {
     background: transparent;
     color: var(--text-primary);

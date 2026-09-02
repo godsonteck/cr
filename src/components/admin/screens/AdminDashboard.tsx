@@ -91,8 +91,8 @@ export const AdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back to your CR Cosmetics store</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-stone-100">Dashboard</h1>
+          <p className="text-gray-600 dark:text-stone-400 mt-1">Welcome back to your CR Cosmetics store</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -136,14 +136,14 @@ export const AdminDashboard: React.FC = () => {
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
+              <p className="text-gray-600 dark:text-stone-400 text-sm font-medium">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mt-2">
                 GHS {metrics.totalRevenue.toFixed(2)}
               </p>
-              <p className="text-xs text-gray-500 mt-2">From {metrics.totalOrders} orders</p>
+              <p className="text-xs text-gray-500 dark:text-stone-500 mt-2">From {metrics.totalOrders} orders</p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
               <DollarSign className="w-6 h-6 text-green-600" />
@@ -152,7 +152,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Average Order Value */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Avg Order Value</p>
@@ -168,7 +168,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Pending Orders */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Pending Orders</p>
@@ -182,7 +182,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Total Customers */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Total Customers</p>
@@ -196,7 +196,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Total Products */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Total Products</p>
@@ -210,7 +210,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Out of Stock */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Out of Stock</p>
@@ -224,7 +224,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Low Stock */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Low Stock</p>
@@ -239,13 +239,13 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+      <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-[#483d39]">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-stone-100">Recent Orders</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 text-sm text-gray-600 font-medium">
+            <thead className="bg-gray-50 dark:bg-[#2a2420] text-sm text-gray-600 dark:text-stone-400 font-medium">
               <tr>
                 <th className="px-6 py-3 text-left">Order ID</th>
                 <th className="px-6 py-3 text-left">Customer</th>
@@ -254,13 +254,13 @@ export const AdminDashboard: React.FC = () => {
                 <th className="px-6 py-3 text-left">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-[#483d39]">
               {recentOrders.length > 0 ? (
                 recentOrders.map(order => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{order.orderNumber}</td>
-                    <td className="px-6 py-3 text-sm text-gray-600">{order.shippingAddress?.fullName}</td>
-                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">
+                  <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-[#2a2420] transition-colors">
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-stone-100">{order.orderNumber}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 dark:text-stone-400">{order.shippingAddress?.fullName}</td>
+                    <td className="px-6 py-3 text-sm font-semibold text-gray-900 dark:text-stone-100">
                       GHS {Number(order.total).toFixed(2)}
                     </td>
                     <td className="px-6 py-3 text-sm">
@@ -276,7 +276,7 @@ export const AdminDashboard: React.FC = () => {
                         {order.status}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-sm text-gray-600">
+                    <td className="px-6 py-3 text-sm text-gray-600 dark:text-stone-400">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

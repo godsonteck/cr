@@ -96,13 +96,13 @@ export const AdminPortal: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative z-40 h-screen bg-white border-r border-gray-200 transition-transform duration-300 ${
+        className={`fixed md:relative z-40 h-screen bg-white dark:bg-[#201b1a] border-r border-gray-200 dark:border-[#483d39] transition-transform duration-300 ${
           sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:w-20'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="px-4 py-6 border-b border-gray-200">
+          <div className="px-4 py-6 border-b border-gray-200 dark:border-[#483d39]">
             <div className="flex items-center gap-3">
               <img src={logoImg} alt="CR Cosmetics" className="w-10 h-10 rounded-lg object-cover" />
               {sidebarOpen && <span className="font-bold text-gray-900 truncate">CR Admin</span>}
@@ -150,7 +150,7 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="bg-white dark:bg-[#201b1a] border-b border-gray-200 dark:border-[#483d39] px-6 py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}

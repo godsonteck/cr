@@ -89,14 +89,14 @@ Please confirm my order details. Thank you!`;
       <div className="absolute inset-0" onClick={onClose} />
 
       <div 
-        className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-slideLeft"
+        className="relative w-full max-w-md bg-white dark:bg-[#201b1a] h-full shadow-2xl flex flex-col justify-between z-10 animate-slideLeft"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+        <div className="p-4 border-b border-gray-100 dark:border-[#483d39] flex items-center justify-between bg-white dark:bg-[#201b1a]">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#8A3D52]" />
-            <h2 className="font-serif font-bold text-base text-gray-900">Your Shopping Bag</h2>
+            <h2 className="font-serif font-bold text-base text-gray-900 dark:text-stone-100">Your Shopping Bag</h2>
             <span className="bg-rose-50 text-[#8A3D52] text-xs font-bold px-2 py-0.5 rounded-full">
               {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
             </span>
@@ -104,7 +104,7 @@ Please confirm my order details. Thank you!`;
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 dark:text-stone-500 hover:text-gray-900 dark:hover:text-stone-100 hover:bg-gray-100 dark:hover:bg-[#2a2420] transition-colors"
             aria-label="Close cart"
           >
             <X className="w-5 h-5" />
@@ -112,7 +112,7 @@ Please confirm my order details. Thank you!`;
         </div>
 
         {/* Free Delivery Progress bar (GHS 300+) */}
-        <div className="bg-[#FAF5F4] px-4 py-2.5 border-b border-rose-100 text-xs">
+        <div className="bg-[#FAF5F4] dark:bg-[#2a2420] px-4 py-2.5 border-b border-rose-100 dark:border-[#483d39] text-xs">
           {subtotal >= freeShippingThreshold ? (
             <div className="flex items-center gap-1.5 text-[#8A3D52] font-bold">
               <Truck className="w-4 h-4 text-[#8A3D52] shrink-0" />
@@ -120,7 +120,7 @@ Please confirm my order details. Thank you!`;
             </div>
           ) : (
             <div className="space-y-1">
-              <div className="flex justify-between text-gray-700 font-medium">
+              <div className="flex justify-between text-gray-700 dark:text-stone-300 font-medium">
                 <span>Add <strong>GHS {(freeShippingThreshold - subtotal).toFixed(2)}</strong> more for <strong>FREE Delivery</strong></span>
                 <span className="font-bold text-[#8A3D52]">{progressToFreeShipping.toFixed(0)}%</span>
               </div>
@@ -135,15 +135,15 @@ Please confirm my order details. Thank you!`;
         </div>
 
         {/* Cart Item List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-gray-100">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-gray-100 dark:divide-[#483d39]">
           {cart.length === 0 ? (
             <div className="text-center py-16 space-y-4">
               <div className="w-16 h-16 bg-rose-50 text-[#8A3D52] rounded-full flex items-center justify-center mx-auto text-2xl">
                 🛍️
               </div>
               <div className="space-y-1">
-                <h3 className="font-bold text-gray-900 text-base">Your shopping bag is empty</h3>
-                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                <h3 className="font-bold text-gray-900 dark:text-stone-100 text-base">Your shopping bag is empty</h3>
+                <p className="text-xs text-gray-500 dark:text-stone-400 max-w-xs mx-auto">
                   Browse our curated skincare, makeup, designer fragrances, and beauty essentials to get started.
                 </p>
               </div>

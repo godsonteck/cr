@@ -41,7 +41,7 @@ export const HomePage: React.FC = () => {
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
       {/* Category pills - sticky scrollable bar */}
       {homepageSections.categories && categoryPills.length > 0 && (
-        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-white px-3 py-2 sm:px-4">
+        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] px-3 py-2 sm:px-4">
           <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link
@@ -50,7 +50,7 @@ export const HomePage: React.FC = () => {
                 className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all ${
                   index === 0
                     ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                    : 'border-[var(--border-color)] bg-white text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
+                    : 'border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
                 }`}
               >
                 {item.name}
@@ -79,7 +79,7 @@ export const HomePage: React.FC = () => {
 
         {/* Compact Hero */}
         {homepageSections.hero && (
-          <section className="rounded-lg border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-4 sm:p-5">
+          <section className="rounded-lg border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] dark:bg-[var(--bg-card-alt)] p-4 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl line-clamp-2">
