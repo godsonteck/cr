@@ -22,8 +22,8 @@ const values = [
     copy: 'We focus on products our customers actually use and trust, from glow-boosting skincare to daily home staples.',
   },
   {
-    title: 'Ghana-first service',
-    copy: 'Every order is designed around fast local delivery, responsive support, and clear communication from checkout to doorstep.',
+    title: 'Thoughtful service',
+    copy: 'Every order is designed around dependable delivery, responsive support, and clear communication from checkout to doorstep.',
   },
   {
     title: 'Honest product guidance',
@@ -35,7 +35,7 @@ const supportHighlights = [
   {
     icon: Truck,
     title: 'Delivery support',
-    description: 'Track your order, confirm delivery windows, and get help with Accra and intercity shipping questions.',
+    description: 'Track your order, confirm delivery windows, and get help with shipping questions.',
   },
   {
     icon: ShieldCheck,
@@ -51,8 +51,8 @@ const supportHighlights = [
 
 const faqs = [
   {
-    question: 'How quickly do you deliver in Accra?',
-    answer: 'Most Accra orders are prepared and dispatched within the same day when placed before our cut-off time. Express delivery is also available for time-sensitive orders.',
+    question: 'How quickly do you deliver?',
+    answer: 'Orders are prepared and dispatched as quickly as possible. Express delivery may also be available for time-sensitive orders.',
   },
   {
     question: 'Do you process Mobile Money orders?',

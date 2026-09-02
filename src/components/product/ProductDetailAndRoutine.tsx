@@ -8,7 +8,6 @@ import {
   Sparkles,
   Info,
   RotateCcw,
-  Star,
   Truck,
   ShieldCheck,
   PackageCheck,
@@ -20,6 +19,10 @@ import { ProductCard } from './ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+
+const COLOR_SWATCHES: Record<string, string> = {
+  black: '#171717', white: '#ffffff', red: '#c94b4b', blue: '#4b78c9', green: '#4d8b63', pink: '#db83a5', brown: '#8b5e3c', nude: '#c79578', gold: '#d4af37', silver: '#b8bec8', purple: '#8056a8', orange: '#df7b35', yellow: '#e0bb3f',
+};
 
 export const ProductDetailPage: React.FC = () => {
   const { products } = useStore();
@@ -53,11 +56,16 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const productRating = Number(product.rating || 0);
   const wishlisted = isInWishlist(product.id);
   const currentImage = selectedImage || product.image;
-  const activeVariant = selectedVariant || product.variants?.[0];
+  const hasOptions = Boolean(product.options?.length);
+  const activeVariant = selectedVariant;
   const displayPrice = activeVariant?.price ?? product.price;
+  const allOptionsSelected = !hasOptions || product.options!.every(option => Boolean(selectedOptionValues[option.name]));
+  const canPurchase = hasOptions
+    ? allOptionsSelected && Boolean(activeVariant?.inStock)
+    : Boolean(activeVariant?.inStock ?? product.inStock);
+  const availableStock = activeVariant?.stockCount ?? product.stockCount;
   const relatedProducts = publishedProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   return (
@@ -133,14 +141,8 @@ export const ProductDetailPage: React.FC = () => {
               {product.name}
             </h1>
 
-            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-              <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-yellow-700">
-                <Star className="h-3.5 w-3.5 fill-current" />
-                <span className="font-bold">{productRating.toFixed(1)}</span>
-              </div>
-              <span>{product.reviewCount} ratings</span>
-              <span className="text-[var(--text-subtle)]">•</span>
-              <span>{product.inStock ? `${product.stockCount} in stock` : 'Out of stock'}</span>
+            <div className="text-sm text-[var(--text-muted)]">
+              <span>{availableStock > 0 ? `${availableStock} in stock` : 'Out of stock'}</span>
             </div>
           </div>
 
@@ -179,13 +181,18 @@ export const ProductDetailPage: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 {option.values.map(value => {
                   const isSelected = selectedOptionValues[option.name] === value;
+                  const isColor = option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour';
+                  const swatchColor = COLOR_SWATCHES[value.toLowerCase()];
                   const matchingVariant = product.variants?.find(variant => Object.entries({ ...selectedOptionValues, [option.name]: value }).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
                   return <button key={value} type="button" onClick={() => {
                     const nextValues = { ...selectedOptionValues, [option.name]: value };
                     setSelectedOptionValues(nextValues);
-                    const nextVariant = product.variants?.find(variant => Object.entries(nextValues).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
-                    if (nextVariant) setSelectedVariant(nextVariant);
-                  }} disabled={matchingVariant?.inStock === false} className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${isSelected ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--text-primary)]' : 'border-[var(--border-color)] bg-transparent text-[var(--text-primary)]'} disabled:cursor-not-allowed disabled:opacity-50`}>{value}</button>;
+                    const nextVariant = product.variants?.find(variant => Object.entries(nextValues).length === product.options?.length && Object.entries(nextValues).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
+                    setSelectedVariant(nextVariant);
+                  }} disabled={matchingVariant?.inStock === false} className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition ${isSelected ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--text-primary)]' : 'border-[var(--border-color)] bg-transparent text-[var(--text-primary)]'} disabled:cursor-not-allowed disabled:opacity-50`}>
+                    {isColor && swatchColor && <span className="h-4 w-4 rounded-full border border-black/15" style={{ backgroundColor: swatchColor }} aria-hidden="true" />}
+                    {value}
+                  </button>;
                 })}
               </div>
             </div>
@@ -212,6 +219,13 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           )}
 
+          {hasOptions && (
+            <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs text-[var(--text-muted)]">
+              <span className="font-bold text-[var(--text-primary)]">Selected: </span>
+              {product.options!.map(option => selectedOptionValues[option.name] || `Choose ${option.name}`).join(' / ')}
+            </div>
+          )}
+
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
               <span>Quantity</span>
@@ -230,7 +244,7 @@ export const ProductDetailPage: React.FC = () => {
                 <span className="min-w-12 text-center text-sm font-bold text-[var(--text-primary)]">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(availableStock || 1, quantity + 1))}
                   className="h-11 w-11 text-lg font-bold text-[var(--text-primary)] transition hover:bg-[var(--bg-card)]"
                 >
                   +
@@ -241,11 +255,11 @@ export const ProductDetailPage: React.FC = () => {
                 variant="secondary"
                 size="lg"
                 onClick={() => addToCart(product, quantity, activeVariant?.name, activeVariant)}
-                disabled={!product.inStock || activeVariant?.inStock === false}
+                disabled={!canPurchase}
                 className="flex-1 rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
               >
                 <ShoppingBag className="h-4 w-4" />
-                <span>{!product.inStock || activeVariant?.inStock === false ? 'Sold out' : 'Add to cart'}</span>
+                <span>{!canPurchase ? (allOptionsSelected ? 'Sold out' : 'Choose options') : 'Add to cart'}</span>
               </Button>
             </div>
 
@@ -253,15 +267,15 @@ export const ProductDetailPage: React.FC = () => {
               variant="primary"
               size="lg"
               onClick={async () => {
-                if (!product.inStock || activeVariant?.inStock === false) return;
+                if (!canPurchase) return;
                 await addToCart(product, quantity, activeVariant?.name, activeVariant);
                 navigate('/checkout');
               }}
-              disabled={!product.inStock || activeVariant?.inStock === false}
+              disabled={!canPurchase}
               className="w-full rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
             >
               <ShoppingBag className="h-4 w-4" />
-              <span>{!product.inStock || activeVariant?.inStock === false ? 'Sold out' : 'Buy now'}</span>
+              <span>{!canPurchase ? (allOptionsSelected ? 'Sold out' : 'Choose options') : 'Buy now'}</span>
             </Button>
           </div>
 

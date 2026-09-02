@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, Flame, MessageCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
@@ -21,40 +21,43 @@ export const HomePage: React.FC = () => {
     .filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now())
     .slice(0, 1)[0];
 
-  const bestSellers = [...publishedProducts]
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 12);
+  const reservedProductIds = new Set<string>();
+  const reserveProducts = (candidates: typeof publishedProducts, limit = 8) => {
+    const selected = [] as typeof publishedProducts;
+    for (const product of candidates) {
+      if (reservedProductIds.has(product.id)) continue;
+      reservedProductIds.add(product.id);
+      selected.push(product);
+      if (selected.length === limit) break;
+    }
+    return selected;
+  };
 
-  const newArrivals = publishedProducts
-    .filter(p => p.badge === 'New In')
-    .slice(0, 12);
-
-  const hotDeals = publishedProducts
-    .filter(p => p.badge === 'Sale' || (p.originalPrice && p.originalPrice > p.price))
-    .slice(0, 12);
-
-  const beautyProducts = publishedProducts.filter(p => p.department === 'beauty').slice(0, 12);
-  
-  const groceryEssentials = publishedProducts
-    .filter(product => product.department === 'groceries')
-    .slice(0, 12);
-
-  const recommendedForYou = publishedProducts.slice(0, 12);
+  const hotDeals = homepageSections.hotDeals
+    ? reserveProducts(publishedProducts.filter(p => p.badge === 'Sale' || (p.originalPrice && p.originalPrice > p.price)))
+    : [];
+  const newArrivals = homepageSections.newArrivals
+    ? reserveProducts(publishedProducts.filter(p => p.badge === 'New In'))
+    : [];
+  const beautyProducts = homepageSections.beauty
+    ? reserveProducts(publishedProducts.filter(p => p.department === 'beauty'))
+    : [];
+  const groceryEssentials = homepageSections.groceryFeed
+    ? reserveProducts(publishedProducts.filter(product => product.department === 'groceries'))
+    : [];
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
       {/* Category pills - sticky scrollable bar */}
       {homepageSections.categories && categoryPills.length > 0 && (
-        <div className="sticky top-0 z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur sm:px-4">
+        <div className="sticky top-[4.25rem] z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur sm:top-[4.7rem] sm:px-4">
           <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categoryPills.map((item, index) => (
               <Link
                 key={item.id}
                 to={`/category/${item.slug}`}
                 className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all ${
-                  index === 0
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                    : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]'
+                    'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]'
                 }`}
               >
                 {item.name}
@@ -81,30 +84,38 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {!homepageSections.flashDeal || !activeFlashDeal ? null : null}
-
         {/* Compact Hero */}
-        {homepageSections.hero && storeSettings.heroHeadline && (
-          <section className="rounded-lg border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] dark:bg-[var(--bg-card-alt)] p-4 sm:p-5">
+        {homepageSections.hero && (
+          <section className="rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-5 sm:p-8 dark:bg-[var(--bg-card-alt)]">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl line-clamp-2">
-                  {storeSettings.heroHeadline}
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics &amp; Essentials</p>
+                <h1 className="mt-2 text-2xl font-black leading-tight text-[var(--text-primary)] sm:text-4xl">
+                  {storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}
                 </h1>
-                {storeSettings.heroSubtitle && (
-                  <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-1">
-                    {storeSettings.heroSubtitle}
-                  </p>
-                )}
-                {storeSettings.heroButtonText && (
-                  <Link to="/shop" className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
-                    {storeSettings.heroButtonText} <ArrowRight className="h-3 w-3" />
-                  </Link>
-                )}
+                <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{storeSettings.heroSubtitle || 'Thoughtfully chosen beauty products and practical essentials, delivered with care.'}</p>
+                <Link to="/shop" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+                  {storeSettings.heroButtonText || 'Shop all products'} <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
             </div>
           </section>
         )}
+
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Shop by department">
+          <Link to="/beauty" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Department 01</p>
+            <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Beauty &amp; skincare</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Daily care, cosmetics, fragrances, and tools.</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop beauty <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
+          </Link>
+          <Link to="/groceries" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Department 02</p>
+            <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Groceries &amp; essentials</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Pantry staples, household care, and daily needs.</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop essentials <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
+          </Link>
+        </section>
 
         {/* Hot Deals / Flash Sales Section */}
         {homepageSections.hotDeals && hotDeals.length > 0 && (
@@ -114,29 +125,12 @@ export const HomePage: React.FC = () => {
                 <Flame className="h-4 w-4 text-[var(--accent)]" />
                 <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Today's Hot Deals</h3>
               </div>
-              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+              <Link to="/offers" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
               </Link>
             </div>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {hotDeals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Best Sellers Section */}
-        {homepageSections.bestSellers && bestSellers.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Best Sellers</h3>
-              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
-              {bestSellers.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -182,7 +176,7 @@ export const HomePage: React.FC = () => {
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2 px-1">
               <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Groceries & Essentials</h3>
-              <Link to="/shop?category=groceries" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
+              <Link to="/groceries" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
               </Link>
             </div>
@@ -194,22 +188,6 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* Recommended For You Section */}
-        {homepageSections.recommendedForYou && recommendedForYou.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">Recommended for You</h3>
-              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
-              {recommendedForYou.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
       </main>
     </div>
   );
@@ -262,7 +240,7 @@ export const GroceryDepartmentPage: React.FC = () => {
           </p>
         </div>
         <Link
-          to="/shop?category=groceries"
+          to="/groceries"
           className="px-5 py-2.5 bg-[#1C1817] hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-full transition-colors shrink-0 shadow-xs"
         >
           <span>Shop Pantry</span>

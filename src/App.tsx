@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -19,7 +19,9 @@ import { ProductDetailPage, RoutineBuilderPage } from './components/product/Prod
 import { FullCartPage, MultiStepCheckoutPage, OrderConfirmationPage } from './components/checkout/CartAndCheckout';
 import { AccountPage, SignInPage, SignUpPage } from './components/account/AccountAndAuth';
 import { AboutPage, ContactPage, SupportPage } from './components/common/SupportPages';
-import { AdminPortal } from './components/admin/AdminPortal';
+
+// Lazy-loaded Admin Command Center
+const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 function AppLayout() {
   const [isCartOpen, setIsCartOpen] = React.useState(false);
@@ -64,10 +66,12 @@ function AppLayout() {
           <title>CR Cosmetics & Essential • Operations Command Center</title>
         </Helmet>
         <ErrorBoundary>
-          <Routes>
-            <Route path="/admin/*" element={<AdminPortal />} />
-            <Route path="/admin" element={<AdminPortal />} />
-          </Routes>
+          <Suspense fallback={<PageSkeleton />}>
+            <Routes>
+              <Route path="/admin/*" element={<AdminPortal />} />
+              <Route path="/admin" element={<AdminPortal />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </>
     );

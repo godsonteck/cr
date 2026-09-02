@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
           </a>
         </div>
 
-        <div className="mt-5 border-t border-stone-200 pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
+        <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
           © {new Date().getFullYear()} CR Cosmetics &amp; Essentials
         </div>
       </div>

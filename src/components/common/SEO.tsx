@@ -17,7 +17,7 @@ interface SEOProps {
 }
 
 const defaultTitle = 'CR Cosmetics & Essential | Beauty · Care · Essentials';
-const defaultDescription = 'CR Cosmetics & Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials in Accra, Ghana.';
+const defaultDescription = 'CR Cosmetics & Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
 const defaultImage = '/assets/logo.jpeg';
 
 export const SEO: React.FC<SEOProps> = ({

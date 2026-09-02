@@ -29,18 +29,6 @@ interface ProductModalProps {
   productToEdit?: Product | null;
 }
 
-const BEAUTY_IMAGE_PRESETS = [
-  { label: 'The Ordinary Serum', url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80' },
-  { label: 'CeraVe Cream Tub', url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80' },
-  { label: 'COSRX Snail Mucin', url: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Lancôme Luxury Perfume', url: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Dove Body Wash & Lotion', url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Makeup Foundation & Palette', url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Chanel Luxury Fragrance', url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Royal Jasmine Rice (5kg)', url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Pure Vegetable Cooking Oil', url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80' }
-];
-
 type VariantDraft = ProductVariant & { optionValues: Record<string, string> };
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -63,7 +51,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [originalPrice, setOriginalPrice] = useState<number | undefined>(undefined);
   const [discountBadge, setDiscountBadge] = useState<string>('');
   const [unit, setUnit] = useState('30ml Bottle');
-  const [image, setImage] = useState(BEAUTY_IMAGE_PRESETS[0].url);
+  const [image, setImage] = useState('');
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,11 +83,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setOriginalPrice(productToEdit.originalPrice);
       setDiscountBadge(productToEdit.discountBadge || '');
       setUnit(productToEdit.unit || 'Standard Size');
-      setImage(productToEdit.image);
+      setImage(productToEdit.image || '');
       // Populate uploaded images from existing product
       const existingImgs = productToEdit.images && productToEdit.images.length > 0
         ? productToEdit.images
-        : [productToEdit.image];
+        : (productToEdit.image ? [productToEdit.image] : []);
       setUploadedImages(existingImgs);
       setDescription(productToEdit.description);
       setHighlights(productToEdit.highlights || []);
@@ -126,7 +114,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setOriginalPrice(undefined);
       setDiscountBadge('');
       setUnit('30ml Bottle');
-      setImage(BEAUTY_IMAGE_PRESETS[0].url);
+      setImage('');
       setUploadedImages([]);
       setDescription('');
       setHighlights([]);
@@ -145,30 +133,69 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   if (!isOpen) return null;
 
-  // ---- Image Upload Handlers ----
-  const readFileAsDataURL = (file: File): Promise<string> =>
+  // ---- Image Upload Handlers (Strictly File Uploads Only) ----
+  const optimizeAndReadFile = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          resolve(dataUrl);
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
 
   const processFiles = async (files: FileList | File[]) => {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    const validFiles = Array.from(files).filter(f => validTypes.includes(f.type) && f.size <= 5 * 1024 * 1024);
+    const validFiles = Array.from(files).filter(f => validTypes.includes(f.type) && f.size <= 10 * 1024 * 1024);
     if (validFiles.length === 0) {
-      showToast('Please use JPG, PNG, or WEBP images under 5MB');
+      showToast('Please upload JPG, PNG, or WEBP photos (up to 10MB)');
       return;
     }
-    const dataUrls = await Promise.all(validFiles.map(readFileAsDataURL));
-    setUploadedImages(prev => {
-      const merged = [...prev, ...dataUrls];
-      if (merged.length === 1 || !prev.includes(image)) setImage(merged[0]);
-      return merged;
-    });
-    // Set primary image to first uploaded if none set yet
-    setImage(prev => prev === BEAUTY_IMAGE_PRESETS[0].url && dataUrls.length > 0 ? dataUrls[0] : prev);
+    showToast(`Processing ${validFiles.length} photo${validFiles.length > 1 ? 's' : ''}...`);
+    try {
+      const dataUrls = await Promise.all(validFiles.map(optimizeAndReadFile));
+      setUploadedImages(prev => {
+        const merged = [...prev, ...dataUrls];
+        if (merged.length === 1 || !image) setImage(merged[0]);
+        return merged;
+      });
+      setImage(prev => !prev && dataUrls.length > 0 ? dataUrls[0] : prev);
+      showToast('Photos added successfully');
+    } catch {
+      showToast('Could not process some images. Please try again.');
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,15 +245,69 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     stockCount: 0,
     optionValues: Object.fromEntries(options.map(option => [option.name, ''])),
   }]);
+  const generateVariants = () => {
+    const validOptions = options.filter(option => option.name.trim() && option.values.length > 0);
+    if (validOptions.length === 0) {
+      showToast('Add at least one option with values first');
+      return;
+    }
+    const combinations = validOptions.reduce<Record<string, string>[]>((result, option) => (
+      result.flatMap(existing => option.values.map(value => ({ ...existing, [option.name]: value })))
+    ), [{}]);
+    setVariants(combinations.map((optionValues, index) => {
+      const existing = variants.find(variant => Object.entries(optionValues).every(([key, value]) => variant.optionValues[key] === value));
+      return existing || {
+        id: `variant-${Date.now()}-${index}`,
+        name: Object.values(optionValues).join(' / '),
+        price: Number(price) || 0,
+        inStock: true,
+        stockCount: 0,
+        optionValues,
+      };
+    }));
+    showToast(`${combinations.length} combinations ready to price`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      showToast('Please type a product name');
+      showToast('Please enter a product name');
+      return;
+    }
+
+    const primaryImage = image || uploadedImages[0];
+    if (!primaryImage) {
+      showToast('Please upload at least one picture of the product');
       return;
     }
 
     const finalBrand = brand === '__NEW__' && newBrandInput.trim() ? newBrandInput.trim() : brand;
+    const cleanOptions = options.filter(option => option.name.trim() && option.values.length > 0);
+    const hasInvalidOption = options.some(option => !option.name.trim() || option.values.length === 0);
+    if (hasInvalidOption) {
+      showToast('Complete or remove every option before saving');
+      return;
+    }
+    const optionNames = cleanOptions.map(option => option.name.trim().toLowerCase());
+    if (new Set(optionNames).size !== optionNames.length) {
+      showToast('Option names must be unique');
+      return;
+    }
+    if (cleanOptions.length > 0 && variants.length === 0) {
+      showToast('Generate or add at least one product combination');
+      return;
+    }
+    const incompleteVariants = variants.filter(variant => Object.keys(variant.optionValues).length !== cleanOptions.length || Object.values(variant.optionValues).some(value => !value));
+    if (incompleteVariants.length > 0) {
+      showToast(`${incompleteVariants.length} combination${incompleteVariants.length === 1 ? '' : 's'} still need${incompleteVariants.length === 1 ? 's' : ''} an option value`);
+      return;
+    }
+    const cleanVariants = variants;
+    const variantKeys = cleanVariants.map(variant => JSON.stringify(variant.optionValues));
+    if (new Set(variantKeys).size !== variantKeys.length) {
+      showToast('Remove duplicate product combinations before saving');
+      return;
+    }
 
     const productPayload = {
       name: name.trim(),
@@ -238,16 +319,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       originalPrice: originalPrice ? Number(originalPrice) : undefined,
       discountBadge: discountBadge.trim() || undefined,
       unit: unit.trim() || 'Standard Pack',
-      image: image || (uploadedImages[0] || BEAUTY_IMAGE_PRESETS[0].url),
-      images: uploadedImages.length > 0 ? uploadedImages : [image],
+      image: primaryImage,
+      images: uploadedImages.length > 0 ? uploadedImages : [primaryImage],
       description: description.trim(),
       highlights: highlights.length > 0 ? highlights : ['100% Original & Authentic'],
       badge: badge || undefined,
       inStock,
       isPublished,
       stockCount: Number(stockCount),
-      options: options.filter(option => option.name.trim() && option.values.length > 0),
-      variants: variants.map(({ optionValues, ...variant }) => ({
+      options: cleanOptions,
+      variants: cleanVariants.map(({ optionValues, ...variant }) => ({
         ...variant,
         name: Object.values(optionValues).filter(Boolean).join(' / ') || variant.name,
         options: optionValues,
@@ -564,7 +645,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 ))}
 
                 {options.length > 0 && <div className="space-y-3 border-t border-stone-100 pt-4">
-                  <div className="flex items-center justify-between"><h4 className="text-xs font-bold text-stone-800">Variant combinations</h4><button type="button" onClick={addVariant} className="flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900"><Plus className="h-3 w-3" /> Add combination</button></div>
+                  <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="text-xs font-bold text-stone-800">Variant combinations</h4><div className="flex gap-2"><button type="button" onClick={generateVariants} className="flex items-center gap-1 rounded-lg bg-[#C89B3C] px-3 py-2 text-[10px] font-bold text-stone-950 hover:bg-[#b58a31]"><Layers className="h-3 w-3" /> Generate all</button><button type="button" onClick={addVariant} className="flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-[10px] font-bold text-stone-700 hover:border-stone-900"><Plus className="h-3 w-3" /> Add one</button></div></div>
                   {variants.map((variant, index) => <div key={variant.id} className="rounded-xl border border-stone-200 bg-stone-50 p-3"><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {options.map(option => <label key={option.name} className="text-[10px] font-bold text-stone-600">{option.name}<select value={variant.optionValues[option.name] || ''} onChange={e => setVariants(prev => prev.map((item, i) => i === index ? { ...item, optionValues: { ...item.optionValues, [option.name]: e.target.value } } : item))} className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs text-stone-900"><option value="">Choose</option>{option.values.map(value => <option key={value} value={value}>{value}</option>)}</select></label>)}
                     <label className="text-[10px] font-bold text-stone-600">Price (GHS)<input type="number" min="0" step="0.01" value={variant.price} onChange={e => setVariants(prev => prev.map((item, i) => i === index ? { ...item, price: Number(e.target.value) || 0 } : item))} className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs font-bold text-stone-900" /></label>
@@ -906,7 +987,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           )}
 
           {/* Action Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+          <div className="sticky bottom-0 z-10 -mx-6 -mb-6 flex items-center justify-between border-t border-stone-200 bg-white/95 px-6 py-4 backdrop-blur sm:-mx-8 sm:-mb-8 sm:px-8">
             <button
               type="button"
               onClick={onClose}

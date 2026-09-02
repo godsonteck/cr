@@ -53,7 +53,6 @@ export const ShopCatalogPage: React.FC = () => {
     }).sort((a, b) => {
       if (selectedSort === 'price-low') return a.price - b.price;
       if (selectedSort === 'price-high') return b.price - a.price;
-      if (selectedSort === 'rating') return b.rating - a.rating;
       if (selectedSort === 'best-sellers') return b.reviewCount - a.reviewCount;
       return 0; // default featured
     });
@@ -211,7 +210,6 @@ export const ShopCatalogPage: React.FC = () => {
                 <option value="best-sellers">Best Sellers</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
               </select>
             </div>
           </div>

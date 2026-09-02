@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, Star, ShoppingBag, Eye } from 'lucide-react';
+import { Heart, ShoppingBag, Eye } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -28,11 +28,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const effectiveMode = mode === 'auto' ? (product.department === 'groceries' ? 'grocery' : 'beauty') : mode;
   const price = Number(product.price || 0);
   const originalPrice = product.originalPrice == null ? undefined : Number(product.originalPrice);
-  const rating = Number(product.rating || 0);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (product.options?.length) {
+      navigate(`/product/${product.id}`);
+      return;
+    }
     addToCart(product, 1);
     showToast(`Added ${product.name} to cart`);
   };
@@ -73,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           aria-label="Wishlist"
           className="rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
         >
-          <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#111111] text-[#111111]' : 'stroke-[1.5]'}`} />
+          <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#C86D51] text-[#C86D51]' : 'stroke-[1.5]'}`} />
         </button>
       </div>
 
@@ -109,14 +112,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {product.name}
         </h3>
 
-        {product.rating && (
-          <div className="flex items-center gap-1 text-[#f4b23d]">
-            <Star className="h-3.5 w-3.5 fill-current" />
-            <span className="text-[11px] font-bold text-[var(--text-primary)]">{rating.toFixed(1)}</span>
-            <span className="text-[10px] text-[var(--text-subtle)]">({product.reviewCount || 0})</span>
-          </div>
-        )}
-
         <div className="flex items-end justify-between gap-3">
           <div>
             <span className="text-lg font-black tracking-[-0.05em] text-[var(--text-primary)]">GHS {price.toFixed(2)}</span>
@@ -129,7 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleAddToCart}
             disabled={!product.inStock || product.stockCount <= 0}
             className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35 dark:bg-[var(--accent)] dark:text-white"
-            aria-label={product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
+            aria-label={product.options?.length ? `Choose options for ${product.name}` : product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
           >
             <ShoppingBag className="h-4 w-4" />
           </button>

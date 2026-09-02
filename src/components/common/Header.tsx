@@ -191,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 placeholder="Search products..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-full border border-[#E8E2DA] bg-[#F5F2EC] py-2.5 pl-9 pr-4 text-xs dark:border-[#2A2725] dark:bg-[#1C1A19]"
+                className="w-full rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] text-[var(--text-primary)] py-2.5 pl-9 pr-4 text-xs placeholder:text-[var(--text-subtle)] outline-none focus:border-[var(--accent)]"
               />
             </form>
 
