@@ -545,6 +545,34 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
   return <div ref={buttonRef} className="flex min-h-10 justify-center" />;
 };
 
+const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode }> = ({ mode, children }) => (
+  <div className="relative mx-auto max-w-5xl px-4 py-10 font-sans sm:px-6 sm:py-16">
+    <div className="overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_24px_70px_rgba(11,31,56,0.12)] lg:grid lg:grid-cols-[0.86fr_1.14fr]">
+      <div className="relative hidden min-h-[560px] overflow-hidden bg-[#0e2a4c] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border-[28px] border-[#7aa7ff]/20" />
+        <div className="relative space-y-5">
+          <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-14 w-14 rounded-2xl bg-white p-1 object-contain" />
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#a9c8ff]">CR Cosmetics & Essentials</p>
+          <h2 className="max-w-xs text-4xl font-black leading-tight tracking-[-0.06em]">Everyday care, chosen with intention.</h2>
+          <p className="max-w-xs text-sm leading-6 text-blue-100/75">Keep your orders, saved products, and delivery details in one place.</p>
+        </div>
+        <div className="relative space-y-3 text-sm text-blue-100/80">
+          <p>✓ Verified products and trusted brands</p>
+          <p>✓ Delivery across Accra and Ghana</p>
+          <p>✓ Personalised shopping history</p>
+        </div>
+      </div>
+      <div className="p-6 sm:p-10 lg:p-12">
+        <div className="mb-8 flex items-center justify-between lg:hidden">
+          <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{mode === 'signin' ? 'Welcome back' : 'Join the store'}</span>
+        </div>
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
@@ -573,41 +601,39 @@ export const SignInPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16 font-sans">
-      <div className="bg-white dark:bg-[#1C1917] p-8 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] space-y-6 shadow-sm">
-        <div className="text-center space-y-2">
-          <div className="inline-flex p-1 rounded-2xl bg-white border border-[#E6DFD7] shadow-sm">
-            <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-14 h-14 rounded-xl object-contain" />
-          </div>
-          <h1 className="text-2xl font-extrabold uppercase">Sign In to Store</h1>
-          <p className="text-xs text-stone-400">Manage orders, saved items, and local addresses.</p>
+    <AuthShell mode="signin">
+      <div className="space-y-7">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Customer account</p>
+          <h1 className="text-3xl font-black tracking-[-0.06em] text-[var(--text-primary)]">Welcome back</h1>
+          <p className="text-sm text-[var(--text-muted)]">Sign in to manage orders, saved items, and delivery details.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Email Address</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Email Address</label>
             <input
               type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
               placeholder="customer@example.com"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Password</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full rounded-full py-3.5 uppercase text-xs font-bold">
+          <Button type="submit" variant="primary" className="w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-[0.12em]">
             Sign In
           </Button>
         </form>
@@ -619,11 +645,11 @@ export const SignInPage: React.FC = () => {
         </div>
         <GoogleSignInButton onCredential={handleGoogleCredential} />
 
-        <div className="text-center text-xs text-stone-500">
-          Don&apos;t have an account? <Link to="/signup" className="text-[#C86D51] font-bold">Register Here</Link>
+        <div className="border-t border-[var(--border-color)] pt-5 text-center text-sm text-[var(--text-muted)]">
+          Don&apos;t have an account? <Link to="/signup" className="font-bold text-[var(--accent)]">Create one</Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 
@@ -648,66 +674,67 @@ export const SignUpPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16 font-sans">
-      <div className="bg-white dark:bg-[#1C1917] p-8 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] space-y-6 shadow-sm">
-        <div className="text-center space-y-2">
-          <div className="inline-flex p-1 rounded-2xl bg-white border border-[#E6DFD7] shadow-sm">
-            <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-14 h-14 rounded-xl object-contain" />
-          </div>
-          <h1 className="text-2xl font-extrabold uppercase">Create Account</h1>
-          <p className="text-xs text-[#6E6763]">Join CR Cosmetics &amp; Essentials.</p>
+    <AuthShell mode="signup">
+      <div className="space-y-7">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Customer account</p>
+          <h1 className="text-3xl font-black tracking-[-0.06em] text-[var(--text-primary)]">Create your account</h1>
+          <p className="text-sm text-[var(--text-muted)]">A faster way to shop beauty and everyday essentials.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Full Name</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Full Name</label>
             <input
               type="text"
               required
               value={fullName}
               onChange={e => setFullName(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Email Address</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Email Address</label>
             <input
               type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Phone Number (MoMo)</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Phone Number (MoMo)</label>
             <input
               type="text"
               required
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-stone-700 block mb-1">Password</label>
+            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full bg-[#F5F0EB] dark:bg-[#2B2620] text-xs p-3 rounded-xl border border-[#E6DFD7] dark:border-[#36322E]"
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)]"
             />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full rounded-full py-3.5 uppercase text-xs font-bold">
+          <Button type="submit" variant="primary" className="w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-[0.12em]">
             Create Account
           </Button>
         </form>
+        <div className="border-t border-[var(--border-color)] pt-5 text-center text-sm text-[var(--text-muted)]">
+          Already have an account? <Link to="/signin" className="font-bold text-[var(--accent)]">Sign in</Link>
+        </div>
       </div>
-    </div>
+    </AuthShell>
   );
 };

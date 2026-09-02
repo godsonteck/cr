@@ -118,7 +118,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {hotDeals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -135,7 +135,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {bestSellers.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -152,7 +152,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -169,7 +169,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {beautyProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -186,7 +186,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {groceryEssentials.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -203,7 +203,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
               {recommendedForYou.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

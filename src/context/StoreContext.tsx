@@ -313,7 +313,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [brands, setBrands] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('cr_brands');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Array<string | { name?: string }>;
+        return parsed
+          .map(brand => typeof brand === 'string' ? brand : brand.name || '')
+          .filter(Boolean);
+      }
     } catch (e: any) { setError(e.message || "Operation failed"); }
     return BRANDS_LIST;
   });
