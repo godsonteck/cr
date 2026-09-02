@@ -866,6 +866,11 @@ export function AdminSettingsScreen() {
   const [form, setForm] = useState<StoreSettings>(store.storeSettings);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Sync form when store updates
+  React.useEffect(() => {
+    setForm(store.storeSettings);
+  }, [store.storeSettings]);
+
   const update = <K extends keyof StoreSettings>(key: K, value: StoreSettings[K]) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
@@ -877,193 +882,232 @@ export function AdminSettingsScreen() {
     setIsSaving(true);
     try {
       await store.updateStoreSettings(form);
-      showAlert('Settings saved', 'success');
+      showAlert('Settings saved and live on your website', 'success');
+    } catch (error) {
+      showAlert('Failed to save settings', 'error');
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Toggle switch component
+  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) => (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
+        checked ? 'bg-[#1E1719]' : 'bg-stone-300'
+      }`}
+    >
+      <span
+        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
+          checked ? 'translate-x-4' : 'translate-x-0'
+        }`}
+      />
+    </button>
+  );
 
   return (
     <div className="space-y-6">
       <ScreenHeader
         eyebrow="Manage"
         title="Settings"
-        description="Update store information, delivery, and website settings."
+        description="Control what customers see on your website."
       />
 
-      <form onSubmit={save} className="space-y-6">
-        {/* Store Identity */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
-          <h2 className="flex items-center gap-2 font-bold text-stone-900 dark:text-stone-100">
-            <Settings2 className="h-4 w-4 text-[#B27A52]" />
-            Store details
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+      <form onSubmit={save} className="space-y-5 pb-32">
+        {/* BANNER ANNOUNCEMENT */}
+        <div className={`rounded-2xl border-2 p-6 ${
+          form.announcementVisible
+            ? 'border-[#B27A52]/30 bg-[#B27A52]/5 dark:border-[#B27A52]/20 dark:bg-[#B27A52]/10'
+            : 'border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]'
+        }`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-stone-900 dark:text-stone-100">Top announcement</h3>
+                <Toggle checked={form.announcementVisible} onChange={v => update('announcementVisible', v)} />
+              </div>
+              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                {form.announcementVisible ? 'Showing on your website' : 'Hidden from customers'}
+              </p>
+              {form.announcementVisible && form.announcementText && (
+                <div className="mt-3 rounded-lg bg-[#B27A52] px-3 py-2 text-xs font-semibold text-white">
+                  {form.announcementText}
+                </div>
+              )}
+            </div>
+          </div>
+          <label className="mt-4 block text-xs font-bold text-stone-600 dark:text-stone-400">
+            Message
+            <input
+              className={`${inputClass} mt-2`}
+              value={form.announcementText}
+              onChange={e => update('announcementText', e.target.value)}
+              placeholder="e.g., Free delivery on orders over GHS 100"
+            />
+          </label>
+        </div>
+
+        {/* STORE BRANDING */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Store branding</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">How your store appears to customers</p>
+          <div className="mt-4 space-y-4">
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
               Store name
-              <input
-                className={`${inputClass} mt-2`}
-                value={form.storeName}
-                onChange={e => update('storeName', e.target.value)}
-              />
+              <input className={`${inputClass} mt-2`} value={form.storeName} onChange={e => update('storeName', e.target.value)} />
             </label>
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
               Tagline
-              <input
-                className={`${inputClass} mt-2`}
-                value={form.storeTagline}
-                onChange={e => update('storeTagline', e.target.value)}
-              />
-            </label>
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
-              Announcement text
-              <input
-                className={`${inputClass} mt-2`}
-                value={form.announcementText}
-                onChange={e => update('announcementText', e.target.value)}
-                placeholder="Optional message shown at the top of the shop"
-              />
-            </label>
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
-              Homepage headline
-              <input className={`${inputClass} mt-2`} value={form.heroHeadline} onChange={e => update('heroHeadline', e.target.value)} placeholder="Beauty, care, and everyday essentials." />
-            </label>
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
-              Homepage message
-              <textarea className={`${inputClass} mt-2 min-h-20`} value={form.heroSubtitle} onChange={e => update('heroSubtitle', e.target.value)} placeholder="A short message customers see on the homepage." />
+              <input className={`${inputClass} mt-2`} value={form.storeTagline} onChange={e => update('storeTagline', e.target.value)} placeholder="Short description of your store" />
             </label>
           </div>
-          <label className="mt-4 flex items-center gap-2 text-sm text-stone-700 dark:text-stone-300">
-            <input
-              type="checkbox"
-              checked={form.announcementVisible}
-              onChange={e => update('announcementVisible', e.target.checked)}
-            />
-            Show announcement at the top of the shop
-          </label>
         </section>
 
-        {/* Delivery & Contact */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
-          <h2 className="flex items-center gap-2 font-bold text-stone-900 dark:text-stone-100">
-            <Truck className="h-4 w-4 text-[#B27A52]" />
-            Delivery and contact
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {(
-              [
-                ['standardShippingFee', 'Standard delivery fee'],
-                ['expressShippingFee', 'Express delivery fee'],
-                ['intercityShippingFee', 'Intercity delivery fee'],
-                ['freeDeliveryThreshold', 'Free delivery from'],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key} className="text-xs font-bold text-stone-600 dark:text-stone-400">
-                {label}
-                <input
-                  className={`${inputClass} mt-2`}
-                  type="number"
-                  min="0"
-                  value={form[key]}
-                  onChange={e => update(key, Number(e.target.value))}
-                />
-              </label>
-            ))}
+        {/* HOMEPAGE */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Main welcome message customers see</p>
+          <div className="mt-4 space-y-4">
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Main headline
+              <input className={`${inputClass} mt-2`} value={form.heroHeadline} onChange={e => update('heroHeadline', e.target.value)} placeholder="Beauty, care, and everyday essentials." />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Description
+              <textarea className={`${inputClass} mt-2 min-h-24`} value={form.heroSubtitle} onChange={e => update('heroSubtitle', e.target.value)} placeholder="A few sentences about your store..." />
+            </label>
+          </div>
+        </section>
+
+        {/* DELIVERY & CONTACT */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Delivery &amp; contact</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">How customers reach you and get orders</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
               Phone
-              <input
-                className={`${inputClass} mt-2`}
-                value={form.storePhone}
-                onChange={e => update('storePhone', e.target.value)}
-              />
+              <input className={`${inputClass} mt-2`} value={form.storePhone} onChange={e => update('storePhone', e.target.value)} placeholder="+233 24 123 4567" />
             </label>
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
               Email
-              <input
-                className={`${inputClass} mt-2`}
-                type="email"
-                value={form.storeEmail}
-                onChange={e => update('storeEmail', e.target.value)}
-              />
+              <input className={`${inputClass} mt-2`} type="email" value={form.storeEmail} onChange={e => update('storeEmail', e.target.value)} />
             </label>
-            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 md:col-span-2">
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 sm:col-span-2">
               Address
-              <input
-                className={`${inputClass} mt-2`}
-                value={form.storeAddress}
-                onChange={e => update('storeAddress', e.target.value)}
-              />
+              <input className={`${inputClass} mt-2`} value={form.storeAddress} onChange={e => update('storeAddress', e.target.value)} />
             </label>
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
-              Opening hours
-              <input className={`${inputClass} mt-2`} value={form.storeHours} onChange={e => update('storeHours', e.target.value)} placeholder="When customers can reach you" />
+              Hours
+              <input className={`${inputClass} mt-2`} value={form.storeHours} onChange={e => update('storeHours', e.target.value)} placeholder="9am - 6pm daily" />
             </label>
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
-              WhatsApp number
-              <input className={`${inputClass} mt-2`} value={form.whatsappNumber} onChange={e => update('whatsappNumber', e.target.value)} placeholder="Number for customer messages" />
+              WhatsApp
+              <input className={`${inputClass} mt-2`} value={form.whatsappNumber} onChange={e => update('whatsappNumber', e.target.value)} placeholder="+233 24 123 4567" />
             </label>
           </div>
-        </section>
-
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
-          <h2 className="font-bold text-stone-900 dark:text-stone-100">What customers see</h2>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Turn homepage sections on or off without deleting anything.</p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {([
-              ['flashDeal', 'Flash deal'],
-              ['hero', 'Homepage welcome'],
-              ['categories', 'Categories'],
-              ['hotDeals', 'Hot deals'],
-              ['newArrivals', 'New products'],
-              ['beauty', 'Beauty products'],
-              ['groceryFeed', 'Essentials'],
-            ] as const).map(([key, label]) => (
-              <label key={key} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs font-semibold text-stone-700">
-                <span>{label}</span>
-                <input type="checkbox" checked={form.homepageSections[key]} onChange={e => updateNested('homepageSections', key, e.target.checked)} className="h-4 w-4 accent-[#1E1719]" />
-              </label>
-            ))}
-          </div>
-          <div className="mt-5 border-t border-stone-100 pt-4">
-            <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Customer pages</h3>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="mt-4 border-t border-stone-100 pt-4">
+            <p className="text-xs font-bold text-stone-600 dark:text-stone-400">Shipping fees</p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
               {([
-                ['shop', 'Shop'],
-                ['products', 'Product pages'],
-                ['checkout', 'Checkout'],
-                ['account', 'Customer accounts'],
-                ['about', 'About'],
-                ['support', 'Support'],
+                ['standardShippingFee', 'Standard delivery'],
+                ['expressShippingFee', 'Express delivery'],
+                ['intercityShippingFee', 'Intercity delivery'],
+                ['freeDeliveryThreshold', 'Free delivery from'],
               ] as const).map(([key, label]) => (
-                <label key={key} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs font-semibold text-stone-700">
-                  <span>{label}</span>
-                  <input type="checkbox" checked={form.pageVisibility[key]} onChange={e => updateNested('pageVisibility', key, e.target.checked)} className="h-4 w-4 accent-[#1E1719]" />
+                <label key={key} className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  {label}
+                  <div className="mt-2 flex items-center gap-1">
+                    <span className="text-xs text-stone-500">GHS</span>
+                    <input
+                      className={`${inputClass} flex-1`}
+                      type="number"
+                      min="0"
+                      value={form[key]}
+                      onChange={e => update(key, Number(e.target.value))}
+                    />
+                  </div>
                 </label>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Operational Mode */}
-        <section className="rounded-2xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 p-5">
-          <h2 className="flex items-center gap-2 font-bold text-red-900 dark:text-red-300">
-            <ShieldCheck className="h-4 w-4" />
-            Website status
-          </h2>
-          <label className="mt-3 flex items-center gap-2 text-sm text-red-900 dark:text-red-300">
-            <input
-              type="checkbox"
-              checked={form.maintenanceMode}
-              onChange={e => update('maintenanceMode', e.target.checked)}
-            />
-            Temporarily pause the website
-          </label>
+        {/* HOMEPAGE SECTIONS */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage sections</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Show or hide areas of your homepage</p>
+          <div className="mt-4 space-y-2">
+            {([
+              ['flashDeal', 'Flash deal banner'],
+              ['hero', 'Welcome section'],
+              ['categories', 'Category navigation'],
+              ['hotDeals', 'Hot deals'],
+              ['newArrivals', 'New products'],
+              ['beauty', 'Beauty section'],
+              ['groceryFeed', 'Essentials section'],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2.5">
+                <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">{label}</span>
+                <Toggle checked={form.homepageSections[key]} onChange={v => updateNested('homepageSections', key, v)} />
+              </div>
+            ))}
+          </div>
         </section>
 
-        <button className={`${buttonClass} sticky bottom-4 shadow-lg`} disabled={isSaving}>
-          <Save className="h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save settings'}
-        </button>
+        {/* CUSTOMER PAGES */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Customer pages</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Control which pages customers can access</p>
+          <div className="mt-4 space-y-2">
+            {([
+              ['shop', 'Shop page'],
+              ['products', 'Product detail pages'],
+              ['checkout', 'Checkout'],
+              ['account', 'Customer accounts'],
+              ['about', 'About page'],
+              ['support', 'Help &amp; support'],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2.5">
+                <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">{label}</span>
+                <Toggle checked={form.pageVisibility[key]} onChange={v => updateNested('pageVisibility', key, v)} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* WEBSITE STATUS */}
+        <section className="rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-orange-50 dark:bg-orange-950/20 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-bold text-orange-900 dark:text-orange-300">Website status</h2>
+              <p className="mt-1 text-xs text-orange-800 dark:text-orange-400">
+                {form.maintenanceMode ? 'Website is closed to customers' : 'Website is live and accepting orders'}
+              </p>
+            </div>
+            <Toggle checked={form.maintenanceMode} onChange={v => update('maintenanceMode', v)} />
+          </div>
+        </section>
+
+        {/* SAVE BUTTON */}
+        <div className="fixed bottom-0 left-0 right-0 border-t border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#1a1515] px-4 py-4 sm:px-6">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className={`w-full rounded-xl px-6 py-3 font-bold transition ${
+              isSaving
+                ? 'bg-stone-300 text-stone-600 cursor-not-allowed'
+                : 'bg-[#1E1719] text-white hover:bg-[#33282C]'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Saving...' : 'Save all settings'}
+            </div>
+          </button>
+          <p className="mt-2 text-center text-xs text-stone-500">Changes appear instantly on your website</p>
+        </div>
       </form>
     </div>
   );
