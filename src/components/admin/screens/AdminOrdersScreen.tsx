@@ -109,8 +109,8 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Orders Management</h1>
-          <p className="text-gray-600 mt-1">Manage and track customer orders</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-stone-100">Orders Management</h1>
+          <p className="text-gray-600 dark:text-stone-400 mt-1">Manage and track customer orders</p>
         </div>
         <button
           onClick={handleExport}
@@ -123,26 +123,26 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Total Orders</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Total Orders</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mt-1">{stats.total}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Pending</p>
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Pending</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Delivered</p>
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Delivered</p>
           <p className="text-2xl font-bold text-green-600 mt-1">{stats.delivered}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Total Revenue</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">GHS {stats.totalRevenue.toFixed(2)}</p>
+        <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Total Revenue</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mt-1">GHS {stats.totalRevenue.toFixed(2)}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+      <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
@@ -152,7 +152,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
               placeholder="Search by order ID, customer name, or phone..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100 placeholder:text-gray-500 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
@@ -160,7 +160,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as OrderStatus | 'all')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-gray-300 dark:border-[#3d5574] rounded-lg bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             {statuses.map(status => (
               <option key={status} value={status}>
@@ -169,39 +169,39 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             ))}
           </select>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-stone-400">
           Showing {filteredOrders.length} of {stats.total} orders
         </p>
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-[#2a3f5f] border-b border-gray-200 dark:border-[#3d5574]">
               <tr>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Order ID</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Customer</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Amount</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Status</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Date</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900">Actions</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Order ID</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Customer</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Amount</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Status</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Date</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-stone-100">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-[#3d5574]">
               {filteredOrders.length > 0 ? (
                 filteredOrders.map(order => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-[#2a2420] transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-gray-900">{order.orderNumber}</span>
+                      <span className="font-semibold text-gray-900 dark:text-stone-100">{order.orderNumber}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-gray-900">{order.shippingAddress?.fullName}</p>
-                        <p className="text-xs text-gray-500">{order.shippingAddress?.phone}</p>
+                        <p className="font-medium text-gray-900 dark:text-stone-100">{order.shippingAddress?.fullName}</p>
+                        <p className="text-xs text-gray-500 dark:text-stone-400">{order.shippingAddress?.phone}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">
+                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-stone-100">
                       GHS {Number(order.total).toFixed(2)}
                     </td>
                     <td className="px-6 py-4">
@@ -211,7 +211,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                           value={order.status}
                           onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
                           disabled={loading}
-                          className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-[#3d5574] bg-white dark:bg-[#2a3f5f] text-gray-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
                         >
                           {statuses
                             .filter(s => s !== 'all')
@@ -223,7 +223,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                         </select>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="px-6 py-4 text-gray-600 dark:text-stone-400">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
@@ -239,7 +239,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-stone-400">
                     No orders found
                   </td>
                 </tr>

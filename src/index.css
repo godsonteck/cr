@@ -27,14 +27,14 @@
 
   html.dark {
     color-scheme: dark;
-    --bg-main: #171311;
-    --bg-card: #201b1a;
-    --bg-card-alt: #2b2322;
-    --bg-soft: #2d2625;
+    --bg-main: #0f1a2e;
+    --bg-card: #1a2a47;
+    --bg-card-alt: #213555;
+    --bg-soft: #2a3f5f;
     --text-primary: #f8f4f1;
     --text-muted: #d3c2b9;
     --text-subtle: #b9a197;
-    --border-color: #483d39;
+    --border-color: #3d5574;
     --accent: #d98a72;
     --accent-strong: #eaab93;
     --accent-soft: rgba(217, 138, 114, 0.18);

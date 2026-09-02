@@ -128,8 +128,8 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Products Catalog</h1>
-          <p className="text-gray-600 mt-1">Manage your product inventory and listings</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-stone-100">Products Catalog</h1>
+          <p className="text-gray-600 dark:text-stone-400 mt-1">Manage your product inventory and listings</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -151,23 +151,23 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Total Products</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Total Products</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mt-1">{stats.total}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Published</p>
+        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Published</p>
           <p className="text-2xl font-bold text-green-600 mt-1">{stats.published}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Total Stock</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalInventory}</p>
+        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Total Stock</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mt-1">{stats.totalInventory}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Low Stock</p>
+        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4">
+          <p className="text-sm text-gray-600 dark:text-stone-400">Low Stock</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">{stats.lowStock}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] p-4">
           <p className="text-sm text-gray-600">Out of Stock</p>
           <p className="text-2xl font-bold text-red-600 mt-1">{stats.outOfStock}</p>
         </div>

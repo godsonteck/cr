@@ -239,13 +239,13 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white dark:bg-[#201b1a] rounded-lg border border-gray-200 dark:border-[#483d39] shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-[#483d39]">
+      <div className="bg-white dark:bg-[#1a2a47] rounded-lg border border-gray-200 dark:border-[#3d5574] shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-[#3d5574]">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-stone-100">Recent Orders</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#2a2420] text-sm text-gray-600 dark:text-stone-400 font-medium">
+            <thead className="bg-gray-50 dark:bg-[#2a3f5f] text-sm text-gray-600 dark:text-stone-400 font-medium">
               <tr>
                 <th className="px-6 py-3 text-left">Order ID</th>
                 <th className="px-6 py-3 text-left">Customer</th>
@@ -254,10 +254,10 @@ export const AdminDashboard: React.FC = () => {
                 <th className="px-6 py-3 text-left">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-[#483d39]">
+            <tbody className="divide-y divide-gray-200 dark:divide-[#3d5574]">
               {recentOrders.length > 0 ? (
                 recentOrders.map(order => (
-                  <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-[#2a2420] transition-colors">
+                  <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-[#2a3f5f] transition-colors">
                     <td className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-stone-100">{order.orderNumber}</td>
                     <td className="px-6 py-3 text-sm text-gray-600 dark:text-stone-400">{order.shippingAddress?.fullName}</td>
                     <td className="px-6 py-3 text-sm font-semibold text-gray-900 dark:text-stone-100">

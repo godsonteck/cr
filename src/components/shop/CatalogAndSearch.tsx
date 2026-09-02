@@ -77,8 +77,8 @@ export const ShopCatalogPage: React.FC = () => {
     <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 font-sans sm:space-y-7 sm:px-6 sm:py-10 lg:px-8">
 
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500">
-        <Link to="/" className="hover:text-[#1C1817]">Home</Link>
+      <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
+        <Link to="/" className="hover:text-[#1C1817] dark:hover:text-stone-100">Home</Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <Link to="/shop" className="hover:text-[#1C1817]">Shop</Link>
         {currentCategoryObj && (

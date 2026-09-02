@@ -14,6 +14,7 @@ import {
   Tag,
   Bell,
   Search,
+  UserCheck,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -21,6 +22,7 @@ import { AdminLoginView } from './AdminLoginView';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminProductsScreen } from './screens/AdminProductsScreen';
 import { AdminOrdersScreen } from './screens/AdminOrdersScreen';
+import { AdminAccountsManagementScreen } from './screens/AdminAccountsManagementScreen';
 import {
   AdminCustomersScreen,
   AdminFlashDealsScreen,
@@ -32,7 +34,7 @@ import {
 import logoImg from '../../assets/logo.jpeg';
 import { Product, Order } from '../../types';
 
-type AdminTab = 'overview' | 'products' | 'orders' | 'inventory' | 'customers' | 'promos' | 'flash' | 'notifications' | 'settings';
+type AdminTab = 'overview' | 'products' | 'orders' | 'inventory' | 'customers' | 'accounts' | 'promos' | 'flash' | 'notifications' | 'settings';
 
 interface NavItem {
   id: AdminTab;
