@@ -73,7 +73,7 @@ export const AboutPage: React.FC = () => {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="space-y-6 text-center">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">CR Cosmetics &amp; Essentials</span>
-        <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-6xl">
+        <h1 className="max-w-4xl mx-auto font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
           Products for your everyday routine.
         </h1>
         <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
@@ -145,7 +145,7 @@ export const SupportPage: React.FC = () => {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="text-center space-y-3">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Customer care</span>
-        <h1 className="font-serif text-4xl tracking-[-0.05em] text-[var(--text-primary)] sm:text-6xl">Support that keeps your order moving.</h1>
+        <h1 className="mx-auto max-w-4xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Support that keeps your order moving.</h1>
         <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
           We are here to help with product questions, order updates, delivery coordination, and shopping support before and after checkout.
         </p>
@@ -267,7 +267,7 @@ export const ContactPage: React.FC = () => {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR Cosmetics</span>
-        <h1 className="mt-3 font-serif text-4xl tracking-[-0.05em] text-[var(--text-primary)] sm:text-6xl">Let&apos;s help you find what you need.</h1>
+        <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Let&apos;s help you find what you need.</h1>
         <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.</p>
       </div>
 

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
 import { storeSettings } from '../src/db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
 
@@ -9,6 +9,8 @@ const settingUpdateSchema = z.object({
   key: z.string().min(1).max(100),
   value: z.any(),
 });
+
+const toJsonbValue = (value: unknown) => value === null ? sql`'null'::jsonb` : value;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
@@ -40,10 +42,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const [newSetting] = await db.insert(storeSettings).values({
         key: parsed.data.key,
-        value: parsed.data.value,
+        value: toJsonbValue(parsed.data.value),
       }).onConflictDoUpdate({
         target: storeSettings.key,
-        set: { value: parsed.data.value, updatedAt: new Date() },
+        set: { value: toJsonbValue(parsed.data.value), updatedAt: new Date() },
       }).returning();
 
       return res.status(201).json(newSetting);
@@ -65,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const [updated] = await db
         .update(storeSettings)
-        .set({ value: parsed.data.value, updatedAt: new Date() })
+        .set({ value: toJsonbValue(parsed.data.value), updatedAt: new Date() })
         .where(eq(storeSettings.key, key))
         .returning();
 

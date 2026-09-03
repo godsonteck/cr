@@ -50,7 +50,7 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
    - PAYSTACK_SECRET_KEY (server-side Paystack secret key)
    - VITE_PAYSTACK_PUBLIC_KEY (Paystack public key exposed to the Vite frontend)
 
-4. Push the schema to your database:
+4. Apply the non-destructive schema migration to your database:
 
    npm run db:push
 
@@ -73,7 +73,7 @@ After the seed step, the admin account is created from the `ADMIN_INITIAL_PIN` e
 1. In Google Cloud Console, create an OAuth 2.0 Client ID with application type **Web application**.
 2. Add `http://localhost:3000` and your Vercel production URL to **Authorized JavaScript origins**. Add any custom production domain too.
 3. Set both `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` to that client ID. `GOOGLE_CLIENT_ID` is used by the Vercel API to verify Google credentials; `VITE_GOOGLE_CLIENT_ID` renders the Google button in the browser.
-4. Run `npm run db:push` and redeploy Vercel after setting the variables.
+4. Run `npm run db:push` and redeploy Vercel after setting the variables. Do not run `drizzle-kit push` directly against production.
 
 Google customers are created or matched by their verified Google email in Neon and receive the same JWT session as password-based customers. A Google account starts with an empty phone field so it can be completed later from the customer profile.
 
@@ -86,7 +86,7 @@ Paystack is the only online payment option at checkout. It opens Paystack Inline
 - `npm run build` — TypeScript check and production build
 - `npm run lint` — strict TypeScript validation
 - `npm run db:generate` — generate Drizzle migrations
-- `npm run db:push` — apply schema changes
+- `npm run db:push` — apply the idempotent, non-destructive schema migration
 - `npm run db:seed` — populate products, settings, promo codes, and admin session
 - `npm run sitemap:generate` — generate the public sitemap.xml file locally
 

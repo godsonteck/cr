@@ -94,6 +94,22 @@ async function runMigration() {
     }
   }
 
+  // Compatibility columns added after the original schema. These statements
+  // are idempotent and preserve existing production data.
+  const compatibilityColumns = [
+    `ALTER TABLE "admin_sessions" ADD COLUMN IF NOT EXISTS "phone" varchar(30) NOT NULL DEFAULT ''`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT '[]'::jsonb`,
+  ];
+
+  for (const columnSql of compatibilityColumns) {
+    try {
+      await db.execute(columnSql);
+      console.log('✅ Compatibility column verified');
+    } catch (e: any) {
+      console.error('Compatibility column error:', e.message);
+    }
+  }
+
   console.log('🎉 Migration completed!');
 }
 

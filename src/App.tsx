@@ -29,6 +29,11 @@ function AppLayout() {
   const { storeSettings } = useStore();
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname, location.search]);
+
   const pageVisibility = storeSettings.pageVisibility || {
     home: true,
     beauty: true,

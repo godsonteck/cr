@@ -142,6 +142,10 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   whatsappNumber: '233592153306',
   maintenanceMode: false,
   bannerAlert: null,
+  productDeliveryMessage: '',
+  productProtectionMessage: '',
+  productReturnsMessage: '',
+  productShippingMessage: '',
 };
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [

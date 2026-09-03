@@ -1101,6 +1101,30 @@ export function AdminSettingsScreen() {
           </div>
         </section>
 
+        {/* PRODUCT PAGE MARKETPLACE CONTENT */}
+        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Product page marketplace content</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">These messages appear on product pages. Leave any field empty to remove it.</p>
+          <div className="mt-4 space-y-4">
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Delivery message
+              <input className={`${inputClass} mt-2`} value={form.productDeliveryMessage || ''} onChange={e => update('productDeliveryMessage', e.target.value)} placeholder="e.g. Delivery available across Accra" />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Checkout or seller message
+              <input className={`${inputClass} mt-2`} value={form.productProtectionMessage || ''} onChange={e => update('productProtectionMessage', e.target.value)} placeholder="e.g. Secure checkout with verified payment" />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Returns message
+              <input className={`${inputClass} mt-2`} value={form.productReturnsMessage || ''} onChange={e => update('productReturnsMessage', e.target.value)} placeholder="e.g. Returns accepted according to store policy" />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Shipping details
+              <textarea className={`${inputClass} mt-2 min-h-20`} value={form.productShippingMessage || ''} onChange={e => update('productShippingMessage', e.target.value)} placeholder="Explain delivery areas, timing, pickup, or conditions." />
+            </label>
+          </div>
+        </section>
+
         {/* HOMEPAGE SECTIONS */}
         <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage sections</h2>

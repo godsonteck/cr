@@ -122,6 +122,10 @@ export interface StoreSettings {
   maintenanceMode: boolean;
   bannerAlert: string | null;
   storeLogo?: string;
+  productDeliveryMessage?: string;
+  productProtectionMessage?: string;
+  productReturnsMessage?: string;
+  productShippingMessage?: string;
 }
 
 export interface StoreSettingsRow {

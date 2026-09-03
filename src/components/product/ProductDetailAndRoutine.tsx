@@ -26,7 +26,7 @@ const COLOR_SWATCHES: Record<string, string> = {
 };
 
 export const ProductDetailPage: React.FC = () => {
-  const { products } = useStore();
+  const { products, storeSettings } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
   const { addToCart } = useCart();
@@ -153,7 +153,11 @@ export const ProductDetailPage: React.FC = () => {
               {product.name}
             </h1>
 
-            <div className="text-sm text-[var(--text-muted)]">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)]">
+              <span className="font-semibold text-[var(--text-primary)]">{product.rating.toFixed(1)} / 5</span>
+              <span className="text-[#d59a27]" aria-label={`${product.rating} out of 5 stars`}>{'★'.repeat(Math.round(product.rating))}{'☆'.repeat(5 - Math.round(product.rating))}</span>
+              <span>{product.reviewCount} reviews</span>
+              <span className="h-4 w-px bg-[var(--border-color)]" />
               <span>{availableStock > 0 ? `${availableStock} in stock` : 'Out of stock'}</span>
             </div>
           </div>
@@ -172,20 +176,24 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
 
-          <div className="space-y-3 rounded-2xl border border-[var(--border-color)] bg-[rgba(122,167,255,0.04)] p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-              <Truck className="h-4 w-4 text-[var(--accent)]" />
-              <span>Free delivery over GHS 300</span>
+          {[
+            { icon: Truck, message: storeSettings.productDeliveryMessage },
+            { icon: ShieldCheck, message: storeSettings.productProtectionMessage },
+            { icon: PackageCheck, message: storeSettings.productReturnsMessage },
+          ].filter(item => item.message?.trim()).length > 0 && (
+            <div className="space-y-3 rounded-2xl border border-[var(--border-color)] bg-[rgba(122,167,255,0.04)] p-4">
+              {[
+                { icon: Truck, message: storeSettings.productDeliveryMessage },
+                { icon: ShieldCheck, message: storeSettings.productProtectionMessage },
+                { icon: PackageCheck, message: storeSettings.productReturnsMessage },
+              ].filter(item => item.message?.trim()).map(({ icon: Icon, message }) => (
+                <div key={message} className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                  <Icon className="h-4 w-4 shrink-0 text-[var(--accent)]" />
+                  <span>{message}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-              <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
-              <span>Secure checkout • Verified seller</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-              <PackageCheck className="h-4 w-4 text-[var(--accent)]" />
-              <span>Easy returns within 7 days</span>
-            </div>
-          </div>
+          )}
 
           {product.options && product.options.length > 0 ? product.options.map(option => (
             <div key={option.name} className="space-y-2">
@@ -364,22 +372,21 @@ export const ProductDetailPage: React.FC = () => {
           )}
 
           {activeTab === 'shipping' && (
-            <div className="grid gap-5 md:grid-cols-3">
-              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
-                <Truck className="mb-3 h-5 w-5 text-[var(--accent)]" />
-                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Fast local delivery</p>
-                <p className="text-sm text-[var(--text-muted)]">Same-day dispatch on eligible orders in Accra and nearby areas.</p>
+            <div className="space-y-4">
+              {storeSettings.productShippingMessage?.trim() && <p className="text-[var(--text-primary)]">{storeSettings.productShippingMessage}</p>}
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  ['Standard delivery', storeSettings.standardShippingFee],
+                  ['Express delivery', storeSettings.expressShippingFee],
+                  ['Intercity delivery', storeSettings.intercityShippingFee],
+                ].map(([label, fee]) => (
+                  <div key={label} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                    <p className="text-xs font-bold text-[var(--text-primary)]">{label}</p>
+                    <p className="mt-2 text-sm text-[var(--text-muted)]">{storeSettings.currency} {Number(fee).toFixed(2)}</p>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
-                <PackageCheck className="mb-3 h-5 w-5 text-[var(--accent)]" />
-                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Secure packaging</p>
-                <p className="text-sm text-[var(--text-muted)]">Every item is packed with protective materials to keep it in premium condition.</p>
-              </div>
-              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
-                <Clock3 className="mb-3 h-5 w-5 text-[var(--accent)]" />
-                <p className="mb-2 text-sm font-bold text-[var(--text-primary)]">Simple returns</p>
-                <p className="text-sm text-[var(--text-muted)]">Return or exchange items within 7 days if the product is unopened or faulty.</p>
-              </div>
+              {!storeSettings.productShippingMessage?.trim() && <p className="text-xs text-[var(--text-muted)]">Delivery details are set by the store and shown at checkout.</p>}
             </div>
           )}
         </div>
@@ -432,12 +439,12 @@ export const RoutineBuilderPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-12">
 
       {/* Header */}
-      <div className="bg-[#1C1817] text-white p-8 sm:p-12 rounded-3xl text-center max-w-4xl mx-auto space-y-4">
+      <div className="mx-auto max-w-4xl rounded-3xl bg-[#1C1817] p-6 text-center text-white space-y-4 sm:p-10">
         <span className="inline-flex items-center gap-1.5 bg-[#C86D51] text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
           Interactive Regimen Tool
         </span>
-        <h1 className="text-3xl sm:text-5xl font-extrabold uppercase">
+          <h1 className="text-2xl leading-tight font-extrabold uppercase sm:text-4xl">
           Build Your 4-Step Skincare Routine
         </h1>
         <p className="text-xs sm:text-sm text-stone-300 max-w-xl mx-auto">
