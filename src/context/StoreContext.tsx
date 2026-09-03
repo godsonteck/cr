@@ -687,7 +687,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteBrand = async (brand: string) => {
     setBrands(prev => prev.filter(b => b !== brand));
     try {
-      await api.delete(`/brands/${encodeURIComponent(brand)}`);
+      await api.delete(`/brands?id=${encodeURIComponent(brand)}`);
       await fetchBrands();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };

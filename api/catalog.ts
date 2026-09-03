@@ -108,7 +108,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const table = resource === 'brands' ? brands : categories;
-      const [deleted] = await db.delete(table).where(eq(table.id as any, id as any)).returning({ id: table.id });
+      const [deleted] = resource === 'brands'
+        ? await db.delete(brands).where(eq(brands.name, id)).returning({ id: brands.id })
+        : await db.delete(categories).where(eq(categories.id, id as any)).returning({ id: categories.id });
       if (!deleted) {
         return res.status(404).json({ error: `${resource === 'brands' ? 'Brand' : 'Category'} not found` });
       }
