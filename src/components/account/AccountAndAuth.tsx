@@ -17,10 +17,13 @@ import {
   RotateCcw,
   Settings,
   Headphones,
+  Bell,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useAlert } from '../../context/AlertContext';
 import { ProductCard } from '../product/ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -32,11 +35,13 @@ export const AccountPage: React.FC = () => {
   const { products } = useStore();
   const navigate = useNavigate();
   const { showAlert } = useAlert();
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'addresses'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'addresses' | 'settings'>('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: user?.fullName || '', phone: user?.phone || '', email: user?.email || '' });
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [editingAddressIndex, setEditingAddressIndex] = useState<number | null>(null);
+  const { theme, setTheme } = useTheme();
+  const [orderNotifications, setOrderNotifications] = useState(() => localStorage.getItem('cr_order_notifications') !== 'false');
   const [addressForm, setAddressForm] = useState<ShippingAddress>({
     fullName: '',
     phone: '',
@@ -126,10 +131,15 @@ export const AccountPage: React.FC = () => {
     { id: 'orders' as const, label: 'My orders', icon: Package, count: user?.orders?.length || 0 },
     { id: 'wishlist' as const, label: 'Wish list', icon: Heart, count: wishlistIds.length },
     { id: 'addresses' as const, label: 'Shipping addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
+    { id: 'settings' as const, label: 'Settings', icon: Settings, count: undefined },
   ];
 
   const setTab = (tab: typeof activeTab) => setActiveTab(tab);
 
+  const updateOrderNotifications = (enabled: boolean) => {
+    setOrderNotifications(enabled);
+    localStorage.setItem('cr_order_notifications', String(enabled));
+  };
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#fff7f8] py-6 font-sans sm:py-9">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -215,6 +225,54 @@ export const AccountPage: React.FC = () => {
 
       {/* Tab Content */}
       <div className="mt-5">
+        {/* Settings Tab */}
+        {activeTab === 'settings' && user && (
+          <div className="max-w-3xl space-y-5">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#cf6c8a]">Preferences</p>
+              <h2 className="mt-1 text-xl font-black text-[#2a1d20]">Settings</h2>
+              <p className="mt-1 text-xs text-[#6f5b60]">Manage how your account and shopping experience work.</p>
+            </div>
+
+            <section className="overflow-hidden rounded-2xl border border-[#f2dfe7] bg-white shadow-[0_12px_30px_rgba(128,72,93,0.06)]">
+              <div className="border-b border-[#f2dfe7] px-5 py-4">
+                <h3 className="text-sm font-extrabold text-[#2a1d20]">Display</h3>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="flex items-start gap-3">
+                  <Settings className="mt-0.5 h-5 w-5 text-[#cf6c8a]" />
+                  <div><p className="text-xs font-bold text-[#2a1d20]">Theme</p><p className="mt-1 text-[11px] text-[#8e7077]">Choose a light or dark storefront.</p></div>
+                </div>
+                <div className="flex rounded-lg border border-[#f2dfe7] bg-[#fff7f8] p-1">
+                  {(['light', 'dark'] as const).map(option => (
+                    <button key={option} onClick={() => setTheme(option)} className={`rounded-md px-3 py-2 text-[10px] font-extrabold capitalize transition ${theme === option ? 'bg-[#cf6c8a] text-white' : 'text-[#6f5b60] hover:text-[#a94c63]'}`}>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-[#f2dfe7] bg-white shadow-[0_12px_30px_rgba(128,72,93,0.06)]">
+              <div className="border-b border-[#f2dfe7] px-5 py-4"><h3 className="text-sm font-extrabold text-[#2a1d20]">Notifications</h3></div>
+              <div className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="flex items-start gap-3"><Bell className="mt-0.5 h-5 w-5 text-[#cf6c8a]" /><div><p className="text-xs font-bold text-[#2a1d20]">Order updates</p><p className="mt-1 text-[11px] text-[#8e7077]">Receive delivery and order status updates.</p></div></div>
+                <button role="switch" aria-checked={orderNotifications} onClick={() => updateOrderNotifications(!orderNotifications)} className={`relative h-6 w-11 shrink-0 rounded-full transition ${orderNotifications ? 'bg-[#cf6c8a]' : 'bg-[#d9cbd0]'}`}>
+                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition ${orderNotifications ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-[#f2dfe7] bg-white shadow-[0_12px_30px_rgba(128,72,93,0.06)]">
+              <div className="border-b border-[#f2dfe7] px-5 py-4"><h3 className="text-sm font-extrabold text-[#2a1d20]">Account security</h3></div>
+              <div className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 text-[#cf6c8a]" /><div><p className="text-xs font-bold text-[#2a1d20]">Signed in as</p><p className="mt-1 text-[11px] text-[#8e7077]">{user.email}</p></div></div>
+                <button onClick={() => { logout(); navigate('/'); }} className="rounded-lg border border-[#f2dfe7] px-3 py-2 text-[10px] font-extrabold text-[#a94c63] transition hover:bg-[#fff1f5]">Sign out</button>
+              </div>
+            </section>
+          </div>
+        )}
+
         {/* Profile Tab */}
         {activeTab === 'profile' && user && (
           <div className="bg-white dark:bg-[#1C1917] p-6 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] max-w-xl space-y-5">
