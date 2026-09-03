@@ -313,7 +313,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_products');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return PRODUCTS; }
     return PRODUCTS;
   });
   const [loading, setLoading] = useState(false);
@@ -328,7 +328,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .map(brand => typeof brand === 'string' ? brand : brand.name || '')
           .filter(Boolean);
       }
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return BRANDS_LIST; }
     return BRANDS_LIST;
   });
   const [loadingBrands, setLoadingBrands] = useState(false);
@@ -337,7 +337,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_categories');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return CATEGORIES_CONFIG; }
     return CATEGORIES_CONFIG;
   });
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -346,7 +346,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_orders');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return INITIAL_SEED_ORDERS; }
     return INITIAL_SEED_ORDERS;
   });
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -355,7 +355,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_promos');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return INITIAL_SEED_PROMOS; }
     return INITIAL_SEED_PROMOS;
   });
   const [loadingPromos, setLoadingPromos] = useState(false);
@@ -381,7 +381,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_admin_accounts');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return INITIAL_ADMIN_ACCOUNTS; }
     return INITIAL_ADMIN_ACCOUNTS;
   });
 
@@ -389,7 +389,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('cr_flash_deals');
       if (saved) return JSON.parse(saved);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch { return INITIAL_SEED_FLASH_DEALS; }
     return INITIAL_SEED_FLASH_DEALS;
   });
   const [loadingFlashDeals, setLoadingFlashDeals] = useState(false);
