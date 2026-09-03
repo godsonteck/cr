@@ -254,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(402).json({ error: 'Korapay payment could not be verified. Please try again.' });
           }
         }
-        const reference = parsed.data.paystackReference?.trim();
+        const reference = parsed.data.paymentReference?.trim();
         const secretKey = process.env.PAYSTACK_SECRET_KEY;
         if (parsed.data.paymentMethod === 'korapay') {
           // Korapay was verified above; skip the legacy Paystack verifier.

@@ -597,7 +597,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ];
     if (hasAdminSession) startupRequests.push(fetchBrands());
     void Promise.allSettled(startupRequests);
-  }, [fetchProducts, fetchBrands, fetchCategories, fetchOrders, fetchPromoCodes, fetchSettings, fetchFlashDeals]);
+  }, [fetchProducts, fetchBrands, fetchCategories, fetchSettings, fetchFlashDeals]);
 
   // Product Actions
   const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {

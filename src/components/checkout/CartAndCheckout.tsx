@@ -274,7 +274,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentSenderPhone, setPaymentSenderPhone] = useState(phone);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
-  const paymentMethod: PaymentMethod = 'korapay';
+  const paymentMethod: PaymentMethod = 'paystack';
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Auto pre-fill default saved address if area is empty
@@ -296,20 +296,25 @@ export const MultiStepCheckoutPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const returnedReference = params.get('reference') || params.get('trxref');
     const returnedStatus = (params.get('status') || '').toLowerCase();
-    const pendingOrder = sessionStorage.getItem('korapay_pending_order');
+    const pendingOrder = sessionStorage.getItem('paystack_pending_order');
     if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !pendingOrder || !isAuthenticated) return;
 
     const completeReturnedOrder = async () => {
       setIsProcessing(true);
       try {
         const orderPayload = JSON.parse(pendingOrder) as Order;
+        const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
+          reference: returnedReference,
+          amount: Math.round(orderPayload.total * 100),
+        });
+        if (!verification.verified) throw new Error('Paystack payment could not be verified');
         const createdOrder = await api.post<Order>('/orders', {
           ...orderPayload,
-          paymentMethod: 'korapay',
+          paymentMethod: 'paystack',
           paymentStatus: 'paid',
-          paymentReference: returnedReference,
+          paymentReference: verification.reference,
         });
-        sessionStorage.removeItem('korapay_pending_order');
+        sessionStorage.removeItem('paystack_pending_order');
         await addStoreOrder(createdOrder);
         addOrder(createdOrder);
         if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
@@ -317,8 +322,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
         window.history.replaceState({}, '', '/checkout');
         navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
       } catch (error) {
-        console.error('Korapay return error:', error);
-        showAlert('Payment was returned, but the order could not be confirmed. Please contact support.', 'error', { persistent: true });
+        console.error('Paystack return error:', error);
+        showAlert('Payment was returned, but it could not be verified. Please contact support.', 'error', { persistent: true });
       } finally {
         setIsProcessing(false);
       }
@@ -412,7 +417,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
     }
   };
 
-  const startKorapayCheckout = async () => {
+  const startPaystackCheckout = async () => {
     if (!fullName || !phone || !area || !email) {
       showAlert('Please complete your delivery details and email first.', 'error');
       setStep(1);
@@ -424,20 +429,20 @@ export const MultiStepCheckoutPage: React.FC = () => {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
         items: [...cartItems], subtotal, shippingFee, discount, total: totalAmount,
-        paymentMethod: 'korapay', paymentStatus: 'pending', paymentReference: '', deliveryMethod,
+        paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '', deliveryMethod,
         shippingAddress: { fullName, phone, email, city, area, deliveryNotes: deliveryNotes || undefined },
         status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
         createdAt: new Date().toISOString(),
       };
-      sessionStorage.setItem('korapay_pending_order', JSON.stringify(orderPayload));
+      sessionStorage.setItem('paystack_pending_order', JSON.stringify(orderPayload));
       const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const result = await api.post<{ checkoutUrl: string }>('/auth?action=korapay-initialize', {
-        amount: Number(totalAmount.toFixed(2)), email, name: fullName, reference, redirectUrl: `${window.location.origin}/checkout`,
+      const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
+        amount: Math.round(totalAmount * 100), email, name: fullName, reference, callbackUrl: `${window.location.origin}/checkout`,
       });
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {
-      sessionStorage.removeItem('korapay_pending_order');
-      showAlert(error?.message || 'Korapay checkout could not be started. Please try again.', 'error', { persistent: true });
+      sessionStorage.removeItem('paystack_pending_order');
+      showAlert(error?.message || 'Paystack checkout could not be started. Please try again.', 'error', { persistent: true });
       setIsProcessing(false);
     }
   };
@@ -447,7 +452,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
       {/* Checkout Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
-        <p className="text-xs text-stone-500">Pay securely with Korapay. You can use mobile money or a bank card.</p>
+        <p className="text-xs text-stone-500">Pay securely with Paystack using mobile money or a bank card.</p>
       </div>
 
       {/* Progress Bar */}
@@ -594,13 +599,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Pay with Korapay</h3>
+            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Pay with Paystack</h3>
 
-            <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5"><CreditCard className="h-6 w-6 text-[#C86D51]" /><p className="mt-3 text-base font-bold text-stone-800">Your total is GHS {totalAmount.toFixed(2)}</p><p className="mt-2 text-xs leading-5 text-stone-600">You will be taken to Korapay to complete payment securely. Choose mobile money or card there. Your order is created only after payment is verified.</p></div>
+            <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5"><CreditCard className="h-6 w-6 text-[#C86D51]" /><p className="mt-3 text-base font-bold text-stone-800">Your total is GHS {totalAmount.toFixed(2)}</p><p className="mt-2 text-xs leading-5 text-stone-600">You will be taken to Paystack to complete payment securely. Choose mobile money or card there. Your order is created only after payment is verified.</p></div>
 
             <div className="flex gap-4">
               <Button variant="outline" size="md" onClick={() => setStep(1)} className="rounded-full px-6 text-xs">Back</Button>
-              <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startKorapayCheckout()} className="rounded-full px-8 uppercase text-xs font-bold">Continue to Korapay</Button>
+              <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startPaystackCheckout()} className="rounded-full px-8 uppercase text-xs font-bold">Continue to Paystack</Button>
             </div>
           </div>
         )}

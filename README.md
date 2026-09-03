@@ -79,7 +79,15 @@ Google customers are created or matched by their verified Google email in Neon a
 
 ## Paystack checkout
 
-Paystack is the only online payment option at checkout. It opens Paystack Inline for card and supported mobile-money channels, verifies the transaction server-side, and creates the order only after the transaction is confirmed as successful. Set both Paystack variables in local and Vercel environments, then redeploy. Never expose `PAYSTACK_SECRET_KEY` in frontend code.
+Paystack is the only online payment option at checkout. It opens Paystack's hosted checkout for card and supported mobile-money channels, verifies the transaction server-side, and creates the order only after the transaction is confirmed as successful. Set `PAYSTACK_SECRET_KEY` in the Vercel server environment and `VITE_PAYSTACK_PUBLIC_KEY` in the Vite environment if client-side Paystack features are added later. Never expose `PAYSTACK_SECRET_KEY` in frontend code.
+
+### Paystack webhook
+
+Configure this URL in the Paystack Dashboard under **Settings → API Keys & Webhooks**:
+
+`https://your-production-domain.com/api/paystack-webhook`
+
+The endpoint accepts `charge.success` events, validates the `x-paystack-signature` HMAC with `PAYSTACK_SECRET_KEY`, checks the GHS amount against the matching order, and safely ignores duplicate events. The order must already contain the Paystack transaction reference in `paymentReference`.
 
 ## Useful scripts
 
