@@ -8,9 +8,13 @@ import { requireAdmin } from './_auth.js';
 const categoryEnum = ['all', 'skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools', 'rice-grains', 'cooking-oils', 'seasoning-spices', 'beverages', 'snacks-sweets', 'household-care', 'daily-essentials', 'new-arrivals', 'best-sellers', 'offers'] as const;
 const brandCreateSchema = z.object({ name: z.string().min(1).max(100), isActive: z.boolean().default(true) });
 const brandUpdateSchema = z.object({ name: z.string().min(1).max(100).optional(), isActive: z.boolean().optional() }).partial();
+const imageStringSchema = z.string().min(1).refine((value) => value.startsWith('data:image/') || /^https?:\/\//i.test(value), {
+  message: 'Image must be a valid upload or URL',
+});
+
 const categoryCreateSchema = z.object({
   id: z.enum(categoryEnum), slug: z.string().min(1).max(100), name: z.string().min(1).max(100),
-  department: z.enum(['beauty', 'groceries']), image: z.string().url(), description: z.string().min(1),
+  department: z.enum(['beauty', 'groceries']), image: imageStringSchema, description: z.string().min(1),
   isActive: z.boolean().default(true), sortOrder: z.number().int().default(0),
 });
 const categoryUpdateSchema = z.object({
@@ -18,7 +22,7 @@ const categoryUpdateSchema = z.object({
   slug: z.string().min(1).max(100).optional(),
   name: z.string().min(1).max(100).optional(),
   department: z.enum(['beauty', 'groceries']).optional(),
-  image: z.string().url().optional(),
+  image: imageStringSchema.optional(),
   description: z.string().min(1).optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().optional(),

@@ -12,26 +12,39 @@ const defaultCreateForm = {
   name: '',
   description: '',
   department: 'beauty' as DepartmentType,
-  image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+  image: '',
   isActive: true,
 };
+
+const readImageFile = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
 
 export const AdminCategoriesScreen: React.FC = () => {
   const store = useStore();
   const { showAlert } = useAlert();
   const [editing, setEditing] = useState<CategoryConfig | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', department: 'beauty' as DepartmentType });
+  const [form, setForm] = useState({ name: '', description: '', department: 'beauty' as DepartmentType, image: '' });
   const [createForm, setCreateForm] = useState(defaultCreateForm);
 
   const beginEdit = (category: CategoryConfig) => {
     setEditing(category);
-    setForm({ name: category.name, description: category.description, department: category.department });
+    setForm({ name: category.name, description: category.description, department: category.department, image: category.image });
   };
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!editing || !form.name.trim()) return;
-    await store.updateCategory(editing.id, { name: form.name.trim(), description: form.description.trim(), department: form.department });
+    await store.updateCategory(editing.id, {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      department: form.department,
+      image: form.image || editing.image,
+    });
     showAlert('Category updated', 'success');
     setEditing(null);
   };
@@ -43,8 +56,8 @@ export const AdminCategoriesScreen: React.FC = () => {
     const slug = createForm.slug.trim();
     const description = createForm.description.trim();
 
-    if (!id || !name || !slug || !description) {
-      showAlert('Category ID, name, slug, and description are required.', 'error');
+    if (!id || !name || !slug || !description || !createForm.image) {
+      showAlert('Category ID, name, slug, description, and image upload are required.', 'error');
       return;
     }
 
@@ -54,7 +67,7 @@ export const AdminCategoriesScreen: React.FC = () => {
       name,
       description,
       department: createForm.department,
-      image: createForm.image || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+      image: createForm.image,
       isActive: createForm.isActive,
     };
 
@@ -73,6 +86,26 @@ export const AdminCategoriesScreen: React.FC = () => {
   const toggle = async (category: CategoryConfig) => {
     await store.toggleCategory(category.id);
     showAlert(`${category.name} ${category.isActive ? 'hidden from' : 'shown on'} the storefront`, 'success');
+  };
+
+  const handleImageUpload = async (file: File | null, target: 'create' | 'edit') => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      showAlert('Please upload a JPG, PNG, WEBP, or GIF image.', 'error');
+      return;
+    }
+
+    try {
+      const dataUrl = await readImageFile(file);
+      if (target === 'create') {
+        setCreateForm(prev => ({ ...prev, image: dataUrl }));
+      } else {
+        setForm(prev => ({ ...prev, image: dataUrl }));
+      }
+      showAlert('Image uploaded successfully.', 'success');
+    } catch {
+      showAlert('The image could not be processed. Please try another file.', 'error');
+    }
   };
 
   return (
@@ -106,13 +139,27 @@ export const AdminCategoriesScreen: React.FC = () => {
             <label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} placeholder="Category name" value={createForm.name} onChange={event => setCreateForm({ ...createForm, name: event.target.value })} /></label>
             <label className="block text-xs font-bold text-stone-600">Slug<input className={`${inputClass} mt-1`} placeholder="category-slug" value={createForm.slug} onChange={event => setCreateForm({ ...createForm, slug: event.target.value })} /></label>
             <label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={createForm.department} onChange={event => setCreateForm({ ...createForm, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label>
-            <label className="block text-xs font-bold text-stone-600">Image URL<input className={`${inputClass} mt-1`} placeholder="https://..." value={createForm.image} onChange={event => setCreateForm({ ...createForm, image: event.target.value })} /></label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-stone-600">Category image</label>
+              <input type="file" accept="image/*" onChange={(event) => void handleImageUpload(event.target.files?.[0] || null, 'create')} className="block w-full cursor-pointer text-sm text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#1E1719] file:px-3 file:py-2 file:text-sm file:font-bold file:text-white" />
+              {createForm.image && <img src={createForm.image} alt="Category preview" className="mt-2 h-24 w-full rounded-xl object-cover" />}
+            </div>
             <label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-24`} placeholder="Short customer-facing description" value={createForm.description} onChange={event => setCreateForm({ ...createForm, description: event.target.value })} /></label>
             <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Add category</button>
           </form>
           <form onSubmit={save} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
             <h2 className="font-bold">{editing ? `Edit ${editing.name}` : 'Select a category'}</h2>
-            {editing ? <><label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} /></label><label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={form.department} onChange={event => setForm({ ...form, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label><label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-28`} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} /></label><div className="flex gap-2"><button className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Save className="h-4 w-4" />Save changes</button><button type="button" className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-bold" onClick={() => setEditing(null)}>Cancel</button></div></> : <p className="text-sm text-stone-500">Choose Edit on a category to update its name, department, or customer-facing description.</p>}
+            {editing ? <>
+              <label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} /></label>
+              <label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={form.department} onChange={event => setForm({ ...form, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-stone-600">Update image</label>
+                <input type="file" accept="image/*" onChange={(event) => void handleImageUpload(event.target.files?.[0] || null, 'edit')} className="block w-full cursor-pointer text-sm text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#1E1719] file:px-3 file:py-2 file:text-sm file:font-bold file:text-white" />
+                {form.image && <img src={form.image} alt="Category preview" className="mt-2 h-24 w-full rounded-xl object-cover" />}
+              </div>
+              <label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-28`} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} /></label>
+              <div className="flex gap-2"><button className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Save className="h-4 w-4" />Save changes</button><button type="button" className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-bold" onClick={() => setEditing(null)}>Cancel</button></div>
+            </> : <p className="text-sm text-stone-500">Choose Edit on a category to update its name, department, or customer-facing description.</p>}
           </form>
         </div>
       </div>
