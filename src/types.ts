@@ -126,6 +126,7 @@ export interface StoreSettings {
   productProtectionMessage?: string;
   productReturnsMessage?: string;
   productShippingMessage?: string;
+  deliveryZones?: Array<{ name: string; keywords: string[]; fee: number }>;
 }
 
 export interface StoreSettingsRow {
@@ -179,6 +180,7 @@ export interface Product {
   category: CategoryType;
   categoryLabel: string;
   price: number; // in GHS
+  deliveryPrice?: number;
   originalPrice?: number;
   discountBadge?: string; // e.g. "-10%"
   unit: string; // e.g. "30ml Dropper Bottle", "5kg Bag", "400ml Bottle"

@@ -77,6 +77,7 @@ export const products = pgTable('products', {
   category: categoryTypeEnum('category').notNull(),
   categoryLabel: varchar('category_label', { length: 100 }).notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  deliveryPrice: decimal('delivery_price', { precision: 10, scale: 2 }),
   originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
   discountBadge: varchar('discount_badge', { length: 20 }),
   unit: varchar('unit', { length: 100 }).notNull(),

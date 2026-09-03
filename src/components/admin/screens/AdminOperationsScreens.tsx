@@ -879,6 +879,10 @@ export function AdminSettingsScreen() {
   const updateNested = <K extends 'homepageSections' | 'pageVisibility'>(key: K, child: keyof StoreSettings[K], value: boolean) =>
     setForm(prev => ({ ...prev, [key]: { ...prev[key], [child]: value } }));
 
+  const deliveryZones = form.deliveryZones || [];
+  const updateDeliveryZone = (index: number, updates: Partial<NonNullable<StoreSettings['deliveryZones']>[number]>) =>
+    setForm(prev => ({ ...prev, deliveryZones: (prev.deliveryZones || []).map((zone, zoneIndex) => zoneIndex === index ? { ...zone, ...updates } : zone) }));
+
   const handleLogoUpload = async (file: File) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -1097,6 +1101,21 @@ export function AdminSettingsScreen() {
                   </div>
                 </label>
               ))}
+            </div>
+          </div>
+          <div className="mt-6 border-t border-stone-100 pt-4">
+            <p className="text-xs font-bold text-stone-600 dark:text-stone-400">Automatic location pricing</p>
+            <p className="mt-1 text-[11px] text-stone-500">Customers enter their city or area. The first matching zone sets standard delivery price. Separate keywords with commas.</p>
+            <div className="mt-3 space-y-3">
+              {deliveryZones.map((zone, index) => (
+                <div key={`${zone.name}-${index}`} className="grid gap-2 rounded-xl border border-stone-200 p-3 sm:grid-cols-[1fr_1.5fr_110px_auto] sm:items-end">
+                  <label className="text-[10px] font-bold text-stone-600">Zone name<input className={`${inputClass} mt-1`} value={zone.name} onChange={e => updateDeliveryZone(index, { name: e.target.value })} /></label>
+                  <label className="text-[10px] font-bold text-stone-600">City/area keywords<input className={`${inputClass} mt-1`} value={zone.keywords.join(', ')} onChange={e => updateDeliveryZone(index, { keywords: e.target.value.split(',').map(keyword => keyword.trim()).filter(Boolean) })} placeholder="Accra, East Legon" /></label>
+                  <label className="text-[10px] font-bold text-stone-600">Fee (GHS)<input className={`${inputClass} mt-1`} type="number" min="0" step="0.01" value={zone.fee} onChange={e => updateDeliveryZone(index, { fee: Number(e.target.value) || 0 })} /></label>
+                  <button type="button" onClick={() => setForm(prev => ({ ...prev, deliveryZones: (prev.deliveryZones || []).filter((_, zoneIndex) => zoneIndex !== index) }))} className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${zone.name} delivery zone`}><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => setForm(prev => ({ ...prev, deliveryZones: [...(prev.deliveryZones || []), { name: 'New zone', keywords: [], fee: 0 }] }))} className="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-bold text-stone-700 hover:border-stone-900"><Plus className="h-3.5 w-3.5" />Add delivery zone</button>
             </div>
           </div>
         </section>

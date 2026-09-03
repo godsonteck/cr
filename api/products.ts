@@ -32,6 +32,7 @@ const productCreateSchema = z.object({
   category: z.enum(categoryEnum),
   categoryLabel: z.string().min(1).max(100),
   price: z.string(),
+  deliveryPrice: z.number().min(0).optional().nullable(),
   originalPrice: z.string().optional(),
   discountBadge: z.string().max(20).optional(),
   unit: z.string().min(1).max(100),
@@ -77,6 +78,7 @@ const productUpdateSchema = z.object({
   category: z.enum(categoryEnum).optional(),
   categoryLabel: z.string().min(1).max(100).optional(),
   price: z.string().optional(),
+  deliveryPrice: z.number().min(0).optional().nullable(),
   originalPrice: z.string().optional().nullable(),
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100).optional(),
@@ -250,6 +252,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productData = {
         ...parsed.data,
         id: parsed.data.id || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        deliveryPrice: parsed.data.deliveryPrice == null ? null : parsed.data.deliveryPrice.toString(),
       };
 
       const [newProduct] = await db.insert(products).values(productData).returning();
@@ -270,7 +273,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Product ID is required' });
       }
 
-      const updateData = { ...parsed.data, updatedAt: new Date() };
+      const updateData = {
+        ...parsed.data,
+        deliveryPrice: parsed.data.deliveryPrice == null ? parsed.data.deliveryPrice : parsed.data.deliveryPrice.toString(),
+        updatedAt: new Date(),
+      };
 
       const [updated] = await db
         .update(products)

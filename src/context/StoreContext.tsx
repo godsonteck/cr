@@ -142,6 +142,10 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   whatsappNumber: '233592153306',
   maintenanceMode: false,
   bannerAlert: null,
+  deliveryZones: [
+    { name: 'Accra', keywords: ['accra', 'east legon', 'madina', 'tema', 'airport', 'osu'], fee: 30 },
+    { name: 'Other locations', keywords: [], fee: 70 },
+  ],
   productDeliveryMessage: '',
   productProtectionMessage: '',
   productReturnsMessage: '',

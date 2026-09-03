@@ -99,6 +99,7 @@ async function runMigration() {
   const compatibilityColumns = [
     `ALTER TABLE "admin_sessions" ADD COLUMN IF NOT EXISTS "phone" varchar(30) NOT NULL DEFAULT ''`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT '[]'::jsonb`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "delivery_price" numeric(10, 2)`,
   ];
 
   for (const columnSql of compatibilityColumns) {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { orders, products } from '../src/db/schema.js';
+import { orders, products, storeSettings } from '../src/db/schema.js';
 import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -183,13 +183,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
+      const settingsRows = await db.select().from(storeSettings);
+      const settings = Object.fromEntries(settingsRows.map(setting => [setting.key, setting.value])) as {
+        standardShippingFee?: number;
+        expressShippingFee?: number;
+        intercityShippingFee?: number;
+        deliveryZones?: Array<{ keywords?: string[]; fee?: number }>;
+      };
+      const locationText = `${parsed.data.shippingAddress.city} ${parsed.data.shippingAddress.area}`.toLowerCase();
+      const matchedZone = (settings.deliveryZones || []).find(zone => (zone.keywords || []).some(keyword => locationText.includes(keyword.toLowerCase())))
+        || (settings.deliveryZones || []).find(zone => !(zone.keywords || []).length);
+      const zoneFee = Number(matchedZone?.fee ?? settings.standardShippingFee ?? 0);
+      const productFees = productRows.map(product => product.deliveryPrice == null ? null : Number(product.deliveryPrice)).filter((fee): fee is number => fee !== null);
+      const standardFee = productFees.length > 0 ? Math.max(...productFees) : zoneFee;
+      const expectedShippingFee = parsed.data.deliveryMethod === 'store-pickup' ? 0
+        : parsed.data.deliveryMethod === 'accra-express' ? Number(settings.expressShippingFee ?? 0)
+          : parsed.data.deliveryMethod === 'intercity' ? Number(settings.intercityShippingFee ?? 0)
+            : standardFee;
+      if (Math.abs(parsed.data.shippingFee - expectedShippingFee) > 0.01) {
+        return res.status(400).json({ error: 'Delivery price changed. Please review your delivery option and try again.' });
+      }
+
       const orderNumber = generateOrderNumber();
       const orderData = {
         ...parsed.data,
         userId: auth.sub,
         orderNumber,
         subtotal: parsed.data.subtotal.toString(),
-        shippingFee: parsed.data.shippingFee.toString(),
+        shippingFee: expectedShippingFee.toString(),
         discount: parsed.data.discount.toString(),
         total: parsed.data.total.toString(),
       };

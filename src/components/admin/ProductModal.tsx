@@ -48,6 +48,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [category, setCategory] = useState<CategoryType>('skincare');
   const [categoryLabel, setCategoryLabel] = useState('Facial Serum');
   const [price, setPrice] = useState<number>(120);
+  const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(undefined);
   const [originalPrice, setOriginalPrice] = useState<number | undefined>(undefined);
   const [discountBadge, setDiscountBadge] = useState<string>('');
   const [unit, setUnit] = useState('30ml Bottle');
@@ -65,6 +66,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [options, setOptions] = useState<ProductOption[]>([]);
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [origin, setOrigin] = useState('Made in Canada');
+  const [isSaving, setIsSaving] = useState(false);
   
   // Details
   const [howToUse, setHowToUse] = useState('');
@@ -80,6 +82,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setCategory(productToEdit.category);
       setCategoryLabel(productToEdit.categoryLabel || 'Beauty Item');
       setPrice(productToEdit.price);
+      setDeliveryPrice(productToEdit.deliveryPrice);
       setOriginalPrice(productToEdit.originalPrice);
       setDiscountBadge(productToEdit.discountBadge || '');
       setUnit(productToEdit.unit || 'Standard Size');
@@ -111,6 +114,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setCategory('skincare');
       setCategoryLabel('Facial Serum');
       setPrice(150);
+      setDeliveryPrice(undefined);
       setOriginalPrice(undefined);
       setDiscountBadge('');
       setUnit('30ml Bottle');
@@ -268,7 +272,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     showToast(`${combinations.length} combinations ready to price`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       showToast('Please enter a product name');
@@ -316,13 +320,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       category,
       categoryLabel: categoryLabel.trim() || 'Retail Item',
       price: Number(price),
+      ...(deliveryPrice === undefined ? {} : { deliveryPrice: Number(deliveryPrice) }),
       originalPrice: originalPrice ? Number(originalPrice) : undefined,
       discountBadge: discountBadge.trim() || undefined,
       unit: unit.trim() || 'Standard Pack',
       image: primaryImage,
       images: uploadedImages.length > 0 ? uploadedImages : [primaryImage],
       description: description.trim(),
-      highlights: highlights.length > 0 ? highlights : ['100% Original & Authentic'],
+      highlights,
       badge: badge || undefined,
       inStock,
       isPublished,
@@ -343,15 +348,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       }
     };
 
-    if (isEditing && productToEdit) {
-      updateProduct(productToEdit.id, productPayload);
-      showToast(`Updated product: ${name}`);
-    } else {
-      addProduct(productPayload);
-      showToast(`Added new product to shop: ${name}`);
+    setIsSaving(true);
+    try {
+      if (isEditing && productToEdit) {
+        await updateProduct(productToEdit.id, productPayload);
+        showToast(`Updated product: ${name}`);
+      } else {
+        await addProduct(productPayload);
+        showToast(`Added new product to shop: ${name}`);
+      }
+      onClose();
+    } catch {
+      showToast('Could not save this product. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    onClose();
   };
 
   return (
@@ -374,12 +385,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </span>
             </div>
               <p className="text-xs text-stone-500 mt-0.5">
-              Add the product details customers need, then set prices and stock for each option.
+                Complete the four steps below. Fields marked * are required.
             </p>
           </div>
 
           <button
             onClick={onClose}
+            disabled={isSaving}
+            aria-label="Close product editor"
             className="p-2 text-stone-400 hover:text-stone-900 rounded-full hover:bg-stone-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -393,8 +406,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {(
             <div className="space-y-4">
               <div className="border-b border-stone-200 pb-3">
-                <h3 className="text-base font-bold text-stone-900">1. Product details</h3>
-                <p className="mt-1 text-[11px] text-stone-500">Start with the information customers need to identify the item.</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#C89B3C]">Step 1 of 4</p>
+                <h3 className="mt-1 text-base font-bold text-stone-900">Basic product information</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Name the item, choose where it belongs, and describe it simply.</p>
               </div>
               
               {/* Department Switcher */}
@@ -572,8 +586,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {(
             <div className="space-y-4">
               <div className="border-b border-stone-200 pb-3">
-                <h3 className="text-base font-bold text-stone-900">2. Price, options and stock</h3>
-                <p className="mt-1 text-[11px] text-stone-500">Use the option builder for products with different colors, sizes, types, or prices.</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#C89B3C]">Step 2 of 4</p>
+                <h3 className="mt-1 text-base font-bold text-stone-900">Price and stock</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Set the selling price and tell customers how many are available.</p>
               </div>
               
               <div className="bg-[#FAF8F5] p-5 rounded-2xl border border-[#E8E2D8] space-y-4">
@@ -617,6 +632,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       className="w-full px-3 py-2.5 bg-white border border-stone-200 rounded-xl"
                     />
                   </div>
+                </div>
+                <div className="max-w-xs">
+                  <label className="block font-bold text-stone-700 mb-1">Product delivery price (GHS)</label>
+                  <input type="number" min="0" step="0.01" value={deliveryPrice ?? ''} onChange={e => setDeliveryPrice(e.target.value === '' ? undefined : Number(e.target.value))} placeholder="Leave empty to use location price" className="w-full px-3 py-2.5 bg-white border border-stone-200 rounded-xl font-bold text-stone-900" />
+                  <p className="mt-1 text-[10px] text-stone-500">Optional. This product price overrides the customer&apos;s location price for standard delivery.</p>
                 </div>
               </div>
 
@@ -718,8 +738,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {(
             <div className="space-y-5">
               <div className="border-b border-stone-200 pb-3">
-                <h3 className="text-base font-bold text-stone-900">3. Product photos</h3>
-                <p className="mt-1 text-[11px] text-stone-500">Add clear photos so customers know exactly what they are buying.</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#C89B3C]">Step 3 of 4</p>
+                <h3 className="mt-1 text-base font-bold text-stone-900">Product photos</h3>
+                <p className="mt-1 text-[11px] text-stone-500">Upload at least one clear photo. The main photo appears first in the shop.</p>
               </div>
 
               {/* Drag & Drop Upload Zone */}
@@ -861,8 +882,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {(
             <div className="space-y-5">
               <div className="border-b border-stone-200 pb-3">
-                <h3 className="text-base font-bold text-stone-900">4. Extra details <span className="font-normal text-stone-400">(optional)</span></h3>
-                <p className="mt-1 text-[11px] text-stone-500">Add these details only when they help customers decide.</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#C89B3C]">Step 4 of 4</p>
+                <h3 className="mt-1 text-base font-bold text-stone-900">Extra details <span className="font-normal text-stone-400">(optional)</span></h3>
+                <p className="mt-1 text-[11px] text-stone-500">Add ingredients, benefits, instructions, or other information customers need.</p>
               </div>
 
               {/* Key Selling Points / Highlights */}
@@ -991,16 +1013,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <button
               type="button"
               onClick={onClose}
+              disabled={isSaving}
               className="px-5 py-2.5 border border-stone-300 text-stone-700 hover:bg-stone-50 rounded-xl font-bold cursor-pointer transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              disabled={isSaving}
+              className="px-6 py-2.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save className="w-4 h-4" />
-              <span>{isEditing ? 'Save Changes' : 'Publish Item on Shop'}</span>
+              <span>{isSaving ? 'Saving product...' : isEditing ? 'Save product' : 'Publish product'}</span>
             </button>
           </div>
 

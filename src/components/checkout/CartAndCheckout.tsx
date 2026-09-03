@@ -304,7 +304,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
     document.body.appendChild(script);
   }, []);
 
-  const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : storeSettings.standardShippingFee;
+  const locationText = `${city} ${area}`.toLowerCase();
+  const matchedZone = (storeSettings.deliveryZones || []).find(zone => zone.keywords.length > 0 && zone.keywords.some(keyword => locationText.includes(keyword.toLowerCase())))
+    || (storeSettings.deliveryZones || []).find(zone => zone.keywords.length === 0);
+  const locationDeliveryFee = matchedZone?.fee ?? storeSettings.standardShippingFee;
+  const productDeliveryFees = cartItems.map(item => item.product.deliveryPrice).filter((fee): fee is number => typeof fee === 'number');
+  const standardDeliveryFee = productDeliveryFees.length > 0 ? Math.max(...productDeliveryFees) : locationDeliveryFee;
+  const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : standardDeliveryFee;
   const totalAmount = Math.max(0, subtotal - discount + shippingFee);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
@@ -507,10 +513,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-stone-700">Delivery method</h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {([['standard-delivery', 'Standard delivery', storeSettings.standardShippingFee], ['accra-express', 'Express delivery', storeSettings.expressShippingFee], ['intercity', 'Priority delivery', storeSettings.intercityShippingFee], ['store-pickup', 'Store pickup', 0]] as const).map(([method, label, fee]) => (
+                {([['standard-delivery', 'Standard delivery', standardDeliveryFee], ['accra-express', 'Express delivery', storeSettings.expressShippingFee], ['intercity', 'Priority delivery', storeSettings.intercityShippingFee], ['store-pickup', 'Store pickup', 0]] as const).map(([method, label, fee]) => (
                   <label key={method} className={`cursor-pointer rounded-xl border p-3 text-xs ${deliveryMethod === method ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'}`}>
                     <input className="mr-2" type="radio" checked={deliveryMethod === method} onChange={() => setDeliveryMethod(method)} />
-                    {label} <span className="font-bold">{fee === 0 ? 'Free' : `GHS ${fee}`}</span>
+                    {label} <span className="font-bold">{fee === 0 ? 'Free' : `${storeSettings.currency} ${fee}`}</span>
                   </label>
                 ))}
               </div>
