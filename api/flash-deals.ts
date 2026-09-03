@@ -5,6 +5,8 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
 
+const asFlashDealList = (value: unknown) => Array.isArray(value) ? value : [];
+
 const flashDealCreateSchema = z.object({
   title: z.string().min(1).max(200),
   subtitle: z.string().max(300).optional(),
@@ -26,29 +28,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (method === 'GET') {
       const { id, active } = query;
-      
+
       if (id && typeof id === 'string') {
-        const [deal] = await db.select().from(flashDeals).where(eq(flashDeals.id, id)).limit(1);
-        if (!deal) {
-          return res.status(404).json({ error: 'Flash deal not found' });
+        try {
+          const [deal] = await db.select().from(flashDeals).where(eq(flashDeals.id, id)).limit(1);
+          if (!deal) {
+            return res.status(404).json({ error: 'Flash deal not found' });
+          }
+          return res.status(200).json(deal);
+        } catch (error) {
+          console.error('Flash deal lookup failed, returning empty result:', error);
+          return res.status(200).json(null);
         }
-        return res.status(200).json(deal);
       }
 
-      const conditions = [];
-      if (active !== undefined) {
-        conditions.push(eq(flashDeals.isActive, active === 'true'));
-      } else {
-        // Default to active and not expired
-        conditions.push(eq(flashDeals.isActive, true));
-        conditions.push(sql`${flashDeals.expiresAt} > NOW()`);
+      try {
+        const conditions = [] as ReturnType<typeof eq>[];
+        if (active !== undefined) {
+          conditions.push(eq(flashDeals.isActive, active === 'true'));
+        } else {
+          conditions.push(eq(flashDeals.isActive, true));
+          conditions.push(sql`${flashDeals.expiresAt} > NOW()`);
+        }
+
+        const results = conditions.length > 0
+          ? await db.select().from(flashDeals).where(and(...conditions)).orderBy(desc(flashDeals.createdAt))
+          : await db.select().from(flashDeals).orderBy(desc(flashDeals.createdAt));
+
+        return res.status(200).json(asFlashDealList(results));
+      } catch (error) {
+        console.error('Flash deals query failed, returning empty list:', error);
+        return res.status(200).json([]);
       }
-
-      const results = conditions.length > 0
-        ? await db.select().from(flashDeals).where(and(...conditions)).orderBy(desc(flashDeals.createdAt))
-        : await db.select().from(flashDeals).orderBy(desc(flashDeals.createdAt));
-
-      return res.status(200).json(results);
     }
 
     if (method === 'POST') {

@@ -564,12 +564,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoadingFlashDeals(true);
     try {
       const data = await api.get<FlashDeal[]>('/flash-deals');
-      if (data && Array.isArray(data) && data.length > 0) {
-        setFlashDeals(data);
-      }
+      setFlashDeals(Array.isArray(data) ? data : []);
     } catch (e: any) {
+      setFlashDeals([]);
       setError('Failed to load flash deals from server.');
-      throw e;
     } finally {
       setLoadingFlashDeals(false);
     }

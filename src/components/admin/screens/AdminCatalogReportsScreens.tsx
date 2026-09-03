@@ -1,16 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, Check, EyeOff, Layers, Save, TrendingUp } from 'lucide-react';
+import { BarChart3, Check, EyeOff, Layers, Save, Trash2, TrendingUp, Plus } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { CategoryConfig, CategoryType, DepartmentType } from '../../../types';
 
 const inputClass = 'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719]';
 
+const defaultCreateForm = {
+  id: '',
+  slug: '',
+  name: '',
+  description: '',
+  department: 'beauty' as DepartmentType,
+  image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+  isActive: true,
+};
+
 export const AdminCategoriesScreen: React.FC = () => {
   const store = useStore();
   const { showAlert } = useAlert();
   const [editing, setEditing] = useState<CategoryConfig | null>(null);
   const [form, setForm] = useState({ name: '', description: '', department: 'beauty' as DepartmentType });
+  const [createForm, setCreateForm] = useState(defaultCreateForm);
 
   const beginEdit = (category: CategoryConfig) => {
     setEditing(category);
@@ -23,6 +34,40 @@ export const AdminCategoriesScreen: React.FC = () => {
     await store.updateCategory(editing.id, { name: form.name.trim(), description: form.description.trim(), department: form.department });
     showAlert('Category updated', 'success');
     setEditing(null);
+  };
+
+  const createCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const id = createForm.id.trim();
+    const name = createForm.name.trim();
+    const slug = createForm.slug.trim();
+    const description = createForm.description.trim();
+
+    if (!id || !name || !slug || !description) {
+      showAlert('Category ID, name, slug, and description are required.', 'error');
+      return;
+    }
+
+    const normalizedCategory: CategoryConfig = {
+      id: id as CategoryType,
+      slug: slug.toLowerCase().replace(/\s+/g, '-'),
+      name,
+      description,
+      department: createForm.department,
+      image: createForm.image || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+      isActive: createForm.isActive,
+    };
+
+    await store.addCategory(normalizedCategory);
+    showAlert(`Category “${name}” added successfully.`, 'success');
+    setCreateForm(defaultCreateForm);
+  };
+
+  const removeCategory = async (category: CategoryConfig) => {
+    if (!window.confirm(`Remove the “${category.name}” category? This can affect storefront links.`)) return;
+    await store.deleteCategory(category.id);
+    showAlert(`Category “${category.name}” removed.`, 'success');
+    if (editing?.id === category.id) setEditing(null);
   };
 
   const toggle = async (category: CategoryConfig) => {
@@ -50,13 +95,26 @@ export const AdminCategoriesScreen: React.FC = () => {
               <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${category.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>{category.isActive ? 'Visible' : 'Hidden'}</span>
               <button className="rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold" onClick={() => beginEdit(category)}>Edit</button>
               <button className="rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold" onClick={() => void toggle(category)}>{category.isActive ? 'Hide' : 'Show'}</button>
+              <button className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600" onClick={() => void removeCategory(category)} aria-label={`Delete ${category.name}`}><Trash2 className="mr-1 inline h-3.5 w-3.5" />Remove</button>
             </div>
           ))}
         </div>
-        <form onSubmit={save} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
-          <h2 className="font-bold">{editing ? `Edit ${editing.name}` : 'Select a category'}</h2>
-          {editing ? <><label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} /></label><label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={form.department} onChange={event => setForm({ ...form, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label><label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-28`} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} /></label><div className="flex gap-2"><button className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Save className="h-4 w-4" />Save changes</button><button type="button" className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-bold" onClick={() => setEditing(null)}>Cancel</button></div></> : <p className="text-sm text-stone-500">Choose Edit on a category to update its name, department, or customer-facing description.</p>}
-        </form>
+        <div className="space-y-5">
+          <form onSubmit={createCategory} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <div className="flex items-center justify-between gap-2"><h2 className="font-bold">Add category</h2><span className="inline-flex items-center gap-1 rounded-full bg-[#F3E5D8] px-2 py-1 text-[10px] font-bold text-[#6B3B2E]"><Plus className="h-3 w-3" />New</span></div>
+            <label className="block text-xs font-bold text-stone-600">ID<input className={`${inputClass} mt-1`} placeholder="e.g. bath-body" value={createForm.id} onChange={event => setCreateForm({ ...createForm, id: event.target.value })} /></label>
+            <label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} placeholder="Category name" value={createForm.name} onChange={event => setCreateForm({ ...createForm, name: event.target.value })} /></label>
+            <label className="block text-xs font-bold text-stone-600">Slug<input className={`${inputClass} mt-1`} placeholder="category-slug" value={createForm.slug} onChange={event => setCreateForm({ ...createForm, slug: event.target.value })} /></label>
+            <label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={createForm.department} onChange={event => setCreateForm({ ...createForm, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label>
+            <label className="block text-xs font-bold text-stone-600">Image URL<input className={`${inputClass} mt-1`} placeholder="https://..." value={createForm.image} onChange={event => setCreateForm({ ...createForm, image: event.target.value })} /></label>
+            <label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-24`} placeholder="Short customer-facing description" value={createForm.description} onChange={event => setCreateForm({ ...createForm, description: event.target.value })} /></label>
+            <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Add category</button>
+          </form>
+          <form onSubmit={save} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <h2 className="font-bold">{editing ? `Edit ${editing.name}` : 'Select a category'}</h2>
+            {editing ? <><label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} /></label><label className="block text-xs font-bold text-stone-600">Department<select className={`${inputClass} mt-1`} value={form.department} onChange={event => setForm({ ...form, department: event.target.value as DepartmentType })}><option value="beauty">Beauty</option><option value="groceries">Groceries</option></select></label><label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-28`} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} /></label><div className="flex gap-2"><button className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Save className="h-4 w-4" />Save changes</button><button type="button" className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-bold" onClick={() => setEditing(null)}>Cancel</button></div></> : <p className="text-sm text-stone-500">Choose Edit on a category to update its name, department, or customer-facing description.</p>}
+          </form>
+        </div>
       </div>
     </div>
   );

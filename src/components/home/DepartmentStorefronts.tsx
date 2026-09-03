@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
@@ -7,6 +7,8 @@ import { useStore } from '../../context/StoreContext';
 export const HomePage: React.FC = () => {
   const { products, categories, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
+  const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
+  const [catalogDepartment, setCatalogDepartment] = useState<'all' | 'beauty' | 'groceries'>('all');
   const activeCategories = categories.filter(cat => cat.isActive);
   const categoryPills = activeCategories.slice(0, 10);
   const homepageSections = storeSettings.homepageSections || {
@@ -55,6 +57,20 @@ export const HomePage: React.FC = () => {
   const groceryEssentials = homepageSections.groceryFeed
     ? reserveProducts(publishedProducts.filter(product => product.department === 'groceries'))
     : [];
+
+  const fullCollection = useMemo(() => {
+    const collection = publishedProducts
+      .filter(product => catalogDepartment === 'all' || product.department === catalogDepartment)
+      .map((product, index) => ({ product, index }));
+
+    return collection.sort((a, b) => {
+      if (catalogSort === 'price-low') return a.product.price - b.product.price;
+      if (catalogSort === 'price-high') return b.product.price - a.product.price;
+      if (catalogSort === 'rating') return b.product.rating - a.product.rating;
+      if (catalogSort === 'newest') return b.index - a.index;
+      return a.index - b.index;
+    }).map(item => item.product);
+  }, [publishedProducts, catalogDepartment, catalogSort]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -217,6 +233,29 @@ export const HomePage: React.FC = () => {
             </div>
           </section>
         )}
+
+        <section className="space-y-3 border-t border-[var(--border-color)] pt-6" aria-label="All products">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              <select aria-label="Filter collection by department" value={catalogDepartment} onChange={event => setCatalogDepartment(event.target.value as typeof catalogDepartment)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+                <option value="all">All departments</option>
+                <option value="beauty">Beauty</option>
+                <option value="groceries">Groceries</option>
+              </select>
+              <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+                <option value="featured">Featured</option>
+                <option value="newest">Newest first</option>
+                <option value="price-low">Price: low to high</option>
+                <option value="price-high">Price: high to low</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </div>
+          </div>
+          <p className="text-[11px] font-semibold text-[var(--text-subtle)]">Showing {fullCollection.length} products</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {fullCollection.map(product => <ProductCard key={product.id} product={product} />)}
+          </div>
+        </section>
 
       </main>
     </div>

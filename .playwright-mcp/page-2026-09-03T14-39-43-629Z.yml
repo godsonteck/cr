@@ -1,0 +1,49 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "CR Cosmetics & Essentials CR Cosmetics & Essentials Beauty & essentials" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]:
+          - img "CR Cosmetics & Essentials"
+        - generic [ref=e9]:
+          - generic [ref=e10]: CR Cosmetics & Essentials
+          - generic [ref=e11]: Beauty & essentials
+      - navigation [ref=e12]:
+        - link "Shop" [ref=e13] [cursor=pointer]:
+          - /url: /shop
+        - link "Beauty" [ref=e14] [cursor=pointer]:
+          - /url: /beauty
+        - link "Groceries" [ref=e15] [cursor=pointer]:
+          - /url: /groceries
+        - link "About" [ref=e16] [cursor=pointer]:
+          - /url: /about
+      - textbox "Search" [ref=e22]
+      - generic [ref=e23]:
+        - button "Toggle Theme" [ref=e24]
+        - button "Wishlist" [ref=e27]
+        - link "Sign in" [ref=e30] [cursor=pointer]:
+          - /url: /signin
+        - button "0" [ref=e34]
+  - main [ref=e39]
+  - contentinfo [ref=e101]:
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - generic [ref=e104]:
+          - img "CR Cosmetics & Essentials"
+          - generic [ref=e105]:
+            - generic [ref=e106]: CR Cosmetics
+            - generic [ref=e107]: Essentials
+        - generic [ref=e108]:
+          - link "Shop" [ref=e109] [cursor=pointer]:
+            - /url: /shop
+          - link "Beauty" [ref=e110] [cursor=pointer]:
+            - /url: /beauty
+          - link "Groceries" [ref=e111] [cursor=pointer]:
+            - /url: /groceries
+          - link "About" [ref=e112] [cursor=pointer]:
+            - /url: /about
+          - link "Support" [ref=e113] [cursor=pointer]:
+            - /url: /support
+        - link "Chat with CR Cosmetics on WhatsApp" [ref=e114] [cursor=pointer]:
+          - /url: https://wa.me/233592153306
+      - generic [ref=e117]: © 2026 CR Cosmetics & Essentials

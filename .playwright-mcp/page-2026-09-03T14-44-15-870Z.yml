@@ -1,0 +1,255 @@
+- generic [ref=f2e3]:
+  - banner [ref=f2e4]:
+    - generic [ref=f2e6]:
+      - link "CR Cosmetics & Essentials CR Cosmetics & Essential Beauty & essentials" [ref=f2e7] [cursor=pointer]:
+        - /url: /
+        - img "CR Cosmetics & Essentials" [ref=f2e9]
+        - generic [ref=f2e10]:
+          - generic [ref=f2e11]: CR Cosmetics & Essential
+          - generic [ref=f2e12]: Beauty & essentials
+      - navigation [ref=f2e13]:
+        - link "Shop" [ref=f2e14] [cursor=pointer]:
+          - /url: /shop
+        - link "Beauty" [ref=f2e15] [cursor=pointer]:
+          - /url: /beauty
+        - link "Groceries" [ref=f2e16] [cursor=pointer]:
+          - /url: /groceries
+        - link "About" [ref=f2e17] [cursor=pointer]:
+          - /url: /about
+      - textbox "Search" [ref=f2e23]
+      - generic [ref=f2e24]:
+        - button "Toggle Theme" [ref=f2e25]
+        - button "Wishlist" [ref=f2e28]
+        - link "Sign in" [ref=f2e31] [cursor=pointer]:
+          - /url: /signin
+        - button "0" [ref=f2e35]
+  - main [ref=f2e40]:
+    - generic [ref=f2e41]:
+      - generic [ref=f2e43]:
+        - link "SKINCARE" [ref=f2e44] [cursor=pointer]:
+          - /url: /category/skincare
+        - link "MAKEUP" [ref=f2e45] [cursor=pointer]:
+          - /url: /category/makeup
+        - link "FRAGRANCES" [ref=f2e46] [cursor=pointer]:
+          - /url: /category/fragrances
+        - link "BODY CARE" [ref=f2e47] [cursor=pointer]:
+          - /url: /category/body-care
+        - link "BEAUTY TOOLS" [ref=f2e48] [cursor=pointer]:
+          - /url: /category/beauty-tools
+        - link "RICE & GRAINS" [ref=f2e49] [cursor=pointer]:
+          - /url: /category/rice-grains
+        - link "COOKING OILS" [ref=f2e50] [cursor=pointer]:
+          - /url: /category/cooking-oils
+        - link "SEASONING & PANTRY" [ref=f2e51] [cursor=pointer]:
+          - /url: /category/seasoning-spices
+        - link "BEVERAGES & MILK" [ref=f2e52] [cursor=pointer]:
+          - /url: /category/beverages
+        - link "HOUSEHOLD CARE" [ref=f2e53] [cursor=pointer]:
+          - /url: /category/household-care
+      - main [ref=f2e54]:
+        - generic [ref=f2e57]:
+          - paragraph [ref=f2e58]: CR Cosmetics & Essentials
+          - heading "Your Beauty. Your Essentials. Your Glow." [level=1] [ref=f2e59]
+          - paragraph [ref=f2e60]: Shop beauty, personal care and household essentials.
+          - link "SHOP NOW" [ref=f2e61] [cursor=pointer]:
+            - /url: /shop
+        - region "Shop by department" [ref=f2e64]:
+          - link [ref=f2e65] [cursor=pointer]:
+            - /url: /beauty
+            - heading "Beauty & skincare" [level=2] [ref=f2e66]
+            - paragraph [ref=f2e67]: Daily care, cosmetics, fragrances, and tools.
+            - generic [ref=f2e68]: Shop beauty
+          - link [ref=f2e71] [cursor=pointer]:
+            - /url: /groceries
+            - heading "Groceries & essentials" [level=2] [ref=f2e72]
+            - paragraph [ref=f2e73]: Pantry staples, household care, and daily needs.
+            - generic [ref=f2e74]: Shop essentials
+        - generic [ref=f2e77]:
+          - generic [ref=f2e78]:
+            - heading "Today's Hot Deals" [level=3] [ref=f2e82]
+            - link "See all →" [ref=f2e83] [cursor=pointer]:
+              - /url: /offers
+          - generic [ref=f2e84]:
+            - link "View 12-Piece Masterclass Studio Makeup Brush Set" [ref=f2e85] [cursor=pointer]:
+              - generic [ref=f2e86]:
+                - generic [ref=f2e87]: "-20%"
+                - button "Wishlist" [ref=f2e89]
+              - img "12-Piece Masterclass Studio Makeup Brush Set" [ref=f2e93]
+              - generic [ref=f2e94]:
+                - generic [ref=f2e95]: CR Exclusive
+                - heading "12-Piece Masterclass Studio Makeup Brush Set" [level=3] [ref=f2e96]
+                - generic [ref=f2e97]:
+                  - generic [ref=f2e98]:
+                    - generic [ref=f2e99]: GHS 150.00
+                    - generic [ref=f2e100]: GHS 190.00
+                  - button "Add 12-Piece Masterclass Studio Makeup Brush Set to cart" [ref=f2e101]
+            - link "View Coco Mademoiselle Eau de Parfum" [ref=f2e105] [cursor=pointer]:
+              - generic [ref=f2e106]:
+                - generic [ref=f2e107]: "-11%"
+                - button "Wishlist" [ref=f2e109]
+              - img "Coco Mademoiselle Eau de Parfum" [ref=f2e113]
+              - generic [ref=f2e114]:
+                - generic [ref=f2e115]: Chanel
+                - heading "Coco Mademoiselle Eau de Parfum" [level=3] [ref=f2e116]
+                - generic [ref=f2e117]:
+                  - generic [ref=f2e118]:
+                    - generic [ref=f2e119]: GHS 980.00
+                    - generic [ref=f2e120]: GHS 1100.00
+                  - button "Add Coco Mademoiselle Eau de Parfum to cart" [ref=f2e121]
+            - link "View Advanced Snail 96 Mucin Power Essence" [ref=f2e125] [cursor=pointer]:
+              - generic [ref=f2e126]:
+                - generic [ref=f2e127]: "-10%"
+                - button "Wishlist" [ref=f2e129]
+              - img "Advanced Snail 96 Mucin Power Essence" [ref=f2e133]
+              - generic [ref=f2e134]:
+                - generic [ref=f2e135]: COSRX
+                - heading "Advanced Snail 96 Mucin Power Essence" [level=3] [ref=f2e136]
+                - generic [ref=f2e137]:
+                  - generic [ref=f2e138]:
+                    - generic [ref=f2e139]: GHS 135.00
+                    - generic [ref=f2e140]: GHS 150.00
+                  - button "Add Advanced Snail 96 Mucin Power Essence to cart" [ref=f2e141]
+        - generic [ref=f2e145]:
+          - generic [ref=f2e146]:
+            - heading "Beauty & Skincare" [level=3] [ref=f2e147]
+            - link "See all →" [ref=f2e148] [cursor=pointer]:
+              - /url: /beauty
+          - generic [ref=f2e149]:
+            - link "View Body Lotion (Hydrating)" [ref=f2e150] [cursor=pointer]:
+              - generic [ref=f2e151]:
+                - generic [ref=f2e152]: Bestseller
+                - button "Wishlist" [ref=f2e154]
+              - img "Body Lotion (Hydrating)" [ref=f2e158]
+              - generic [ref=f2e159]:
+                - generic [ref=f2e160]: Dove
+                - heading "Body Lotion (Hydrating)" [level=3] [ref=f2e161]
+                - generic [ref=f2e162]:
+                  - generic [ref=f2e163]: GHS 70.00
+                  - button "Add Body Lotion (Hydrating) to cart" [ref=f2e165]
+            - link "View La Vie Est Belle Eau de Parfum" [ref=f2e169] [cursor=pointer]:
+              - generic [ref=f2e170]:
+                - generic [ref=f2e171]: Bestseller
+                - button "Wishlist" [ref=f2e173]
+              - img "La Vie Est Belle Eau de Parfum" [ref=f2e177]
+              - generic [ref=f2e178]:
+                - generic [ref=f2e179]: La Vie Est Belle
+                - heading "La Vie Est Belle Eau de Parfum" [level=3] [ref=f2e180]
+                - generic [ref=f2e181]:
+                  - generic [ref=f2e182]: GHS 650.00
+                  - button "Add La Vie Est Belle Eau de Parfum to cart" [ref=f2e184]
+            - link "View Moisturising Cream" [ref=f2e188] [cursor=pointer]:
+              - generic [ref=f2e189]:
+                - generic [ref=f2e190]: Bestseller
+                - button "Wishlist" [ref=f2e192]
+              - img "Moisturising Cream" [ref=f2e196]
+              - generic [ref=f2e197]:
+                - generic [ref=f2e198]: CeraVe
+                - heading "Moisturising Cream" [level=3] [ref=f2e199]
+                - generic [ref=f2e200]:
+                  - generic [ref=f2e201]: GHS 180.00
+                  - button "Add Moisturising Cream to cart" [ref=f2e203]
+            - link "View Niacinamide 10% + Zinc 1%" [ref=f2e207] [cursor=pointer]:
+              - generic [ref=f2e208]:
+                - generic [ref=f2e209]: Bestseller
+                - button "Wishlist" [ref=f2e211]
+              - img "Niacinamide 10% + Zinc 1%" [ref=f2e215]
+              - generic [ref=f2e216]:
+                - generic [ref=f2e217]: The Ordinary
+                - heading "Niacinamide 10% + Zinc 1%" [level=3] [ref=f2e218]
+                - generic [ref=f2e219]:
+                  - generic [ref=f2e220]: GHS 120.00
+                  - button "Add Niacinamide 10% + Zinc 1% to cart" [ref=f2e222]
+        - generic [ref=f2e226]:
+          - generic [ref=f2e227]:
+            - heading "Groceries & Essentials" [level=3] [ref=f2e228]
+            - link "See all →" [ref=f2e229] [cursor=pointer]:
+              - /url: /groceries
+          - generic [ref=f2e230]:
+            - link "View Dettol Antiseptic Disinfectant Liquid" [ref=f2e231] [cursor=pointer]:
+              - generic [ref=f2e232]:
+                - generic [ref=f2e233]: Bestseller
+                - button "Wishlist" [ref=f2e235]
+              - img "Dettol Antiseptic Disinfectant Liquid" [ref=f2e239]
+              - generic [ref=f2e240]:
+                - generic [ref=f2e241]: Dettol
+                - heading "Dettol Antiseptic Disinfectant Liquid" [level=3] [ref=f2e242]
+                - generic [ref=f2e243]:
+                  - generic [ref=f2e244]: GHS 85.00
+                  - button "Add Dettol Antiseptic Disinfectant Liquid to cart" [ref=f2e246]
+            - link "View Ariel Complete Clean Washing Powder" [ref=f2e250] [cursor=pointer]:
+              - generic [ref=f2e251]:
+                - generic [ref=f2e252]: Popular
+                - button "Wishlist" [ref=f2e254]
+              - img "Ariel Complete Clean Washing Powder" [ref=f2e258]
+              - generic [ref=f2e259]:
+                - generic [ref=f2e260]: Ariel
+                - heading "Ariel Complete Clean Washing Powder" [level=3] [ref=f2e261]
+                - generic [ref=f2e262]:
+                  - generic [ref=f2e263]: GHS 110.00
+                  - button "Add Ariel Complete Clean Washing Powder to cart" [ref=f2e265]
+            - link "View Ideal Full Cream Evaporated Milk (Pack of 6)" [ref=f2e269] [cursor=pointer]:
+              - generic [ref=f2e270]:
+                - generic [ref=f2e271]: Bestseller
+                - button "Wishlist" [ref=f2e273]
+              - img "Ideal Full Cream Evaporated Milk (Pack of 6)" [ref=f2e277]
+              - generic [ref=f2e278]:
+                - generic [ref=f2e279]: Ideal Milk
+                - heading "Ideal Full Cream Evaporated Milk (Pack of 6)" [level=3] [ref=f2e280]
+                - generic [ref=f2e281]:
+                  - generic [ref=f2e282]: GHS 68.00
+                  - button "Add Ideal Full Cream Evaporated Milk (Pack of 6) to cart" [ref=f2e284]
+            - link "View Gino Max Tomato Paste (Pack of 10)" [ref=f2e288] [cursor=pointer]:
+              - generic [ref=f2e289]:
+                - generic [ref=f2e290]: Bestseller
+                - button "Wishlist" [ref=f2e292]
+              - img "Gino Max Tomato Paste (Pack of 10)" [ref=f2e296]
+              - generic [ref=f2e297]:
+                - generic [ref=f2e298]: Gino
+                - heading "Gino Max Tomato Paste (Pack of 10)" [level=3] [ref=f2e299]
+                - generic [ref=f2e300]:
+                  - generic [ref=f2e301]: GHS 45.00
+                  - button "Add Gino Max Tomato Paste (Pack of 10) to cart" [ref=f2e303]
+            - link "View Frytol Premium Pure Vegetable Oil" [ref=f2e307] [cursor=pointer]:
+              - generic [ref=f2e308]:
+                - generic [ref=f2e309]: Popular
+                - button "Wishlist" [ref=f2e311]
+              - img "Frytol Premium Pure Vegetable Oil" [ref=f2e315]
+              - generic [ref=f2e316]:
+                - generic [ref=f2e317]: Frytol
+                - heading "Frytol Premium Pure Vegetable Oil" [level=3] [ref=f2e318]
+                - generic [ref=f2e319]:
+                  - generic [ref=f2e320]: GHS 175.00
+                  - button "Add Frytol Premium Pure Vegetable Oil to cart" [ref=f2e322]
+            - link "View Royal Umbrella Thai Perfumed Jasmine Rice" [ref=f2e326] [cursor=pointer]:
+              - generic [ref=f2e327]:
+                - generic [ref=f2e328]: Bestseller
+                - button "Wishlist" [ref=f2e330]
+              - img "Royal Umbrella Thai Perfumed Jasmine Rice" [ref=f2e334]
+              - generic [ref=f2e335]:
+                - generic [ref=f2e336]: Royal Umbrella
+                - heading "Royal Umbrella Thai Perfumed Jasmine Rice" [level=3] [ref=f2e337]
+                - generic [ref=f2e338]:
+                  - generic [ref=f2e339]: GHS 195.00
+                  - button "Add Royal Umbrella Thai Perfumed Jasmine Rice to cart" [ref=f2e341]
+  - contentinfo [ref=f2e345]:
+    - generic [ref=f2e346]:
+      - generic [ref=f2e347]:
+        - generic [ref=f2e348]:
+          - img "CR Cosmetics & Essentials" [ref=f2e349]
+          - generic [ref=f2e350]:
+            - generic [ref=f2e351]: CR Cosmetics
+            - generic [ref=f2e352]: Essentials
+        - generic [ref=f2e353]:
+          - link "Shop" [ref=f2e354] [cursor=pointer]:
+            - /url: /shop
+          - link "Beauty" [ref=f2e355] [cursor=pointer]:
+            - /url: /beauty
+          - link "Groceries" [ref=f2e356] [cursor=pointer]:
+            - /url: /groceries
+          - link "About" [ref=f2e357] [cursor=pointer]:
+            - /url: /about
+          - link "Support" [ref=f2e358] [cursor=pointer]:
+            - /url: /support
+        - link "Chat with CR Cosmetics on WhatsApp" [ref=f2e359] [cursor=pointer]:
+          - /url: https://wa.me/233592153306
+      - generic [ref=f2e362]: © 2026 CR Cosmetics & Essentials
