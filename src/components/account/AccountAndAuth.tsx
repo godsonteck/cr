@@ -10,6 +10,13 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  ChevronRight,
+  ShoppingBag,
+  CreditCard,
+  Truck,
+  RotateCcw,
+  Settings,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -114,75 +121,100 @@ export const AccountPage: React.FC = () => {
     }
   };
 
+  const navigationItems = [
+    { id: 'profile' as const, label: 'My account', icon: User, count: undefined },
+    { id: 'orders' as const, label: 'My orders', icon: Package, count: user?.orders?.length || 0 },
+    { id: 'wishlist' as const, label: 'Wish list', icon: Heart, count: wishlistIds.length },
+    { id: 'addresses' as const, label: 'Shipping addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
+  ];
+
+  const setTab = (tab: typeof activeTab) => setActiveTab(tab);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans space-y-8">
-      {/* Header Profile Banner */}
-      <div className="bg-white dark:bg-[#1C1917] p-6 sm:p-8 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-[#C86D51] text-white flex items-center justify-center font-extrabold text-xl">
-            {user?.fullName.charAt(0).toUpperCase()}
-          </div>
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#fff7f8] py-6 font-sans sm:py-9">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#1C1817] dark:text-stone-100">{user?.fullName}</h1>
-            <span className="text-xs text-stone-600 dark:text-stone-300 font-semibold">{user?.email} • {user?.phone}</span>
+            <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#cf6c8a]">Account center</p>
+            <h1 className="text-2xl font-black tracking-tight text-[#2a1d20] sm:text-3xl">Hi, {user?.fullName.split(' ')[0]}</h1>
           </div>
+          <button
+            onClick={() => { logout(); navigate('/'); }}
+            className="hidden items-center gap-2 text-xs font-bold text-[#6f5b60] transition hover:text-[#a94c63] sm:flex"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => {
-            logout();
-            navigate('/');
-          }}
-          className="rounded-full text-xs"
-        >
-          <LogOut className="w-4 h-4" />
-          Sign Out
-        </Button>
-      </div>
+        <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+          <aside className="h-fit overflow-hidden rounded-2xl border border-[#f2dfe7] bg-white shadow-[0_12px_30px_rgba(128,72,93,0.06)]">
+            <div className="bg-[#a94c63] px-4 py-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white/60 bg-white/20 text-lg font-black">
+                  {user?.fullName.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-extrabold">{user?.fullName}</p>
+                  <p className="truncate text-[10px] text-white/75">{user?.email}</p>
+                </div>
+              </div>
+              <button onClick={() => setTab('profile')} className="mt-4 flex items-center gap-1 text-[10px] font-bold text-white/80 hover:text-white">
+                Edit profile <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+            <nav className="p-2">
+              {navigationItems.map(({ id, label, icon: Icon, count }) => (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-xs font-bold transition ${activeTab === id ? 'bg-[#fdeef4] text-[#a94c63]' : 'text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]'}`}
+                >
+                  <span className="flex items-center gap-3"><Icon className="h-4 w-4" />{label}</span>
+                  {count !== undefined && <span className="text-[10px] font-extrabold text-[#8e7077]">{count}</span>}
+                </button>
+              ))}
+              <div className="my-2 border-t border-[#f2dfe7]" />
+              <Link to="/support" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]"><Headphones className="h-4 w-4" />Help center</Link>
+              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]"><Settings className="h-4 w-4" />Settings</button>
+            </nav>
+          </aside>
 
-      {/* Account Navigation Tabs */}
-      <div className="flex border-b border-[#E6DFD7] dark:border-[#36322E] gap-8 text-xs font-bold uppercase tracking-wider overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`pb-4 border-b-2 flex items-center gap-2 transition-colors ${
-            activeTab === 'profile' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-500 dark:text-stone-300'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          <span>Personal Info</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('addresses')}
-          className={`pb-4 border-b-2 flex items-center gap-2 transition-colors ${
-            activeTab === 'addresses' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-500 dark:text-stone-300'
-          }`}
-        >
-          <MapPin className="w-4 h-4" />
-          <span>Addresses ({user?.savedAddresses?.length || 0})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('orders')}
-          className={`pb-4 border-b-2 flex items-center gap-2 transition-colors ${
-            activeTab === 'orders' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-500 dark:text-stone-300'
-          }`}
-        >
-          <Package className="w-4 h-4" />
-          <span>Order History ({user?.orders?.length || 0})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('wishlist')}
-          className={`pb-4 border-b-2 flex items-center gap-2 transition-colors ${
-            activeTab === 'wishlist' ? 'border-[#C86D51] text-[#C86D51]' : 'border-transparent text-stone-500 dark:text-stone-300'
-          }`}
-        >
-          <Heart className="w-4 h-4" />
-          <span>Wishlist ({wishlistIds.length})</span>
-        </button>
-      </div>
+          <main className="min-w-0">
+            <section className="overflow-hidden rounded-2xl border border-[#f2dfe7] bg-white shadow-[0_12px_30px_rgba(128,72,93,0.06)]">
+              <div className="flex flex-col justify-between gap-5 bg-gradient-to-r from-[#fff0f4] via-[#fff8f9] to-[#f8edf3] px-5 py-5 sm:flex-row sm:items-center sm:px-7">
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#a94c63]">Shopping overview</p>
+                  <h2 className="mt-1 text-lg font-black text-[#2a1d20]">Your account at a glance</h2>
+                  <p className="mt-1 text-xs text-[#6f5b60]">Track purchases, save favourites, and keep delivery details ready.</p>
+                </div>
+                <Link to="/shop" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#cf6c8a] px-4 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#a94c63]">Continue shopping <ChevronRight className="h-4 w-4" /></Link>
+              </div>
+              <div className="grid grid-cols-2 divide-x divide-y divide-[#f2dfe7] border-t border-[#f2dfe7] sm:grid-cols-4 sm:divide-y-0">
+                {[
+                  { label: 'To pay', value: '0', icon: CreditCard, tab: 'orders' as const },
+                  { label: 'To ship', value: '0', icon: ShoppingBag, tab: 'orders' as const },
+                  { label: 'Shipped', value: '0', icon: Truck, tab: 'orders' as const },
+                  { label: 'Returns', value: '0', icon: RotateCcw, tab: 'orders' as const },
+                ].map(({ label, value, icon: Icon, tab }) => (
+                  <button key={label} onClick={() => setTab(tab)} className="group flex items-center gap-3 px-4 py-4 text-left transition hover:bg-[#fff7f8] sm:px-5">
+                    <Icon className="h-5 w-5 text-[#cf6c8a] transition group-hover:scale-110" />
+                    <span><strong className="block text-base font-black text-[#2a1d20]">{value}</strong><span className="text-[10px] font-semibold text-[#8e7077]">{label}</span></span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <div className="mt-5 flex gap-1 overflow-x-auto rounded-xl border border-[#f2dfe7] bg-white p-1.5 shadow-[0_8px_20px_rgba(128,72,93,0.04)]">
+              {navigationItems.map(({ id, label, icon: Icon }) => (
+                <button key={id} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-extrabold transition sm:px-4 ${activeTab === id ? 'bg-[#cf6c8a] text-white' : 'text-[#6f5b60] hover:bg-[#fff1f5]'}`}>
+                  <Icon className="h-4 w-4" />{label}
+                </button>
+              ))}
+            </div>
 
       {/* Tab Content */}
-      <div>
+      <div className="mt-5">
         {/* Profile Tab */}
         {activeTab === 'profile' && user && (
           <div className="bg-white dark:bg-[#1C1917] p-6 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] max-w-xl space-y-5">
@@ -510,6 +542,9 @@ export const AccountPage: React.FC = () => {
             )}
           </div>
         )}
+      </div>
+          </main>
+        </div>
       </div>
     </div>
   );
