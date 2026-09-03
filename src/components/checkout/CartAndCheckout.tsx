@@ -274,7 +274,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentSenderPhone, setPaymentSenderPhone] = useState(phone);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
-  const paymentMethod: PaymentMethod = 'momo-mtn';
+  const paymentMethod: PaymentMethod = 'korapay';
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Auto pre-fill default saved address if area is empty
@@ -291,6 +291,40 @@ export const MultiStepCheckoutPage: React.FC = () => {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const returnedReference = params.get('reference') || params.get('trxref');
+    const returnedStatus = (params.get('status') || '').toLowerCase();
+    const pendingOrder = sessionStorage.getItem('korapay_pending_order');
+    if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !pendingOrder || !isAuthenticated) return;
+
+    const completeReturnedOrder = async () => {
+      setIsProcessing(true);
+      try {
+        const orderPayload = JSON.parse(pendingOrder) as Order;
+        const createdOrder = await api.post<Order>('/orders', {
+          ...orderPayload,
+          paymentMethod: 'korapay',
+          paymentStatus: 'paid',
+          paymentReference: returnedReference,
+        });
+        sessionStorage.removeItem('korapay_pending_order');
+        await addStoreOrder(createdOrder);
+        addOrder(createdOrder);
+        if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
+        await clearCart();
+        window.history.replaceState({}, '', '/checkout');
+        navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
+      } catch (error) {
+        console.error('Korapay return error:', error);
+        showAlert('Payment was returned, but the order could not be confirmed. Please contact support.', 'error', { persistent: true });
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+    void completeReturnedOrder();
+  }, [isAuthenticated]);
 
   const locationText = `${city} ${area}`.toLowerCase();
   const matchedZone = (storeSettings.deliveryZones || []).find(zone => zone.keywords.length > 0 && zone.keywords.some(keyword => locationText.includes(keyword.toLowerCase())))
@@ -378,12 +412,42 @@ export const MultiStepCheckoutPage: React.FC = () => {
     }
   };
 
+  const startKorapayCheckout = async () => {
+    if (!fullName || !phone || !area || !email) {
+      showAlert('Please complete your delivery details and email first.', 'error');
+      setStep(1);
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      const orderPayload: Order = {
+        id: `ord-${Date.now()}`,
+        orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
+        items: [...cartItems], subtotal, shippingFee, discount, total: totalAmount,
+        paymentMethod: 'korapay', paymentStatus: 'pending', paymentReference: '', deliveryMethod,
+        shippingAddress: { fullName, phone, email, city, area, deliveryNotes: deliveryNotes || undefined },
+        status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
+        createdAt: new Date().toISOString(),
+      };
+      sessionStorage.setItem('korapay_pending_order', JSON.stringify(orderPayload));
+      const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const result = await api.post<{ checkoutUrl: string }>('/auth?action=korapay-initialize', {
+        amount: Number(totalAmount.toFixed(2)), email, name: fullName, reference, redirectUrl: `${window.location.origin}/checkout`,
+      });
+      window.location.assign(result.checkoutUrl);
+    } catch (error: any) {
+      sessionStorage.removeItem('korapay_pending_order');
+      showAlert(error?.message || 'Korapay checkout could not be started. Please try again.', 'error', { persistent: true });
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 font-sans space-y-8">
       {/* Checkout Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
-        <p className="text-xs text-stone-500">Pay by mobile money to our business number, then submit your order for confirmation.</p>
+        <p className="text-xs text-stone-500">Pay securely with Korapay. You can use mobile money or a bank card.</p>
       </div>
 
       {/* Progress Bar */}
@@ -530,27 +594,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Mobile money payment</h3>
+            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Pay with Korapay</h3>
 
-            <div className="grid grid-cols-1 gap-4">
-              <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5">
-                <CreditCard className="w-5 h-5 text-[#C86D51]" />
-                <p className="mt-3 text-xs font-bold uppercase tracking-wider text-stone-700">Send payment to our business number</p>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <a href={`tel:${storeSettings.storePhone}`} className="text-2xl font-black tracking-wide text-[#1C1817]">{storeSettings.storePhone}</a>
-                  <button type="button" className="rounded-full border border-[#C86D51] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A3D52]" onClick={() => { void navigator.clipboard?.writeText(storeSettings.storePhone || ''); showAlert('Business number copied', 'success'); }}>Copy number</button>
-                </div>
-                <p className="mt-3 text-xs leading-5 text-stone-600">Use your full name as the payment reference. After sending GHS {totalAmount.toFixed(2)}, continue and submit the order. We will confirm payment before dispatch.</p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="text-xs font-bold text-stone-700">Transaction ID / reference<input required value={paymentReference} onChange={event => setPaymentReference(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E6DFD7] bg-[#F5F0EB] p-3 text-xs" placeholder="Enter the reference from your MoMo receipt" /></label>
-                <label className="text-xs font-bold text-stone-700">Sender phone number<input required value={paymentSenderPhone} onChange={event => setPaymentSenderPhone(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E6DFD7] bg-[#F5F0EB] p-3 text-xs" placeholder="Number used to send payment" /></label>
-              </div>
-            </div>
+            <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5"><CreditCard className="h-6 w-6 text-[#C86D51]" /><p className="mt-3 text-base font-bold text-stone-800">Your total is GHS {totalAmount.toFixed(2)}</p><p className="mt-2 text-xs leading-5 text-stone-600">You will be taken to Korapay to complete payment securely. Choose mobile money or card there. Your order is created only after payment is verified.</p></div>
 
             <div className="flex gap-4">
               <Button variant="outline" size="md" onClick={() => setStep(1)} className="rounded-full px-6 text-xs">Back</Button>
-              <Button variant="primary" size="md" disabled={!paymentReference.trim() || !paymentSenderPhone.trim()} onClick={() => setStep(3)} className="rounded-full px-8 uppercase text-xs font-bold">Review Order</Button>
+              <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startKorapayCheckout()} className="rounded-full px-8 uppercase text-xs font-bold">Continue to Korapay</Button>
             </div>
           </div>
         )}
