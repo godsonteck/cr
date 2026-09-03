@@ -546,7 +546,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     try {
       const savedSession = localStorage.getItem('admin_session');
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
       if (savedSession && token) {
         const parsed = JSON.parse(savedSession);
         setAdminSession({ ...parsed, isLoggedIn: true });
@@ -828,7 +828,7 @@ const addOrder = async (order: Order) => {
         } catch (itemError: any) {
           console.error(`Failed to save ${key}:`, itemError);
           if (itemError?.status === 401 || itemError?.status === 403) {
-            localStorage.removeItem('auth_token');
+            localStorage.removeItem('admin_auth_token');
             localStorage.removeItem('admin_session');
             setAdminSession(prev => ({ ...prev, isLoggedIn: false }));
           }
@@ -848,6 +848,7 @@ const addOrder = async (order: Order) => {
     } catch (e: any) { 
       console.error('updateStoreSettings error:', e);
       setError(e.message || "Operation failed"); 
+      throw e;
     }
   };
 
@@ -866,7 +867,7 @@ const addOrder = async (order: Order) => {
       });
 
       if (result && result.admin) {
-        localStorage.setItem('auth_token', result.token);
+        localStorage.setItem('admin_auth_token', result.token);
         localStorage.setItem('admin_session', JSON.stringify({
           isLoggedIn: true,
           adminName: result.admin.adminName,
@@ -891,6 +892,12 @@ const addOrder = async (order: Order) => {
       }
     } catch {
       // Backend offline or local development fallback
+    }
+
+    // 2. Local fallback is useful for offline development only. Production
+    // must never claim an admin session that the API cannot validate.
+    if (!import.meta.env.DEV) {
+      return false;
     }
 
     // 2. Resilient local credential validation
@@ -920,8 +927,8 @@ const addOrder = async (order: Order) => {
         email: cleanEmail || 'admin@crcosmetics.com',
       };
 
-      const mockToken = localStorage.getItem('auth_token') || 'local_admin_token_' + Date.now();
-      localStorage.setItem('auth_token', mockToken);
+      const mockToken = localStorage.getItem('admin_auth_token') || 'local_admin_token_' + Date.now();
+      localStorage.setItem('admin_auth_token', mockToken);
       localStorage.setItem('admin_session', JSON.stringify(sessionData));
       setAdminSession(sessionData);
       // Refresh data after local login
@@ -939,7 +946,7 @@ const addOrder = async (order: Order) => {
   };
 
   const logoutAdmin = async () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('admin_auth_token');
     localStorage.removeItem('admin_session');
     setAdminSession({
       isLoggedIn: false,
