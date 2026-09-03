@@ -58,21 +58,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // before the database seed ran. Existing accounts remain authoritative.
         const initialPin = process.env.ADMIN_INITIAL_PIN?.trim();
         const initialEmail = (process.env.ADMIN_EMAIL || 'admin@crcosmetics.com').trim().toLowerCase();
-        if (!admin && initialPin && email === initialEmail && await bcrypt.compare(pin, await bcrypt.hash(initialPin, 12))) {
-          [admin] = await db.insert(adminSessions).values({
-            adminName: 'CR Admin',
-            adminRole: 'Super Admin',
-            email: initialEmail,
-            pinHash: await bcrypt.hash(initialPin, 12),
-            isActive: true,
-          }).onConflictDoNothing().returning();
-
+        if (initialPin && email === initialEmail && pin === initialPin) {
+          const initialPinHash = await bcrypt.hash(initialPin, 12);
           if (!admin) {
-            [admin] = await db
-              .select()
-              .from(adminSessions)
-              .where(eq(adminSessions.email, initialEmail))
-              .limit(1);
+            [admin] = await db.insert(adminSessions).values({
+              adminName: 'CR Admin',
+              adminRole: 'Super Admin',
+              email: initialEmail,
+              pinHash: initialPinHash,
+              isActive: true,
+            }).onConflictDoNothing().returning();
+          } else if (!await bcrypt.compare(pin, admin.pinHash)) {
+            [admin] = await db.update(adminSessions)
+              .set({ pinHash: initialPinHash, isActive: true })
+              .where(eq(adminSessions.id, admin.id))
+              .returning();
           }
         }
 
