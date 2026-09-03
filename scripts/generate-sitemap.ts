@@ -20,14 +20,11 @@ async function generateSitemap() {
       { url: '/beauty', changefreq: 'daily', priority: 0.9 },
       { url: '/groceries', changefreq: 'daily', priority: 0.9 },
       { url: '/shop', changefreq: 'daily', priority: 0.8 },
-      { url: '/search', changefreq: 'weekly', priority: 0.7 },
       { url: '/routine-builder', changefreq: 'weekly', priority: 0.6 },
-      { url: '/cart', changefreq: 'hourly', priority: 0.5 },
       { url: '/about', changefreq: 'monthly', priority: 0.4 },
       { url: '/contact', changefreq: 'monthly', priority: 0.4 },
+      { url: '/support', changefreq: 'monthly', priority: 0.4 },
       { url: '/offers', changefreq: 'daily', priority: 0.7 },
-      { url: '/signin', changefreq: 'yearly', priority: 0.3 },
-      { url: '/signup', changefreq: 'yearly', priority: 0.3 },
     ];
 
     const productRoutes = allProducts.map(p => ({

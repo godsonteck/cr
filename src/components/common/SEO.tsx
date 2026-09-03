@@ -20,6 +20,22 @@ const defaultTitle = 'CR Cosmetics & Essential | Beauty · Care · Essentials';
 const defaultDescription = 'CR Cosmetics & Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
 const defaultImage = '/assets/logo.jpeg';
 
+const pageMeta: Record<string, { title: string; description: string }> = {
+  '/': { title: 'CR Cosmetics & Essentials | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR Cosmetics & Essentials.' },
+  '/shop': { title: 'Shop all products | CR Cosmetics & Essentials', description: 'Browse beauty, personal care, household, and everyday essentials available from CR Cosmetics & Essentials.' },
+  '/beauty': { title: 'Beauty collection | CR Cosmetics & Essentials', description: 'Explore skincare, makeup, fragrances, and beauty tools selected for your everyday routine.' },
+  '/groceries': { title: 'Groceries and essentials | CR Cosmetics & Essentials', description: 'Shop practical groceries, household care, snacks, beverages, and daily essentials.' },
+  '/about': { title: 'About CR Cosmetics & Essentials', description: 'Learn about CR Cosmetics & Essentials and the products we bring together for everyday routines.' },
+  '/support': { title: 'Customer support | CR Cosmetics & Essentials', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
+  '/contact': { title: 'Contact us | CR Cosmetics & Essentials', description: 'Contact the CR Cosmetics & Essentials team by phone, email, or WhatsApp.' },
+  '/signin': { title: 'Sign in | CR Cosmetics & Essentials', description: 'Sign in to manage your orders, saved items, and delivery details.' },
+  '/signup': { title: 'Create an account | CR Cosmetics & Essentials', description: 'Create your CR Cosmetics & Essentials account for faster checkout and order tracking.' },
+  '/account': { title: 'My account | CR Cosmetics & Essentials', description: 'Manage your CR Cosmetics & Essentials profile, orders, saved items, addresses, and preferences.' },
+  '/cart': { title: 'Your cart | CR Cosmetics & Essentials', description: 'Review your selected products before checkout.' },
+  '/checkout': { title: 'Checkout | CR Cosmetics & Essentials', description: 'Complete your delivery details and payment securely.' },
+  '/routine-builder': { title: 'Routine builder | CR Cosmetics & Essentials', description: 'Build a personalized beauty routine from products selected for each step.' },
+};
+
 export const SEO: React.FC<SEOProps> = ({
   title,
   description,
@@ -36,11 +52,21 @@ export const SEO: React.FC<SEOProps> = ({
   const location = useLocation();
   const { storeSettings } = useStore();
 
-  const pageTitle = title || storeSettings.heroHeadline || defaultTitle;
-  const pageDescription = description || storeSettings.heroSubtitle || defaultDescription;
+  const routeMeta = pageMeta[location.pathname] || (location.pathname.startsWith('/product/')
+    ? { title: 'Product details | CR Cosmetics & Essentials', description: 'View product details, options, price, availability, and delivery information.' }
+    : location.pathname.startsWith('/category/')
+      ? { title: 'Category collection | CR Cosmetics & Essentials', description: 'Browse products in this CR Cosmetics & Essentials collection.' }
+      : { title: defaultTitle, description: defaultDescription });
+  const pageTitle = title || routeMeta.title;
+  const pageDescription = description || routeMeta.description;
   const pageImage = image || productImage || storeSettings.storeLogo || defaultImage;
   const pageUrl = url || `${window.location.origin}${location.pathname}`;
+  const isPrivatePage = ['/account', '/cart', '/checkout', '/signin', '/signup'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`));
 
+  const breadcrumbItems = [
+    { name: 'Home', url: `${window.location.origin}/` },
+    ...(location.pathname !== '/' ? [{ name: pageTitle.split('|')[0].trim(), url: pageUrl }] : []),
+  ];
   const structuredData = productName && productPrice ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -57,17 +83,17 @@ export const SEO: React.FC<SEOProps> = ({
         name: storeSettings.storeName,
       },
     },
-  } : {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: storeSettings.storeName,
-    url: window.location.origin,
-  };
+  } : [
+    { '@context': 'https://schema.org', '@type': 'Organization', name: storeSettings.storeName, url: window.location.origin, logo: `${window.location.origin}${defaultImage}`, areaServed: 'Ghana' },
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: storeSettings.storeName, url: window.location.origin, potentialAction: { '@type': 'SearchAction', target: `${window.location.origin}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
+    { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbItems.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: item.url })) },
+  ];
 
   return (
     <>
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
+      <meta name="robots" content={isPrivatePage ? 'noindex, nofollow' : 'index, follow'} />
       <meta name="theme-color" content="#8A3D52" />
       <link rel="canonical" href={pageUrl} />
 

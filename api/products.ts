@@ -129,9 +129,9 @@ async function sendSitemap(res: VercelResponse) {
 
   const staticRoutes = [
     ['/', 'daily', 1.0], ['/beauty', 'daily', 0.9], ['/groceries', 'daily', 0.9],
-    ['/shop', 'daily', 0.8], ['/search', 'weekly', 0.7], ['/routine-builder', 'weekly', 0.6],
-    ['/cart', 'hourly', 0.5], ['/about', 'monthly', 0.4], ['/contact', 'monthly', 0.4],
-    ['/offers', 'daily', 0.7], ['/signin', 'yearly', 0.3], ['/signup', 'yearly', 0.3],
+    ['/shop', 'daily', 0.8], ['/routine-builder', 'weekly', 0.6],
+    ['/about', 'monthly', 0.5], ['/contact', 'monthly', 0.5], ['/support', 'monthly', 0.5],
+    ['/offers', 'daily', 0.7],
   ].map(([url, changefreq, priority]) => ({ url, lastmod: sitemapDate(new Date()), changefreq, priority }));
   const productRoutes = allProducts.map(product => ({ url: `/product/${product.id}`, lastmod: sitemapDate(product.updatedAt), changefreq: 'weekly', priority: 0.8 }));
   const categoryRoutes = allCategories.map(category => ({ url: `/category/${category.id}`, lastmod: sitemapDate(category.updatedAt), changefreq: 'weekly', priority: 0.7 }));

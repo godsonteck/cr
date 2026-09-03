@@ -11,6 +11,3 @@ Disallow: /checkout/
 Disallow: /account/
 Disallow: /cart
 Disallow: /api/
-
-# Crawl-delay for respectful crawling
-Crawl-delay: 10

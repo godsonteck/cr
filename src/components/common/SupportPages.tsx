@@ -260,4 +260,41 @@ export const SupportPage: React.FC = () => {
   );
 };
 
-export const ContactPage: React.FC = () => <SupportPage />;
+export const ContactPage: React.FC = () => {
+  const { storeSettings } = useStore();
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-2xl">
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR Cosmetics</span>
+        <h1 className="mt-3 font-serif text-4xl tracking-[-0.05em] text-[var(--text-primary)] sm:text-6xl">Let&apos;s help you find what you need.</h1>
+        <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.</p>
+      </div>
+
+      <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <a href={`tel:${storeSettings.storePhone || '+233592153306'}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51]">
+          <Phone className="h-6 w-6 text-[#C86D51]" />
+          <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Call us</h2>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">{storeSettings.storePhone || '+233 59 215 3306'}</p>
+        </a>
+        <a href={`mailto:${storeSettings.storeEmail}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51]">
+          <Mail className="h-6 w-6 text-[#C86D51]" />
+          <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Email us</h2>
+          <p className="mt-2 break-words text-sm text-[var(--text-muted)]">{storeSettings.storeEmail}</p>
+        </a>
+        <a href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`} target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#25D366]">
+          <MessageCircle className="h-6 w-6 text-[#25D366]" />
+          <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">WhatsApp</h2>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Chat with customer care</p>
+        </a>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
+        <div className="flex items-start gap-4">
+          <MapPin className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
+          <div><h2 className="text-sm font-extrabold text-[var(--text-primary)]">Visit or receive delivery</h2><p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">{storeSettings.storeAddress || 'Accra, Ghana'}</p></div>
+        </div>
+      </div>
+    </div>
+  );
+};

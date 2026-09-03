@@ -19,6 +19,7 @@ import { ProductCard } from './ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { SEO } from '../common/SEO';
 
 const COLOR_SWATCHES: Record<string, string> = {
   black: '#171717', white: '#ffffff', red: '#c94b4b', blue: '#4b78c9', green: '#4d8b63', pink: '#db83a5', brown: '#8b5e3c', nude: '#c79578', gold: '#d4af37', silver: '#b8bec8', purple: '#8056a8', orange: '#df7b35', yellow: '#e0bb3f',
@@ -69,7 +70,18 @@ export const ProductDetailPage: React.FC = () => {
   const relatedProducts = publishedProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+    <>
+      <SEO
+        title={`${product.name} | CR Cosmetics & Essentials`}
+        description={`${product.name} by ${product.brand}. View price, availability, product details, and delivery information.`}
+        type="product"
+        productName={product.name}
+        productPrice={displayPrice}
+        productImage={currentImage}
+        productDescription={product.description}
+        productAvailability={product.inStock ? 'InStock' : 'OutOfStock'}
+      />
+      <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
       <nav className="mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
         <Link to="/" className="transition hover:text-[var(--text-primary)]">Home</Link>
         <ChevronRight className="h-3.5 w-3.5" />
@@ -388,7 +400,8 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
