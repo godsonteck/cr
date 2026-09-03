@@ -19,6 +19,7 @@ const productQuerySchema = z.object({
   search: z.string().optional(),
   published: z.coerce.boolean().optional().default(true),
   featured: z.coerce.boolean().optional(),
+  includeUnpublished: z.coerce.boolean().optional().default(false),
   limit: z.coerce.number().min(1).max(100).optional().default(50),
   offset: z.coerce.number().min(0).optional().default(0),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
@@ -190,11 +191,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid query parameters', details: parsed.error.flatten() });
       }
 
-      const { category, department, brand, search, published, featured, limit, offset, sort } = parsed.data;
+      const { category, department, brand, search, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
+
+      if (includeUnpublished) {
+        const auth = await requireAdmin(req, res);
+        if (!auth) return;
+      }
 
       const conditions = [];
 
-      if (published !== undefined) {
+      if (!includeUnpublished && published !== undefined) {
         conditions.push(eq(products.isPublished, published));
       }
       if (category) {

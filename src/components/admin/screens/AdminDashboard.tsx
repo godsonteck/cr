@@ -116,7 +116,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      await store.fetchProducts();
+      await store.fetchProducts({ includeUnpublished: true });
       await store.fetchOrders();
       setLastRefresh(new Date());
       showAlert('Dashboard refreshed successfully', 'success');

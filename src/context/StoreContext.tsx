@@ -19,7 +19,7 @@ interface StoreContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  fetchProducts: (params?: { category?: string; department?: string; published?: boolean }) => Promise<void>;
+  fetchProducts: (params?: { category?: string; department?: string; published?: boolean; includeUnpublished?: boolean }) => Promise<void>;
   addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
   updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -436,7 +436,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
+  const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean; includeUnpublished?: boolean }) => {
     setLoading(true);
     setError(null);
     try {
@@ -444,8 +444,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params?.category) query.set('category', params.category);
       if (params?.department) query.set('department', params.department);
       if (params?.published !== undefined) query.set('published', params.published.toString());
+      const shouldIncludeUnpublished = params?.includeUnpublished
+        || (params?.published === undefined && Boolean(localStorage.getItem('admin_auth_token')));
+      if (shouldIncludeUnpublished) query.set('includeUnpublished', 'true');
       const data = await api.get<{ products: Product[] }>(`/products?${query}`);
-      if (data && Array.isArray(data.products) && data.products.length > 0) {
+      if (data && Array.isArray(data.products)) {
         setProducts(data.products.map(normalizeProduct));
       }
     } catch (e: any) {
@@ -585,7 +588,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e: any) { setError(e.message || "Operation failed"); }
 
     void Promise.allSettled([
-      fetchProducts(),
+      fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) }),
       fetchBrands(),
       fetchCategories(),
       fetchOrders(),
@@ -611,7 +614,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const apiResult = await api.post<Product>('/products', { ...productData, id: newId });
       setProducts(prev => [apiResult, ...prev]);
-      await fetchProducts();
+      await fetchProducts({ includeUnpublished: true });
       return apiResult;
     } catch (e: any) {
       setError('Failed to add product to server. Changes saved locally only.');
@@ -627,7 +630,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     try {
       await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates);
-      await fetchProducts();
+      await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
       setError('Failed to update product on server.');
     }
@@ -637,7 +640,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(prev => prev.filter(p => p.id !== id));
     try {
       await api.delete(`/products?id=${encodeURIComponent(id)}`);
-      await fetchProducts();
+      await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
       setError('Failed to delete product from server.');
     }
@@ -909,7 +912,7 @@ const addOrder = async (order: Order) => {
         });
         // Refresh all data after login
         await Promise.allSettled([
-          fetchProducts(),
+          fetchProducts({ includeUnpublished: true }),
           fetchOrders(),
           fetchSettings(),
           fetchPromoCodes(),
@@ -960,7 +963,7 @@ const addOrder = async (order: Order) => {
       setAdminSession(sessionData);
       // Refresh data after local login
       await Promise.allSettled([
-        fetchProducts(),
+        fetchProducts({ includeUnpublished: true }),
         fetchOrders(),
         fetchSettings(),
         fetchPromoCodes(),
