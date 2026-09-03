@@ -886,6 +886,7 @@ const addOrder = async (order: Order) => {
   const loginAdmin = async (pin: string, name = 'Store Administrator', role: AdminSession['adminRole'] = 'Super Admin', email = 'admin@crcosmetics.com'): Promise<boolean> => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPin = pin.trim();
+    setLoadingAdmin(true);
 
     // 1. Try remote backend authentication
     try {
@@ -918,6 +919,7 @@ const addOrder = async (order: Order) => {
           fetchPromoCodes(),
           fetchFlashDeals(),
         ]);
+        setLoadingAdmin(false);
         return true;
       }
     } catch {
@@ -969,9 +971,11 @@ const addOrder = async (order: Order) => {
         fetchPromoCodes(),
         fetchFlashDeals(),
       ]);
+      setLoadingAdmin(false);
       return true;
     }
 
+    setLoadingAdmin(false);
     return false;
   };
 

@@ -175,6 +175,17 @@ export const AdminPortal: React.FC = () => {
     return <AdminLoginView onSuccess={() => {}} />;
   }
 
+  if (store.loadingAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-600">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#B27A52]" />
+          <p className="mt-3 text-sm font-semibold">Opening admin portal...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleLogout = () => {
     if (confirmLogout) {
       store.logoutAdmin();
