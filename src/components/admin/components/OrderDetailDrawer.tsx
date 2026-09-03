@@ -205,6 +205,14 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
 
           </div>
 
+          {order.paymentStatus === 'pending' && order.paymentMethod.startsWith('momo') && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950">
+              <h4 className="font-bold">Manual payment verification</h4>
+              <p className="mt-1">Check the business account before marking this order as paid. Never rely on a screenshot alone.</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2"><p><strong>Transaction reference:</strong><br />{order.paymentReference || 'Not provided'}</p><p><strong>Sender number:</strong><br />{order.paymentSenderPhone || 'Not provided'}</p></div>
+            </div>
+          )}
+
           {/* Courier Assignment */}
           <div className="p-4 rounded-2xl border border-stone-200 bg-white space-y-3">
             <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">

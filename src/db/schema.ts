@@ -187,6 +187,8 @@ export const orders = pgTable('orders', {
   status: orderStatusEnum('status').notNull().default('Confirmed'),
   estimatedDeliveryTime: varchar('estimated_delivery_time', { length: 100 }),
   appliedPromoCode: varchar('applied_promo_code', { length: 50 }),
+  paymentReference: varchar('payment_reference', { length: 100 }),
+  paymentSenderPhone: varchar('payment_sender_phone', { length: 50 }),
   riderInfo: jsonb('rider_info').$type<{
     riderName: string;
     riderPhone: string;

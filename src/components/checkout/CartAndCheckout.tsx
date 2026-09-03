@@ -271,6 +271,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [city, setCity] = useState('Accra');
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentSenderPhone, setPaymentSenderPhone] = useState(phone);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
   const paymentMethod: PaymentMethod = 'momo-mtn';
   const [isProcessing, setIsProcessing] = useState(false);
@@ -322,6 +324,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
         total: totalAmount,
         paymentMethod: 'paystack',
         paymentStatus: 'pending',
+        paymentReference: paymentReference.trim(),
+        paymentSenderPhone: paymentSenderPhone.trim(),
         deliveryMethod,
         shippingAddress: {
           fullName,
@@ -478,11 +482,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
                 <p className="mt-3 text-xs leading-5 text-stone-600">Use your full name as the payment reference. After sending GHS {totalAmount.toFixed(2)}, continue and submit the order. We will confirm payment before dispatch.</p>
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-xs font-bold text-stone-700">Transaction ID / reference<input required value={paymentReference} onChange={event => setPaymentReference(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E6DFD7] bg-[#F5F0EB] p-3 text-xs" placeholder="Enter the reference from your MoMo receipt" /></label>
+                <label className="text-xs font-bold text-stone-700">Sender phone number<input required value={paymentSenderPhone} onChange={event => setPaymentSenderPhone(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E6DFD7] bg-[#F5F0EB] p-3 text-xs" placeholder="Number used to send payment" /></label>
+              </div>
             </div>
 
             <div className="flex gap-4">
               <Button variant="outline" size="md" onClick={() => setStep(1)} className="rounded-full px-6 text-xs">Back</Button>
-              <Button variant="primary" size="md" onClick={() => setStep(3)} className="rounded-full px-8 uppercase text-xs font-bold">Review Order</Button>
+              <Button variant="primary" size="md" disabled={!paymentReference.trim() || !paymentSenderPhone.trim()} onClick={() => setStep(3)} className="rounded-full px-8 uppercase text-xs font-bold">Review Order</Button>
             </div>
           </div>
         )}
@@ -495,6 +503,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
               <div className="flex justify-between"><strong>Deliver To:</strong> <span>{fullName} ({phone})</span></div>
               <div className="flex justify-between"><strong>Address:</strong> <span>{area}, {city}</span></div>
               <div className="flex justify-between"><strong>Payment Method:</strong> <span className="uppercase font-bold">{paymentMethod}</span></div>
+              <div className="flex justify-between gap-4"><strong>Payment reference:</strong> <span className="break-all text-right">{paymentReference}</span></div>
+              <div className="flex justify-between gap-4"><strong>Sender number:</strong> <span>{paymentSenderPhone}</span></div>
               <div className="flex justify-between"><strong>Items subtotal:</strong> <span>GHS {subtotal.toFixed(2)}</span></div>
               {discount > 0 && <div className="flex justify-between text-emerald-700"><strong>Discount {promoCode && `(${promoCode})`}:</strong> <span>- GHS {discount.toFixed(2)}</span></div>}
               <div className="flex justify-between"><strong>Delivery:</strong> <span>GHS {shippingFee.toFixed(2)}</span></div>

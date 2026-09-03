@@ -48,6 +48,8 @@ const orderCreateSchema = z.object({
   }),
   estimatedDeliveryTime: z.string().optional(),
   appliedPromoCode: z.string().optional(),
+  paymentReference: z.string().max(100).optional(),
+  paymentSenderPhone: z.string().max(50).optional(),
   // Server-verified Paystack reference — required for paystack/momo payment methods
   paystackReference: z.string().optional(),
 });
@@ -139,6 +141,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
       }
+      if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
+        return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
+      }
 
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));
@@ -222,6 +227,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : Math.min(calculatedSubtotal, Number(promo.discountValue));
         freeShipping = promo.freeShipping;
         appliedPromoCode = promo.code;
+      }
+      if (parsed.data.paymentReference) {
+        const [usedReference] = await db.select({ id: orders.id }).from(orders).where(eq(orders.paymentReference, parsed.data.paymentReference.trim())).limit(1);
+        if (usedReference) return res.status(409).json({ error: 'This payment reference has already been submitted.' });
       }
       const finalShippingFee = freeShipping || calculatedSubtotal >= Number(settings.freeDeliveryThreshold ?? 300) ? 0 : expectedShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);

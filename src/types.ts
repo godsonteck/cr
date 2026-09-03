@@ -263,6 +263,8 @@ export interface Order {
   status: OrderStatus;
   estimatedDeliveryTime: string;
   appliedPromoCode?: string;
+  paymentReference?: string;
+  paymentSenderPhone?: string;
   paystackReference?: string;
   riderInfo?: RiderTrackingInfo;
 }
