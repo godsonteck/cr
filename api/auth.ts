@@ -48,11 +48,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { email, pin } = parsed.data;
 
-        const [admin] = await db
+        let [admin] = await db
           .select()
           .from(adminSessions)
           .where(eq(adminSessions.email, email))
           .limit(1);
+
+        // Bootstrap the configured first admin if production was deployed
+        // before the database seed ran. Existing accounts remain authoritative.
+        const initialPin = process.env.ADMIN_INITIAL_PIN?.trim();
+        const initialEmail = (process.env.ADMIN_EMAIL || 'admin@crcosmetics.com').trim().toLowerCase();
+        if (!admin && initialPin && email === initialEmail && await bcrypt.compare(pin, await bcrypt.hash(initialPin, 12))) {
+          [admin] = await db.insert(adminSessions).values({
+            adminName: 'CR Admin',
+            adminRole: 'Super Admin',
+            email: initialEmail,
+            pinHash: await bcrypt.hash(initialPin, 12),
+            isActive: true,
+          }).onConflictDoNothing().returning();
+
+          if (!admin) {
+            [admin] = await db
+              .select()
+              .from(adminSessions)
+              .where(eq(adminSessions.email, initialEmail))
+              .limit(1);
+          }
+        }
 
         if (!admin || !admin.isActive) {
           return res.status(401).json({ error: 'Invalid admin credentials' });
