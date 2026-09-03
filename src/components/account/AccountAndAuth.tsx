@@ -139,8 +139,8 @@ export const SignInPage: React.FC = () => {
     try {
       await loginWithGoogle(credential);
       navigate('/account');
-    } catch {
-      showAlert('Google sign-in failed. Please try again.', 'error');
+    } catch (error: any) {
+      showAlert(error?.message || 'Google sign-in failed. Please try again.', 'error');
     }
   };
 

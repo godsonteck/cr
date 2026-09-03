@@ -108,13 +108,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (action === 'google') {
         const parsed = googleLoginSchema.safeParse(body);
-        const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
-        if (!parsed.success || !clientId) return res.status(400).json({ error: 'Google sign-in is not configured' });
+        const clientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+        if (!parsed.success || !clientId) return res.status(500).json({ error: 'Google sign-in is not configured on the server' });
 
         const googleResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(parsed.data.credential)}`);
         if (!googleResponse.ok) return res.status(401).json({ error: 'Google credential could not be verified' });
-        const googleUser = await googleResponse.json() as { sub?: string; email?: string; email_verified?: string; name?: string; aud?: string; iss?: string };
-        if (!googleUser.sub || !googleUser.email || googleUser.email_verified !== 'true' || googleUser.aud !== clientId || (googleUser.iss !== 'accounts.google.com' && googleUser.iss !== 'https://accounts.google.com')) {
+        const googleUser = await googleResponse.json() as { sub?: string; email?: string; email_verified?: string | boolean; name?: string; aud?: string | string[]; iss?: string };
+        const audienceMatches = Array.isArray(googleUser.aud) ? googleUser.aud.includes(clientId) : googleUser.aud === clientId;
+        if (!googleUser.sub || !googleUser.email || (googleUser.email_verified !== 'true' && googleUser.email_verified !== true) || !audienceMatches || (googleUser.iss !== 'accounts.google.com' && googleUser.iss !== 'https://accounts.google.com')) {
           return res.status(401).json({ error: 'Google account verification failed' });
         }
 
