@@ -60,9 +60,11 @@ export const SEO: React.FC<SEOProps> = ({
   const pageTitle = title || routeMeta.title;
   const pageDescription = description || routeMeta.description;
   const pageImage = image || productImage || storeSettings.storeLogo || defaultImage;
-  const absoluteImage = pageImage.startsWith('http') || pageImage.startsWith('data:')
+  const absoluteImage = pageImage.startsWith('http')
     ? pageImage
-    : `${window.location.origin}${pageImage.startsWith('/') ? '' : '/'}${pageImage}`;
+    : pageImage.startsWith('data:')
+      ? `${window.location.origin}${defaultImage}`
+      : `${window.location.origin}${pageImage.startsWith('/') ? '' : '/'}${pageImage}`;
   const pageUrl = url || `${window.location.origin}${location.pathname}`;
   const isPrivatePage = ['/account', '/cart', '/checkout', '/signin', '/signup'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`));
 
@@ -75,7 +77,7 @@ export const SEO: React.FC<SEOProps> = ({
     '@type': 'Product',
     name: productName,
     description: productDescription,
-    image: productImage ? [productImage.startsWith('http') || productImage.startsWith('data:') ? productImage : `${window.location.origin}${productImage.startsWith('/') ? '' : '/'}${productImage}`] : undefined,
+    image: productImage && !productImage.startsWith('data:') ? [productImage.startsWith('http') ? productImage : `${window.location.origin}${productImage.startsWith('/') ? '' : '/'}${productImage}`] : undefined,
     offers: {
       '@type': 'Offer',
       price: productPrice,
@@ -100,6 +102,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="theme-color" content="#8A3D52" />
       <link rel="canonical" href={pageUrl} />
       <meta name="referrer" content="strict-origin-when-cross-origin" />
+      <meta property="og:locale" content="en_GH" />
 
       <meta property="og:type" content={type} />
       <meta property="og:url" content={pageUrl} />

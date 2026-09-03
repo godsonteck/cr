@@ -48,7 +48,17 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-5 flex justify-center md:justify-end">
-          <div google-add-preferred-source-btn data-theme="light" data-lang="en" />
+          <div className="flex flex-col items-center gap-2 text-center md:items-end">
+            <div google-add-preferred-source-btn data-theme="light" data-lang="en" />
+            <a
+              href="https://www.google.com/preferences/source?q=cosmeticse.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-[var(--text-muted)] underline decoration-stone-300 underline-offset-2 hover:text-[var(--text-primary)]"
+            >
+              Add CR Cosmetics to Google preferences
+            </a>
+          </div>
         </div>
 
         <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
