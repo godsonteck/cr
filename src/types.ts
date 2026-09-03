@@ -290,6 +290,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phone: string;
+  profileImage?: string;
   role?: 'customer' | 'super_admin' | 'admin' | 'manager';
   savedAddresses: ShippingAddress[];
   orders: Order[];

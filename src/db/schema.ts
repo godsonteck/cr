@@ -210,6 +210,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   fullName: varchar('full_name', { length: 100 }).notNull(),
   phone: varchar('phone', { length: 50 }).notNull(),
+  profileImage: text('profile_image'),
   passwordHash: varchar('password_hash', { length: 255 }),
   savedAddresses: jsonb('saved_addresses').$type<Array<{
     fullName: string;

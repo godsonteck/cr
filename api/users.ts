@@ -16,6 +16,7 @@ const userCreateSchema = z.object({
 const userProfileUpdateSchema = z.object({
   fullName: z.string().min(1).max(100).optional(),
   phone: z.string().max(50).optional(),
+  profileImage: z.string().max(2_100_000).refine(value => value.startsWith('data:image/'), 'Profile picture must be an image upload').nullable().optional(),
   savedAddresses: z.array(z.object({
     id: z.string().optional(),
     fullName: z.string().min(1),
@@ -192,6 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (parsed.data.fullName !== undefined) updates.fullName = parsed.data.fullName.trim();
       if (parsed.data.phone !== undefined) updates.phone = parsed.data.phone.trim();
+      if (parsed.data.profileImage !== undefined) updates.profileImage = parsed.data.profileImage;
       if (parsed.data.savedAddresses !== undefined) updates.savedAddresses = parsed.data.savedAddresses;
       if (parsed.data.savedItemIds !== undefined) updates.savedItemIds = parsed.data.savedItemIds;
 

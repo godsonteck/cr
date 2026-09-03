@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User,
@@ -521,7 +521,9 @@ export const AccountPage: React.FC = () => {
   const [profileForm, setProfileForm] = useState({
     fullName: user?.fullName || '',
     phone: user?.phone || '',
+    profileImage: user?.profileImage || '',
   });
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
 
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -573,7 +575,7 @@ export const AccountPage: React.FC = () => {
   // Sync profile form when user updates
   useEffect(() => {
     if (user) {
-      setProfileForm({ fullName: user.fullName, phone: user.phone });
+      setProfileForm({ fullName: user.fullName, phone: user.phone, profileImage: user.profileImage || '' });
     }
   }, [user]);
 
@@ -706,6 +708,18 @@ export const AccountPage: React.FC = () => {
     } catch (error: any) {
       showAlert(error?.message || 'Failed to update profile', 'error');
     }
+  };
+
+  const handleProfileImageUpload = (file: File | undefined) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      showAlert('Please choose a JPG, PNG, WEBP, or GIF image under 5MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = event => setProfileForm(previous => ({ ...previous, profileImage: String(event.target?.result || '') }));
+    reader.onerror = () => showAlert('The picture could not be read. Please try again.', 'error');
+    reader.readAsDataURL(file);
   };
 
   // Change password in live DB
@@ -852,8 +866,8 @@ export const AccountPage: React.FC = () => {
         <div className="mb-6 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white shadow-md">
-                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white shadow-md">
+                {user?.profileImage ? <img src={user.profileImage} alt={`${user.fullName}'s profile`} className="h-full w-full object-cover" /> : (user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U')}
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -1733,6 +1747,19 @@ export const AccountPage: React.FC = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleSaveProfile} className="mt-4 space-y-4">
+                      <div>
+                        <p className="mb-1.5 text-xs font-bold text-[#1C1817] dark:text-stone-100">Profile picture</p>
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white">
+                            {profileForm.profileImage ? <img src={profileForm.profileImage} alt="Profile preview" className="h-full w-full object-cover" /> : (profileForm.fullName ? profileForm.fullName.charAt(0).toUpperCase() : 'U')}
+                          </div>
+                          <div className="space-y-2">
+                            <input ref={profileImageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => handleProfileImageUpload(event.target.files?.[0])} className="block w-full max-w-xs text-xs text-stone-500 file:mr-2 file:rounded-lg file:border-0 file:bg-[#1C1817] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white" />
+                            <p className="text-[10px] text-stone-400">JPG, PNG, WEBP, or GIF up to 5MB.</p>
+                            {profileForm.profileImage && <button type="button" onClick={() => { setProfileForm(previous => ({ ...previous, profileImage: '' })); if (profileImageInputRef.current) profileImageInputRef.current.value = ''; }} className="text-xs font-semibold text-rose-600 hover:underline">Remove picture</button>}
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
                           Full Name
