@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import logoImg from '../../assets/logo.jpeg';
+import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -222,13 +223,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </div>
 
             <a
-              href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+              href={getWhatsAppUrl(storeSettings.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-xs"
+              aria-label="Chat with CR Cosmetics on WhatsApp"
+              title="Chat with us on WhatsApp"
+              className="mt-5 flex h-12 w-12 items-center justify-center self-start rounded-full bg-[#25D366] text-white shadow-xs"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Chat on WhatsApp</span>
             </a>
 
             <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--text-primary)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--bg-card)]">

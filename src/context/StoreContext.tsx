@@ -360,7 +360,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
   const [loadingPromos, setLoadingPromos] = useState(false);
 
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    try {
+      const saved = localStorage.getItem('cr_settings');
+      return saved ? { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(saved) } : DEFAULT_STORE_SETTINGS;
+    } catch {
+      return DEFAULT_STORE_SETTINGS;
+    }
+  });
   const [loadingSettings, setLoadingSettings] = useState(false);
 
   const [adminSession, setAdminSession] = useState<AdminSession>({
@@ -411,6 +418,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem('cr_admin_accounts', JSON.stringify(adminAccounts));
   }, [adminAccounts]);
+
+  useEffect(() => {
+    localStorage.setItem('cr_settings', JSON.stringify(storeSettings));
+  }, [storeSettings]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== 'cr_settings' || !event.newValue) return;
+      try {
+        setStoreSettings(previous => ({ ...previous, ...JSON.parse(event.newValue!) }));
+      } catch {
+        // Ignore malformed cross-tab storage values.
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean }) => {
     setLoading(true);

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MessageCircle, ShieldCheck, Truck, CreditCard, Sparkles } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import logoImg from '../../assets/logo.jpeg';
+import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 export const Footer: React.FC = () => {
   const { storeSettings } = useStore();
@@ -13,7 +14,8 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <img
-              src={logoImg}
+              src={storeSettings.storeLogo || logoImg}
+              onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }}
               alt="CR Cosmetics & Essentials"
               className="h-8 w-auto rounded-md object-contain"
             />
@@ -34,13 +36,14 @@ export const Footer: React.FC = () => {
           </div>
 
           <a
-            href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+            href={getWhatsAppUrl(storeSettings.whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#20bd5a]"
+            aria-label="Chat with CR Cosmetics on WhatsApp"
+            title="Chat with us on WhatsApp"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20bd5a]"
           >
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span>WhatsApp ({storeSettings.storePhone || '0592153306'})</span>
+            <MessageCircle className="h-5 w-5" />
           </a>
         </div>
 

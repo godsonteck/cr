@@ -35,7 +35,8 @@ export function AdminLayout({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <img
-                src={new URL('../../assets/logo.jpeg', import.meta.url).toString()}
+                src={store.storeSettings.storeLogo || new URL('../../assets/logo.jpeg', import.meta.url).toString()}
+                onError={(event) => { (event.currentTarget as HTMLImageElement).src = new URL('../../assets/logo.jpeg', import.meta.url).toString(); }}
                 alt="CR Cosmetics & Essentials"
                 className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-sm border border-stone-700"
               />

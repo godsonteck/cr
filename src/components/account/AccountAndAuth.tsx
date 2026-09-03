@@ -32,7 +32,7 @@ import logoImg from '../../assets/logo.jpeg';
 
 export const AccountPage: React.FC = () => {
   const { user, logout, isAuthenticated, updateProfile } = useAuth();
-  const { products } = useStore();
+  const { products, storeSettings } = useStore();
   const navigate = useNavigate();
   const { showAlert } = useAlert();
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'addresses' | 'settings'>('profile');
@@ -642,19 +642,22 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
   return <div ref={buttonRef} className="flex min-h-10 justify-center" />;
 };
 
-const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode }> = ({ mode, children }) => (
+const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode }> = ({ mode, children }) => {
+  const { storeSettings } = useStore();
+  return (
   <div className="relative mx-auto max-w-5xl px-4 py-10 font-sans sm:px-6 sm:py-16">
     <div className="mx-auto max-w-xl overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_24px_70px_rgba(11,31,56,0.12)]">
       <div className="p-6 sm:p-10 lg:p-12">
         <div className="mb-8 flex items-center justify-between lg:hidden">
-          <img src={logoImg} alt="CR Cosmetics & Essentials" className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain" />
+          <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="CR Cosmetics & Essentials" className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain" />
           <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{mode === 'signin' ? 'Welcome back' : 'Join the store'}</span>
         </div>
         {children}
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();

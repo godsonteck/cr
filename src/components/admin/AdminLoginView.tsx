@@ -20,7 +20,7 @@ interface AdminLoginProps {
 }
 
 export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
-  const { loginAdmin } = useStore();
+  const { loginAdmin, storeSettings } = useStore();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -96,7 +96,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           {/* Brand Header */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center justify-center p-1 rounded-2xl bg-white border border-[#E8E2D8] shadow-sm mb-1">
-              <img src={logoImg} alt="CR Cosmetics & Essentials" className="w-16 h-16 rounded-xl object-contain" />
+              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="CR Cosmetics & Essentials" className="w-16 h-16 rounded-xl object-contain" />
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#C89B3C]">

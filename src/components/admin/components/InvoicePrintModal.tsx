@@ -55,7 +55,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
           {/* Business Header */}
           <div className="flex items-start justify-between border-b border-stone-200 pb-6">
             <div className="flex items-center gap-3">
-              <img src={logoImg} alt="" className="w-16 h-16 rounded-xl object-contain border border-stone-200" />
+              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="" className="w-16 h-16 rounded-xl object-contain border border-stone-200" />
               <div>
                 <h1 className="font-serif font-bold text-xl text-stone-900 leading-tight">
                   {storeSettings.storeName}

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Button } from '../common/UIPrimitives';
+import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 const values = [
   {
@@ -174,7 +175,7 @@ export const SupportPage: React.FC = () => {
           <MessageCircle className="mx-auto h-6 w-6 text-[#25D366]" />
           <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">WhatsApp</h4>
           <a
-            href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+            href={getWhatsAppUrl(storeSettings.whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 block text-sm font-semibold text-[#25D366] hover:underline"
@@ -238,7 +239,7 @@ export const SupportPage: React.FC = () => {
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <a
-              href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`}
+              href={getWhatsAppUrl(storeSettings.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -282,7 +283,7 @@ export const ContactPage: React.FC = () => {
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Email us</h2>
           <p className="mt-2 break-words text-sm text-[var(--text-muted)]">{storeSettings.storeEmail}</p>
         </a>
-        <a href={`https://wa.me/${storeSettings.whatsappNumber || '233592153306'}`} target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#25D366]">
+          <a href={getWhatsAppUrl(storeSettings.whatsappNumber)} target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#25D366]">
           <MessageCircle className="h-6 w-6 text-[#25D366]" />
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">WhatsApp</h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">Chat with customer care</p>
