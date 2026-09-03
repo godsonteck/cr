@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-[var(--text-primary)] hover:bg-[var(--bg-soft)] rounded md:hidden dark:text-[var(--text-primary)] dark:hover:bg-[var(--bg-card-alt)]"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-soft)] md:hidden dark:text-[var(--text-primary)] dark:hover:bg-[var(--bg-card-alt)]"
             aria-label="Toggle Menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -138,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <button
               onClick={toggleTheme}
-              className="rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.45)] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.45)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
               aria-label="Toggle Theme"
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-[#d9b26d]" /> : <Moon className="w-4 h-4" />}
@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
             <button
               onClick={onOpenWishlist}
-              className="relative rounded-full p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
               aria-label="Wishlist"
             >
               <Heart className="w-4 h-4" />
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
             <button
               onClick={onOpenCart}
-              className="flex items-center gap-2 rounded-full bg-[var(--text-primary)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--bg-card)] transition-colors hover:opacity-90 dark:bg-[var(--accent)] dark:text-[#1a140d] dark:hover:brightness-110"
+              className="flex h-10 items-center gap-2 rounded-full bg-[var(--text-primary)] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--bg-card)] transition-colors hover:opacity-90 dark:bg-[var(--accent)] dark:text-[#1a140d] dark:hover:brightness-110"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>{totalItems}</span>

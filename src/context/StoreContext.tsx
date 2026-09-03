@@ -588,15 +588,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch (e: any) { setError(e.message || "Operation failed"); }
 
-    void Promise.allSettled([
-      fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) }),
-      fetchBrands(),
+    const hasAdminSession = Boolean(localStorage.getItem('admin_auth_token'));
+    const startupRequests: Array<Promise<unknown>> = [
+      fetchProducts({ includeUnpublished: hasAdminSession }),
       fetchCategories(),
-      fetchOrders(),
-      fetchPromoCodes(),
       fetchSettings(),
       fetchFlashDeals(),
-    ]);
+    ];
+    if (hasAdminSession) startupRequests.push(fetchBrands());
+    void Promise.allSettled(startupRequests);
   }, [fetchProducts, fetchBrands, fetchCategories, fetchOrders, fetchPromoCodes, fetchSettings, fetchFlashDeals]);
 
   // Product Actions

@@ -18,7 +18,7 @@ interface SEOProps {
 
 const defaultTitle = 'CR Cosmetics & Essential | Beauty · Care · Essentials';
 const defaultDescription = 'CR Cosmetics & Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
-const defaultImage = '/assets/logo.jpeg';
+const defaultImage = '/logo.jpeg';
 
 const pageMeta: Record<string, { title: string; description: string }> = {
   '/': { title: 'CR Cosmetics & Essentials | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR Cosmetics & Essentials.' },

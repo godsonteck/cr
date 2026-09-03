@@ -4,19 +4,19 @@ import { Helmet } from 'react-helmet-async';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { SEO } from './components/common/SEO';
 import { useStore } from './context/StoreContext';
-import { PageSkeleton } from './components/common/LoadingStates';
+import { PageSkeleton, StorefrontSkeleton } from './components/common/LoadingStates';
 
 // Components
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
 import { CartDrawerComponent } from './components/common/CartDrawerComponent';
 import { WishlistModal } from './components/common/WishlistModal';
+import { HomePage } from './components/home/DepartmentStorefronts';
+const BeautyDepartmentPage = lazy(() => import('./components/home/DepartmentPages').then(module => ({ default: module.BeautyDepartmentPage })));
+const GroceryDepartmentPage = lazy(() => import('./components/home/DepartmentPages').then(module => ({ default: module.GroceryDepartmentPage })));
 
 // Views
 
-const HomePage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.HomePage })));
-const BeautyDepartmentPage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.BeautyDepartmentPage })));
-const GroceryDepartmentPage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.GroceryDepartmentPage })));
 const ShopCatalogPage = lazy(() => import('./components/shop/CatalogAndSearch').then(module => ({ default: module.ShopCatalogPage })));
 const SearchResultsPage = lazy(() => import('./components/shop/CatalogAndSearch').then(module => ({ default: module.SearchResultsPage })));
 const ProductDetailPage = lazy(() => import('./components/product/ProductDetailAndRoutine').then(module => ({ default: module.ProductDetailPage })));
@@ -99,9 +99,6 @@ function AppLayout() {
         <html lang="en" className="scroll-smooth" />
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
       </Helmet>
 
       <SEO />
@@ -123,7 +120,7 @@ function AppLayout() {
                 </p>
               </div>
             ) : (
-              <Suspense fallback={<PageSkeleton />}>
+              <Suspense fallback={<StorefrontSkeleton />}>
                 <Routes>
                 <Route path="/" element={pageVisibility.home ? <HomePage /> : renderUnavailable('Home page is currently offline')} />
                 <Route path="/beauty" element={pageVisibility.beauty ? <BeautyDepartmentPage /> : renderUnavailable('Beauty collection is currently offline')} />

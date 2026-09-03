@@ -4,6 +4,17 @@ import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
+const getResponsiveImageSet = (image: string) => {
+  if (!image.includes('images.unsplash.com')) return undefined;
+  return [600, 900, 1200]
+    .map(width => {
+      const url = new URL(image);
+      url.searchParams.set('w', String(width));
+      return `${url.toString()} ${width}w`;
+    })
+    .join(', ');
+};
+
 export const HomePage: React.FC = () => {
   const { products, categories, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
@@ -71,6 +82,7 @@ export const HomePage: React.FC = () => {
       return a.index - b.index;
     }).map(item => item.product);
   }, [publishedProducts, catalogDepartment, catalogSort]);
+  const displayedCollection = fullCollection.slice(0, 12);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -103,7 +115,7 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-[1500px] space-y-3 px-3 pb-12 sm:px-4 sm:space-y-4">
+      <main className="mx-auto max-w-[1500px] space-y-4 px-3 pb-12 sm:space-y-5 sm:px-4">
         {/* Flash Deal Banner */}
         {homepageSections.flashDeal && activeFlashDeal && (
           <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--accent)]/35 border-l-4 border-l-[var(--accent)] bg-[var(--bg-card-alt)] p-3 text-[var(--text-primary)] sm:p-4">
@@ -122,22 +134,22 @@ export const HomePage: React.FC = () => {
 
         {/* Compact Hero */}
         {homepageSections.hero && (
-          <section className={`rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-5 sm:p-8 dark:bg-[var(--bg-card-alt)] ${storeSettings.heroImage ? 'grid gap-6 md:grid-cols-[1fr_minmax(260px,38%)] md:items-center' : ''}`}>
+          <section className={`rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-5 shadow-[var(--shadow-soft)] sm:p-8 dark:bg-[var(--bg-card-alt)] ${storeSettings.heroImage ? 'grid gap-5 md:grid-cols-[1fr_minmax(260px,38%)] md:items-center' : ''}`}>
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics &amp; Essentials</p>
-                <h1 className="mt-2 text-2xl font-black leading-tight text-[var(--text-primary)] sm:text-4xl">
+                <h1 className="mt-2 max-w-[17ch] text-[1.9rem] font-black leading-[1.05] text-[var(--text-primary)] sm:text-4xl">
                   {storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}
                 </h1>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{storeSettings.heroSubtitle || 'Thoughtfully chosen beauty products and practical essentials, delivered with care.'}</p>
-                <Link to="/shop" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+                <Link to="/shop" className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
                   {storeSettings.heroButtonText || 'Shop all products'} <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
             </div>
             {storeSettings.heroImage && (
               <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-white/60 dark:bg-black/10">
-                <img src={storeSettings.heroImage} alt="" className="aspect-[4/3] h-full w-full object-cover" />
+                <img src={storeSettings.heroImage} srcSet={getResponsiveImageSet(storeSettings.heroImage)} sizes="(max-width: 767px) 100vw, 38vw" alt="" width="800" height="600" fetchPriority="high" decoding="async" className="aspect-[4/3] h-full w-full object-cover" />
               </div>
             )}
           </section>
@@ -256,10 +268,15 @@ export const HomePage: React.FC = () => {
               </select>
             </div>
           </div>
-          <p className="text-[11px] font-semibold text-[var(--text-subtle)]">Showing {fullCollection.length} products</p>
+          <p className="text-[11px] font-semibold text-[var(--text-subtle)]">Showing {displayedCollection.length} of {fullCollection.length} products</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {fullCollection.map(product => <ProductCard key={product.id} product={product} />)}
+            {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
           </div>
+          {fullCollection.length > displayedCollection.length && (
+            <Link to="/shop" className="mx-auto inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
+              Browse all products <ArrowRight className="ml-1.5 h-3 w-3" />
+            </Link>
+          )}
         </section>
 
       </main>
@@ -267,87 +284,3 @@ export const HomePage: React.FC = () => {
   );
 };
 
-export const BeautyDepartmentPage: React.FC = () => {
-  const { products, storeSettings } = useStore();
-  const beautyProducts = products.filter(p => p.isPublished !== false && p.department === 'beauty');
-
-  return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
-      {/* Announcement Banner */}
-      {storeSettings.announcementVisible && storeSettings.announcementText && (
-        <div 
-          className="w-full px-3 py-2 text-center text-xs font-semibold text-white sm:px-4 sm:py-3"
-          style={{ backgroundColor: storeSettings.announcementBg || '#B27A52' }}
-        >
-          {storeSettings.announcementText}
-        </div>
-      )}
-
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
-      <div className="bg-[#1C1817] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-2 max-w-xl">
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold">Beauty &amp; Skincare</h1>
-          <p className="text-xs sm:text-sm text-stone-300">
-            Targeted dermatological formulas, hydration serums, luxury fragrances, and professional cosmetics.
-          </p>
-        </div>
-        <Link
-          to="/routine-builder"
-          className="px-5 py-2.5 bg-[#C86D51] hover:bg-[#b05c42] text-white text-xs font-bold uppercase tracking-wider rounded-full transition-colors flex items-center gap-2 shadow-xs shrink-0"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Routine Builder</span>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {beautyProducts.map(p => (
-          <ProductCard key={p.id} product={p} mode="beauty" />
-        ))}
-      </div>
-      </div>
-    </div>
-  );
-};
-
-export const GroceryDepartmentPage: React.FC = () => {
-  const { products, storeSettings } = useStore();
-  const groceryProducts = products.filter(p => p.isPublished !== false && p.department === 'groceries');
-
-  return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
-      {/* Announcement Banner */}
-      {storeSettings.announcementVisible && storeSettings.announcementText && (
-        <div 
-          className="w-full px-3 py-2 text-center text-xs font-semibold text-white sm:px-4 sm:py-3"
-          style={{ backgroundColor: storeSettings.announcementBg || '#B27A52' }}
-        >
-          {storeSettings.announcementText}
-        </div>
-      )}
-
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
-      <div className="bg-[#4A5D4E] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-2 max-w-xl">
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold">Groceries &amp; Everyday Essentials</h1>
-          <p className="text-xs sm:text-sm text-stone-200">
-            Premium Jasmine rice, pure vegetable oils, evaporated milk, seasonings, and trusted daily household products.
-          </p>
-        </div>
-        <Link
-          to="/groceries"
-          className="px-5 py-2.5 bg-[#1C1817] hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-full transition-colors shrink-0 shadow-xs"
-        >
-          <span>Shop Pantry</span>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {groceryProducts.map(p => (
-          <ProductCard key={p.id} product={p} mode="grocery" />
-        ))}
-      </div>
-      </div>
-    </div>
-  );
-};
