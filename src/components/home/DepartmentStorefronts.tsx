@@ -136,13 +136,11 @@ export const HomePage: React.FC = () => {
 
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Shop by department">
           <Link to="/beauty" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Department 01</p>
             <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Beauty &amp; skincare</h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">Daily care, cosmetics, fragrances, and tools.</p>
             <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop beauty <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
           </Link>
           <Link to="/groceries" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Department 02</p>
             <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Groceries &amp; essentials</h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">Pantry staples, household care, and daily needs.</p>
             <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop essentials <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
@@ -244,7 +242,6 @@ export const BeautyDepartmentPage: React.FC = () => {
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
       <div className="bg-[#1C1817] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
         <div className="space-y-2 max-w-xl">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#C86D51]">Department 01</span>
           <h1 className="text-2xl sm:text-4xl font-serif font-bold">Beauty &amp; Skincare</h1>
           <p className="text-xs sm:text-sm text-stone-300">
             Targeted dermatological formulas, hydration serums, luxury fragrances, and professional cosmetics.
@@ -288,7 +285,6 @@ export const GroceryDepartmentPage: React.FC = () => {
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 space-y-8 font-sans">
       <div className="bg-[#4A5D4E] text-white p-6 sm:p-10 rounded-[1.75rem] border border-stone-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
         <div className="space-y-2 max-w-xl">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Department 02</span>
           <h1 className="text-2xl sm:text-4xl font-serif font-bold">Groceries &amp; Everyday Essentials</h1>
           <p className="text-xs sm:text-sm text-stone-200">
             Premium Jasmine rice, pure vegetable oils, evaporated milk, seasonings, and trusted daily household products.
