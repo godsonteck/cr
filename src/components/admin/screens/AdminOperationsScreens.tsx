@@ -40,6 +40,25 @@ const buttonClass =
 const mutedButton =
   'inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 transition hover:bg-stone-50 dark:hover:bg-[#2a2024]';
 
+const optimizeUploadedImage = (file: File, maxDimension = 1600): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    image.onerror = () => reject(new Error('Image could not be processed'));
+    image.src = String(reader.result || '');
+  };
+  reader.onerror = () => reject(new Error('Image could not be read'));
+  reader.readAsDataURL(file);
+});
+
 // ─── Shared layout components ─────────────────────────────────────────────────
 
 function ScreenHeader({
@@ -915,29 +934,33 @@ export function AdminSettingsScreen() {
     setForm(prev => ({ ...prev, deliveryZones: (prev.deliveryZones || []).map((zone, zoneIndex) => zoneIndex === index ? { ...zone, ...updates } : zone) }));
 
   const handleLogoUpload = async (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setLogoPreview(base64String);
-      update('storeLogo', base64String);
-      showAlert('Logo selected - save settings to apply', 'info');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleHeroImageUpload = (file: File) => {
     if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
       showAlert('Please choose a JPG, PNG, WEBP, or GIF image under 5MB.', 'error');
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setHeroImagePreview(base64String);
-      update('heroImage', base64String);
+    try {
+      const optimizedImage = await optimizeUploadedImage(file);
+      setLogoPreview(optimizedImage);
+      update('storeLogo', optimizedImage);
+      showAlert('Logo selected - save settings to apply', 'info');
+    } catch {
+      showAlert('The image could not be processed. Please try another file.', 'error');
+    }
+  };
+
+  const handleHeroImageUpload = async (file: File) => {
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      showAlert('Please choose a JPG, PNG, WEBP, or GIF image under 5MB.', 'error');
+      return;
+    }
+    try {
+      const optimizedImage = await optimizeUploadedImage(file);
+      setHeroImagePreview(optimizedImage);
+      update('heroImage', optimizedImage);
       showAlert('Hero image selected - save settings to apply', 'info');
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showAlert('The image could not be processed. Please try another file.', 'error');
+    }
   };
 
   const save = async (e: React.FormEvent) => {
