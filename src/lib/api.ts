@@ -9,7 +9,8 @@ class ApiError extends Error {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  authToken?: string | null,
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -17,7 +18,7 @@ async function request<T>(
   };
 
   // Add auth headers if available
-  const token = localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
+  const token = authToken || localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -51,16 +52,16 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
-  post: <T>(endpoint: string, body: any) => request<T>(endpoint, {
+  get: <T>(endpoint: string, authToken?: string | null) => request<T>(endpoint, { method: 'GET' }, authToken),
+  post: <T>(endpoint: string, body: any, authToken?: string | null) => request<T>(endpoint, {
     method: 'POST',
     body: JSON.stringify(body),
-  }),
-  patch: <T>(endpoint: string, body: any) => request<T>(endpoint, {
+  }, authToken),
+  patch: <T>(endpoint: string, body: any, authToken?: string | null) => request<T>(endpoint, {
     method: 'PATCH',
     body: JSON.stringify(body),
-  }),
-  delete: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+  }, authToken),
+  delete: <T>(endpoint: string, authToken?: string | null) => request<T>(endpoint, { method: 'DELETE' }, authToken),
 };
 
 export { ApiError };

@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = localStorage.getItem('auth_token');
       if (token) {
-        const data = await api.get<UserProfile>('/users?me=true');
+        const data = await api.get<UserProfile>('/users?me=true', token);
         if (data && data.email) {
           setUser(normalizeUser(data));
         }
@@ -126,12 +126,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
+    const token = localStorage.getItem('auth_token');
+    if (!token) throw new Error('Please sign in again before saving your profile');
     const previous = user;
     const optimistic = { ...user, ...data };
     setUser(optimistic);
 
     try {
-      const updated = await api.patch<UserProfile>('/users?me=true', data);
+      const updated = await api.patch<UserProfile>('/users?me=true', data, token);
       if (updated && updated.email) {
         setUser(normalizeUser(updated));
       }
