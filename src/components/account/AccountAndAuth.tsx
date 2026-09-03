@@ -131,7 +131,6 @@ export const AccountPage: React.FC = () => {
     { id: 'orders' as const, label: 'My orders', icon: Package, count: user?.orders?.length || 0 },
     { id: 'wishlist' as const, label: 'Wish list', icon: Heart, count: wishlistIds.length },
     { id: 'addresses' as const, label: 'Shipping addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
-    { id: 'settings' as const, label: 'Settings', icon: Settings, count: undefined },
   ];
 
   const setTab = (tab: typeof activeTab) => setActiveTab(tab);
@@ -186,7 +185,7 @@ export const AccountPage: React.FC = () => {
               ))}
               <div className="my-2 border-t border-[#f2dfe7]" />
               <Link to="/support" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]"><Headphones className="h-4 w-4" />Help center</Link>
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]"><Settings className="h-4 w-4" />Settings</button>
+              <button onClick={() => setTab('settings')} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold transition ${activeTab === 'settings' ? 'bg-[#fdeef4] text-[#a94c63]' : 'text-[#6f5b60] hover:bg-[#fff1f5] hover:text-[#a94c63]'}`}><Settings className="h-4 w-4" />Settings</button>
             </nav>
           </aside>
 
