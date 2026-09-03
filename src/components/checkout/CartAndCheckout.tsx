@@ -277,6 +277,21 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const paymentMethod: PaymentMethod = 'momo-mtn';
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Auto pre-fill default saved address if area is empty
+  useEffect(() => {
+    if (user?.savedAddresses && user.savedAddresses.length > 0 && !area) {
+      const defaultAddr = user.savedAddresses.find(a => a.isDefault) || user.savedAddresses[0];
+      if (defaultAddr) {
+        setFullName(defaultAddr.fullName);
+        setPhone(defaultAddr.phone);
+        setEmail(defaultAddr.email || user.email);
+        setCity(defaultAddr.city);
+        setArea(defaultAddr.area);
+        setDeliveryNotes(defaultAddr.deliveryNotes || '');
+      }
+    }
+  }, [user]);
+
   const locationText = `${city} ${area}`.toLowerCase();
   const matchedZone = (storeSettings.deliveryZones || []).find(zone => zone.keywords.length > 0 && zone.keywords.some(keyword => locationText.includes(keyword.toLowerCase())))
     || (storeSettings.deliveryZones || []).find(zone => zone.keywords.length === 0);
@@ -386,7 +401,52 @@ export const MultiStepCheckoutPage: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 1: Shipping Address</h3>
 
-            {user?.savedAddresses && user.savedAddresses.length > 0 && <div className="rounded-2xl border border-[#E6DFD7] bg-stone-50 p-4"><p className="mb-2 text-xs font-bold">Use a saved address</p><div className="flex flex-wrap gap-2">{user.savedAddresses.map((address, index) => <button type="button" key={`${address.area}-${index}`} onClick={() => { setFullName(address.fullName); setPhone(address.phone); setEmail(address.email || user.email); setCity(address.city); setArea(address.area); setDeliveryNotes(address.deliveryNotes || ''); }} className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-left text-xs hover:border-[#C86D51]"><b>{address.fullName}</b><br />{address.area}, {address.city}</button>)}</div></div>}
+            {user?.savedAddresses && user.savedAddresses.length > 0 && (
+              <div className="rounded-2xl border border-[#E6DFD7] bg-stone-50 p-4">
+                <p className="mb-2 text-xs font-bold text-stone-700">Quick Select from Saved Addresses</p>
+                <div className="flex flex-wrap gap-2">
+                  {user.savedAddresses.map((address, index) => {
+                    const isSelected = area === address.area && fullName === address.fullName;
+                    return (
+                      <button
+                        type="button"
+                        key={`${address.area}-${index}`}
+                        onClick={() => {
+                          setFullName(address.fullName);
+                          setPhone(address.phone);
+                          setEmail(address.email || user.email);
+                          setCity(address.city);
+                          setArea(address.area);
+                          setDeliveryNotes(address.deliveryNotes || '');
+                        }}
+                        className={`rounded-xl border px-3.5 py-2.5 text-left text-xs transition ${
+                          isSelected
+                            ? 'border-[#C86D51] bg-[#FFF8F5] text-[#C86D51] shadow-sm ring-1 ring-[#C86D51]'
+                            : 'border-stone-200 bg-white hover:border-[#C86D51]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <b className="text-stone-900">{address.fullName}</b>
+                          {address.tag && (
+                            <span className="rounded bg-stone-100 px-1.5 py-0.2 text-[9px] font-bold uppercase text-stone-600">
+                              {address.tag}
+                            </span>
+                          )}
+                          {address.isDefault && (
+                            <span className="rounded bg-[#C86D51] px-1.5 py-0.2 text-[9px] font-bold text-white uppercase">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-stone-500">
+                          {address.area}, {address.city} • {address.phone}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

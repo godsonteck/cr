@@ -24,7 +24,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (method === 'GET') {
-      const { productId, id, approved } = query;
+      const { productId, id, approved, me } = query;
+
+      if (me === 'true') {
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        const results = await db
+          .select()
+          .from(reviews)
+          .where(eq(reviews.userId, auth.sub))
+          .orderBy(desc(reviews.createdAt));
+        return res.status(200).json({ reviews: results });
+      }
 
       if (id && typeof id === 'string') {
         const [review] = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);

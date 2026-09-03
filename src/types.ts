@@ -236,13 +236,17 @@ export type DeliveryMethod = 'accra-express' | 'standard-delivery' | 'intercity'
 export type PaymentMethod = 'momo-mtn' | 'momo-telecel' | 'momo-at' | 'cash-on-delivery' | 'card' | 'apple-pay' | 'paystack';
 
 export interface ShippingAddress {
+  id?: string;
   fullName: string;
   phone: string;
+  altPhone?: string;
   email?: string;
   city: string;
   area: string;
   landmarkOrGps?: string;
   deliveryNotes?: string;
+  isDefault?: boolean;
+  tag?: 'Home' | 'Work' | 'Other';
 }
 
 export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered';
@@ -269,6 +273,18 @@ export interface Order {
   riderInfo?: RiderTrackingInfo;
 }
 
+export interface SkinProfile {
+  skinType?: 'Dry' | 'Oily' | 'Combination' | 'Sensitive' | 'Normal';
+  concerns?: string[];
+  preferredRoutine?: string[];
+}
+
+export interface PreferredPayment {
+  method?: 'momo-mtn' | 'momo-telecel' | 'momo-at' | 'card' | 'cash-on-delivery';
+  phone?: string;
+  accountName?: string;
+}
+
 export interface UserProfile {
   id: string;
   fullName: string;
@@ -278,6 +294,12 @@ export interface UserProfile {
   savedAddresses: ShippingAddress[];
   orders: Order[];
   savedItemIds: string[];
+  skinProfile?: SkinProfile;
+  preferredPayment?: PreferredPayment;
+  isActive?: boolean;
+  hasPassword?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AdminAccount {

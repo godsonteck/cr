@@ -48,6 +48,22 @@
       "destination": "/api/catalog?resource=categories"
     },
     {
+      "source": "/api/users/:id",
+      "destination": "/api/users?id=:id"
+    },
+    {
+      "source": "/api/admin-accounts/:id",
+      "destination": "/api/admin-accounts?id=:id"
+    },
+    {
+      "source": "/api/orders/:id",
+      "destination": "/api/orders?id=:id"
+    },
+    {
+      "source": "/api/products/:id",
+      "destination": "/api/products?id=:id"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

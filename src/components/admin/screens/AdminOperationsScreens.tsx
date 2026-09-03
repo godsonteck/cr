@@ -337,6 +337,18 @@ export function AdminCustomersScreen() {
             existing.id = u.id || existing.id;
             existing.fullName = u.fullName || existing.fullName;
             existing.status = u.isActive === false ? 'Blocked' : existing.status;
+            if (u.ordersCount !== undefined && u.ordersCount > existing.ordersCount) {
+              existing.ordersCount = u.ordersCount;
+            }
+            if (u.totalSpent !== undefined && u.totalSpent > existing.totalSpent) {
+              existing.totalSpent = u.totalSpent;
+            }
+            if (u.segment) {
+              existing.segment = u.segment;
+            }
+            if (u.savedAddresses && u.savedAddresses.length > 0) {
+              existing.addresses = [...existing.addresses, ...u.savedAddresses];
+            }
           } else {
             const id = u.id || 'cust-' + Date.now();
             const isBlocked = u.isActive === false || localStorage.getItem(`cr_customer_blocked_${id}`) === 'true';
@@ -345,9 +357,9 @@ export function AdminCustomersScreen() {
               fullName: u.fullName || 'Registered User',
               email: u.email || '',
               phone: u.phone || '',
-              ordersCount: 0,
-              totalSpent: 0,
-              segment: 'New',
+              ordersCount: u.ordersCount || 0,
+              totalSpent: u.totalSpent || 0,
+              segment: u.segment || 'New',
               status: isBlocked ? 'Blocked' : 'Active',
               addresses: u.savedAddresses || [],
               notes: localStorage.getItem(`cr_customer_notes_${id}`) || '',
