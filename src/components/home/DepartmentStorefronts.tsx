@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
-import { DEPARTMENTS } from '../../data/products';
 
 export const HomePage: React.FC = () => {
   const { products, categories, storeSettings, flashDeals } = useStore();
@@ -123,13 +122,24 @@ export const HomePage: React.FC = () => {
 
         {/* Compact Hero */}
         {homepageSections.hero && (
-          <section className="overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] dark:bg-[var(--bg-card-alt)]">
-            <div className="grid items-stretch lg:grid-cols-[1fr_0.8fr]">
+          <section className={`rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,#fff6f8_0%,#fffaf8_100%)] p-5 sm:p-8 dark:bg-[var(--bg-card-alt)] ${storeSettings.heroImage ? 'grid gap-6 md:grid-cols-[1fr_minmax(260px,38%)] md:items-center' : ''}`}>
+            <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <div className="p-5 sm:p-8"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics &amp; Essentials</p><h1 className="mt-2 text-2xl font-black leading-tight text-[var(--text-primary)] sm:text-4xl">{storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}</h1><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{storeSettings.heroSubtitle || 'Thoughtfully chosen beauty products and practical essentials, delivered with care.'}</p><Link to="/shop" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">{storeSettings.heroButtonText || 'Shop all products'} <ArrowRight className="h-3 w-3" /></Link></div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics &amp; Essentials</p>
+                <h1 className="mt-2 text-2xl font-black leading-tight text-[var(--text-primary)] sm:text-4xl">
+                  {storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}
+                </h1>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{storeSettings.heroSubtitle || 'Thoughtfully chosen beauty products and practical essentials, delivered with care.'}</p>
+                <Link to="/shop" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
+                  {storeSettings.heroButtonText || 'Shop all products'} <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
-              <div className="relative min-h-48 overflow-hidden bg-[#eadbd4] lg:min-h-full"><img src={publishedProducts[0]?.image || DEPARTMENTS[0].image} alt={publishedProducts[0]?.name || 'Beauty products'} className="h-full w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-r from-[#fff8f4]/70 via-transparent to-transparent" /><div className="absolute bottom-3 left-3 rounded-lg bg-white/90 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#6b3b2e] shadow-sm">Chosen for your routine</div></div>
             </div>
+            {storeSettings.heroImage && (
+              <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-white/60 dark:bg-black/10">
+                <img src={storeSettings.heroImage} alt="" className="aspect-[4/3] h-full w-full object-cover" />
+              </div>
+            )}
           </section>
         )}
 
@@ -146,11 +156,15 @@ export const HomePage: React.FC = () => {
         )}
 
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Shop by department">
-          <Link to="/beauty" className="group relative min-h-48 overflow-hidden rounded-2xl border border-[var(--border-color)] transition hover:border-[var(--accent)]">
-            <img src={DEPARTMENTS[0].image} alt="Beauty and skincare" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#1e1719]/80 via-[#1e1719]/15 to-transparent" /><div className="relative flex h-full flex-col justify-end p-5"><h2 className="text-xl font-black text-white">Beauty &amp; skincare</h2><p className="mt-1 text-sm text-white/80">Daily care, cosmetics, fragrances, and tools.</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-white">Shop beauty <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span></div>
+          <Link to="/beauty" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
+            <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Beauty &amp; skincare</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Daily care, cosmetics, fragrances, and tools.</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop beauty <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
           </Link>
-          <Link to="/groceries" className="group relative min-h-48 overflow-hidden rounded-2xl border border-[var(--border-color)] transition hover:border-[var(--accent)]">
-            <img src={DEPARTMENTS[1].image} alt="Groceries and household essentials" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#1e1719]/80 via-[#1e1719]/15 to-transparent" /><div className="relative flex h-full flex-col justify-end p-5"><h2 className="text-xl font-black text-white">Groceries &amp; essentials</h2><p className="mt-1 text-sm text-white/80">Pantry staples, household care, and daily needs.</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-white">Shop essentials <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span></div>
+          <Link to="/groceries" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
+            <h2 className="mt-2 text-xl font-black text-[var(--text-primary)]">Groceries &amp; essentials</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Pantry staples, household care, and daily needs.</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-strong)]">Shop essentials <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" /></span>
           </Link>
         </section>
 

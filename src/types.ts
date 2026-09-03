@@ -102,6 +102,7 @@ export interface StoreSettings {
   storeTagline: string;
   heroHeadline: string;
   heroSubtitle: string;
+  heroImage?: string;
   heroBadge: string;
   heroButtonText: string;
   heroSecondaryButtonText?: string;

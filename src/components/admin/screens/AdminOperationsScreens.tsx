@@ -895,11 +895,13 @@ export function AdminSettingsScreen() {
   const [form, setForm] = useState<StoreSettings>(store.storeSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>(form.storeLogo || '');
+  const [heroImagePreview, setHeroImagePreview] = useState<string>(form.heroImage || '');
 
   // Sync form when store updates
   React.useEffect(() => {
     setForm(store.storeSettings);
     setLogoPreview(store.storeSettings.storeLogo || '');
+    setHeroImagePreview(store.storeSettings.heroImage || '');
   }, [store.storeSettings]);
 
   const update = <K extends keyof StoreSettings>(key: K, value: StoreSettings[K]) =>
@@ -919,6 +921,21 @@ export function AdminSettingsScreen() {
       setLogoPreview(base64String);
       update('storeLogo', base64String);
       showAlert('Logo selected - save settings to apply', 'info');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleHeroImageUpload = (file: File) => {
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      showAlert('Please choose a JPG, PNG, WEBP, or GIF image under 5MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setHeroImagePreview(base64String);
+      update('heroImage', base64String);
+      showAlert('Hero image selected - save settings to apply', 'info');
     };
     reader.readAsDataURL(file);
   };
@@ -1078,6 +1095,23 @@ export function AdminSettingsScreen() {
               Description
               <textarea className={`${inputClass} mt-2 min-h-24`} value={form.heroSubtitle} onChange={e => update('heroSubtitle', e.target.value)} placeholder="A few sentences about your store..." />
             </label>
+            <div className="border-t border-stone-100 pt-4 dark:border-[#2e2428]">
+              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">Hero image</label>
+              <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="h-32 w-full overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50 dark:border-[#2e2428] dark:bg-[#2a2024] sm:w-48">
+                  {heroImagePreview ? <img src={heroImagePreview} alt="Hero preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-stone-400">No hero image</div>}
+                </div>
+                <div>
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#1E1719] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#33282C]">
+                    <Plus className="h-4 w-4" />
+                    Choose image
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (file) handleHeroImageUpload(file); }} />
+                  </label>
+                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">JPG, PNG, WEBP, or GIF up to 5MB. Landscape images work best.</p>
+                  {heroImagePreview && <button type="button" onClick={() => { setHeroImagePreview(''); update('heroImage', ''); }} className="mt-3 text-xs font-medium text-red-600 hover:underline dark:text-red-400">Remove hero image</button>}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -99,6 +99,7 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
   heroHeadline: '',
   heroSubtitle: '',
+  heroImage: '',
   heroBadge: '',
   heroButtonText: '',
   heroSecondaryButtonText: '',
