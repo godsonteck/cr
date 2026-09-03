@@ -180,6 +180,7 @@ const normalizeProduct = (product: Product): Product => ({
   ...product,
   price: Number(product.price),
   originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
+  deliveryPrice: product.deliveryPrice == null ? undefined : Number(product.deliveryPrice),
   stockCount: Number(product.stockCount || 0),
   rating: Number(product.rating || 0),
   reviewCount: Number(product.reviewCount || 0),
