@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Boxes,
@@ -111,12 +111,16 @@ const tabLabels: Record<AdminTab, string> = {
 export const AdminPortal: React.FC = () => {
   const store = useStore();
   const { showAlert } = useAlert();
+  const location = useLocation();
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
 
   // Default sidebar closed on mobile, open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
-  const [currentTab, setCurrentTab] = useState<AdminTab>('overview');
+  const [currentTab, setCurrentTab] = useState<AdminTab>(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    return navItems.some(item => item.id === tab) ? tab as AdminTab : 'overview';
+  });
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -203,9 +207,17 @@ export const AdminPortal: React.FC = () => {
 
   const handleTabChange = (tab: AdminTab) => {
     setCurrentTab(tab);
+    const params = new URLSearchParams(location.search);
+    params.set('tab', tab);
+    navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
     // Close sidebar on mobile after navigation
     if (window.innerWidth < 768) setSidebarOpen(false);
   };
+
+  React.useEffect(() => {
+    const tab = new URLSearchParams(location.search).get('tab');
+    setCurrentTab(navItems.some(item => item.id === tab) ? tab as AdminTab : 'overview');
+  }, [location.search]);
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
@@ -353,7 +365,7 @@ export const AdminPortal: React.FC = () => {
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">
-            {currentTab === 'overview' && <AdminDashboard onNavigate={setCurrentTab} />}
+            {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
             {currentTab === 'products' && (
               <AdminProductsScreen
                 onAddProduct={handleAddProduct}
