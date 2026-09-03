@@ -18,6 +18,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const normalizeUser = (profile: UserProfile): UserProfile => ({
+  ...profile,
+  savedAddresses: profile.savedAddresses || [],
+  orders: profile.orders || [],
+  savedItemIds: profile.savedItemIds || [],
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
@@ -46,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         const data = await api.get<UserProfile>('/users?me=true');
         if (data && data.email) {
-          setUser(data);
+          setUser(normalizeUser(data));
         }
       }
     } catch {
@@ -66,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await api.post<{ token: string; user: UserProfile }>('/auth', { email: cleanEmail, password });
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user_id', result.user.id);
-      setUser(result.user);
+      setUser(normalizeUser(result.user));
     } catch (e) {
       // Local fallback for dev/offline testing
       const mockUser: UserProfile = {
@@ -88,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const result = await api.post<{ token: string; user: UserProfile }>('/auth?action=google', { credential });
     localStorage.setItem('auth_token', result.token);
     localStorage.setItem('user_id', result.user.id);
-    setUser(result.user);
+    setUser(normalizeUser(result.user));
   };
 
   const register = async (email: string, fullName: string, password: string) => {
@@ -97,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await api.post<{ token: string; user: UserProfile }>('/users', { email: cleanEmail, fullName, password });
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user_id', result.user.id);
-      setUser(result.user);
+      setUser(normalizeUser(result.user));
     } catch {
       const newUser: UserProfile = {
         id: 'usr-' + Date.now(),
@@ -131,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => (prev ? { ...prev, ...data } : null));
     try {
       const updated = await api.patch<UserProfile>(`/users/${user.id}`, data);
-      if (updated) setUser(updated);
+      if (updated) setUser(normalizeUser(updated));
     } catch {
       // Handled locally
     }

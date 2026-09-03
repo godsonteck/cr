@@ -168,7 +168,7 @@ export const AccountPage: React.FC = () => {
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>Order History ({user?.orders.length || 0})</span>
+          <span>Order History ({user?.orders?.length || 0})</span>
         </button>
         <button
           onClick={() => setActiveTab('wishlist')}
