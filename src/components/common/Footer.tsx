@@ -47,6 +47,10 @@ export const Footer: React.FC = () => {
           </a>
         </div>
 
+        <div className="mt-5 flex justify-center md:justify-end">
+          <div google-add-preferred-source-btn data-theme="light" data-lang="en" />
+        </div>
+
         <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
           © {new Date().getFullYear()} CR Cosmetics &amp; Essentials
         </div>

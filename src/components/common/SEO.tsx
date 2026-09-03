@@ -60,6 +60,9 @@ export const SEO: React.FC<SEOProps> = ({
   const pageTitle = title || routeMeta.title;
   const pageDescription = description || routeMeta.description;
   const pageImage = image || productImage || storeSettings.storeLogo || defaultImage;
+  const absoluteImage = pageImage.startsWith('http') || pageImage.startsWith('data:')
+    ? pageImage
+    : `${window.location.origin}${pageImage.startsWith('/') ? '' : '/'}${pageImage}`;
   const pageUrl = url || `${window.location.origin}${location.pathname}`;
   const isPrivatePage = ['/account', '/cart', '/checkout', '/signin', '/signup'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`));
 
@@ -72,7 +75,7 @@ export const SEO: React.FC<SEOProps> = ({
     '@type': 'Product',
     name: productName,
     description: productDescription,
-    image: productImage ? [productImage] : undefined,
+    image: productImage ? [productImage.startsWith('http') || productImage.startsWith('data:') ? productImage : `${window.location.origin}${productImage.startsWith('/') ? '' : '/'}${productImage}`] : undefined,
     offers: {
       '@type': 'Offer',
       price: productPrice,
@@ -84,7 +87,7 @@ export const SEO: React.FC<SEOProps> = ({
       },
     },
   } : [
-    { '@context': 'https://schema.org', '@type': 'Organization', name: storeSettings.storeName, url: window.location.origin, logo: `${window.location.origin}${defaultImage}`, areaServed: 'Ghana' },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: storeSettings.storeName, url: window.location.origin, logo: absoluteImage, areaServed: 'Ghana' },
     { '@context': 'https://schema.org', '@type': 'WebSite', name: storeSettings.storeName, url: window.location.origin, potentialAction: { '@type': 'SearchAction', target: `${window.location.origin}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
     { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbItems.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: item.url })) },
   ];
@@ -96,19 +99,22 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="robots" content={isPrivatePage ? 'noindex, nofollow' : 'index, follow'} />
       <meta name="theme-color" content="#8A3D52" />
       <link rel="canonical" href={pageUrl} />
+      <meta name="referrer" content="strict-origin-when-cross-origin" />
 
       <meta property="og:type" content={type} />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
-      <meta property="og:image" content={pageImage} />
+      <meta property="og:image" content={absoluteImage} />
+      <meta property="og:image:alt" content={pageTitle} />
       <meta property="og:site_name" content={storeSettings.storeName} />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={pageUrl} />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={pageDescription} />
-      <meta name="twitter:image" content={pageImage} />
+      <meta name="twitter:image" content={absoluteImage} />
+      <meta name="twitter:image:alt" content={pageTitle} />
 
       {structuredData && (
         <script
