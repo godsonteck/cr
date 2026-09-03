@@ -690,6 +690,7 @@ export function AdminFlashDealsScreen() {
     description: '',
     discountPercentage: 20,
     expiresAt: '',
+    productIds: [] as string[],
   });
 
   const save = async (e: React.FormEvent) => {
@@ -707,6 +708,7 @@ export function AdminFlashDealsScreen() {
       secondsRemaining: 0,
       backgroundGradient: 'from-[#1E1719] via-[#2B1F23] to-[#120B0D]',
       isActive: true,
+      productIds: form.productIds,
     };
 
     if (editing) {
@@ -716,7 +718,7 @@ export function AdminFlashDealsScreen() {
     }
     showAlert(editing ? 'Flash deal updated' : 'Flash deal created', 'success');
     setEditing(null);
-    setForm({ title: '', subtitle: '', description: '', discountPercentage: 20, expiresAt: '' });
+    setForm({ title: '', subtitle: '', description: '', discountPercentage: 20, expiresAt: '', productIds: [] });
   };
 
   return (
@@ -783,6 +785,16 @@ export function AdminFlashDealsScreen() {
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-stone-500 dark:text-stone-400 block">Deal products</label>
+            <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-stone-200 p-2 dark:border-[#2e2428]">
+              {store.products.filter(product => product.isPublished !== false).map(product => {
+                const selected = form.productIds.includes(product.id);
+                return <label key={product.id} className="flex cursor-pointer items-center gap-2 rounded-lg p-2 text-xs hover:bg-stone-50 dark:hover:bg-[#2a2024]"><input type="checkbox" checked={selected} onChange={() => setForm({ ...form, productIds: selected ? form.productIds.filter(id => id !== product.id) : [...form.productIds, product.id] })} /><span className="truncate text-stone-700 dark:text-stone-300">{product.name}</span><span className="ml-auto text-stone-400">GHS {product.price.toFixed(2)}</span></label>;
+              })}
+            </div>
+            <p className="text-[11px] text-stone-500">Selected products appear in the storefront flash-deal collection.</p>
+          </div>
           <div className="flex gap-2">
             <button className={`${buttonClass} flex-1`}>
               <Save className="h-4 w-4" />
@@ -826,6 +838,7 @@ export function AdminFlashDealsScreen() {
                       description: deal.description,
                       discountPercentage: deal.discountPercentage,
                       expiresAt: deal.expiresAt.slice(0, 16),
+                      productIds: deal.productIds || [],
                     });
                   }}
                 >

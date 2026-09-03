@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
             className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#20bd5a]"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span>WhatsApp (0592153306)</span>
+            <span>WhatsApp ({storeSettings.storePhone || '0592153306'})</span>
           </a>
         </div>
 

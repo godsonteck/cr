@@ -16,12 +16,12 @@ export const Badge: React.FC<BadgeProps> = ({
   const sizeStyles = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
 
   const variantStyles = {
-    terracotta: 'bg-[#C86D51] text-white font-medium',
-    botanical: 'bg-[#4A5D4E] text-white font-medium',
-    espresso: 'bg-[#1C1817] text-white font-medium dark:bg-amber-100 dark:text-gray-950',
-    gold: 'bg-[#D4AF37] text-gray-950 font-semibold',
-    secondary: 'bg-[#F5F0EB] text-[#1C1817] dark:bg-stone-800 dark:text-stone-200 font-medium',
-    outline: 'border border-[#E6DFD7] text-[#6E6763] dark:border-stone-700 dark:text-stone-300 font-medium'
+    terracotta: 'bg-[var(--accent)] text-white font-medium',
+    botanical: 'bg-[var(--olive)] text-white font-medium',
+    espresso: 'bg-[var(--text-primary)] text-[var(--bg-card)] font-medium',
+    gold: 'bg-[#d9b26d] text-[#2a1d20] font-semibold',
+    secondary: 'bg-[var(--bg-soft)] text-[var(--text-primary)] font-medium',
+    outline: 'border border-[var(--border-color)] text-[var(--text-muted)] dark:text-[var(--text-primary)] font-medium'
   };
 
   return (
@@ -53,11 +53,11 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-[#1C1817] text-white hover:bg-[#342F2D] dark:bg-[#F5F0EB] dark:text-[#1C1817] dark:hover:bg-white shadow-sm',
-    secondary: 'bg-[#C86D51] text-white hover:bg-[#b05d43] shadow-sm',
-    botanical: 'bg-[#4A5D4E] text-white hover:bg-[#3b4b3e] shadow-sm',
-    outline: 'border border-[#E6DFD7] text-[#1C1817] hover:bg-[#F5F0EB] dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800',
-    ghost: 'text-[#1C1817] hover:bg-[#F5F0EB] dark:text-stone-200 dark:hover:bg-stone-800',
+    primary: 'bg-[var(--text-primary)] text-[var(--bg-card)] hover:opacity-90 shadow-sm',
+    secondary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)] shadow-sm',
+    botanical: 'bg-[var(--olive)] text-white hover:bg-[var(--olive-strong)] shadow-sm',
+    outline: 'border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-soft)]',
+    ghost: 'text-[var(--text-primary)] hover:bg-[var(--bg-soft)]',
     danger: 'bg-red-600 text-white hover:bg-red-700'
   };
 

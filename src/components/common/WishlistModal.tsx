@@ -17,8 +17,8 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-md bg-[#FDFBF7] dark:bg-[#12100F] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end" role="dialog" aria-modal="true" aria-label="Wishlist" onClick={onClose}>
+      <div className="w-full max-w-md bg-[var(--bg-main)] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans" onClick={event => event.stopPropagation()}>
 
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E6DFD7] dark:border-[#36322E]">
@@ -28,7 +28,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
               Saved Wishlist ({wishlistProducts.length})
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800">
+          <button onClick={onClose} aria-label="Close wishlist" className="min-h-10 min-w-10 p-1 rounded-lg hover:bg-[var(--bg-soft)]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -65,6 +65,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
 
                     <button
                       onClick={() => toggleWishlist(product.id)}
+                      aria-label={`Remove ${product.name} from wishlist`}
                       className="text-stone-400 hover:text-red-500 p-1"
                     >
                       <Trash2 className="w-4 h-4" />

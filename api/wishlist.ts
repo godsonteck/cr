@@ -3,16 +3,23 @@ import { db } from '../src/neon.js';
 import { wishlists } from '../src/db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { requireAuth } from './_auth.js';
 
 const wishlistAddSchema = z.object({
-  productId: z.string().uuid(),
+  productId: z.string().min(1),
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body, headers } = req;
 
-  const userId = headers['x-user-id'] as string | undefined;
+  let userId: string | undefined;
   const sessionId = headers['x-session-id'] as string | undefined;
+
+  if (headers.authorization) {
+    const auth = await requireAuth(req, res);
+    if (!auth) return;
+    userId = auth.role === 'customer' ? auth.sub : undefined;
+  }
 
   if (!userId && !sessionId) {
     return res.status(401).json({ error: 'Authentication required' });

@@ -19,27 +19,6 @@ import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
 import { api } from '../../lib/api';
 
-interface PaystackHandler {
-  new (): {
-    newTransaction: (options: {
-    key: string;
-    email: string;
-    amount: number;
-    currency: string;
-    ref: string;
-    metadata: { custom_fields: Array<{ display_name: string; variable_name: string; value: string }> };
-    onSuccess: (response: { reference: string }) => void;
-    onCancel: () => void;
-    }) => void;
-  };
-}
-
-declare global {
-  interface Window {
-    PaystackPop?: PaystackHandler;
-  }
-}
-
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
   const { isAuthenticated } = useAuth();
@@ -49,8 +28,8 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-md bg-[#FDFBF7] dark:bg-[#12100F] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end" role="dialog" aria-modal="true" aria-label="Shopping cart" onClick={onClose}>
+      <div className="w-full max-w-md bg-[var(--bg-main)] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans" onClick={event => event.stopPropagation()}>
 
         {/* Drawer Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E6DFD7] dark:border-[#36322E]">
@@ -60,7 +39,7 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
               Your Cart ({totalItems})
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800">
+          <button onClick={onClose} aria-label="Close cart" className="min-h-10 min-w-10 p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -83,14 +62,15 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
 
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center border border-[#E6DFD7] rounded-full px-2 py-0.5 text-xs bg-stone-50 dark:bg-stone-900">
-                      <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="px-1.5 font-bold">-</button>
+                      <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} aria-label={`Decrease quantity for ${item.product.name}`} className="min-h-10 min-w-10 px-1.5 font-bold">-</button>
                       <span className="px-2 font-extrabold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="px-1.5 font-bold">+</button>
+                      <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} aria-label={`Increase quantity for ${item.product.name}`} className="min-h-10 min-w-10 px-1.5 font-bold">+</button>
                     </div>
 
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-stone-400 hover:text-red-500 p-1"
+                      aria-label={`Remove ${item.product.name} from cart`}
+                      className="min-h-10 min-w-10 text-stone-400 hover:text-red-500 p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -277,7 +257,7 @@ export const FullCartPage: React.FC = () => {
 
 export const MultiStepCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
+  const { cartItems, subtotal, discount, promoCode, clearCart, hasFreeShippingCoupon } = useCart();
   const { user, addOrder, saveAddress, isAuthenticated } = useAuth();
   const { storeSettings, addOrder: addStoreOrder } = useStore();
   const { showAlert } = useAlert();
@@ -292,17 +272,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
-  const paymentMethod: PaymentMethod = 'paystack';
+  const paymentMethod: PaymentMethod = 'momo-mtn';
   const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    if (!import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || document.querySelector('script[data-paystack]')) return;
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v2/inline.js';
-    script.async = true;
-    script.dataset.paystack = 'true';
-    document.body.appendChild(script);
-  }, []);
 
   const locationText = `${city} ${area}`.toLowerCase();
   const matchedZone = (storeSettings.deliveryZones || []).find(zone => zone.keywords.length > 0 && zone.keywords.some(keyword => locationText.includes(keyword.toLowerCase())))
@@ -310,7 +281,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const locationDeliveryFee = matchedZone?.fee ?? storeSettings.standardShippingFee;
   const productDeliveryFees = cartItems.map(item => item.product.deliveryPrice).filter((fee): fee is number => typeof fee === 'number');
   const standardDeliveryFee = productDeliveryFees.length > 0 ? Math.max(...productDeliveryFees) : locationDeliveryFee;
-  const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : standardDeliveryFee;
+  const standardShipping = subtotal >= (storeSettings.freeDeliveryThreshold || 300) || hasFreeShippingCoupon ? 0 : standardDeliveryFee;
+  const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : standardShipping;
   const totalAmount = Math.max(0, subtotal - discount + shippingFee);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
@@ -338,39 +310,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-
     setIsProcessing(true);
     try {
-      let isPaid = false;
-      let payRef = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-
-      // 1. Process with Paystack if key is configured and script is available
-      if (publicKey && window.PaystackPop) {
-        const payment = await new Promise<{ reference: string }>((resolve, reject) => {
-          const checkout = new window.PaystackPop!();
-          checkout.newTransaction({
-            key: publicKey,
-            email: email || user?.email || 'customer@crcosmetics.com',
-            amount: Math.round(totalAmount * 100),
-            currency: 'GHS',
-            ref: payRef,
-            metadata: { custom_fields: [{ display_name: 'Customer name', variable_name: 'customer_name', value: fullName }] },
-            onSuccess: resolve,
-            onCancel: () => reject(new Error('Payment cancelled')),
-          });
-        });
-
-        payRef = payment.reference;
-        try {
-          await api.post('/auth?action=paystack-verify', { reference: payment.reference, amount: Math.round(totalAmount * 100) });
-          isPaid = true;
-        } catch {
-          // If server verify endpoint offline, accept valid client payment
-          isPaid = true;
-        }
-      }
-
       const orderPayload: Order = {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -380,7 +321,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         discount,
         total: totalAmount,
         paymentMethod: 'paystack',
-        paymentStatus: isPaid ? 'paid' : 'pending',
+        paymentStatus: 'pending',
         deliveryMethod,
         shippingAddress: {
           fullName,
@@ -393,19 +334,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
         status: 'Confirmed',
         estimatedDeliveryTime: '24 Hours',
         appliedPromoCode: promoCode || undefined,
-        // Pass verified reference so the server can independently confirm payment
-        paystackReference: isPaid ? payRef : undefined,
         createdAt: new Date().toISOString(),
       };
 
-      // Try creating via API, otherwise use orderPayload
-      let createdOrder = orderPayload;
-      try {
-        const apiOrder = await api.post<Order>('/orders', orderPayload);
-        if (apiOrder && apiOrder.id) createdOrder = apiOrder;
-      } catch {
-        // Handled locally
-      }
+      const createdOrder = await api.post<Order>('/orders', orderPayload);
 
       // Sync across both StoreContext and AuthContext
       await addStoreOrder(createdOrder);
@@ -418,9 +350,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
     } catch (error) {
       console.error('Checkout error:', error);
       showAlert(
-        error instanceof Error && error.message === 'Payment cancelled'
-          ? 'Payment was cancelled. Your cart is still saved.'
-          : 'Unable to process checkout. Please verify your details and try again.',
+          'Unable to place your order. Please verify your details and try again.',
         'error',
         { persistent: true }
       );
@@ -434,7 +364,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
       {/* Checkout Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
-        <p className="text-xs text-stone-500">Secure payment through Paystack using supported card and mobile-money options.</p>
+        <p className="text-xs text-stone-500">Pay by mobile money to our business number, then submit your order for confirmation.</p>
       </div>
 
       {/* Progress Bar */}
@@ -536,15 +466,18 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Payment Provider</h3>
+            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Mobile money payment</h3>
 
             <div className="grid grid-cols-1 gap-4">
-              <label className={`p-4 rounded-2xl border flex items-center gap-3 cursor-pointer ${
-                'border-[#C86D51] bg-[#F5F0EB]'
-              }`}>
+              <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5">
                 <CreditCard className="w-5 h-5 text-[#C86D51]" />
-                <span className="text-xs font-bold">Pay securely with Paystack</span>
-              </label>
+                <p className="mt-3 text-xs font-bold uppercase tracking-wider text-stone-700">Send payment to our business number</p>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <a href={`tel:${storeSettings.storePhone}`} className="text-2xl font-black tracking-wide text-[#1C1817]">{storeSettings.storePhone}</a>
+                  <button type="button" className="rounded-full border border-[#C86D51] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A3D52]" onClick={() => { void navigator.clipboard?.writeText(storeSettings.storePhone || ''); showAlert('Business number copied', 'success'); }}>Copy number</button>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-stone-600">Use your full name as the payment reference. After sending GHS {totalAmount.toFixed(2)}, continue and submit the order. We will confirm payment before dispatch.</p>
+              </div>
             </div>
 
             <div className="flex gap-4">
@@ -579,7 +512,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
               isLoading={isProcessing}
               className="w-full rounded-full py-4 uppercase text-xs font-bold tracking-wider"
             >
-              Pay securely with Paystack · GHS {totalAmount.toFixed(2)}
+              I have paid · Submit order for confirmation
             </Button>
           </form>
         )}
@@ -602,7 +535,7 @@ export const OrderConfirmationPage: React.FC = () => {
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
-          Order Confirmed!
+          {order?.paymentStatus === 'pending' ? 'Order received' : 'Order confirmed'}
         </h1>
         {order && (
           <p className="text-xs font-bold text-[#C86D51]">
@@ -631,13 +564,14 @@ export const OrderConfirmationPage: React.FC = () => {
           <div className="pt-3 border-t border-[#E6DFD7] space-y-1">
             <div className="flex justify-between"><span>Subtotal:</span><span>GHS {order.subtotal.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Shipping:</span><span>GHS {order.shippingFee.toFixed(2)}</span></div>
-            <div className="flex justify-between text-sm font-extrabold pt-1"><span>Total Paid:</span><span className="text-[#C86D51]">GHS {order.total.toFixed(2)}</span></div>
+            <div className="flex justify-between text-sm font-extrabold pt-1"><span>{order.paymentStatus === 'pending' ? 'Amount to confirm:' : 'Total paid:'}</span><span className="text-[#C86D51]">GHS {order.total.toFixed(2)}</span></div>
           </div>
 
           <div className="pt-3 border-t border-[#E6DFD7] space-y-1 text-stone-500">
             <div><strong>Deliver To:</strong> {order.shippingAddress.fullName} ({order.shippingAddress.phone})</div>
             <div><strong>Address:</strong> {order.shippingAddress.area}, {order.shippingAddress.city}</div>
             <div><strong>Payment Method:</strong> <span className="uppercase">{order.paymentMethod}</span> ({order.paymentStatus})</div>
+            {order.paymentStatus === 'pending' && <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-800">We will confirm your mobile-money payment before dispatch.</p>}
           </div>
         </div>
       ) : (

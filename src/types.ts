@@ -67,6 +67,7 @@ export interface FlashDeal {
   createdAt: string;
   expiresAt: string;
   backgroundGradient: string; // e.g. "from-[var(--accent)] via-[var(--violet)] to-[var(--olive)]"
+  productIds?: string[];
 }
 
 export interface HomepageSectionVisibility {
@@ -152,6 +153,7 @@ export interface ProductReview {
   verifiedPurchase: boolean;
   skinType?: string;
   helpfulCount: number;
+  isApproved?: boolean;
   adminReply?: string;
 }
 

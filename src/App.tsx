@@ -9,16 +9,27 @@ import { PageSkeleton } from './components/common/LoadingStates';
 // Components
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
-import { CartDrawerComponent } from './components/checkout/CartAndCheckout';
+import { CartDrawerComponent } from './components/common/CartDrawerComponent';
 import { WishlistModal } from './components/common/WishlistModal';
 
 // Views
-import { HomePage, BeautyDepartmentPage, GroceryDepartmentPage } from './components/home/DepartmentStorefronts';
-import { ShopCatalogPage, SearchResultsPage } from './components/shop/CatalogAndSearch';
-import { ProductDetailPage, RoutineBuilderPage } from './components/product/ProductDetailAndRoutine';
-import { FullCartPage, MultiStepCheckoutPage, OrderConfirmationPage } from './components/checkout/CartAndCheckout';
-import { AccountPage, SignInPage, SignUpPage } from './components/account/AccountAndAuth';
-import { AboutPage, ContactPage, SupportPage } from './components/common/SupportPages';
+
+const HomePage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.HomePage })));
+const BeautyDepartmentPage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.BeautyDepartmentPage })));
+const GroceryDepartmentPage = lazy(() => import('./components/home/DepartmentStorefronts').then(module => ({ default: module.GroceryDepartmentPage })));
+const ShopCatalogPage = lazy(() => import('./components/shop/CatalogAndSearch').then(module => ({ default: module.ShopCatalogPage })));
+const SearchResultsPage = lazy(() => import('./components/shop/CatalogAndSearch').then(module => ({ default: module.SearchResultsPage })));
+const ProductDetailPage = lazy(() => import('./components/product/ProductDetailAndRoutine').then(module => ({ default: module.ProductDetailPage })));
+const RoutineBuilderPage = lazy(() => import('./components/product/ProductDetailAndRoutine').then(module => ({ default: module.RoutineBuilderPage })));
+const AccountPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.AccountPage })));
+const SignInPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignInPage })));
+const SignUpPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignUpPage })));
+const AboutPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.AboutPage })));
+const ContactPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.ContactPage })));
+const SupportPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.SupportPage })));
+const FullCartPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.FullCartPage })));
+const MultiStepCheckoutPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.MultiStepCheckoutPage })));
+const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.OrderConfirmationPage })));
 
 // Lazy-loaded Admin Command Center
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
@@ -112,7 +123,8 @@ function AppLayout() {
                 </p>
               </div>
             ) : (
-              <Routes>
+              <Suspense fallback={<PageSkeleton />}>
+                <Routes>
                 <Route path="/" element={pageVisibility.home ? <HomePage /> : renderUnavailable('Home page is currently offline')} />
                 <Route path="/beauty" element={pageVisibility.beauty ? <BeautyDepartmentPage /> : renderUnavailable('Beauty collection is currently offline')} />
                 <Route path="/groceries" element={pageVisibility.groceries ? <GroceryDepartmentPage /> : renderUnavailable('Groceries collection is currently offline')} />
@@ -137,7 +149,8 @@ function AppLayout() {
                 <Route path="/offers" element={pageVisibility.offers ? <ShopCatalogPage /> : renderUnavailable('Offers are currently closed')} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                </Routes>
+              </Suspense>
             )}
           </main>
 

@@ -21,6 +21,7 @@ interface CartContextType {
   shippingFee: number;
   total: number;
   freeShippingThreshold: number;
+  hasFreeShippingCoupon: boolean;
   progressToFreeShipping: number;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
@@ -215,6 +216,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         shippingFee: calculatedShippingFee,
         total,
         freeShippingThreshold,
+        hasFreeShippingCoupon,
         progressToFreeShipping,
         isCartOpen,
         setIsCartOpen,

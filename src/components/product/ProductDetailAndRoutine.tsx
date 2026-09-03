@@ -116,13 +116,13 @@ export const ProductDetailPage: React.FC = () => {
             <img src={currentImage} alt={product.name} className="h-[440px] w-full rounded-[22px] object-cover sm:h-[560px]" />
           </div>
 
-          <div className="flex gap-3 lg:hidden">
+          <div className="flex min-w-0 gap-3 overflow-x-auto pb-1 lg:hidden no-scrollbar">
             {galleryImages.map((img, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => setSelectedImage(img)}
-                className={`h-20 w-20 overflow-hidden rounded-xl border ${
+                className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border ${
                   currentImage === img ? 'border-[var(--accent)]' : 'border-[var(--border-color)]'
                 }`}
               >
@@ -138,6 +138,7 @@ export const ProductDetailPage: React.FC = () => {
             <button
               type="button"
               onClick={() => toggleWishlist(product.id)}
+              aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
               className={`rounded-full border p-2 transition ${
                 wishlisted
                   ? 'border-[#C86D51] bg-[#C86D51] text-white'

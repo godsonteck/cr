@@ -74,20 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user_id', result.user.id);
       setUser(normalizeUser(result.user));
-    } catch (e) {
-      // Local fallback for dev/offline testing
-      const mockUser: UserProfile = {
-        id: 'usr-' + cleanEmail.replace(/[^a-z0-9]/g, '-'),
-        fullName: cleanEmail.split('@')[0].toUpperCase(),
-        email: cleanEmail,
-        phone: '+233 24 000 0000',
-        savedAddresses: [],
-        orders: [],
-        savedItemIds: [],
-      };
-      localStorage.setItem('auth_token', 'local_token_' + Date.now());
-      localStorage.setItem('user_id', mockUser.id);
-      setUser(mockUser);
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -105,19 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user_id', result.user.id);
       setUser(normalizeUser(result.user));
-    } catch {
-      const newUser: UserProfile = {
-        id: 'usr-' + Date.now(),
-        fullName: fullName.trim(),
-        email: cleanEmail,
-        phone: '',
-        savedAddresses: [],
-        orders: [],
-        savedItemIds: [],
-      };
-      localStorage.setItem('auth_token', 'local_token_' + Date.now());
-      localStorage.setItem('user_id', newUser.id);
-      setUser(newUser);
+    } catch (error) {
+      throw error;
     }
   };
 

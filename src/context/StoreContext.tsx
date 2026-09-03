@@ -604,7 +604,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     try {
-      await api.patch<Product>(`/products/${id}`, updates);
+      await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates);
       await fetchProducts();
     } catch (e: any) {
       setError('Failed to update product on server.');
@@ -614,7 +614,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteProduct = async (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     try {
-      await api.delete(`/products/${id}`);
+      await api.delete(`/products?id=${encodeURIComponent(id)}`);
       await fetchProducts();
     } catch (e: any) {
       setError('Failed to delete product from server.');
@@ -674,7 +674,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateCategory = async (id: CategoryType, updates: Partial<CategoryConfig>) => {
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
     try {
-      await api.patch<CategoryConfig>(`/categories/${id}`, updates);
+      await api.patch<CategoryConfig>(`/categories?id=${encodeURIComponent(id)}`, updates);
       await fetchCategories();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
@@ -690,7 +690,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteCategory = async (id: string) => {
     setCategories(prev => prev.filter(c => c.id !== id));
     try {
-      await api.delete(`/categories/${id}`);
+      await api.delete(`/categories?id=${encodeURIComponent(id)}`);
       await fetchCategories();
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
@@ -704,20 +704,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Order Actions
 const addOrder = async (order: Order) => {
     setOrders(prev => [order, ...prev]);
-    // Deduct stock from products automatically
+  // The API transaction already deducts stock. Keep the local catalog in sync without posting a second order.
     order.items.forEach(item => {
       if (item.product?.id) {
         const prod = products.find(p => p.id === item.product.id);
         if (prod) {
           const newQty = Math.max(0, (prod.stockCount || 0) - item.quantity);
-          updateProductStock(prod.id, newQty, newQty > 0);
+          setProducts(prev => prev.map(product => product.id === prod.id ? { ...product, stockCount: newQty, inStock: newQty > 0 } : product));
         }
       }
     });
-    try {
-      await api.post('/orders', order);
-      await fetchOrders();
-    } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => {
@@ -733,21 +729,21 @@ const addOrder = async (order: Order) => {
     }));
 
     try {
-      await api.patch(`/orders/${orderId}/status`, { status, riderInfo });
+      await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { status, riderInfo });
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus } : o));
     try {
-      await api.patch(`/orders/${orderId}/payment`, { paymentStatus });
+      await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { paymentStatus });
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deleteOrder = async (orderId: string) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
     try {
-      await api.delete(`/orders/${orderId}`);
+      await api.delete(`/orders?id=${encodeURIComponent(orderId)}`);
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -785,7 +781,7 @@ const addOrder = async (order: Order) => {
   const deletePromoCode = async (id: string) => {
     setPromoCodes(prev => prev.filter(p => p.id !== id));
     try {
-      await api.delete(`/promo-codes/${id}`);
+      await api.delete(`/promo-codes?id=${encodeURIComponent(id)}`);
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
@@ -1028,28 +1024,23 @@ const addOrder = async (order: Order) => {
 
   // Flash Deal Actions
   const addFlashDeal = async (dealData: Omit<FlashDeal, 'id' | 'createdAt'>) => {
-    const newDeal: FlashDeal = {
-      ...dealData,
-      id: 'flash-' + Date.now(),
-      createdAt: new Date().toISOString(),
-    };
-    setFlashDeals(prev => [newDeal, ...prev]);
     try {
-      await api.post('/flash-deals', dealData);
+      const createdDeal = await api.post<FlashDeal>('/flash-deals', dealData);
+      setFlashDeals(prev => [createdDeal, ...prev]);
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const updateFlashDeal = async (id: string, updates: Partial<FlashDeal>) => {
     setFlashDeals(prev => prev.map(deal => deal.id === id ? { ...deal, ...updates } : deal));
     try {
-      await api.patch(`/flash-deals/${id}`, updates);
+      await api.patch(`/flash-deals?id=${encodeURIComponent(id)}`, updates);
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 
   const deleteFlashDeal = async (id: string) => {
     setFlashDeals(prev => prev.filter(deal => deal.id !== id));
     try {
-      await api.delete(`/flash-deals/${id}`);
+      await api.delete(`/flash-deals?id=${encodeURIComponent(id)}`);
     } catch (e: any) { setError(e.message || "Operation failed"); }
   };
 

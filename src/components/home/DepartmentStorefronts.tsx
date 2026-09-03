@@ -33,6 +33,16 @@ export const HomePage: React.FC = () => {
     return selected;
   };
 
+  const flashDealProducts = activeFlashDeal?.productIds?.length
+    ? reserveProducts(activeFlashDeal.productIds.map(id => publishedProducts.find(product => product.id === id)).filter((product): product is typeof publishedProducts[number] => Boolean(product)).map(product => ({
+        ...product,
+        originalPrice: product.price,
+        price: Math.max(0.01, product.price * (1 - activeFlashDeal.discountPercentage / 100)),
+        discountBadge: `-${activeFlashDeal.discountPercentage}%`,
+        badge: 'Sale' as const,
+      })) as typeof publishedProducts, 8)
+    : [];
+
   const hotDeals = homepageSections.hotDeals
     ? reserveProducts(publishedProducts.filter(p => p.badge === 'Sale' || (p.originalPrice && p.originalPrice > p.price)))
     : [];
@@ -112,6 +122,18 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
+        {homepageSections.flashDeal && flashDealProducts.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex items-center gap-2"><Flame className="h-4 w-4 text-[var(--accent)]" /><h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{activeFlashDeal?.title || 'Flash deal picks'}</h3></div>
+              <Link to="/offers" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">Shop deal <ArrowRight className="inline h-3 w-3" /></Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {flashDealProducts.map(product => <ProductCard key={product.id} product={product} />)}
+            </div>
+          </section>
+        )}
+
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Shop by department">
           <Link to="/beauty" className="group rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Department 01</p>
@@ -139,7 +161,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {hotDeals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -156,7 +178,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -173,7 +195,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {beautyProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -190,7 +212,7 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {groceryEssentials.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

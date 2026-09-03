@@ -54,16 +54,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_24px_42px_rgba(11,31,56,0.14)] ${className}`}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleCardClick();
+        }
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`View ${product.name}`}
+      className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-[0_14px_28px_rgba(11,31,56,0.12)] ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           {product.discountBadge ? (
-            <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white shadow-sm">
+            <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-white shadow-sm">
               {product.discountBadge}
             </span>
           ) : product.badge ? (
-            <span className="inline-flex items-center rounded-full bg-[var(--bg-soft)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
+            <span className="inline-flex items-center rounded-full bg-[var(--bg-soft)] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)]">
               {product.badge}
             </span>
           ) : (
@@ -74,17 +83,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleToggleWishlist}
           aria-label="Wishlist"
-          className="rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1.5 text-[var(--text-muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
+          className="rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1 text-[var(--text-muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
         >
-          <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[#C86D51] text-[#C86D51]' : 'stroke-[1.5]'}`} />
+          <Heart className={`h-3 w-3 ${isFavorited ? 'fill-[#C86D51] text-[#C86D51]' : 'stroke-[1.5]'}`} />
         </button>
       </div>
 
-      <div className="relative mb-3 aspect-[4/5] overflow-hidden rounded-[1rem] bg-[var(--bg-soft)]">
+      <div className="relative mb-2 aspect-square overflow-hidden rounded-lg bg-[var(--bg-soft)] p-2">
         <img
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+          className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.04] dark:mix-blend-normal"
           loading="lazy"
         />
 
@@ -95,7 +104,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               e.preventDefault();
               onQuickView(product);
             }}
-            className="absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-full bg-white/90 dark:bg-[#2a3f5f] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#171414] dark:text-[#f8f4f1] shadow-sm opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-center gap-1 rounded-full bg-white/90 dark:bg-[#2a3f5f] px-2 py-1 text-[8px] font-bold uppercase tracking-[0.1em] text-[#171414] dark:text-[#f8f4f1] shadow-sm opacity-0 transition-opacity group-hover:opacity-100"
           >
             <Eye className="h-3 w-3" />
             <span>Quick View</span>
@@ -103,30 +112,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
       </div>
 
-      <div className="space-y-2 text-left">
-        <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+      <div className="space-y-1.5 text-left">
+        <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
           {product.brand}
         </span>
 
-        <h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--text-primary)]">
+        <h3 className="line-clamp-2 min-h-9 text-xs font-semibold leading-4 text-[var(--text-primary)] sm:text-[13px]">
           {product.name}
         </h3>
 
         <div className="flex items-end justify-between gap-3">
           <div>
-            <span className="text-lg font-black tracking-[-0.05em] text-[var(--text-primary)]">GHS {price.toFixed(2)}</span>
+            <span className="text-sm font-black tracking-[-0.03em] text-[var(--text-primary)] sm:text-base">GHS {price.toFixed(2)}</span>
             {originalPrice && (
-              <div className="text-[11px] text-[var(--text-subtle)] line-through">GHS {originalPrice.toFixed(2)}</div>
+              <div className="text-[9px] text-[var(--text-subtle)] line-through">GHS {originalPrice.toFixed(2)}</div>
             )}
           </div>
 
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock || product.stockCount <= 0}
-            className="rounded-full bg-[var(--text-primary)] p-2.5 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35 dark:bg-[var(--accent)] dark:text-white"
+            className="rounded-full bg-[var(--text-primary)] p-2 text-[var(--bg-card)] transition-all hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-35 dark:bg-[var(--accent)] dark:text-white"
             aria-label={product.options?.length ? `Choose options for ${product.name}` : product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
           >
-            <ShoppingBag className="h-4 w-4" />
+            <ShoppingBag className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

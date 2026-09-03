@@ -178,7 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (query.id && typeof query.id === 'string') {
-        const [product] = await db.select().from(products).where(eq(products.id, query.id)).limit(1);
+        const [product] = await db.select().from(products).where(and(eq(products.id, query.id), eq(products.isPublished, true))).limit(1);
         if (!product) {
           return res.status(404).json({ error: 'Product not found' });
         }

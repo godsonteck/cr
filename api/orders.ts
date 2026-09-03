@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { orders, products, storeSettings } from '../src/db/schema.js';
+import { orders, products, storeSettings, promoCodes } from '../src/db/schema.js';
 import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -140,54 +140,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
       }
 
-      // ── Payment verification gate ─────────────────────────────────────────
-      const onlinePaymentMethods = ['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'card'];
-      if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
-        const reference = parsed.data.paystackReference?.trim();
-        const secretKey = process.env.PAYSTACK_SECRET_KEY;
-        if (!reference || !secretKey) {
-          return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
-        }
-        // Verify the reference directly with Paystack — cannot be forged
-        const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-          headers: { Authorization: `Bearer ${secretKey}` },
-        });
-        const paystackPayload = await paystackRes.json() as {
-          status?: boolean;
-          data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } };
-        };
-        const expectedKobo = Math.round(parsed.data.total * 100);
-        if (
-          !paystackRes.ok ||
-          !paystackPayload.status ||
-          paystackPayload.data?.status !== 'success' ||
-          paystackPayload.data?.amount !== expectedKobo ||
-          paystackPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()
-        ) {
-          return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
-        }
-      }
-      // ─────────────────────────────────────────────────────────────────────
-
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));
       const productMap = new Map(productRows.map((product) => [product.id, product]));
-
-      for (const item of parsed.data.items) {
+      const quantities = new Map<string, number>();
+      const verifiedItems = parsed.data.items.map((item) => {
         const product = productMap.get(item.product.id);
-        if (!product) {
-          throw new Error(`Product not found: ${item.product.id}`);
+        if (!product) throw new Error(`Product not found: ${item.product.id}`);
+        const quantity = (quantities.get(product.id) || 0) + item.quantity;
+        quantities.set(product.id, quantity);
+        const variants = product.variants || [];
+        const selectedVariant = item.selectedVariant?.id
+          ? variants.find(variant => variant.id === item.selectedVariant?.id)
+          : undefined;
+        const price = Number(selectedVariant?.price ?? product.price);
+        return {
+          ...item,
+          product: {
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            price,
+            originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
+            image: product.image,
+            unit: product.unit,
+            category: product.category,
+            inStock: product.inStock,
+            stockCount: product.stockCount,
+          },
+          selectedVariant: selectedVariant ? { ...selectedVariant, price } : undefined,
+        };
+      });
+
+      for (const [productId, quantity] of quantities) {
+        const product = productMap.get(productId);
+        if (!product || !product.isPublished) {
+          return res.status(400).json({ error: 'One or more products are no longer available.' });
         }
-        if (product.stockCount < item.quantity) {
-          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${item.quantity}`);
+        if (!product.inStock || product.stockCount < quantity) {
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${quantity}`);
         }
       }
+
+      const calculatedSubtotal = verifiedItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
       const settingsRows = await db.select().from(storeSettings);
       const settings = Object.fromEntries(settingsRows.map(setting => [setting.key, setting.value])) as {
         standardShippingFee?: number;
         expressShippingFee?: number;
         intercityShippingFee?: number;
+        freeDeliveryThreshold?: number;
         deliveryZones?: Array<{ keywords?: string[]; fee?: number }>;
       };
       const locationText = `${parsed.data.shippingAddress.city} ${parsed.data.shippingAddress.area}`.toLowerCase();
@@ -204,28 +206,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Delivery price changed. Please review your delivery option and try again.' });
       }
 
+      let calculatedDiscount = 0;
+      let freeShipping = false;
+      let appliedPromoCode: string | undefined;
+      if (parsed.data.appliedPromoCode) {
+        const [promo] = await db.select().from(promoCodes).where(eq(promoCodes.code, parsed.data.appliedPromoCode.toUpperCase())).limit(1);
+        if (!promo || !promo.isActive || (promo.expiryDate && promo.expiryDate < new Date()) || (promo.maxUsage != null && promo.usageCount >= promo.maxUsage)) {
+          return res.status(400).json({ error: 'Promo code is no longer valid.' });
+        }
+        if (promo.minSpend != null && calculatedSubtotal < Number(promo.minSpend)) {
+          return res.status(400).json({ error: 'Order total no longer meets the promo minimum.' });
+        }
+        calculatedDiscount = promo.discountType === 'percentage'
+          ? calculatedSubtotal * Number(promo.discountValue) / 100
+          : Math.min(calculatedSubtotal, Number(promo.discountValue));
+        freeShipping = promo.freeShipping;
+        appliedPromoCode = promo.code;
+      }
+      const finalShippingFee = freeShipping || calculatedSubtotal >= Number(settings.freeDeliveryThreshold ?? 300) ? 0 : expectedShippingFee;
+      const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
+      if (Math.abs(parsed.data.total - calculatedTotal) > 0.01 || Math.abs(parsed.data.subtotal - calculatedSubtotal) > 0.01 || Math.abs(parsed.data.discount - calculatedDiscount) > 0.01) {
+        return res.status(400).json({ error: 'Cart prices changed. Please review your order and try again.' });
+      }
+
+      const onlinePaymentMethods = ['paystack', 'card'];
+      if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
+        const reference = parsed.data.paystackReference?.trim();
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
+        const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
+        const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
+        if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.amount !== Math.round(calculatedTotal * 100) || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+          return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
+        }
+      }
+
       const orderNumber = generateOrderNumber();
       const orderData = {
         ...parsed.data,
+        items: verifiedItems,
+        appliedPromoCode,
         userId: auth.sub,
         orderNumber,
-        subtotal: parsed.data.subtotal.toString(),
-        shippingFee: expectedShippingFee.toString(),
-        discount: parsed.data.discount.toString(),
-        total: parsed.data.total.toString(),
+        subtotal: calculatedSubtotal.toString(),
+        shippingFee: finalShippingFee.toString(),
+        discount: calculatedDiscount.toString(),
+        total: calculatedTotal.toString(),
       };
 
       const newOrder = await db.transaction(async (tx) => {
         const [createdOrder] = await tx.insert(orders).values(orderData).returning();
 
-        for (const item of parsed.data.items) {
-          const product = productMap.get(item.product.id);
+        for (const [productId, quantity] of quantities) {
+          const product = productMap.get(productId);
           if (!product) continue;
-          const nextStock = product.stockCount - item.quantity;
+          const nextStock = product.stockCount - quantity;
           await tx
             .update(products)
             .set({ stockCount: nextStock, inStock: nextStock > 0, updatedAt: new Date() })
-            .where(eq(products.id, item.product.id));
+            .where(eq(products.id, productId));
         }
 
         return createdOrder;

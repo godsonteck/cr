@@ -48,6 +48,11 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
 
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
   body {
     font-family: var(--font-sans);
     background:
@@ -198,6 +203,26 @@
 }
 
 @layer components {
+  .page-shell {
+    width: min(100% - 2rem, 87.5rem);
+    margin-inline: auto;
+    padding-block: 2rem 4rem;
+  }
+
+  .surface-panel {
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .section-heading {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
   .brand-display {
     font-family: var(--font-display);
     letter-spacing: -0.06em;

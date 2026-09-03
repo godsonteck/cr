@@ -278,6 +278,7 @@ export const flashDeals = pgTable('flash_deals', {
   isActive: boolean('is_active').notNull().default(true),
   expiresAt: timestamp('expires_at').notNull(),
   backgroundGradient: varchar('background_gradient', { length: 200 }),
+  productIds: jsonb('product_ids').$type<string[]>().notNull().default([]),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({

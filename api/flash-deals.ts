@@ -17,6 +17,7 @@ const flashDealCreateSchema = z.object({
   isActive: z.boolean().default(true),
   expiresAt: z.string().datetime(),
   backgroundGradient: z.string().max(200).optional(),
+  productIds: z.array(z.string().min(1)).max(100).default([]),
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -79,14 +80,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const parsed = z.object({
         isActive: z.boolean().optional(),
         title: z.string().min(1).max(200).optional(),
+        subtitle: z.string().max(300).optional(),
+        description: z.string().optional(),
+        badgeText: z.string().max(100).optional(),
         discountPercentage: z.number().int().min(1).max(100).optional(),
+        expiresAt: z.string().datetime().optional(),
+        backgroundGradient: z.string().max(200).optional(),
+        productIds: z.array(z.string().min(1)).max(100).optional(),
       }).partial().safeParse(body);
 
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid flash deal update', details: parsed.error.flatten() });
       }
 
-      const [updated] = await db.update(flashDeals).set({ ...parsed.data, updatedAt: new Date() }).where(eq(flashDeals.id, id)).returning();
+      const { expiresAt, ...updates } = parsed.data;
+      const [updated] = await db.update(flashDeals).set({
+        ...updates,
+        ...(expiresAt ? { expiresAt: new Date(expiresAt) } : {}),
+        updatedAt: new Date(),
+      }).where(eq(flashDeals.id, id)).returning();
       if (!updated) {
         return res.status(404).json({ error: 'Flash deal not found' });
       }

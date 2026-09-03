@@ -3,16 +3,13 @@ import { db } from '../src/neon.js';
 import { reviews, products } from '../src/db/schema.js';
 import { eq, desc, and, sql, avg, count } from 'drizzle-orm';
 import { z } from 'zod';
-import { requireAdmin } from './_auth.js';
+import { requireAdmin, requireAuth } from './_auth.js';
 
 const reviewCreateSchema = z.object({
-  productId: z.string().uuid(),
-  userId: z.string().uuid().optional().nullable(),
-  authorName: z.string().min(1).max(100),
+  productId: z.string().min(1),
   rating: z.number().int().min(1).max(5),
   title: z.string().max(200).optional(),
   comment: z.string().min(1),
-  verifiedPurchase: z.boolean().default(false),
   skinType: z.string().max(50).optional(),
 });
 
@@ -55,40 +52,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select({
             avgRating: avg(reviews.rating),
             totalReviews: count(),
-            distribution: sql<Record<number, number>>`jsonb_object_agg(rating, cnt)`,
           })
-          .from(
-            db
-              .select({ rating: reviews.rating, cnt: count() })
-              .from(reviews)
-              .where(and(eq(reviews.productId, productId), eq(reviews.isApproved, true)))
-              .groupBy(reviews.rating)
-              .as('rating_counts')
-          );
+          .from(reviews)
+          .where(and(eq(reviews.productId, productId), eq(reviews.isApproved, true)));
 
-        const stats = statsResult[0] || { avgRating: '5.0', totalReviews: 0, distribution: {} };
+        const stats = statsResult[0] || { avgRating: '5.0', totalReviews: 0 };
         const avgRating = stats.avgRating ?? '5.0';
+        const distribution = results.reduce<Record<number, number>>((counts, review) => {
+          counts[review.rating] = (counts[review.rating] || 0) + 1;
+          return counts;
+        }, { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
 
         return res.status(200).json({
           reviews: results,
           stats: {
             averageRating: Number(parseFloat(avgRating).toFixed(1)),
             totalReviews: Number(stats.totalReviews ?? 0),
-            distribution: stats.distribution || { 5: 100, 4: 0, 3: 0, 2: 0, 1: 0 },
+            distribution,
           },
         });
+      }
+
+      if (query.admin === 'true') {
+        const auth = await requireAdmin(req, res);
+        if (!auth) return;
+        const results = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
+        return res.status(200).json({ reviews: results });
       }
 
       return res.status(400).json({ error: 'Product ID is required' });
     }
 
     if (method === 'POST') {
+      const auth = await requireAuth(req, res);
+      if (!auth || auth.role !== 'customer') return;
+
       const parsed = reviewCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid review data', details: parsed.error.flatten() });
       }
 
-      const [newReview] = await db.insert(reviews).values(parsed.data).returning();
+      const [product] = await db.select({ id: products.id }).from(products).where(eq(products.id, parsed.data.productId)).limit(1);
+      if (!product) return res.status(404).json({ error: 'Product not found' });
+
+      const [newReview] = await db.insert(reviews).values({
+        ...parsed.data,
+        userId: auth.sub,
+        authorName: auth.name || auth.email.split('@')[0],
+        verifiedPurchase: false,
+        isApproved: false,
+      }).returning();
 
       const stats = await db
         .select({

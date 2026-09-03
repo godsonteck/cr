@@ -13,8 +13,11 @@ import {
   Flame,
   Tag,
   Bell,
+  MessageSquare,
   Search,
   UserCheck,
+  Layers,
+  TrendingUp,
   ChevronRight,
   Plus,
   Sun,
@@ -40,6 +43,8 @@ import {
   AdminPromotionsScreen,
   AdminSettingsScreen,
 } from './screens/AdminOperationsScreens';
+import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
+import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
 import logoImg from '../../assets/logo.jpeg';
 import { Product, Order, Customer } from '../../types';
 
@@ -52,7 +57,10 @@ type AdminTab =
   | 'accounts'
   | 'promos'
   | 'flash'
+  | 'categories'
+  | 'analytics'
   | 'notifications'
+  | 'reviews'
   | 'settings';
 
 interface NavItem {
@@ -70,8 +78,11 @@ const navItems: NavItem[] = [
   { id: 'customers',      label: 'Customers',  icon: Users,          group: 'shop'   },
   { id: 'promos',         label: 'Discounts',  icon: Tag,            group: 'shop'   },
   { id: 'flash',          label: 'Deals',      icon: Flame,          group: 'shop'   },
+  { id: 'categories',     label: 'Categories', icon: Layers,         group: 'shop'   },
+  { id: 'analytics',      label: 'Analytics',  icon: TrendingUp,     group: 'main'   },
   { id: 'accounts',       label: 'Team',       icon: UserCheck,      group: 'system' },
   { id: 'notifications',  label: 'Alerts',     icon: Bell,           group: 'system' },
+  { id: 'reviews',        label: 'Reviews',    icon: MessageSquare,  group: 'system' },
   { id: 'settings',       label: 'Settings',   icon: Settings,       group: 'system' },
 ];
 
@@ -89,8 +100,11 @@ const tabLabels: Record<AdminTab, string> = {
   customers:     'Customers',
   promos:        'Promotions',
   flash:         'Flash Deals',
+  categories:    'Categories',
+  analytics:     'Analytics',
   accounts:      'Admin Accounts',
   notifications: 'Alerts & Messages',
+  reviews:       'Reviews',
   settings:      'Settings',
 };
 
@@ -353,7 +367,10 @@ export const AdminPortal: React.FC = () => {
             {currentTab === 'accounts'      && <AdminAccountsManagementScreen />}
             {currentTab === 'promos'        && <AdminPromotionsScreen />}
             {currentTab === 'flash'         && <AdminFlashDealsScreen />}
+            {currentTab === 'categories'    && <AdminCategoriesScreen />}
+            {currentTab === 'analytics'     && <AdminAnalyticsScreen />}
             {currentTab === 'notifications' && <AdminNotificationsScreen />}
+            {currentTab === 'reviews'       && <AdminReviewsScreen />}
             {currentTab === 'settings'      && <AdminSettingsScreen />}
           </div>
         </div>

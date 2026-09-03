@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 interface ReviewsContextType {
   reviews: ProductReview[];
   loading: boolean;
+  fetchAllReviews: () => Promise<ProductReview[]>;
   getReviewsForProduct: (productId: string) => Promise<ProductReview[]>;
   getProductRatingStats: (productId: string, defaultRating?: number, defaultCount?: number) => Promise<{
     averageRating: number;
@@ -33,6 +34,18 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return [];
     }
   };
+
+  const fetchAllReviews = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api.get<{ reviews: ProductReview[] }>('/reviews?admin=true');
+      const results = data.reviews || [];
+      setReviews(results);
+      return results;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const getProductRatingStats = async (productId: string, defaultRating = 5.0, defaultCount = 0) => {
     try {
@@ -66,7 +79,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const deleteReview = async (reviewId: string) => {
     try {
-      await api.delete(`/reviews/${reviewId}`);
+      await api.delete(`/reviews?id=${encodeURIComponent(reviewId)}`);
       setReviews(prev => prev.filter(r => r.id !== reviewId));
     } catch (e) {
       console.error('Failed to delete review:', e);
@@ -76,7 +89,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const replyToReview = async (reviewId: string, replyText: string) => {
     try {
-      await api.patch(`/reviews/${reviewId}`, { adminReply: replyText });
+      await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { adminReply: replyText });
       setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, adminReply: replyText } : r));
     } catch (e) {
       console.error('Failed to reply to review:', e);
@@ -88,7 +101,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const review = reviews.find(r => r.id === reviewId);
       if (review) {
-        await api.patch(`/reviews/${reviewId}`, { helpfulCount: (review.helpfulCount || 0) + 1 });
+        await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { helpfulCount: (review.helpfulCount || 0) + 1 });
         setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount || 0) + 1 } : r));
       }
     } catch (e) {
@@ -99,7 +112,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const clearAllReviews = async () => {
     try {
-      await api.delete('/reviews');
+      await api.delete('/reviews?all=true');
       setReviews([]);
     } catch (e) {
       console.error('Failed to clear reviews:', e);
@@ -111,6 +124,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <ReviewsContext.Provider value={{
       reviews,
       loading,
+      fetchAllReviews,
       getReviewsForProduct,
       getProductRatingStats,
       addReview,

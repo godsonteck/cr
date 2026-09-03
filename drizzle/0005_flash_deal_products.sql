@@ -1,0 +1,1 @@
+ALTER TABLE "flash_deals" ADD COLUMN IF NOT EXISTS "product_ids" jsonb NOT NULL DEFAULT '[]'::jsonb;
