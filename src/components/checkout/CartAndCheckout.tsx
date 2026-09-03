@@ -500,17 +500,17 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 3: Review &amp; Confirm</h3>
 
             <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900 space-y-2 text-xs">
-              <div className="flex justify-between"><strong>Deliver To:</strong> <span>{fullName} ({phone})</span></div>
-              <div className="flex justify-between"><strong>Address:</strong> <span>{area}, {city}</span></div>
-              <div className="flex justify-between"><strong>Payment Method:</strong> <span className="font-bold">Mobile money</span></div>
-              <div className="flex justify-between gap-4"><strong>Payment reference:</strong> <span className="break-all text-right">{paymentReference}</span></div>
-              <div className="flex justify-between gap-4"><strong>Sender number:</strong> <span>{paymentSenderPhone}</span></div>
-              <div className="flex justify-between"><strong>Items subtotal:</strong> <span>GHS {subtotal.toFixed(2)}</span></div>
-              {discount > 0 && <div className="flex justify-between text-emerald-700"><strong>Discount {promoCode && `(${promoCode})`}:</strong> <span>- GHS {discount.toFixed(2)}</span></div>}
-              <div className="flex justify-between"><strong>Delivery:</strong> <span>GHS {shippingFee.toFixed(2)}</span></div>
+              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Deliver To:</strong> <span className="break-words sm:text-right">{fullName} ({phone})</span></div>
+              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Address:</strong> <span className="break-words sm:text-right">{area}, {city}</span></div>
+              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Payment Method:</strong> <span className="font-bold sm:text-right">Mobile money</span></div>
+              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Payment reference:</strong> <span className="break-all sm:text-right">{paymentReference}</span></div>
+              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Sender number:</strong> <span className="break-words sm:text-right">{paymentSenderPhone}</span></div>
+              <div className="flex justify-between gap-4"><strong>Items subtotal:</strong> <span className="shrink-0">GHS {subtotal.toFixed(2)}</span></div>
+              {discount > 0 && <div className="flex justify-between gap-4 text-emerald-700"><strong>Discount {promoCode && `(${promoCode})`}:</strong> <span className="shrink-0">- GHS {discount.toFixed(2)}</span></div>}
+              <div className="flex justify-between gap-4"><strong>Delivery:</strong> <span className="shrink-0">GHS {shippingFee.toFixed(2)}</span></div>
             </div>
 
-            <div className="pt-4 border-t border-[#E6DFD7] flex justify-between items-center text-lg font-extrabold">
+            <div className="flex flex-col gap-1 border-t border-[#E6DFD7] pt-4 text-lg font-extrabold sm:flex-row sm:items-center sm:justify-between">
               <span>Total Payment Amount:</span>
               <span className="text-[#C86D51]">GHS {totalAmount.toFixed(2)}</span>
             </div>
