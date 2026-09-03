@@ -328,7 +328,11 @@ export function AdminCustomersScreen() {
 
     // 2. Try fetching registered users from API
     try {
-      const apiUsers = await api.get<any[]>('/users?admin=true');
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) {
+        throw new Error('Admin session is missing. Please sign in again.');
+      }
+      const apiUsers = await api.get<any[]>('/users?admin=true', adminToken);
       if (Array.isArray(apiUsers)) {
         apiUsers.forEach(u => {
           const key = u.email?.trim().toLowerCase() || u.phone?.trim() || u.id;
@@ -368,8 +372,8 @@ export function AdminCustomersScreen() {
           }
         });
       }
-    } catch {
-      // Backend users offline — seamlessly fallback to order-derived customers
+    } catch (error: any) {
+      showAlert(error?.message || 'Registered customers could not be loaded.', 'error');
     }
 
     const result = Array.from(customerMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
