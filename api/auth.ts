@@ -86,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (action === 'google') {
         const parsed = googleLoginSchema.safeParse(body);
-        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
         if (!parsed.success || !clientId) return res.status(400).json({ error: 'Google sign-in is not configured' });
 
         const googleResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(parsed.data.credential)}`);

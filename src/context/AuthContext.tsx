@@ -85,26 +85,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async (credential: string) => {
-    try {
-      const result = await api.post<{ token: string; user: UserProfile }>('/auth?action=google', { credential });
-      localStorage.setItem('auth_token', result.token);
-      localStorage.setItem('user_id', result.user.id);
-      setUser(result.user);
-    } catch {
-      // Fallback decode if direct API unavailable
-      const mockUser: UserProfile = {
-        id: 'usr-google-' + Date.now(),
-        fullName: 'Google Shopper',
-        email: 'shopper@gmail.com',
-        phone: '+233 24 000 0000',
-        savedAddresses: [],
-        orders: [],
-        savedItemIds: [],
-      };
-      localStorage.setItem('auth_token', 'google_local_token_' + Date.now());
-      localStorage.setItem('user_id', mockUser.id);
-      setUser(mockUser);
-    }
+    const result = await api.post<{ token: string; user: UserProfile }>('/auth?action=google', { credential });
+    localStorage.setItem('auth_token', result.token);
+    localStorage.setItem('user_id', result.user.id);
+    setUser(result.user);
   };
 
   const register = async (email: string, fullName: string, password: string) => {
