@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { orders, products, storeSettings, promoCodes } from '../src/db/schema.js';
+import { orders, products, storeSettings, promoCodes, flashDeals } from '../src/db/schema.js';
 import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -148,6 +148,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));
       const productMap = new Map(productRows.map((product) => [product.id, product]));
+      const [activeDeal] = await db.select().from(flashDeals).where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`)).orderBy(desc(flashDeals.createdAt)).limit(1);
       const quantities = new Map<string, number>();
       const verifiedItems = parsed.data.items.map((item) => {
         const product = productMap.get(item.product.id);
@@ -158,7 +159,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const selectedVariant = item.selectedVariant?.id
           ? variants.find(variant => variant.id === item.selectedVariant?.id)
           : undefined;
-        const price = Number(selectedVariant?.price ?? product.price);
+        const basePrice = Number(selectedVariant?.price ?? product.price);
+        const price = activeDeal?.productIds?.includes(product.id)
+          ? Math.max(0.01, basePrice * (1 - activeDeal.discountPercentage / 100))
+          : basePrice;
         return {
           ...item,
           product: {

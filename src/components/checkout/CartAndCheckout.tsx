@@ -322,7 +322,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         shippingFee,
         discount,
         total: totalAmount,
-        paymentMethod: 'paystack',
+        paymentMethod,
         paymentStatus: 'pending',
         paymentReference: paymentReference.trim(),
         paymentSenderPhone: paymentSenderPhone.trim(),
@@ -502,7 +502,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900 space-y-2 text-xs">
               <div className="flex justify-between"><strong>Deliver To:</strong> <span>{fullName} ({phone})</span></div>
               <div className="flex justify-between"><strong>Address:</strong> <span>{area}, {city}</span></div>
-              <div className="flex justify-between"><strong>Payment Method:</strong> <span className="uppercase font-bold">{paymentMethod}</span></div>
+              <div className="flex justify-between"><strong>Payment Method:</strong> <span className="font-bold">Mobile money</span></div>
               <div className="flex justify-between gap-4"><strong>Payment reference:</strong> <span className="break-all text-right">{paymentReference}</span></div>
               <div className="flex justify-between gap-4"><strong>Sender number:</strong> <span>{paymentSenderPhone}</span></div>
               <div className="flex justify-between"><strong>Items subtotal:</strong> <span>GHS {subtotal.toFixed(2)}</span></div>

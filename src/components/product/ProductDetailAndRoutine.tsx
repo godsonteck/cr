@@ -26,7 +26,7 @@ const COLOR_SWATCHES: Record<string, string> = {
 };
 
 export const ProductDetailPage: React.FC = () => {
-  const { products, storeSettings } = useStore();
+  const { products, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
   const { addToCart } = useCart();
@@ -61,7 +61,10 @@ export const ProductDetailPage: React.FC = () => {
   const currentImage = selectedImage || product.image;
   const hasOptions = Boolean(product.options?.length);
   const activeVariant = selectedVariant;
-  const displayPrice = activeVariant?.price ?? product.price;
+  const activeFlashDeal = flashDeals.find(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now() && deal.productIds?.includes(product.id));
+  const baseDisplayPrice = activeVariant?.price ?? product.price;
+  const displayPrice = activeFlashDeal ? Math.max(0.01, baseDisplayPrice * (1 - activeFlashDeal.discountPercentage / 100)) : baseDisplayPrice;
+  const displayOriginalPrice = activeFlashDeal ? baseDisplayPrice : product.originalPrice;
   const allOptionsSelected = !hasOptions || product.options!.every(option => Boolean(selectedOptionValues[option.name]));
   const canPurchase = hasOptions
     ? allOptionsSelected && Boolean(activeVariant?.inStock)
@@ -166,13 +169,13 @@ export const ProductDetailPage: React.FC = () => {
           <div className="rounded-2xl bg-[var(--bg-soft)] p-4">
             <div className="flex items-end gap-3">
               <span className="text-3xl font-black tracking-[-0.06em] text-[var(--text-primary)]">GHS {displayPrice.toFixed(2)}</span>
-              {product.originalPrice && (
-                <span className="text-base text-[var(--text-subtle)] line-through">GHS {product.originalPrice.toFixed(2)}</span>
+              {displayOriginalPrice && (
+                <span className="text-base text-[var(--text-subtle)] line-through">GHS {displayOriginalPrice.toFixed(2)}</span>
               )}
             </div>
-            {product.originalPrice && (
+            {displayOriginalPrice && (
               <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-[#C86D51]">
-                Save {Math.round(((product.originalPrice - displayPrice) / product.originalPrice) * 100)}%
+                Save {Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)}%
               </p>
             )}
           </div>
@@ -275,7 +278,7 @@ export const ProductDetailPage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="lg"
-                onClick={() => addToCart(product, quantity, activeVariant?.name, activeVariant)}
+                onClick={() => addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, activeVariant)}
                 disabled={!canPurchase}
                 className="flex-1 rounded-full px-5 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
               >
@@ -289,7 +292,7 @@ export const ProductDetailPage: React.FC = () => {
               size="lg"
               onClick={async () => {
                 if (!canPurchase) return;
-                await addToCart(product, quantity, activeVariant?.name, activeVariant);
+                await addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, activeVariant);
                 navigate('/checkout');
               }}
               disabled={!canPurchase}
