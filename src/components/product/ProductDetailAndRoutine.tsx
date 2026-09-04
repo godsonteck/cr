@@ -116,7 +116,7 @@ export const ProductDetailPage: React.FC = () => {
                 <Badge variant={product.badge === 'Sale' ? 'terracotta' : 'secondary'}>{product.badge}</Badge>
               </div>
             )}
-            <img src={currentImage} alt={product.name} className="h-[440px] w-full rounded-[22px] object-cover sm:h-[560px]" />
+            <img src={currentImage} alt={product.name} width="900" height="900" decoding="async" className="h-[min(78vw,390px)] w-full rounded-[22px] bg-[var(--bg-soft)] object-contain sm:h-[560px]" />
           </div>
 
           <div className="flex min-w-0 gap-3 overflow-x-auto pb-1 lg:hidden no-scrollbar">
@@ -135,7 +135,7 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        <aside className="space-y-5 rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[0_20px_45px_rgba(11,31,56,0.08)] sm:p-6">
+        <aside className="space-y-5 rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[0_20px_45px_rgba(11,31,56,0.08)] sm:p-6 lg:sticky lg:top-24">
           <div className="flex items-center justify-between gap-3">
             <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{product.brand}</span>
             <button

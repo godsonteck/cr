@@ -154,7 +154,7 @@ export const FullCartPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 font-sans space-y-8">
+    <div className="mx-auto max-w-6xl space-y-6 px-3 py-6 font-sans sm:space-y-8 sm:px-4 sm:py-10">
       <div className="flex flex-col items-start gap-3 border-b border-[#E6DFD7] pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Shopping Cart</h1>
@@ -210,7 +210,7 @@ export const FullCartPage: React.FC = () => {
         </div>
 
         {/* Order Summary Sidebar */}
-        <div className="bg-white dark:bg-[#1C1917] p-6 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] h-fit space-y-6">
+        <div className="h-fit space-y-6 rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-card)] sm:p-6 lg:sticky lg:top-24">
           <h3 className="text-base font-extrabold uppercase pb-3 border-b border-[#E6DFD7]">
             Order Summary
           </h3>
@@ -262,7 +262,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const { storeSettings, addOrder: addStoreOrder } = useStore();
   const { showAlert } = useAlert();
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2>(1);
 
   // Form State
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -364,59 +364,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
     );
   }
 
-  const handleCompleteOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-    try {
-      const orderPayload: Order = {
-        id: `ord-${Date.now()}`,
-        orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
-        items: [...cartItems],
-        subtotal,
-        shippingFee,
-        discount,
-        total: totalAmount,
-        paymentMethod,
-        paymentStatus: 'pending',
-        paymentReference: paymentReference.trim(),
-        paymentSenderPhone: paymentSenderPhone.trim(),
-        deliveryMethod,
-        shippingAddress: {
-          fullName,
-          phone,
-          email: email || undefined,
-          city,
-          area,
-          deliveryNotes: deliveryNotes || undefined,
-        },
-        status: 'Confirmed',
-        estimatedDeliveryTime: '24 Hours',
-        appliedPromoCode: promoCode || undefined,
-        createdAt: new Date().toISOString(),
-      };
-
-      const createdOrder = await api.post<Order>('/orders', orderPayload);
-
-      // Sync across both StoreContext and AuthContext
-      await addStoreOrder(createdOrder);
-      addOrder(createdOrder);
-      if (createdOrder.shippingAddress) {
-        await saveAddress(createdOrder.shippingAddress);
-      }
-      await clearCart();
-      navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder } });
-    } catch (error) {
-      console.error('Checkout error:', error);
-      showAlert(
-          'Unable to place your order. Please verify your details and try again.',
-        'error',
-        { persistent: true }
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const startPaystackCheckout = async () => {
     if (!fullName || !phone || !area || !email) {
       showAlert('Please complete your delivery details and email first.', 'error');
@@ -448,7 +395,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 font-sans space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6 px-3 py-6 font-sans sm:space-y-8 sm:px-4 sm:py-10">
       {/* Checkout Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
@@ -456,15 +403,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="grid grid-cols-3 gap-1.5 text-center text-[9px] font-bold uppercase sm:flex sm:items-center sm:justify-center sm:gap-4 sm:text-xs">
+      <div className="grid grid-cols-2 gap-1.5 text-center text-[9px] font-bold uppercase sm:flex sm:items-center sm:justify-center sm:gap-4 sm:text-xs">
         <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 1 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>1. Shipping</span>
         <span className="hidden text-stone-300 sm:inline">•</span>
         <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 2 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>2. Payment</span>
-        <span className="hidden text-stone-300 sm:inline">•</span>
-        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 3 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>3. Review</span>
       </div>
 
-      <div className="bg-white dark:bg-[#1C1917] p-6 sm:p-10 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] shadow-sm">
+      <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)] sm:p-8">
 
         {step === 1 && (
           <div className="space-y-6">
@@ -608,38 +553,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
               <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startPaystackCheckout()} className="rounded-full px-8 uppercase text-xs font-bold">Continue to Paystack</Button>
             </div>
           </div>
-        )}
-
-        {step === 3 && (
-          <form onSubmit={handleCompleteOrder} className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 3: Review &amp; Confirm</h3>
-
-            <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900 space-y-2 text-xs">
-              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Deliver To:</strong> <span className="break-words sm:text-right">{fullName} ({phone})</span></div>
-              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Address:</strong> <span className="break-words sm:text-right">{area}, {city}</span></div>
-              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Payment Method:</strong> <span className="font-bold sm:text-right">Mobile money</span></div>
-              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Payment reference:</strong> <span className="break-all sm:text-right">{paymentReference}</span></div>
-              <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:gap-x-4"><strong>Sender number:</strong> <span className="break-words sm:text-right">{paymentSenderPhone}</span></div>
-              <div className="flex justify-between gap-4"><strong>Items subtotal:</strong> <span className="shrink-0">GHS {subtotal.toFixed(2)}</span></div>
-              {discount > 0 && <div className="flex justify-between gap-4 text-emerald-700"><strong>Discount {promoCode && `(${promoCode})`}:</strong> <span className="shrink-0">- GHS {discount.toFixed(2)}</span></div>}
-              <div className="flex justify-between gap-4"><strong>Delivery:</strong> <span className="shrink-0">GHS {shippingFee.toFixed(2)}</span></div>
-            </div>
-
-            <div className="flex flex-col gap-1 border-t border-[#E6DFD7] pt-4 text-lg font-extrabold sm:flex-row sm:items-center sm:justify-between">
-              <span>Total Payment Amount:</span>
-              <span className="text-[#C86D51]">GHS {totalAmount.toFixed(2)}</span>
-            </div>
-
-            <Button
-              type="submit"
-              variant="secondary"
-              size="lg"
-              isLoading={isProcessing}
-              className="w-full rounded-full py-4 uppercase text-xs font-bold tracking-wider"
-            >
-              I have paid · Submit order for confirmation
-            </Button>
-          </form>
         )}
 
       </div>
