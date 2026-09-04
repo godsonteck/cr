@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
+  ShoppingBag,
   Heart,
   Menu,
   X,
@@ -12,6 +13,7 @@ import {
   UserRound
 } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
+import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,12 +21,14 @@ import logoImg from '../../assets/logo.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 interface HeaderProps {
+  onOpenCart: () => void;
   onOpenWishlist: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenWishlist }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
   const { user, isAuthenticated } = useAuth();
   const { storeSettings } = useStore();
@@ -152,6 +156,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenWishlist }) => {
               )}
             </button>
 
+            <button
+              onClick={onOpenCart}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] dark:text-[var(--text-muted)] dark:hover:bg-[var(--bg-card-alt)]"
+              aria-label={`Open cart${totalItems > 0 ? `, ${totalItems} items` : ''}`}
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff5a1f] px-1 text-[9px] font-bold text-white">
+                  {totalItems > 99 ? '99+' : totalItems}
+                </span>
+              )}
+            </button>
+
             <Link
               to={isAuthenticated ? '/account' : '/signin'}
               className="hidden rounded-full p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-soft)] sm:inline-flex"
@@ -225,6 +242,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenWishlist }) => {
                 Saved items
               </button>
             </div>
+
+            <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card-alt)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
+              <ShoppingBag className="h-4 w-4" />
+              <span>Cart{totalItems > 0 ? ` (${totalItems})` : ''}</span>
+            </button>
 
             <a
               href={getWhatsAppUrl(storeSettings.whatsappNumber)}
