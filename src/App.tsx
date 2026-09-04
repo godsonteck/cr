@@ -110,7 +110,7 @@ function AppLayout() {
             onOpenWishlist={() => setIsWishlistOpen(true)}
           />
 
-          <main className="flex-1 pt-[6rem] md:pt-[6.75rem]">
+          <main className="flex-1 pt-[6rem] md:pt-[4.5rem]">
             {siteIsPaused ? (
               <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center px-6 text-center">
                 <p className="text-xs font-bold uppercase tracking-[.2em] text-[#8A3D52]">Temporarily unavailable</p>

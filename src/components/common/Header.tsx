@@ -66,11 +66,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   };
 
   const topNavLinks = [
-    pageVisibility.offers !== false ? { to: '/offers', label: 'SuperDeals', isHot: true } : null,
-    pageVisibility.shop !== false ? { to: '/shop', label: 'Shop All' } : null,
-    pageVisibility.beauty !== false ? { to: '/beauty', label: 'Beauty & Skincare' } : null,
-    pageVisibility.groceries !== false ? { to: '/groceries', label: 'Groceries & Essentials' } : null,
-    pageVisibility.about !== false ? { to: '/about', label: 'About Us' } : null,
+    pageVisibility.offers !== false ? { to: '/offers', label: storeSettings.navOffersLabel || 'SuperDeals', isHot: true } : null,
+    pageVisibility.shop !== false ? { to: '/shop', label: storeSettings.navShopLabel || 'Shop All' } : null,
+    pageVisibility.beauty !== false ? { to: '/beauty', label: storeSettings.navBeautyLabel || 'Beauty & Skincare' } : null,
+    pageVisibility.groceries !== false ? { to: '/groceries', label: storeSettings.navGroceriesLabel || 'Groceries & Essentials' } : null,
+    pageVisibility.about !== false ? { to: '/about', label: storeSettings.navAboutLabel || 'About Us' } : null,
     pageVisibility.choice === true ? { to: '/shop?choice=true', label: 'Choice', isChoice: true } : null,
     pageVisibility.routineBuilder === true ? { to: '/routine-builder', label: 'Routine Builder' } : null,
   ].filter(Boolean) as { to: string; label: string; isHot?: boolean; isChoice?: boolean }[];
@@ -124,23 +124,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const currentCategoryData = activeCategories.find(c => c.slug === activeCategorySlug) || activeCategories[0];
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-gray-200 bg-white shadow-xs transition-colors dark:border-slate-800 dark:bg-slate-900">
-      {/* Tier 1: Main Header Bar (Logo, Pill Search, Icons) */}
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(255,255,255,0.9)] backdrop-blur-sm transition-colors dark:border-[var(--border-color)] dark:bg-[rgba(18,16,15,0.82)]">
       <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-3 sm:gap-6">
-          
-          {/* Mobile Menu Toggle & Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 md:hidden dark:text-stone-200 dark:hover:bg-slate-800"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-soft)] md:hidden"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
             <Link to="/" className="flex items-center gap-2">
-              <div className="shrink-0 overflow-hidden rounded-xl bg-white p-1">
+              <div className="shrink-0 overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5">
                 <img
                   src={storeSettings.storeLogo || logoImg}
                   alt={storeSettings.storeName}
@@ -148,95 +145,75 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                   onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
                 />
               </div>
-              <div className="flex flex-col">
-                <span className="font-sans text-xl sm:text-2xl font-black tracking-tight text-[#FD384F]">
-                  CR<span className="text-stone-900 dark:text-white">Cosmetics</span>
-                </span>
-                <span className="hidden sm:block text-[9px] font-bold uppercase tracking-wider text-stone-400 -mt-1">
-                  Global Express
+              <div className="flex flex-col leading-none">
+                <span className="font-sans text-xl sm:text-2xl font-black tracking-[-0.06em] text-[var(--text-primary)]">
+                  CR <span className="text-[var(--accent)]">Cosmetics</span>
                 </span>
               </div>
             </Link>
           </div>
 
-          {/* AliExpress Signature Pill Search Bar (Center) */}
           <form
             onSubmit={handleSearchSubmit}
-            className="relative hidden md:flex flex-1 max-w-2xl mx-2 items-center"
+            className="relative hidden md:flex flex-1 max-w-xl mx-2 items-center"
           >
-            <div className="relative flex w-full items-center rounded-full border-2 border-stone-800 bg-white dark:border-stone-600 dark:bg-slate-800 overflow-hidden transition-all focus-within:border-[#FD384F] focus-within:ring-2 focus-within:ring-[#FD384F]/20">
+            <div className="relative flex w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] transition-all focus-within:border-[var(--text-primary)]">
               <input
                 type="text"
-                placeholder="Search beauty, skincare, groceries, brands..."
+                placeholder="Search products and essentials"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full bg-transparent py-2.5 pl-5 pr-20 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 outline-none dark:text-white"
+                className="w-full bg-transparent py-2.5 pl-5 pr-12 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] outline-none"
               />
 
-              <div className="absolute right-12 flex items-center gap-1.5 text-stone-400">
-                <Camera className="h-4 w-4 cursor-pointer hover:text-stone-700 dark:hover:text-stone-200" />
-              </div>
-
-              {/* Black/Red Round Search Button */}
               <button
                 type="submit"
                 aria-label="Search"
-                className="flex h-9 w-10 sm:w-11 items-center justify-center bg-stone-900 hover:bg-[#FD384F] text-white transition-colors"
+                className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition-colors hover:bg-[var(--accent)]"
               >
                 <Search className="h-4 w-4 stroke-[2.5]" />
               </button>
             </div>
           </form>
 
-          {/* Right Action Icons: Currency, Theme, Saved, Cart, Account */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Country / Currency Flag */}
-            <div className="hidden lg:flex items-center gap-1 px-2 py-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
-              <span className="text-base">🇬🇭</span>
-              <span className="text-[11px] font-bold">GHS</span>
-            </div>
-
-            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 transition dark:text-stone-300 dark:hover:bg-slate-800"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)]"
               aria-label="Toggle Theme"
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition dark:text-stone-300 dark:hover:bg-slate-800"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)]"
               aria-label="Wishlist"
             >
               <Heart className="w-4 h-4" />
               {wishlistIds.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FD384F] text-[9px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[9px] font-bold text-white">
                   {wishlistIds.length}
                 </span>
               )}
             </button>
 
-            {/* Cart with badge */}
             <button
               onClick={onOpenCart}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition dark:text-stone-300 dark:hover:bg-slate-800"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)]"
               aria-label={`Cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}
             >
               <ShoppingBag className="w-4 h-4" />
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FD384F] px-1 text-[9px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">
                   {totalItems > 99 ? '99+' : totalItems}
                 </span>
               )}
             </button>
 
-            {/* Account / Sign in */}
             <Link
               to={isAuthenticated ? '/account' : '/signin'}
-              className="hidden sm:flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-stone-700 hover:bg-stone-100 transition dark:text-stone-200 dark:hover:bg-slate-800"
+              className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--bg-soft)] px-2.5 py-1.5 text-[var(--text-primary)] transition hover:bg-[var(--accent-soft)]"
             >
               <UserRound className="h-4 w-4" />
               <span className="text-xs font-semibold">
@@ -246,17 +223,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           </div>
         </div>
 
-        {/* Mobile Search Row (visible on small screens) */}
         <div className="pb-2.5 md:hidden">
           <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
-            <div className="relative flex w-full items-center rounded-full border border-stone-300 bg-stone-50 dark:border-stone-700 dark:bg-slate-800 overflow-hidden">
-              <Search className="absolute left-3 h-3.5 w-3.5 text-stone-400" />
+            <div className="relative flex w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)]">
+              <Search className="absolute left-3 h-3.5 w-3.5 text-[var(--text-subtle)]" />
               <input
                 type="text"
                 placeholder="Search products, brands..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full bg-transparent py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 outline-none dark:text-white"
+                className="w-full bg-transparent py-2 pl-9 pr-8 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] outline-none"
               />
               <button type="submit" className="absolute right-2 text-stone-500">
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -267,17 +243,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
       </div>
 
       {/* Tier 2: Category Navigation Bar & Mega Menu Toggle */}
-      <div className="hidden md:block border-t border-gray-100 bg-white dark:border-slate-800 dark:bg-slate-900 relative">
+      <div
+        className="site-secondary-nav hidden md:block border-t border-gray-100 bg-white dark:border-slate-800 dark:bg-slate-900 relative"
+        style={{ display: storeSettings.homepageSections?.categories === false ? 'none' : undefined }}
+      >
         <div className="mx-auto max-w-[1440px] px-3 sm:px-6 flex items-center gap-4">
           
           {/* "All Categories ☰" Button (triggers AliExpress Mega Menu) */}
           <div className="relative">
             <button
               onClick={() => setIsMegaMenuOpen(!isMegaMenuOpen)}
-              className="flex items-center gap-2 bg-[#FD384F] hover:bg-[#E02940] text-white px-4 py-2 font-bold text-xs uppercase tracking-wider rounded-t-lg transition-colors"
+              className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-white px-4 py-2 font-bold text-xs uppercase tracking-wider rounded-t-lg transition-colors"
             >
               <Menu className="h-4 w-4" />
-              <span>All Categories</span>
+              <span>{storeSettings.navAllCategoriesLabel || 'All Categories'}</span>
               <ChevronDown className={`h-3 w-3 transition-transform ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -292,12 +271,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                   to={link.to}
                   className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold transition-all whitespace-nowrap rounded-md ${
                     link.isHot
-                      ? 'text-[#FD384F] hover:bg-red-50 dark:hover:bg-red-950/30 font-black'
+                      ? 'text-[var(--accent-strong)] hover:bg-[var(--accent-soft)] font-black'
                       : link.isChoice
                       ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30'
                       : isActive
-                      ? 'text-[#FD384F] font-black'
-                      : 'text-stone-700 hover:text-[#FD384F] dark:text-stone-300'
+                      ? 'text-[var(--accent-strong)] font-black'
+                      : 'text-stone-700 hover:text-[var(--accent-strong)] dark:text-stone-300'
                   }`}
                 >
                   {link.isHot && <Flame className="h-3.5 w-3.5 fill-[#FD384F] text-[#FD384F]" />}
@@ -445,16 +424,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
             <nav className="mt-4 space-y-1 text-sm">
               <Link to="/offers" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-[#FD384F] bg-red-50 dark:bg-red-950/40">
-                <Flame className="h-4 w-4 fill-[#FD384F]" /> SuperDeals
+                <Flame className="h-4 w-4 fill-[#FD384F]" /> {storeSettings.navOffersLabel || 'SuperDeals'}
               </Link>
               <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
-                Shop All Products
+                {storeSettings.navShopLabel || 'Shop All Products'}
               </Link>
               <Link to="/beauty" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
-                Beauty & Skincare
+                {storeSettings.navBeautyLabel || 'Beauty & Skincare'}
               </Link>
               <Link to="/groceries" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
-                Groceries & Essentials
+                {storeSettings.navGroceriesLabel || 'Groceries & Essentials'}
               </Link>
               {pageVisibility.choice === true && (
                 <Link to="/shop?choice=true" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30">

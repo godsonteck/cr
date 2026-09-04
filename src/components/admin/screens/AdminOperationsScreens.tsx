@@ -1119,10 +1119,10 @@ export function AdminSettingsScreen() {
               <textarea className={`${inputClass} mt-2 min-h-24`} value={form.heroSubtitle} onChange={e => update('heroSubtitle', e.target.value)} placeholder="A few sentences about your store..." />
             </label>
             <div className="border-t border-stone-100 pt-4 dark:border-[#2e2428]">
-              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">Hero image</label>
+              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">Hero background image</label>
               <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="h-32 w-full overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50 dark:border-[#2e2428] dark:bg-[#2a2024] sm:w-48">
-                  {heroImagePreview ? <img src={heroImagePreview} alt="Hero preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-stone-400">No hero image</div>}
+                  {heroImagePreview ? <img src={heroImagePreview} alt="Hero background preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs text-stone-400">No hero background selected</div>}
                 </div>
                 <div>
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#1E1719] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#33282C]">
@@ -1130,9 +1130,59 @@ export function AdminSettingsScreen() {
                     Choose image
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (file) handleHeroImageUpload(file); }} />
                   </label>
-                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">JPG, PNG, WEBP, or GIF up to 5MB. Landscape images work best.</p>
+                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">This image fills the homepage hero background. JPG, PNG, WEBP, or GIF up to 5MB. Landscape images work best.</p>
                   {heroImagePreview && <button type="button" onClick={() => { setHeroImagePreview(''); update('heroImage', ''); }} className="mt-3 text-xs font-medium text-red-600 hover:underline dark:text-red-400">Remove hero image</button>}
                 </div>
+              </div>
+            </div>
+            <div className="border-t border-stone-100 pt-4 dark:border-[#2e2428]">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Homepage section content</h3>
+              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Change the labels and descriptions shown below the hero.</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Flash deal label
+                  <input className={`${inputClass} mt-2`} value={form.homepageFlashDealLabel || ''} onChange={e => update('homepageFlashDealLabel', e.target.value)} placeholder="Flash deal picks" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Hot deals title
+                  <input className={`${inputClass} mt-2`} value={form.homepageHotDealsTitle || ''} onChange={e => update('homepageHotDealsTitle', e.target.value)} placeholder="Today's hot deals" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  New arrivals title
+                  <input className={`${inputClass} mt-2`} value={form.homepageNewArrivalsTitle || ''} onChange={e => update('homepageNewArrivalsTitle', e.target.value)} placeholder="New in" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Beauty title
+                  <input className={`${inputClass} mt-2`} value={form.homepageBeautyTitle || ''} onChange={e => update('homepageBeautyTitle', e.target.value)} placeholder="Beauty & skincare" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Essentials title
+                  <input className={`${inputClass} mt-2`} value={form.homepageGroceryTitle || ''} onChange={e => update('homepageGroceryTitle', e.target.value)} placeholder="Groceries & essentials" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  All categories label
+                  <input className={`${inputClass} mt-2`} value={form.navAllCategoriesLabel || ''} onChange={e => update('navAllCategoriesLabel', e.target.value)} placeholder="All categories" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Offers label
+                  <input className={`${inputClass} mt-2`} value={form.navOffersLabel || ''} onChange={e => update('navOffersLabel', e.target.value)} placeholder="SuperDeals" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Shop label
+                  <input className={`${inputClass} mt-2`} value={form.navShopLabel || ''} onChange={e => update('navShopLabel', e.target.value)} placeholder="Shop all" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Beauty label
+                  <input className={`${inputClass} mt-2`} value={form.navBeautyLabel || ''} onChange={e => update('navBeautyLabel', e.target.value)} placeholder="Beauty & skincare" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  Groceries label
+                  <input className={`${inputClass} mt-2`} value={form.navGroceriesLabel || ''} onChange={e => update('navGroceriesLabel', e.target.value)} placeholder="Groceries & essentials" />
+                </label>
+                <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+                  About label
+                  <input className={`${inputClass} mt-2`} value={form.navAboutLabel || ''} onChange={e => update('navAboutLabel', e.target.value)} placeholder="About us" />
+                </label>
               </div>
             </div>
           </div>
@@ -1176,8 +1226,30 @@ export function AdminSettingsScreen() {
         {/* PRODUCT PAGE MARKETPLACE CONTENT */}
         <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Product page marketplace content</h2>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">These messages appear on product pages. Leave any field empty to remove it.</p>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Control every optional message shown beside product pricing. Leave a field empty to hide it.</p>
           <div className="mt-4 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+                Deal label
+                <input className={`${inputClass} mt-2`} value={form.productDealLabel || ''} onChange={e => update('productDealLabel', e.target.value)} placeholder="e.g. Best price in similar deals" />
+              </label>
+              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+                Sale heading
+                <input className={`${inputClass} mt-2`} value={form.productSaleHeading || ''} onChange={e => update('productSaleHeading', e.target.value)} placeholder="e.g. Weekend sale" />
+              </label>
+            </div>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Wholesale message
+              <input className={`${inputClass} mt-2`} value={form.productWholesaleMessage || ''} onChange={e => update('productWholesaleMessage', e.target.value)} placeholder="e.g. Buy 2 or more and save" />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Pricing note
+              <input className={`${inputClass} mt-2`} value={form.productPricingNote || ''} onChange={e => update('productPricingNote', e.target.value)} placeholder="e.g. Taxes calculated at checkout" />
+            </label>
+            <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
+              Voucher or delivery message
+              <input className={`${inputClass} mt-2`} value={form.productVoucherMessage || ''} onChange={e => update('productVoucherMessage', e.target.value)} placeholder="e.g. Free delivery on orders over GHS 300" />
+            </label>
             <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
               Delivery message
               <input className={`${inputClass} mt-2`} value={form.productDeliveryMessage || ''} onChange={e => update('productDeliveryMessage', e.target.value)} placeholder="e.g. Delivery available across Accra" />

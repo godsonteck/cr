@@ -47,7 +47,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  const getProductRatingStats = async (productId: string, defaultRating = 5.0, defaultCount = 0) => {
+  const getProductRatingStats = useCallback(async (productId: string, defaultRating = 5.0, defaultCount = 0) => {
     try {
       const data = await api.get<{
         reviews: ProductReview[];
@@ -65,7 +65,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         distribution: { 5: 100, 4: 0, 3: 0, 2: 0, 1: 0 }
       };
     }
-  };
+  }, []);
 
   const addReview = async (reviewData: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => {
     try {

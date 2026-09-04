@@ -4,46 +4,42 @@
 
 @layer base {
   :root {
-    --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-    --font-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
-    --bg-main: #f5f1ee;
+    --font-sans: "Inter", "Segoe UI", sans-serif;
+    --font-display: "Georgia", "Times New Roman", serif;
+    --bg-main: #faf0f2;
     --bg-card: #ffffff;
-    --bg-card-alt: #fff5f0;
-    --bg-soft: #f7eef1;
-    --text-primary: #1f1b1c;
-    --text-muted: #5d5159;
-    --text-subtle: #6e5e64;
-    --border-color: #ebdfe5;
-    --accent: #ff7a00;
-    --accent-strong: #eb6300;
-    --accent-soft: #fff2e8;
-    --violet: #c78da8;
-    --violet-strong: #9a667c;
-    --olive: #516070;
-    --olive-strong: #334254;
-    --shadow-soft: 0 18px 40px rgba(29, 20, 22, 0.06);
-    --shadow-card: 0 18px 38px rgba(21, 17, 19, 0.08);
+    --bg-card-alt: #f5e5e8;
+    --bg-soft: #f8e9ec;
+    --text-primary: #171412;
+    --text-muted: #534840;
+    --text-subtle: #766a63;
+    --border-color: #ecd9de;
+    --accent: #9a5b3c;
+    --accent-strong: #7a4632;
+    --accent-soft: #f7e1e5;
+    --shadow-soft: 0 14px 30px rgba(23, 20, 18, 0.04);
+    --shadow-card: 0 18px 40px rgba(23, 20, 18, 0.08);
   }
 
   html.dark {
     color-scheme: dark;
-    --bg-main: #071a2f;
-    --bg-card: #0d2442;
-    --bg-card-alt: #112e52;
-    --bg-soft: #173760;
-    --text-primary: #f2f7ff;
-    --text-muted: #c4d8f4;
-    --text-subtle: #a3c5ee;
-    --border-color: #244b7d;
-    --accent: #689dfa;
-    --accent-strong: #95bdff;
-    --accent-soft: rgba(104, 157, 250, 0.18);
-    --violet: #97baf8;
-    --violet-strong: #c7d8ff;
-    --olive: #92b5de;
-    --olive-strong: #bdd4f5;
-    --shadow-soft: 0 12px 30px rgba(3, 14, 29, 0.45);
-    --shadow-card: 0 14px 32px rgba(2, 10, 22, 0.5);
+    --bg-main: #12100f;
+    --bg-card: #1a1514;
+    --bg-card-alt: #221d1b;
+    --bg-soft: #2b2422;
+    --text-primary: #f4efe9;
+    --text-muted: #d9c9bf;
+    --text-subtle: #bfaea4;
+    --border-color: #3d322f;
+    --accent: #d2936d;
+    --accent-strong: #f0b58c;
+    --accent-soft: rgba(210, 147, 109, 0.12);
+    --violet: #d9beaf;
+    --violet-strong: #f0d8c9;
+    --olive: #b7c0b9;
+    --olive-strong: #d8ddd7;
+    --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.28);
+    --shadow-card: 0 20px 44px rgba(0, 0, 0, 0.24);
   }
 
   * { box-sizing: border-box; }
@@ -56,7 +52,7 @@
 
   body {
     font-family: var(--font-sans);
-    background: linear-gradient(180deg, #f7f2f0 0%, #f3efee 100%);
+    background: linear-gradient(180deg, #fff7f8 0%, #faf0f2 100%);
     color: var(--text-primary);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -66,116 +62,30 @@
 
   html.dark body {
     background:
-      radial-gradient(circle at top, rgba(104, 157, 250, 0.18), transparent 22%),
-      linear-gradient(180deg, #071a2f 0%, #0b1f38 38%, #071a2f 100%) !important;
+      radial-gradient(circle at top, rgba(210, 147, 109, 0.12), transparent 18%),
+      linear-gradient(180deg, #12100f 0%, #181312 100%) !important;
     color: var(--text-primary);
   }
 
-  /* Form control contrast in both themes */
   select option {
     background-color: #ffffff;
     color: #181214;
   }
 
   html.dark select option {
-    background-color: #0d2442;
-    color: #f2f7ff;
+    background-color: #1a1514;
+    color: #f4efe9;
   }
 
   html.dark input,
   html.dark textarea,
   html.dark select {
-    color: #f2f7ff;
+    color: #f4efe9;
   }
 
   html.dark input::placeholder,
   html.dark textarea::placeholder {
-    color: #8faecc;
-  }
-
-  /* Targeted theme adapters for legacy surface & text utility classes in dark mode */
-  html.dark .bg-white,
-  html.dark .bg-stone-50,
-  html.dark .bg-stone-100,
-  html.dark .bg-gray-50,
-  html.dark .bg-gray-100,
-  html.dark .bg-slate-50,
-  html.dark .bg-slate-100,
-  html.dark [class*="bg-[#FBF9F6]"],
-  html.dark [class*="bg-[#FDFBF7]"],
-  html.dark [class*="bg-[#F5F0EB]"],
-  html.dark [class*="bg-[#FAF8F5]"],
-  html.dark [class*="bg-[#F7F5F0]"] {
-    background-color: #0d2442 !important;
-  }
-
-  html.dark .border-stone-200,
-  html.dark .border-stone-300,
-  html.dark .border-gray-200,
-  html.dark .border-gray-300,
-  html.dark .border-slate-200,
-  html.dark .border-slate-300,
-  html.dark [class*="border-[#E6DFD7]"],
-  html.dark [class*="border-[#E8E2D8]"],
-  html.dark [class*="border-[#E8E2DA]"],
-  html.dark [class*="border-[#E2DBD0]"] {
-    border-color: #244b7d !important;
-  }
-
-  html.dark .text-stone-900,
-  html.dark .text-stone-800,
-  html.dark .text-gray-900,
-  html.dark .text-gray-800,
-  html.dark .text-slate-900,
-  html.dark .text-slate-800,
-  html.dark .text-cr-espresso,
-  html.dark [class*="text-[#1C1817]"],
-  html.dark [class*="text-[#1E1719]"] {
-    color: #f2f7ff !important;
-  }
-
-  html.dark .text-stone-600,
-  html.dark .text-stone-700,
-  html.dark .text-gray-600,
-  html.dark .text-gray-700,
-  html.dark .text-slate-600,
-  html.dark .text-slate-700,
-  html.dark .text-cr-muted {
-    color: #c4d8f4 !important;
-  }
-
-  html.dark .text-stone-400,
-  html.dark .text-stone-500,
-  html.dark .text-gray-400,
-  html.dark .text-gray-500,
-  html.dark .text-slate-400,
-  html.dark .text-slate-500 {
-    color: #a3c5ee !important;
-  }
-
-  /* Status badge contrast in dark mode */
-  html.dark .bg-emerald-50,
-  html.dark .bg-emerald-100 {
-    background-color: rgba(16, 185, 129, 0.18) !important;
-    color: #6ee7b7 !important;
-  }
-
-  html.dark .bg-amber-50,
-  html.dark .bg-amber-100 {
-    background-color: rgba(245, 158, 11, 0.18) !important;
-    color: #fcd34d !important;
-  }
-
-  html.dark .bg-blue-50,
-  html.dark .bg-blue-100 {
-    background-color: rgba(59, 130, 246, 0.18) !important;
-    color: #93c5fd !important;
-  }
-
-  html.dark .bg-red-50,
-  html.dark .bg-red-100 {
-    background-color: rgba(239, 68, 68, 0.18) !important;
-    color: #fca5a5 !important;
+    color: #bfaea4;
   }
 
   #root {
@@ -192,6 +102,10 @@
 }
 
 @layer components {
+  .editorial-hero {
+    display: flex;
+  }
+
   .page-shell {
     width: min(100% - 2rem, 87.5rem);
     margin-inline: auto;
@@ -218,14 +132,14 @@
   }
 
   .luxury-card {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.82);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-card);
     backdrop-filter: blur(6px);
   }
 
   html.dark .luxury-card {
-    background: rgba(13, 36, 66, 0.85);
+    background: rgba(24, 19, 18, 0.82);
   }
 
   .eyebrow {
@@ -244,8 +158,8 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 9999px;
-    background: linear-gradient(135deg, var(--accent), #e8bf70);
-    box-shadow: 0 0 0 4px rgba(185, 93, 69, 0.1);
+    background: linear-gradient(135deg, var(--accent), #d6af76);
+    box-shadow: 0 0 0 4px rgba(157, 93, 61, 0.08);
   }
 
   .detailed-shell {
@@ -253,7 +167,7 @@
   }
 
   html.dark .detailed-shell {
-    background: linear-gradient(180deg, rgba(23,55,96,0.36) 0%, rgba(23,55,96,0) 100%);
+    background: linear-gradient(180deg, rgba(29,23,21,0.3) 0%, rgba(29,23,21,0) 100%);
   }
 }
 

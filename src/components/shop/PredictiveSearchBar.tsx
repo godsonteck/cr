@@ -7,7 +7,6 @@ import {
   Sparkles, 
   TrendingUp, 
   ArrowRight, 
-  Star, 
   Tag, 
   Layers
 } from 'lucide-react';
@@ -343,11 +342,6 @@ export const PredictiveSearchBar: React.FC<PredictiveSearchBarProps> = ({
                     <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
                       <span className="font-mono font-bold text-[#8A3D52] dark:text-rose-400">
                         GHS {product.price.toFixed(2)}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-0.5 text-[#D4AF37] font-semibold">
-                        <Star className="w-3 h-3 fill-current" />
-                        <span>{product.rating || 5.0}</span>
                       </span>
                       <span>•</span>
                       <span className="capitalize">{product.category.replace('-', ' ')}</span>

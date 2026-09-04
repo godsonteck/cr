@@ -9,7 +9,6 @@ import {
   Truck,
   ShieldCheck,
   RotateCcw,
-  Star,
   Zap,
   Clock,
   Share2,
@@ -25,6 +24,7 @@ import { ProductCard } from './ProductCard';
 import { Button, Badge } from '../common/UIPrimitives';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useReviews } from '../../context/ReviewsContext';
 import { SEO } from '../common/SEO';
 
 const COLOR_SWATCHES: Record<string, string> = {
@@ -56,6 +56,7 @@ export const ProductDetailPage: React.FC = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { getProductRatingStats } = useReviews();
 
   const product = useMemo(() => {
     return publishedProducts.find(p => p.id === productId);
@@ -65,8 +66,18 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [selectedOptionValues, setSelectedOptionValues] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<'description' | 'details' | 'delivery'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'details'>('description');
   const [descExpanded, setDescExpanded] = useState(false);
+  const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 });
+
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    void getProductRatingStats(productId, 0, 0).then(stats => {
+      if (!cancelled) setRatingStats({ averageRating: stats.averageRating, totalReviews: stats.totalReviews });
+    });
+    return () => { cancelled = true; };
+  }, [getProductRatingStats, productId]);
 
   const galleryImages = product?.images?.length ? product.images : [product?.image].filter(Boolean) as string[];
 
@@ -205,53 +216,32 @@ export const ProductDetailPage: React.FC = () => {
                   {product.name}
                 </h1>
 
-                {/* Ratings & Sold Stats */}
-                <div className="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-300 flex-wrap">
-                  <div className="flex items-center text-amber-500">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-3.5 w-3.5 ${
-                          star <= Math.round(product.rating)
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-stone-300 dark:text-stone-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-bold text-stone-800 dark:text-stone-100">{product.rating.toFixed(1)}</span>
-                  <a href="#reviews" className="underline hover:text-[#FD384F]">
-                    {product.reviewCount || 580} Reviews
+                {ratingStats.totalReviews > 0 && (
+                  <a href="#reviews" className="text-xs text-stone-600 underline hover:text-[#FD384F] dark:text-stone-300">
+                    {ratingStats.averageRating.toFixed(1)} rating · {ratingStats.totalReviews} reviews
                   </a>
-                  <span>|</span>
-                  <span className="font-semibold text-stone-700 dark:text-stone-300">1,000+ sold</span>
-                </div>
+                )}
 
-                {/* Deal Tag */}
-                <div>
-                  <span className="inline-flex items-center gap-1 rounded-sm bg-[#FFF4E6] px-2 py-0.5 text-[11px] font-bold text-[#D96B00] border border-[#FFE2C2]">
-                    <Tag className="h-3 w-3" />
-                    Best price in similar deals
-                  </span>
-                </div>
-
-                {/* AliExpress "FALL FEST SALE" / "SUPER DEALS" Promo Box */}
-                <div className="overflow-hidden rounded-xl border border-[#F5D89F] bg-[#FFFBF0] dark:bg-slate-800/90 dark:border-amber-900/60">
-                  {/* Top Bar of Sale Box */}
-                  <div className="flex items-center justify-between bg-[#FCEECC] px-3.5 py-1.5 dark:bg-amber-950/40">
-                    <span className="text-xs font-black uppercase tracking-wider text-[#9C3200] dark:text-amber-300">
-                      {activeFlashDeal?.title || 'FALL FEST SALE'}
+                {storeSettings.productDealLabel && (
+                  <div>
+                    <span className="inline-flex items-center gap-1 rounded-sm bg-[#FFF4E6] px-2 py-0.5 text-[11px] font-bold text-[#D96B00] border border-[#FFE2C2]">
+                      <Tag className="h-3 w-3" />
+                      {storeSettings.productDealLabel}
                     </span>
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9C3200] dark:text-amber-300">
+                  </div>
+                )}
+
+                <div className="overflow-hidden rounded-xl border border-[#F5D89F] bg-[#FFFBF0] dark:bg-slate-800/90 dark:border-amber-900/60">
+                  {(storeSettings.productSaleHeading || activeFlashDeal) && <div className="flex items-center justify-between bg-[#FCEECC] px-3.5 py-1.5 dark:bg-amber-950/40">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#9C3200] dark:text-amber-300">
+                      {storeSettings.productSaleHeading || activeFlashDeal?.title}
+                    </span>
+                    {activeFlashDeal && <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9C3200] dark:text-amber-300">
                       <Clock className="h-3 w-3" />
                       <span>Ends:</span>
-                      {activeFlashDeal ? (
-                        <FlashCountdown expiresAt={activeFlashDeal.expiresAt} />
-                      ) : (
-                        <span>Limited Time</span>
-                      )}
-                    </div>
-                  </div>
+                      <FlashCountdown expiresAt={activeFlashDeal.expiresAt} />
+                    </div>}
+                  </div>}
 
                   {/* Pricing Section */}
                   <div className="p-3.5 space-y-2">
@@ -271,29 +261,22 @@ export const ProductDetailPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Wholesale discount notice */}
-                    <div className="text-[11px] text-[#D9381E] flex items-center gap-1 font-semibold">
+                    {storeSettings.productWholesaleMessage && <div className="text-[11px] text-[#D9381E] flex items-center gap-1 font-semibold">
                       <Tag className="h-3 w-3" />
-                      <span>Wholesale: 2+ pieces, extra 1% off</span>
-                    </div>
+                      <span>{storeSettings.productWholesaleMessage}</span>
+                    </div>}
 
-                    {/* Tax & Coins info */}
-                    <p className="text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
-                      Tax excluded, add at checkout if applicable · Extra 5% off with coins
-                    </p>
+                    {storeSettings.productPricingNote && <p className="text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
+                      {storeSettings.productPricingNote}
+                    </p>}
 
-                    {/* Discount voucher banner */}
-                    <div className="mt-1 flex items-center justify-between rounded-md bg-[#FFF0ED] px-2.5 py-1.5 text-[11px] font-bold text-[#FD384F] border border-[#FFD5CC] dark:bg-red-950/30">
+                    {storeSettings.productVoucherMessage && <div className="mt-1 flex items-center justify-between rounded-md bg-[#FFF0ED] px-2.5 py-1.5 text-[11px] font-bold text-[#FD384F] border border-[#FFD5CC] dark:bg-red-950/30">
                       <div className="flex items-center gap-1.5 truncate">
                         <Tag className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">
-                          {promoCodes?.find(p => p.isActive)
-                            ? `Use code ${promoCodes.find(p => p.isActive)!.code}: ${promoCodes.find(p => p.isActive)!.discountType === 'percentage' ? `${promoCodes.find(p => p.isActive)!.discountValue}% OFF` : `GH₵${promoCodes.find(p => p.isActive)!.discountValue} OFF`}${promoCodes.find(p => p.isActive)!.minSpend ? ` on orders over GH₵${promoCodes.find(p => p.isActive)!.minSpend}` : ''}`
-                            : `Free delivery on orders over GH₵${Number(storeSettings.freeDeliveryThreshold || 300).toFixed(0)}`}
-                        </span>
+                        <span className="truncate">{storeSettings.productVoucherMessage}</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                    </div>
+                    </div>}
                   </div>
                 </div>
 
@@ -364,80 +347,10 @@ export const ProductDetailPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* AI Overview Accordion */}
-                <details className="group rounded-xl border border-purple-200 bg-purple-50/50 p-3 text-xs dark:bg-purple-950/20 dark:border-purple-900/50">
-                  <summary className="flex cursor-pointer items-center justify-between font-bold text-purple-900 dark:text-purple-300">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-purple-600" />
-                      AI overview of item
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="mt-2 space-y-1.5 text-stone-700 dark:text-stone-300 leading-relaxed pl-5 list-disc">
-                    <p>• {product.description.slice(0, 140)}...</p>
-                    {product.highlights?.slice(0, 2).map((h, idx) => (
-                      <p key={idx}>• {h}</p>
-                    ))}
-                  </div>
-                </details>
               </div>
 
-              {/* Column 3: AliExpress Right Buy Box / Service Commitment (lg:col-span-3 xl:col-span-3) */}
               <div className="lg:col-span-3 xl:col-span-3 flex flex-col justify-between rounded-xl border border-gray-200 bg-stone-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50 space-y-4">
-                
-                {/* Store Info */}
-                <div className="space-y-1 border-b border-gray-200 pb-3 dark:border-slate-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-stone-500">Sold By</span>
-                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-sm">Verified</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
-                    {storeSettings.storeName || 'CR Cosmetics Official'}
-                  </h3>
-                  <p className="text-[11px] text-stone-500">98.6% Positive Feedback</p>
-                </div>
-
-                {/* Service Commitment Box */}
-                <div className="space-y-3 text-xs">
-                  <p className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4" />
-                    Service commitment
-                  </p>
-
-                  <div className="space-y-2 text-stone-600 dark:text-stone-300 text-[11px]">
-                    <div className="flex items-start gap-2">
-                      <Truck className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-stone-800 dark:text-stone-200">
-                          Shipping: GH₵{Number(storeSettings.standardShippingFee || 18.86).toFixed(2)}
-                        </span>
-                        <p className="text-stone-500">
-                          Estimated Delivery: 1–3 business days across Accra & beyond
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <RotateCcw className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-stone-800 dark:text-stone-200">Return & refund policy</span>
-                        <p className="text-stone-500">7-day buyer protection & easy returns</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-stone-800 dark:text-stone-200">Security & Privacy</span>
-                        <p className="text-stone-500">Safe payments via Paystack</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quantity & CTA Area */}
                 <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-slate-700">
-                  {/* Quantity Selector */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-stone-800 dark:text-stone-200">Quantity:</span>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white dark:bg-slate-900 dark:border-slate-700">
@@ -461,7 +374,6 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Big Primary Red Action: "Buy now" (AliExpress signature style) */}
                   <button
                     onClick={() => void handleBuyNow()}
                     disabled={!canPurchase}
@@ -470,7 +382,6 @@ export const ProductDetailPage: React.FC = () => {
                     {!canPurchase ? 'Out of Stock' : 'Buy now'}
                   </button>
 
-                  {/* Secondary Action: "Add to cart" */}
                   <button
                     onClick={handleAddToCart}
                     disabled={!canPurchase}
@@ -479,7 +390,6 @@ export const ProductDetailPage: React.FC = () => {
                     Add to cart
                   </button>
 
-                  {/* Share & Wishlist buttons row */}
                   <div className="flex items-center justify-center gap-4 pt-1">
                     <button
                       onClick={() => {
@@ -506,7 +416,6 @@ export const ProductDetailPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-
               </div>
 
             </div>
@@ -515,7 +424,7 @@ export const ProductDetailPage: React.FC = () => {
           {/* Product Specifications & Details Tabs */}
           <div id="reviews" className="mt-6 rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex border-b border-gray-200 bg-stone-50 dark:border-slate-800 dark:bg-slate-800/50">
-              {(['description', 'details', 'delivery'] as const).map((tab) => (
+              {(['description', 'details'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -525,7 +434,7 @@ export const ProductDetailPage: React.FC = () => {
                       : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
                   }`}
                 >
-                  {tab === 'description' ? 'Overview' : tab === 'details' ? 'Specifications' : 'Customer Service & Shipping'}
+                  {tab === 'description' ? 'Overview' : 'Specifications'}
                 </button>
               ))}
             </div>
@@ -572,26 +481,6 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {activeTab === 'delivery' && (
-                <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {[
-                      { icon: Truck, title: 'Standard Delivery', desc: `GHS ${Number(storeSettings.standardShippingFee || 18.86).toFixed(2)} · 1–3 business days` },
-                      { icon: PackageCheck, title: 'Free Delivery', desc: `On orders above GHS ${Number(storeSettings.freeDeliveryThreshold || 300).toFixed(0)}` },
-                      { icon: RotateCcw, title: 'Returns Policy', desc: '7-day easy return policy for damaged or defective items' },
-                      { icon: ShieldCheck, title: 'Buyer Protection', desc: '100% authentic products guaranteed with verified payment protection' },
-                    ].map(({ icon: Icon, title, desc }) => (
-                      <div key={title} className="flex gap-3 rounded-xl border border-gray-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
-                        <Icon className="h-5 w-5 shrink-0 text-[#FD384F] mt-0.5" />
-                        <div>
-                          <p className="text-xs font-bold text-stone-900 dark:text-stone-100">{title}</p>
-                          <p className="text-xs text-stone-500 mt-0.5">{desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

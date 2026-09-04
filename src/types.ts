@@ -108,6 +108,17 @@ export interface StoreSettings {
   heroBadge: string;
   heroButtonText: string;
   heroSecondaryButtonText?: string;
+  homepageFlashDealLabel?: string;
+  homepageHotDealsTitle?: string;
+  homepageNewArrivalsTitle?: string;
+  homepageBeautyTitle?: string;
+  homepageGroceryTitle?: string;
+  navAllCategoriesLabel?: string;
+  navOffersLabel?: string;
+  navShopLabel?: string;
+  navBeautyLabel?: string;
+  navGroceriesLabel?: string;
+  navAboutLabel?: string;
   announcementText: string;
   announcementVisible: boolean;
   announcementBg: string;
@@ -130,6 +141,11 @@ export interface StoreSettings {
   productProtectionMessage?: string;
   productReturnsMessage?: string;
   productShippingMessage?: string;
+  productDealLabel?: string;
+  productSaleHeading?: string;
+  productWholesaleMessage?: string;
+  productPricingNote?: string;
+  productVoucherMessage?: string;
   deliveryZones?: Array<{ name: string; keywords: string[]; fee: number }>;
 }
 
