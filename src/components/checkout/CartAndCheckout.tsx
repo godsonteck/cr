@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
-import { PaymentMethod, DeliveryMethod, Order } from '../../types';
+import { PaymentMethod, Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -273,7 +273,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentSenderPhone, setPaymentSenderPhone] = useState(phone);
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
   const paymentMethod: PaymentMethod = 'paystack';
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -341,14 +340,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
     void completeReturnedOrder();
   }, [isAuthenticated]);
 
-  const locationText = `${city} ${area}`.toLowerCase();
-  const matchedZone = (storeSettings.deliveryZones || []).find(zone => zone.keywords.length > 0 && zone.keywords.some(keyword => locationText.includes(keyword.toLowerCase())))
-    || (storeSettings.deliveryZones || []).find(zone => zone.keywords.length === 0);
-  const locationDeliveryFee = matchedZone?.fee ?? storeSettings.standardShippingFee;
-  const productDeliveryFees = cartItems.map(item => item.product.deliveryPrice).filter((fee): fee is number => typeof fee === 'number');
-  const standardDeliveryFee = productDeliveryFees.length > 0 ? Math.max(...productDeliveryFees) : locationDeliveryFee;
-  const standardShipping = subtotal >= (storeSettings.freeDeliveryThreshold || 300) || hasFreeShippingCoupon ? 0 : standardDeliveryFee;
-  const shippingFee = deliveryMethod === 'store-pickup' ? 0 : deliveryMethod === 'accra-express' ? storeSettings.expressShippingFee : deliveryMethod === 'intercity' ? storeSettings.intercityShippingFee : standardShipping;
+  const standardShipping = subtotal >= (storeSettings.freeDeliveryThreshold || 300) || hasFreeShippingCoupon
+    ? 0
+    : storeSettings.standardShippingFee;
+  const shippingFee = standardShipping;
   const totalAmount = Math.max(0, subtotal - discount + shippingFee);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
@@ -386,7 +381,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
         items: [...cartItems], subtotal, shippingFee, discount, total: totalAmount,
-        paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '', deliveryMethod,
+        paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '', deliveryMethod: 'standard-delivery',
         shippingAddress: { fullName, phone, email, city, area, deliveryNotes: deliveryNotes || undefined },
         status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
         createdAt: new Date().toISOString(),
@@ -537,18 +532,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
             </div>
 
             <div><label className="text-xs font-bold text-stone-700 block mb-1">Delivery instructions (optional)</label><textarea value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value)} className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]" rows={2} placeholder="Gate, landmark, preferred delivery time..." /></div>
-
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-stone-700">Delivery method</h4>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {([['standard-delivery', 'Standard delivery', standardDeliveryFee], ['accra-express', 'Express delivery', storeSettings.expressShippingFee], ['intercity', 'Priority delivery', storeSettings.intercityShippingFee], ['store-pickup', 'Store pickup', 0]] as const).map(([method, label, fee]) => (
-                  <label key={method} className={`cursor-pointer rounded-xl border p-3 text-xs ${deliveryMethod === method ? 'border-[#C86D51] bg-[#F5F0EB]' : 'border-[#E6DFD7]'}`}>
-                    <input className="mr-2" type="radio" checked={deliveryMethod === method} onChange={() => setDeliveryMethod(method)} />
-                    {label} <span className="font-bold">{fee === 0 ? 'Free' : `${storeSettings.currency} ${fee}`}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
 
             <Button
               variant="primary"
