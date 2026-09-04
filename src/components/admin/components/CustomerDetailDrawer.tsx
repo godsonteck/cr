@@ -69,7 +69,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
             <div className="p-4 bg-stone-50 dark:bg-[#201b1a] rounded-2xl border border-stone-200 dark:border-[#2e2428] space-y-1">
               <span className="text-[11px] text-stone-500 dark:text-stone-400 font-bold">Total Spent</span>
               <p className="text-xl font-bold font-serif text-stone-900 dark:text-stone-100">
-                GHS {customer.totalSpent.toFixed(2)}
+                GHS {Number(customer.totalSpent || 0).toFixed(2)}
               </p>
             </div>
             <div className="p-4 bg-stone-50 dark:bg-[#201b1a] rounded-2xl border border-stone-200 dark:border-[#2e2428] space-y-1">

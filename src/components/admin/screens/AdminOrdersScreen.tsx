@@ -91,9 +91,9 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
       const q = searchTerm.toLowerCase();
       orders = orders.filter(
         o =>
-          o.orderNumber.toLowerCase().includes(q) ||
-          o.shippingAddress?.fullName?.toLowerCase().includes(q) ||
-          o.shippingAddress?.phone?.includes(q)
+          (o?.orderNumber || '').toLowerCase().includes(q) ||
+          (o?.shippingAddress?.fullName || '').toLowerCase().includes(q) ||
+          (o?.shippingAddress?.phone || '').includes(q)
       );
     }
 

@@ -124,8 +124,8 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
                       <p className="text-[11px] text-stone-500">{item.product.brand} {item.selectedOption ? `• ${item.selectedOption}` : ''}</p>
                     </td>
                     <td className="py-3 px-4 text-center font-bold">{item.quantity}</td>
-                    <td className="py-3 px-4 text-right">GHS {item.product.price.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right font-bold">GHS {(item.product.price * item.quantity).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right">GHS {Number(item.product?.price || 0).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right font-bold">GHS {(Number(item.product?.price || 0) * item.quantity).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -137,21 +137,21 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
             <div className="w-64 space-y-1.5 pt-2">
               <div className="flex justify-between text-stone-600">
                 <span>Items Subtotal:</span>
-                <span>GHS {order.subtotal.toFixed(2)}</span>
+                <span>GHS {Number(order.subtotal || 0).toFixed(2)}</span>
               </div>
-              {order.discount > 0 && (
+              {Number(order.discount || 0) > 0 && (
                 <div className="flex justify-between text-emerald-700 font-semibold">
                   <span>Discount {order.appliedPromoCode ? `(${order.appliedPromoCode})` : ''}:</span>
-                  <span>- GHS {order.discount.toFixed(2)}</span>
+                  <span>- GHS {Number(order.discount || 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-stone-600">
                 <span>Delivery Charge:</span>
-                <span>GHS {order.shippingFee.toFixed(2)}</span>
+                <span>GHS {Number(order.shippingFee || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-stone-900 pt-2 border-t border-stone-200">
                 <span>Grand Total:</span>
-                <span>GHS {order.total.toFixed(2)}</span>
+                <span>GHS {Number(order.total || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>

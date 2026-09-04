@@ -439,20 +439,22 @@ export const AdminPortal: React.FC = () => {
         isOpen={!!orderToPrint}
         onClose={() => setOrderToPrint(null)}
       />
-      <GlobalCommandPalette
-        isOpen={searchOpen}
-        onClose={() => { setSearchOpen(false); setSearchQuery(''); }}
-        products={store.products}
-        orders={store.orders}
-        customers={derivedCustomers}
-        onSelectProduct={handleEditProduct}
-        onSelectOrder={handleViewOrder}
-        onSelectCustomer={() => handleTabChange('customers')}
-        onNavigateTab={(tabId) => {
-          if (tabId === 'products-new') handleAddProduct();
-          else handleTabChange(tabId as AdminTab);
-        }}
-      />
+      {searchOpen && (
+        <GlobalCommandPalette
+          isOpen={searchOpen}
+          onClose={() => { setSearchOpen(false); setSearchQuery(''); }}
+          products={store.products}
+          orders={store.orders}
+          customers={derivedCustomers}
+          onSelectProduct={handleEditProduct}
+          onSelectOrder={handleViewOrder}
+          onSelectCustomer={() => handleTabChange('customers')}
+          onNavigateTab={(tabId) => {
+            if (tabId === 'products-new') handleAddProduct();
+            else handleTabChange(tabId as AdminTab);
+          }}
+        />
+      )}
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (

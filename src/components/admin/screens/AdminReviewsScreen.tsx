@@ -21,9 +21,9 @@ export const AdminReviewsScreen: React.FC = () => {
   }, [fetchAllReviews, showAlert]);
 
   const productNames = useMemo(() => new Map(products.map(product => [product.id, product.name])), [products]);
-  const visibleReviews = reviews.filter(review => {
-    const haystack = `${review.authorName} ${review.title} ${review.comment} ${productNames.get(review.productId) || ''}`.toLowerCase();
-    const matchesQuery = haystack.includes(query.toLowerCase());
+  const visibleReviews = (reviews || []).filter(review => {
+    const haystack = `${review?.authorName || ''} ${review?.title || ''} ${review?.comment || ''} ${productNames.get(review?.productId) || ''}`.toLowerCase();
+    const matchesQuery = !query.trim() || haystack.includes(query.toLowerCase());
     const matchesFilter = filter === 'all' || (filter === 'approved' ? review.isApproved : review.isApproved === false);
     return matchesQuery && matchesFilter;
   });

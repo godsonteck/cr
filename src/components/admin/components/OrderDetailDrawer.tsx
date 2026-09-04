@@ -275,11 +275,11 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                       <p className="text-[11px] text-stone-500">
                         {item.product?.brand} {item.selectedOption ? `• Option: ${item.selectedOption}` : ''}
                       </p>
-                      <p className="text-[11px] text-stone-400">Qty: {item.quantity} × GHS {item.product?.price?.toFixed(2)}</p>
+                      <p className="text-[11px] text-stone-400">Qty: {item.quantity} × GHS {Number(item.product?.price || 0).toFixed(2)}</p>
                     </div>
                   </div>
                   <div className="font-bold text-stone-900 text-right">
-                    GHS {((item.product?.price || 0) * item.quantity).toFixed(2)}
+                    GHS {(Number(item.product?.price || 0) * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -289,21 +289,21 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
             <div className="p-4 bg-stone-50/80 border-t border-stone-200 space-y-1.5 text-xs">
               <div className="flex justify-between text-stone-600">
                 <span>Items:</span>
-                <span>GHS {order.subtotal.toFixed(2)}</span>
+                <span>GHS {Number(order.subtotal || 0).toFixed(2)}</span>
               </div>
-              {order.discount > 0 && (
+              {Number(order.discount || 0) > 0 && (
                 <div className="flex justify-between text-emerald-700 font-semibold">
                   <span>Discount {order.appliedPromoCode ? `(${order.appliedPromoCode})` : ''}:</span>
-                  <span>- GHS {order.discount.toFixed(2)}</span>
+                  <span>- GHS {Number(order.discount || 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-stone-600">
                 <span>Delivery:</span>
-                <span>GHS {order.shippingFee.toFixed(2)}</span>
+                <span>GHS {Number(order.shippingFee || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200">
                 <span>Total:</span>
-                <span className="text-stone-900">GHS {order.total.toFixed(2)}</span>
+                <span className="text-stone-900">GHS {Number(order.total || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -312,7 +312,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           <div className="p-4 rounded-2xl border border-stone-200 bg-white flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="font-bold text-stone-900">Payment</span>
-              <p className="text-stone-500 text-[11px] capitalize">Paid by: {order.paymentMethod.replace('-', ' ')}</p>
+              <p className="text-stone-500 text-[11px] capitalize">Paid by: {(order.paymentMethod || 'N/A').replace('-', ' ')}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
