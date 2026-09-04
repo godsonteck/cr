@@ -6,23 +6,23 @@
   :root {
     --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
     --font-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
-    --bg-main: #fff7f8;
+    --bg-main: #f5f1ee;
     --bg-card: #ffffff;
-    --bg-card-alt: #fce9f0;
-    --bg-soft: #fff1f5;
-    --text-primary: #181214;
-    --text-muted: #4e3e44;
-    --text-subtle: #614d53;
-    --border-color: #edd6de;
-    --accent: #cf6c8a;
-    --accent-strong: #a94c63;
-    --accent-soft: #fdeef4;
+    --bg-card-alt: #fff5f0;
+    --bg-soft: #f7eef1;
+    --text-primary: #1f1b1c;
+    --text-muted: #5d5159;
+    --text-subtle: #6e5e64;
+    --border-color: #ebdfe5;
+    --accent: #ff7a00;
+    --accent-strong: #eb6300;
+    --accent-soft: #fff2e8;
     --violet: #c78da8;
     --violet-strong: #9a667c;
     --olive: #516070;
     --olive-strong: #334254;
-    --shadow-soft: 0 20px 45px rgba(130, 69, 92, 0.09);
-    --shadow-card: 0 18px 38px rgba(128, 72, 93, 0.09);
+    --shadow-soft: 0 18px 40px rgba(29, 20, 22, 0.06);
+    --shadow-card: 0 18px 38px rgba(21, 17, 19, 0.08);
   }
 
   html.dark {
@@ -56,9 +56,7 @@
 
   body {
     font-family: var(--font-sans);
-    background:
-      radial-gradient(circle at top, rgba(207, 108, 138, 0.12), transparent 22%),
-      linear-gradient(180deg, #fffafc 0%, var(--bg-main) 42%, #fff7fb 100%);
+    background: linear-gradient(180deg, #f7f2f0 0%, #f3efee 100%);
     color: var(--text-primary);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
