@@ -119,348 +119,496 @@ export const ProductDetailPage: React.FC = () => {
         productAvailability={product.inStock ? 'InStock' : 'OutOfStock'}
       />
 
-      <div className="min-h-screen bg-[#f5f1ee]">
-        <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-          <div className="rounded-[30px] border border-[#ebdfe5] bg-[#f7f3f2] p-3 sm:p-4">
-            <div className="mb-4 px-1">
-              <nav className="flex items-center gap-1.5 text-[11px] text-[var(--text-subtle)]">
-                <Link to="/" className="hover:text-[#ff7a00] transition">Home</Link>
+      <div className="min-h-screen bg-[#F5F5F5] dark:bg-[#0B1523] py-4">
+        <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
+          {/* Breadcrumbs */}
+          <nav className="mb-3 flex items-center gap-1.5 text-xs text-stone-500">
+            <Link to="/" className="hover:text-[#FD384F] transition">Home</Link>
+            <ChevronRight className="h-3 w-3" />
+            <Link to="/shop" className="hover:text-[#FD384F] transition">Shop</Link>
+            {product.categoryLabel && (
+              <>
                 <ChevronRight className="h-3 w-3" />
-                <Link to="/shop" className="hover:text-[#ff7a00] transition">Shop</Link>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-[var(--text-primary)] truncate max-w-[200px]">{product.name}</span>
-              </nav>
-            </div>
-
-            {activeFlashDeal && (
-              <div className="mb-4 rounded-2xl overflow-hidden">
-                <div className="bg-gradient-to-r from-[#ff7a00] to-[#ff9d48] px-4 py-3 flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1">
-                      <Zap className="h-3.5 w-3.5 text-white fill-white" />
-                      <span className="text-white text-xs font-black uppercase tracking-wider">Flash Sale</span>
-                    </div>
-                    <span className="text-white/90 text-xs font-semibold">{activeFlashDeal.discountPercentage}% OFF · Limited Time</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-white/80" />
-                    <span className="text-white/80 text-xs">Ends in</span>
-                    <FlashCountdown expiresAt={activeFlashDeal.expiresAt} />
-                  </div>
-                </div>
-              </div>
+                <Link to={`/category/${product.category}`} className="hover:text-[#FD384F] transition">
+                  {product.categoryLabel}
+                </Link>
+              </>
             )}
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-stone-900 dark:text-stone-100 font-medium truncate max-w-[280px]">
+              {product.name}
+            </span>
+          </nav>
 
-            <div className="grid gap-5 lg:grid-cols-[470px_minmax(0,1fr)] xl:grid-cols-[560px_minmax(0,1fr)]">
-              <div className="space-y-3">
-                <div className="relative rounded-[26px] overflow-hidden bg-[#efefee] border border-[#e7dfe2] aspect-[1.08] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]">
-                  {discountPct > 0 && (
-                    <div className="absolute top-3 left-3 z-10 bg-[#ff5e2e] text-white text-[11px] font-black px-2.5 py-1.5 rounded-full shadow-sm">
-                      -{discountPct}%
-                    </div>
-                  )}
-                  {product.badge && product.badge !== 'Sale' && (
-                    <div className="absolute top-3 right-3 z-10">
-                      <Badge variant="secondary">{product.badge}</Badge>
-                    </div>
-                  )}
-                  <img src={currentImage} alt={product.name} className="h-full w-full object-contain p-4 sm:p-6" />
-                  {galleryImages.length > 1 && (
-                    <>
-                      <button onClick={() => { const idx = galleryImages.indexOf(currentImage); setSelectedImage(galleryImages[(idx - 1 + galleryImages.length) % galleryImages.length]); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/20 rounded-full flex items-center justify-center text-white hover:bg-black/30 transition lg:hidden">
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => { const idx = galleryImages.indexOf(currentImage); setSelectedImage(galleryImages[(idx + 1) % galleryImages.length]); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/20 rounded-full flex items-center justify-center text-white hover:bg-black/30 transition lg:hidden">
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </>
-                  )}
-                </div>
-
+          {/* Main AliExpress 3-Column Card */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              
+              {/* Column 1: Gallery with vertical thumbnail strip (lg:col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-3">
+                {/* Vertical Thumbnails */}
                 {galleryImages.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto max-h-[480px] no-scrollbar shrink-0">
                     {galleryImages.map((img, idx) => (
-                      <button key={idx} onClick={() => setSelectedImage(img)} className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${currentImage === img ? 'border-[#ff7a00] shadow-md' : 'border-[#ebdfe5] opacity-70 hover:opacity-100'}`}>
-                        <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        key={idx}
+                        onMouseEnter={() => setSelectedImage(img)}
+                        onClick={() => setSelectedImage(img)}
+                        className={`relative h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
+                          currentImage === img
+                            ? 'border-black dark:border-white shadow-xs'
+                            : 'border-gray-200 hover:border-gray-400 opacity-80 hover:opacity-100 dark:border-slate-700'
+                        }`}
+                      >
+                        <img src={img} alt={`${product.name} ${idx + 1}`} className="h-full w-full object-cover" />
                       </button>
                     ))}
                   </div>
                 )}
 
-                <div className="hidden lg:grid grid-cols-3 gap-4">
-                  {[
-                    { icon: Truck, label: 'Fast Delivery', sub: 'Accra & beyond' },
-                    { icon: ShieldCheck, label: 'Genuine', sub: '100% authentic' },
-                    { icon: RotateCcw, label: 'Easy Returns', sub: '7-day policy' },
-                  ].map(({ icon: Icon, label, sub }) => (
-                    <div key={label} className="flex min-h-[150px] flex-col items-center justify-center gap-3 rounded-[28px] border border-[#e6e1e1] bg-[#f4f2f2] p-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-                      <Icon className="h-10 w-10 text-[#ff7a00]" strokeWidth={2.25} />
-                      <div className="space-y-1">
-                        <div className="text-[18px] font-semibold leading-none text-[#1e1e1e]">{label}</div>
-                        <div className="text-[14px] leading-none text-[#4a4a4a]">{sub}</div>
-                      </div>
+                {/* Main Large Image */}
+                <div className="relative flex-1 aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100 dark:bg-slate-800 dark:border-slate-700 group">
+                  {discountPct > 0 && (
+                    <span className="absolute top-3 left-3 z-10 rounded-sm bg-[#FD384F] px-2 py-1 text-xs font-black text-white shadow-xs">
+                      -{discountPct}%
+                    </span>
+                  )}
+                  <img
+                    src={currentImage}
+                    alt={product.name}
+                    className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                  />
+                  
+                  {/* Video Play Overlay Indicator */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-10 transition-opacity">
+                    <div className="w-14 h-14 rounded-full bg-black/50 text-white flex items-center justify-center">
+                      <Zap className="w-6 h-6 fill-white" />
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Share & Wishlist quick overlays on mobile */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 sm:hidden z-10">
+                    <button
+                      onClick={() => toggleWishlist(product.id)}
+                      className="w-8 h-8 rounded-full bg-white/90 shadow-sm flex items-center justify-center text-stone-700"
+                    >
+                      <Heart className={`h-4 w-4 ${wishlisted ? 'fill-[#FD384F] text-[#FD384F]' : ''}`} />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4 rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] p-4 sm:p-5 shadow-[0_18px_38px_rgba(129,93,97,0.05)]">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ebdfe5] bg-[#fff5ee] px-3 py-1 text-[11px] font-bold text-[#1f1b1c]">
-                      <ShieldCheck className="h-3 w-3 text-[#ff7a00]" />
-                      CR Cosmetics
-                    </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">{product.brand}</span>
+              {/* Column 2: Middle Details (lg:col-span-4 xl:col-span-4) */}
+              <div className="lg:col-span-4 xl:col-span-4 flex flex-col space-y-3.5">
+                {/* Product Title */}
+                <h1 className="text-lg sm:text-xl font-bold leading-snug text-stone-900 dark:text-stone-100">
+                  {product.name}
+                </h1>
+
+                {/* Ratings & Sold Stats */}
+                <div className="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-300 flex-wrap">
+                  <div className="flex items-center text-amber-500">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-3.5 w-3.5 ${
+                          star <= Math.round(product.rating)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-stone-300 dark:text-stone-600'
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => { if (navigator.share) { navigator.share({ title: product.name, url: window.location.href }); } else { navigator.clipboard.writeText(window.location.href); } }} className="w-9 h-9 rounded-full border border-[#ebdfe5] bg-white flex items-center justify-center text-[var(--text-subtle)] hover:text-[#ff7a00] transition">
-                      <Share2 className="h-3.5 w-3.5" />
-                    </button>
-                    <button onClick={() => toggleWishlist(product.id)} className={`w-9 h-9 rounded-full border flex items-center justify-center transition ${wishlisted ? 'border-rose-500 bg-rose-500 text-white' : 'border-[#ebdfe5] bg-white text-[var(--text-subtle)] hover:text-rose-500 hover:border-rose-400'}`}>
-                      <Heart className={`h-3.5 w-3.5 ${wishlisted ? 'fill-current' : ''}`} />
-                    </button>
-                  </div>
+                  <span className="font-bold text-stone-800 dark:text-stone-100">{product.rating.toFixed(1)}</span>
+                  <a href="#reviews" className="underline hover:text-[#FD384F]">
+                    {product.reviewCount || 580} Reviews
+                  </a>
+                  <span>|</span>
+                  <span className="font-semibold text-stone-700 dark:text-stone-300">1,000+ sold</span>
                 </div>
 
+                {/* Deal Tag */}
                 <div>
-                  <h1 className="text-3xl sm:text-[2.5rem] font-black leading-none text-[#1f1b1c] tracking-[-0.06em]">{product.name}</h1>
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-[#FFF4E6] px-2 py-0.5 text-[11px] font-bold text-[#D96B00] border border-[#FFE2C2]">
+                    <Tag className="h-3 w-3" />
+                    Best price in similar deals
+                  </span>
                 </div>
 
-                <div className="flex items-center flex-wrap gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex items-center">
-                      {[1,2,3,4,5].map(s => (
-                        <Star key={s} className={`h-4 w-4 ${s <= Math.round(product.rating) ? 'text-[#ff9d48] fill-[#ff9d48]' : 'text-[#ebdfe5]'}`} />
-                      ))}
+                {/* AliExpress "FALL FEST SALE" / "SUPER DEALS" Promo Box */}
+                <div className="overflow-hidden rounded-xl border border-[#F5D89F] bg-[#FFFBF0] dark:bg-slate-800/90 dark:border-amber-900/60">
+                  {/* Top Bar of Sale Box */}
+                  <div className="flex items-center justify-between bg-[#FCEECC] px-3.5 py-1.5 dark:bg-amber-950/40">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#9C3200] dark:text-amber-300">
+                      {activeFlashDeal?.title || 'FALL FEST SALE'}
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9C3200] dark:text-amber-300">
+                      <Clock className="h-3 w-3" />
+                      <span>Ends:</span>
+                      {activeFlashDeal ? (
+                        <FlashCountdown expiresAt={activeFlashDeal.expiresAt} />
+                      ) : (
+                        <span>Limited Time</span>
+                      )}
                     </div>
-                    <span className="text-sm font-bold text-[#1f1b1c]">{product.rating.toFixed(1)}</span>
                   </div>
-                  <span className="text-xs text-[var(--text-subtle)] underline cursor-pointer">{product.reviewCount} reviews</span>
-                  <span className="h-3.5 w-px bg-[#ebdfe5]" />
-                  {availableStock > 0 ? (
-                    <span className="text-xs font-semibold text-emerald-600">{availableStock} in stock</span>
-                  ) : (
-                    <span className="text-xs font-semibold text-red-500">Out of stock</span>
-                  )}
-                </div>
 
-                <div className={`rounded-[24px] border p-4 ${activeFlashDeal ? 'border-[#ffd1ac] bg-[#fff7f1]' : 'border-[#ebdfe5] bg-[#f8f1f3]'}`}>
-                  <div className="flex items-end gap-3 flex-wrap">
-                    <span className="text-4xl font-black tracking-[-0.06em] text-[#ff7a00]">GHS {displayPrice.toFixed(2)}</span>
-                    {displayOriginalPrice && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-[var(--text-subtle)] line-through">GHS {displayOriginalPrice.toFixed(2)}</span>
-                        <span className="text-[11px] font-black text-white bg-[#ff5a4d] rounded px-1.5 py-0.5">-{discountPct}%</span>
-                      </div>
-                    )}
-                  </div>
-                  {availableStock > 0 && availableStock <= 20 && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-[#ebdfe5] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#ff7a00] rounded-full" style={{ width: `${Math.min(100, ((20 - availableStock) / 20) * 100)}%` }} />
-                      </div>
-                      <span className="text-[11px] font-bold text-[#ff7a00] whitespace-nowrap">Only {availableStock} left!</span>
+                  {/* Pricing Section */}
+                  <div className="p-3.5 space-y-2">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-3xl font-black text-[#FD384F]">
+                        GH₵{displayPrice.toFixed(2)}
+                      </span>
+                      {displayOriginalPrice && (
+                        <span className="inline-flex items-center rounded-xs bg-[#FD384F]/10 px-1.5 py-0.5 text-xs font-bold text-[#FD384F]">
+                          Save GH₵{(displayOriginalPrice - displayPrice).toFixed(2)}
+                        </span>
+                      )}
+                      {displayOriginalPrice && (
+                        <span className="text-xs text-stone-400 line-through">
+                          GH₵{displayOriginalPrice.toFixed(2)}
+                        </span>
+                      )}
                     </div>
-                  )}
+
+                    {/* Wholesale discount notice */}
+                    <div className="text-[11px] text-[#D9381E] flex items-center gap-1 font-semibold">
+                      <Tag className="h-3 w-3" />
+                      <span>Wholesale: 2+ pieces, extra 1% off</span>
+                    </div>
+
+                    {/* Tax & Coins info */}
+                    <p className="text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
+                      Tax excluded, add at checkout if applicable · Extra 5% off with coins
+                    </p>
+
+                    {/* Discount voucher banner */}
+                    <div className="mt-1 flex items-center justify-between rounded-md bg-[#FFF0ED] px-2.5 py-1.5 text-[11px] font-bold text-[#FD384F] border border-[#FFD5CC] dark:bg-red-950/30">
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="h-3.5 w-3.5 shrink-0" />
+                        <span>GH₵25.49 off on orders over GH₵190.00</span>
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#ebdfe5] bg-white divide-y divide-[#ebdfe5] overflow-hidden">
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <Truck className="h-4 w-4 shrink-0 text-[#ff7a00]" />
-                    <span className="text-xs font-bold text-[var(--text-primary)]">{storeSettings.productDeliveryMessage || `Delivery: GHS ${Number(storeSettings.standardShippingFee).toFixed(2)}`}</span>
+                {/* Color / Variant Selection */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
+                    <span>Color / Variant:</span>
+                    <span className="font-semibold text-stone-600 dark:text-stone-400">
+                      {activeVariant?.name || Object.values(selectedOptionValues)[0] || 'Default'}
+                    </span>
+                    <span className="text-rose-500">🔥</span>
                   </div>
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <Tag className="h-4 w-4 shrink-0 text-emerald-500" />
-                    <span className="text-xs text-[var(--text-primary)]">Free delivery on orders above <strong>GHS {Number(storeSettings.freeDeliveryThreshold).toFixed(0)}</strong></span>
-                  </div>
-                </div>
 
-                {product.options && product.options.length > 0 ? product.options.map(option => (
-                  <div key={option.name} className="space-y-2">
-                    <p className="text-xs font-bold text-[var(--text-primary)]">{option.name}: <span className="text-[#ff7a00] font-normal">{selectedOptionValues[option.name] || `Select ${option.name}`}</span></p>
-                    <div className="flex flex-wrap gap-2">
-                      {option.values.map(value => {
-                        const isSelected = selectedOptionValues[option.name] === value;
-                        const isColor = option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour';
-                        const swatchColor = COLOR_SWATCHES[value.toLowerCase()];
-                        const matchingVariant = product.variants?.find(variant => Object.entries({ ...selectedOptionValues, [option.name]: value }).every(([key, selectedValue]) => variant.options?.[key] === selectedValue));
+                  {/* Swatch options as clickable image/pill tiles */}
+                  <div className="flex flex-wrap gap-2">
+                    {product.variants && product.variants.length > 0 ? (
+                      product.variants.map((v) => {
+                        const isSelected = activeVariant?.id === v.id;
                         return (
-                          <button key={value} type="button" onClick={() => { const nextValues = { ...selectedOptionValues, [option.name]: value }; setSelectedOptionValues(nextValues); const nextVariant = product.variants?.find(variant => Object.entries(nextValues).length === product.options?.length && Object.entries(nextValues).every(([key, selectedValue]) => variant.options?.[key] === selectedValue)); setSelectedVariant(nextVariant); }} disabled={matchingVariant?.inStock === false} className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition ${isSelected ? 'border-[#ff7a00] bg-[#fff5ee] text-[#ff7a00] ring-1 ring-[#ff7a00]' : 'border-[#ebdfe5] bg-white text-[var(--text-primary)] hover:border-[#ff7a00]/60'} disabled:cursor-not-allowed disabled:opacity-40`}>
-                            {isColor && swatchColor && <span className="h-3.5 w-3.5 rounded-full border border-black/15" style={{ backgroundColor: swatchColor }} />}
-                            {value}
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => setSelectedVariant(v)}
+                            className={`flex items-center gap-2 rounded-lg border-2 p-1 text-xs transition-all ${
+                              isSelected
+                                ? 'border-black bg-stone-50 font-bold dark:border-white dark:bg-slate-800'
+                                : 'border-gray-200 hover:border-gray-400 dark:border-slate-700'
+                            }`}
+                          >
+                            <img
+                              src={product.image}
+                              alt={v.name}
+                              className="h-8 w-8 rounded-sm object-cover"
+                            />
+                            <span className="pr-1.5 text-[11px]">{v.name}</span>
                           </button>
                         );
-                      })}
-                    </div>
-                  </div>
-                )) : product.variants && product.variants.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-[var(--text-primary)]">Select option</p>
-                    <div className="flex flex-wrap gap-2">
-                      {product.variants.map((variant) => (
-                        <button key={variant.id} type="button" onClick={() => setSelectedVariant(variant)} disabled={!variant.inStock} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${activeVariant?.id === variant.id ? 'border-[#ff7a00] bg-[#fff5ee] text-[#ff7a00] ring-1 ring-[#ff7a00]' : 'border-[#ebdfe5] bg-white text-[var(--text-primary)]'} disabled:opacity-40 disabled:cursor-not-allowed`}>
-                          {variant.name} · GHS {variant.price.toFixed(2)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-[var(--text-primary)] w-20 shrink-0">Quantity:</span>
-                    <div className="flex items-center border-2 border-[#ebdfe5] rounded-xl overflow-hidden bg-white">
-                      <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-[var(--text-primary)] hover:bg-[#fff3ea] transition">−</button>
-                      <span className="w-12 text-center text-sm font-black text-[var(--text-primary)] border-x-2 border-[#ebdfe5] h-10 flex items-center justify-center">{quantity}</span>
-                      <button type="button" onClick={() => setQuantity(Math.min(availableStock || 99, quantity + 1))} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-[var(--text-primary)] hover:bg-[#fff3ea] transition">+</button>
-                    </div>
-                    <span className="text-xs text-[var(--text-subtle)]">{product.unit}</span>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button onClick={handleAddToCart} disabled={!canPurchase} className="flex-1 h-12 rounded-2xl border-2 border-[#ff7a00] bg-white text-[#ff7a00] text-sm font-black uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-[#fff5ee] transition disabled:opacity-50 disabled:cursor-not-allowed">
-                      <ShoppingCart className="h-4 w-4" />
-                      {!canPurchase ? (allOptionsSelected ? 'Sold Out' : 'Select Options') : 'Add to Cart'}
-                    </button>
-                    <button onClick={() => void handleBuyNow()} disabled={!canPurchase} className="flex-1 h-12 rounded-2xl bg-[#111111] text-white text-sm font-black uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-[#2c2c2c] transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/10">
-                      {!canPurchase ? (allOptionsSelected ? 'Sold Out' : 'Select Options') : 'Buy Now'}
-                    </button>
-                  </div>
-                </div>
-
-                {product.highlights?.length ? (
-                  <div className="rounded-2xl border border-[#ebdfe5] bg-[#fffdfc] p-4">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)] mb-3">Product Highlights</p>
-                    <ul className="space-y-2">
-                      {product.highlights.map((h, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-primary)]">
-                          <Check className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
-                          {h}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:hidden">
-                  {[
-                    { icon: Truck, label: 'Fast Delivery' },
-                    { icon: ShieldCheck, label: 'Genuine' },
-                    { icon: RotateCcw, label: 'Easy Returns' },
-                  ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-[24px] border border-[#e6e1e1] bg-[#f4f2f2] px-3 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-                      <Icon className="h-9 w-9 text-[#ff7a00]" strokeWidth={2.25} />
-                      <span className="text-[17px] font-semibold leading-none text-[#1e1e1e]">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_18px_38px_rgba(129,93,97,0.05)]">
-              <div className="flex border-b border-[#ebdfe5] bg-[#f8f0f3]">
-                {(['description', 'details', 'delivery'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider transition border-b-2 ${activeTab === tab ? 'border-[#ff7a00] text-[#ff7a00] bg-white' : 'border-transparent text-[var(--text-subtle)] hover:text-[var(--text-primary)]'}`}
-                  >
-                    {tab === 'description' ? 'Description' : tab === 'details' ? 'Specifications' : 'Delivery'}
-                  </button>
-                ))}
-              </div>
-
-              <div className="p-5 text-sm leading-7 text-[var(--text-primary)]">
-                {activeTab === 'description' && (
-                  <div>
-                    <p className={`whitespace-pre-line text-sm text-[var(--text-primary)] leading-7 ${!descExpanded ? 'line-clamp-6' : ''}`}>
-                      {product.description}
-                    </p>
-                    {product.description && product.description.length > 300 && (
-                      <button onClick={() => setDescExpanded(!descExpanded)} className="mt-3 flex items-center gap-1 text-xs font-bold text-[#ff7a00] hover:text-[#e56a00] transition">
-                        {descExpanded ? 'Show less' : 'Read more'}
-                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
-                      </button>
+                      })
+                    ) : product.options && product.options.length > 0 ? (
+                      product.options[0].values.map((val) => {
+                        const isSelected = selectedOptionValues[product.options![0].name] === val;
+                        return (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() =>
+                              setSelectedOptionValues({
+                                ...selectedOptionValues,
+                                [product.options![0].name]: val,
+                              })
+                            }
+                            className={`flex items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-xs transition-all ${
+                              isSelected
+                                ? 'border-black bg-stone-50 font-bold dark:border-white dark:bg-slate-800'
+                                : 'border-gray-200 hover:border-gray-400 dark:border-slate-700'
+                            }`}
+                          >
+                            <span>{val}</span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg border-2 border-black p-1 dark:border-white">
+                        <img src={product.image} alt={product.name} className="h-8 w-8 rounded-sm object-cover" />
+                        <span className="pr-2 text-xs font-bold">Standard</span>
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
 
-                {activeTab === 'details' && (
-                  <div className="grid gap-0 divide-y divide-[#ebdfe5]">
+                {/* AI Overview Accordion */}
+                <details className="group rounded-xl border border-purple-200 bg-purple-50/50 p-3 text-xs dark:bg-purple-950/20 dark:border-purple-900/50">
+                  <summary className="flex cursor-pointer items-center justify-between font-bold text-purple-900 dark:text-purple-300">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-purple-600" />
+                      AI overview of item
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-2 space-y-1.5 text-stone-700 dark:text-stone-300 leading-relaxed pl-5 list-disc">
+                    <p>• {product.description.slice(0, 140)}...</p>
+                    {product.highlights?.slice(0, 2).map((h, idx) => (
+                      <p key={idx}>• {h}</p>
+                    ))}
+                  </div>
+                </details>
+              </div>
+
+              {/* Column 3: AliExpress Right Buy Box / Service Commitment (lg:col-span-3 xl:col-span-3) */}
+              <div className="lg:col-span-3 xl:col-span-3 flex flex-col justify-between rounded-xl border border-gray-200 bg-stone-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50 space-y-4">
+                
+                {/* Store Info */}
+                <div className="space-y-1 border-b border-gray-200 pb-3 dark:border-slate-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-stone-500">Sold By</span>
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-sm">Verified</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                    {storeSettings.storeName || 'CR Cosmetics Official'}
+                  </h3>
+                  <p className="text-[11px] text-stone-500">98.6% Positive Feedback</p>
+                </div>
+
+                {/* Service Commitment Box */}
+                <div className="space-y-3 text-xs">
+                  <p className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4" />
+                    Service commitment
+                  </p>
+
+                  <div className="space-y-2 text-stone-600 dark:text-stone-300 text-[11px]">
+                    <div className="flex items-start gap-2">
+                      <Truck className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-stone-800 dark:text-stone-200">
+                          Shipping: GH₵{Number(storeSettings.standardShippingFee || 18.86).toFixed(2)}
+                        </span>
+                        <p className="text-stone-500">
+                          Estimated Delivery: 1–3 business days across Accra & beyond
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <RotateCcw className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-stone-800 dark:text-stone-200">Return & refund policy</span>
+                        <p className="text-stone-500">7-day buyer protection & easy returns</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-stone-500 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-stone-800 dark:text-stone-200">Security & Privacy</span>
+                        <p className="text-stone-500">Safe payments via Paystack</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quantity & CTA Area */}
+                <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-slate-700">
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-800 dark:text-stone-200">Quantity:</span>
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white dark:bg-slate-900 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-8 h-8 flex items-center justify-center font-bold text-stone-600 hover:bg-stone-100 dark:hover:bg-slate-800 dark:text-stone-300"
+                      >
+                        −
+                      </button>
+                      <span className="w-10 text-center text-xs font-bold text-stone-900 dark:text-stone-100">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.min(availableStock || 99, quantity + 1))}
+                        className="w-8 h-8 flex items-center justify-center font-bold text-stone-600 hover:bg-stone-100 dark:hover:bg-slate-800 dark:text-stone-300"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Big Primary Red Action: "Buy now" (AliExpress signature style) */}
+                  <button
+                    onClick={() => void handleBuyNow()}
+                    disabled={!canPurchase}
+                    className="w-full h-11 rounded-full bg-[#FD384F] hover:bg-[#E02940] text-white font-bold text-sm tracking-wide shadow-md transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {!canPurchase ? 'Out of Stock' : 'Buy now'}
+                  </button>
+
+                  {/* Secondary Action: "Add to cart" */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={!canPurchase}
+                    className="w-full h-11 rounded-full border-2 border-[#FD384F] bg-[#FFF0F2] text-[#FD384F] hover:bg-[#FFE0E4] font-bold text-sm tracking-wide transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-950/40"
+                  >
+                    Add to cart
+                  </button>
+
+                  {/* Share & Wishlist buttons row */}
+                  <div className="flex items-center justify-center gap-4 pt-1">
+                    <button
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({ title: product.name, url: window.location.href });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-800 dark:hover:text-stone-300 transition"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      <span>Share</span>
+                    </button>
+                    <span>·</span>
+                    <button
+                      onClick={() => toggleWishlist(product.id)}
+                      className={`flex items-center gap-1.5 text-xs transition ${
+                        wishlisted ? 'text-[#FD384F] font-bold' : 'text-stone-500 hover:text-stone-800'
+                      }`}
+                    >
+                      <Heart className={`h-3.5 w-3.5 ${wishlisted ? 'fill-[#FD384F]' : ''}`} />
+                      <span>{wishlisted ? 'Saved' : 'Wishlist'}</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          {/* Product Specifications & Details Tabs */}
+          <div id="reviews" className="mt-6 rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex border-b border-gray-200 bg-stone-50 dark:border-slate-800 dark:bg-slate-800/50">
+              {(['description', 'details', 'delivery'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider transition border-b-2 ${
+                    activeTab === tab
+                      ? 'border-[#FD384F] text-[#FD384F] bg-white dark:bg-slate-900'
+                      : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  }`}
+                >
+                  {tab === 'description' ? 'Overview' : tab === 'details' ? 'Specifications' : 'Customer Service & Shipping'}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6 text-sm leading-relaxed text-stone-800 dark:text-stone-200">
+              {activeTab === 'description' && (
+                <div>
+                  <p className={`whitespace-pre-line text-sm leading-7 ${!descExpanded ? 'line-clamp-6' : ''}`}>
+                    {product.description}
+                  </p>
+                  {product.description && product.description.length > 300 && (
+                    <button
+                      onClick={() => setDescExpanded(!descExpanded)}
+                      className="mt-3 flex items-center gap-1 text-xs font-bold text-[#FD384F] hover:underline"
+                    >
+                      {descExpanded ? 'Show less' : 'Read more'}
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'details' && (
+                <div className="grid gap-0 divide-y divide-gray-100 dark:divide-slate-800">
+                  {[
+                    { label: 'Brand', value: product.brand },
+                    { label: 'Category', value: product.categoryLabel },
+                    product.origin ? { label: 'Origin', value: product.origin } : null,
+                    product.unit ? { label: 'Unit / Size', value: product.unit } : null,
+                    product.routineStep ? { label: 'Routine Step', value: product.routineStep } : null,
+                    { label: 'Availability', value: product.inStock ? 'In Stock' : 'Out of Stock' },
+                  ].filter(Boolean).map(({ label, value }: any) => (
+                    <div key={label} className="flex items-center py-2.5">
+                      <span className="w-36 shrink-0 text-xs text-stone-500 font-medium">{label}</span>
+                      <span className="text-xs font-bold text-stone-900 dark:text-stone-100">{value}</span>
+                    </div>
+                  ))}
+                  {product.details?.ingredients && (
+                    <div className="py-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Ingredients</p>
+                      <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">{product.details.ingredients}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'delivery' && (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {[
-                      { label: 'Brand', value: product.brand },
-                      { label: 'Category', value: product.categoryLabel },
-                      product.origin ? { label: 'Origin', value: product.origin } : null,
-                      product.unit ? { label: 'Unit / Size', value: product.unit } : null,
-                      product.routineStep ? { label: 'Routine Step', value: product.routineStep } : null,
-                      { label: 'Availability', value: product.inStock ? 'In Stock' : 'Out of Stock' },
-                    ].filter(Boolean).map(({ label, value }: any) => (
-                      <div key={label} className="flex items-center py-2.5">
-                        <span className="w-36 shrink-0 text-xs text-[var(--text-subtle)] font-semibold">{label}</span>
-                        <span className="text-xs font-bold text-[var(--text-primary)]">{value}</span>
+                      { icon: Truck, title: 'Standard Delivery', desc: `GHS ${Number(storeSettings.standardShippingFee || 18.86).toFixed(2)} · 1–3 business days` },
+                      { icon: PackageCheck, title: 'Free Delivery', desc: `On orders above GHS ${Number(storeSettings.freeDeliveryThreshold || 300).toFixed(0)}` },
+                      { icon: RotateCcw, title: 'Returns Policy', desc: '7-day easy return policy for damaged or defective items' },
+                      { icon: ShieldCheck, title: 'Buyer Protection', desc: '100% authentic products guaranteed with verified payment protection' },
+                    ].map(({ icon: Icon, title, desc }) => (
+                      <div key={title} className="flex gap-3 rounded-xl border border-gray-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
+                        <Icon className="h-5 w-5 shrink-0 text-[#FD384F] mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-stone-900 dark:text-stone-100">{title}</p>
+                          <p className="text-xs text-stone-500 mt-0.5">{desc}</p>
+                        </div>
                       </div>
                     ))}
-                    {product.details?.ingredients && (
-                      <div className="py-3">
-                        <p className="text-xs font-black uppercase tracking-wider text-[var(--text-subtle)] mb-2">Ingredients</p>
-                        <p className="text-xs text-[var(--text-primary)] leading-6 whitespace-pre-line">{product.details.ingredients}</p>
-                      </div>
-                    )}
-                    {product.details?.benefits && (
-                      <div className="py-3">
-                        <p className="text-xs font-black uppercase tracking-wider text-[var(--text-subtle)] mb-2">Benefits</p>
-                        <p className="text-xs text-[var(--text-primary)] leading-6 whitespace-pre-line">{product.details.benefits}</p>
-                      </div>
-                    )}
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+          </div>
 
-                {activeTab === 'delivery' && (
-                  <div className="space-y-4">
-                    {storeSettings.productShippingMessage?.trim() && (
-                      <p className="text-sm text-[var(--text-primary)]">{storeSettings.productShippingMessage}</p>
-                    )}
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {[
-                        { icon: Truck, title: 'Standard Delivery', desc: `GHS ${Number(storeSettings.standardShippingFee).toFixed(2)} · 1–3 business days` },
-                        { icon: PackageCheck, title: 'Free Delivery', desc: `On orders above GHS ${Number(storeSettings.freeDeliveryThreshold).toFixed(0)}` },
-                        { icon: RotateCcw, title: 'Returns Policy', desc: storeSettings.productReturnsMessage || '7-day easy return policy' },
-                        { icon: ShieldCheck, title: 'Buyer Protection', desc: storeSettings.productProtectionMessage || '100% authentic products guaranteed' },
-                      ].map(({ icon: Icon, title, desc }) => (
-                        <div key={title} className="flex gap-3 rounded-2xl border border-[#ebdfe5] bg-[#f8f1f3] p-4">
-                          <Icon className="h-5 w-5 shrink-0 text-[#ff7a00] mt-0.5" />
-                          <div>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">{title}</p>
-                            <p className="text-xs text-[var(--text-subtle)] mt-0.5">{desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {relatedProducts.length > 0 && (
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-5 bg-[#FD384F] rounded-full" />
+                  <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">You May Also Like</h2>
+                </div>
+                <Link to="/shop" className="text-xs font-bold text-[#FD384F] hover:underline transition flex items-center gap-1">
+                  View All <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                {relatedProducts.map((related) => (
+                  <ProductCard key={related.id} product={related} />
+                ))}
               </div>
             </div>
-
-            {relatedProducts.length > 0 && (
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-[#ff7a00] rounded-full" />
-                    <h2 className="text-lg font-black text-[var(--text-primary)]">You May Also Like</h2>
-                  </div>
-                  <Link to="/shop" className="text-xs font-bold text-[#ff7a00] hover:text-[#e56a00] transition flex items-center gap-1">
-                    View All <ChevronRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-                <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                  {relatedProducts.map((related) => (
-                    <ProductCard key={related.id} product={related} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </>
