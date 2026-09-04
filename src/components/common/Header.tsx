@@ -35,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
 
   const desktopLinks = [
@@ -48,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMobileMenuOpen(false);
+        setIsSearchOpen(false);
       }
     };
 
@@ -67,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     if (searchInput.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
       setIsMobileMenuOpen(false);
+      setIsSearchOpen(false);
     }
   };
 
@@ -122,18 +125,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             })}
           </nav>
 
-          <form onSubmit={handleSearchSubmit} className="hidden min-w-0 max-w-xs flex-1 md:flex">
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[var(--text-subtle)]" />
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]"
-              />
-            </div>
-          </form>
+          <button
+            onClick={() => setIsSearchOpen((open) => !open)}
+            className={`hidden h-10 w-10 items-center justify-center rounded-full border transition md:flex ${isSearchOpen ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:border-[var(--border-color)] hover:bg-[var(--bg-soft)]'}`}
+            aria-label="Search products"
+            aria-expanded={isSearchOpen}
+          >
+            <Search className="h-4 w-4" />
+          </button>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <button
@@ -174,6 +173,22 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </button>
           </div>
         </div>
+
+        {isSearchOpen && (
+          <form onSubmit={handleSearchSubmit} className="absolute right-4 top-[4.7rem] z-50 hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 shadow-[0_18px_45px_rgba(35,20,24,0.16)] md:block">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[var(--text-subtle)]" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search products"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] py-2.5 pl-10 pr-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]"
+              />
+            </div>
+          </form>
+        )}
       </div>
 
       {isMobileMenuOpen && createPortal(
