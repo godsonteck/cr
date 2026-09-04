@@ -251,7 +251,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
         {/* Footer */}
         <div className="p-3 border-t border-stone-100 bg-stone-50 flex items-center justify-between text-[11px] text-stone-500">
           <span>Press <strong>ESC</strong> to close</span>
-          <span>CR Mart</span>
+          <span>CR Cosmetics and Essential</span>
         </div>
 
       </div>

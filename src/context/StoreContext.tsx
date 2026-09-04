@@ -95,7 +95,7 @@ interface StoreContextType {
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'CR Mart',
+  storeName: 'CR Cosmetics and Essential',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
   heroHeadline: '',
   heroSubtitle: '',
@@ -155,9 +155,9 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
 
 const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<StoreSettings> => ({
   ...settings,
-  storeName: settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics & Essential'
-    ? 'CR Mart'
-    : settings.storeName,
+  storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics & Essentials'
+    ? 'CR Cosmetics and Essential'
+    : (settings.storeName || 'CR Cosmetics and Essential'),
 });
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [

@@ -137,7 +137,7 @@ export const HomePage: React.FC = () => {
           <section className={`rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,var(--bg-card),var(--bg-card-alt))] p-5 shadow-[var(--shadow-soft)] sm:p-8 ${storeSettings.heroImage ? 'grid gap-5 md:grid-cols-[1fr_minmax(260px,38%)] md:items-center' : ''}`}>
             <div className="order-2 flex items-center justify-between gap-4 md:order-1">
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Mart</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics and Essential</p>
                 <h1 className="mt-2 max-w-[17ch] text-[1.9rem] font-black leading-[1.05] text-[var(--text-primary)] sm:text-4xl">
                   {storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}
                 </h1>

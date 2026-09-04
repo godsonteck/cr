@@ -37,7 +37,7 @@ export function AdminLayout({
               <img
                 src={store.storeSettings.storeLogo || new URL('../../assets/logo.jpeg', import.meta.url).toString()}
                 onError={(event) => { (event.currentTarget as HTMLImageElement).src = new URL('../../assets/logo.jpeg', import.meta.url).toString(); }}
-                alt="CR Mart"
+                alt="CR Cosmetics and Essential"
                 className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-sm border border-stone-700"
               />
               <div>

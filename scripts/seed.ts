@@ -12,7 +12,7 @@ import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../src/data/products';
 import bcrypt from 'bcryptjs';
 
 const DEFAULT_STORE_SETTINGS = {
-  storeName: 'CR Mart',
+  storeName: 'CR Cosmetics and Essential',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
   heroHeadline: 'Your Beauty. Your Essentials. Your Glow.',
   heroSubtitle: 'Shop beauty, personal care and household essentials.',
@@ -28,7 +28,7 @@ const DEFAULT_STORE_SETTINGS = {
   intercityShippingFee: 70,
   storePhone: '+233 59 215 3306',
   storeEmail: 'contact@crcosmetics.com',
-  storeAddress: 'CR Mart • Accra, Ghana (Google Maps: https://maps.app.goo.gl/iZj5aqj13gCaYZ1m9)',
+  storeAddress: 'CR Cosmetics and Essential • Accra, Ghana (Google Maps: https://maps.app.goo.gl/iZj5aqj13gCaYZ1m9)',
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
   whatsappNumber: '233592153306',
   maintenanceMode: false,

@@ -1,5 +1,5 @@
 /**
- * CSV and Report Export Utilities for CR Mart Admin Platform
+ * CSV and Report Export Utilities for CR Cosmetics and Essential Admin Platform
  */
 
 import { Product, Order, Customer, InventoryMovement } from '../types';

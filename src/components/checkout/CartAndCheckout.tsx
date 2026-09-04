@@ -411,7 +411,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
     <div className="mx-auto max-w-6xl px-3 py-6 font-sans sm:px-6 sm:py-10">
       <div className="mb-8 flex flex-col gap-5 border-b border-[var(--border-color)] pb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--accent-strong)]">CR Mart checkout</p>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--accent-strong)]">CR Cosmetics and Essential checkout</p>
           <h1 className="font-serif text-4xl leading-none tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Almost yours.</h1>
           <p className="mt-3 max-w-md text-sm leading-6 text-[var(--text-muted)]">Add your delivery details, then complete payment securely with Paystack.</p>
         </div>
@@ -635,7 +635,7 @@ export const OrderConfirmationPage: React.FC = () => {
         </div>
       ) : (
         <p className="text-xs text-[var(--text-muted)] text-center">
-          Thank you for shopping with CR Mart.
+          Thank you for shopping with CR Cosmetics and Essential.
         </p>
       )}
 

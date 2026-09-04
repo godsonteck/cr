@@ -51,7 +51,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   if (!isOpen || !order) return null;
 
   const customerPhoneClean = order.shippingAddress.phone.replace(/[^0-9]/g, '');
-  const whatsappUrl = `https://wa.me/${customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean}?text=${encodeURIComponent(`Hello ${order.shippingAddress.fullName}, thank you for shopping with CR Mart. We are currently preparing your delivery for order #${order.orderNumber}.`)}`;
+  const whatsappUrl = `https://wa.me/${customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean}?text=${encodeURIComponent(`Hello ${order.shippingAddress.fullName}, thank you for shopping with CR Cosmetics and Essential. We are currently preparing your delivery for order #${order.orderNumber}.`)}`;
 
   const stages: { label: OrderStatus; desc: string }[] = [
     { label: 'Confirmed', desc: 'Order received & confirmed' },
