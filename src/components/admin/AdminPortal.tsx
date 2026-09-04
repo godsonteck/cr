@@ -22,6 +22,8 @@ import {
   Plus,
   Sun,
   Moon,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -107,6 +109,55 @@ const tabLabels: Record<AdminTab, string> = {
   reviews:       'Reviews',
   settings:      'Settings',
 };
+
+class AdminTabErrorBoundary extends React.Component<
+  { children: React.ReactNode; tabName: string; onReset: () => void },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error in Admin Tab:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 p-6 text-center max-w-xl mx-auto my-8">
+          <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto mb-3">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-1">
+            Failed to load {this.props.tabName}
+          </h3>
+          <p className="text-sm text-stone-600 dark:text-stone-400 mb-3">
+            An unexpected error occurred while loading this view:
+          </p>
+          <p className="font-mono text-xs text-red-600 dark:text-red-400 bg-white dark:bg-stone-900 p-2.5 rounded-xl border border-red-200 dark:border-red-900/50 mb-5 break-words text-left">
+            {this.state.error?.message || 'Unknown error'}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1E1719] dark:bg-stone-200 text-white dark:text-stone-900 text-xs font-semibold hover:opacity-90 transition"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Try Again
+            </button>
+            <button
+              onClick={this.props.onReset}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-semibold hover:bg-stone-50 transition"
+            >
+              Back to Overview
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export const AdminPortal: React.FC = () => {
   const store = useStore();
@@ -395,25 +446,31 @@ export const AdminPortal: React.FC = () => {
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">
-            {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
-            {currentTab === 'products' && (
-              <AdminProductsScreen
-                onAddProduct={handleAddProduct}
-                onEditProduct={handleEditProduct}
-                onViewProduct={handleViewProduct}
-              />
-            )}
-            {currentTab === 'orders'        && <AdminOrdersScreen onViewOrder={handleViewOrder} />}
-            {currentTab === 'inventory'     && <AdminInventoryScreen onAddProduct={handleAddProduct} />}
-            {currentTab === 'customers'     && <AdminCustomersScreen />}
-            {currentTab === 'accounts'      && <AdminAccountsManagementScreen />}
-            {currentTab === 'promos'        && <AdminPromotionsScreen />}
-            {currentTab === 'flash'         && <AdminFlashDealsScreen />}
-            {currentTab === 'categories'    && <AdminCategoriesScreen />}
-            {currentTab === 'analytics'     && <AdminAnalyticsScreen />}
-            {currentTab === 'notifications' && <AdminNotificationsScreen />}
-            {currentTab === 'reviews'       && <AdminReviewsScreen />}
-            {currentTab === 'settings'      && <AdminSettingsScreen />}
+            <AdminTabErrorBoundary
+              key={currentTab}
+              tabName={tabLabels[currentTab] || currentTab}
+              onReset={() => handleTabChange('overview')}
+            >
+              {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
+              {currentTab === 'products' && (
+                <AdminProductsScreen
+                  onAddProduct={handleAddProduct}
+                  onEditProduct={handleEditProduct}
+                  onViewProduct={handleViewProduct}
+                />
+              )}
+              {currentTab === 'orders'        && <AdminOrdersScreen onViewOrder={handleViewOrder} />}
+              {currentTab === 'inventory'     && <AdminInventoryScreen onAddProduct={handleAddProduct} />}
+              {currentTab === 'customers'     && <AdminCustomersScreen />}
+              {currentTab === 'accounts'      && <AdminAccountsManagementScreen />}
+              {currentTab === 'promos'        && <AdminPromotionsScreen />}
+              {currentTab === 'flash'         && <AdminFlashDealsScreen />}
+              {currentTab === 'categories'    && <AdminCategoriesScreen />}
+              {currentTab === 'analytics'     && <AdminAnalyticsScreen />}
+              {currentTab === 'notifications' && <AdminNotificationsScreen />}
+              {currentTab === 'reviews'       && <AdminReviewsScreen />}
+              {currentTab === 'settings'      && <AdminSettingsScreen />}
+            </AdminTabErrorBoundary>
           </div>
         </div>
       </div>

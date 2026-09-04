@@ -1010,7 +1010,6 @@ const addOrder = async (order: Order) => {
   };
 
   const fetchAdminAccounts = useCallback(async () => {
-    setLoadingAdmin(true);
     try {
       const accounts = await api.get<AdminAccount[]>('/admin-accounts');
       if (Array.isArray(accounts)) {
@@ -1021,8 +1020,6 @@ const addOrder = async (order: Order) => {
       }
     } catch (e: any) {
       setError(e.message || "Operation failed");
-    } finally {
-      setLoadingAdmin(false);
     }
   }, []);
 
@@ -1044,8 +1041,9 @@ const addOrder = async (order: Order) => {
 
   const updateAdminAccount = async (id: string, updates: Partial<AdminAccount>) => {
     setAdminAccounts(prev => prev.map(account => account.id === id ? { ...account, ...updates } : account));
-    const account = adminAccounts.find(item => item.id === id);
-    if (account && account.email.toLowerCase() === adminSession.email.toLowerCase()) {
+    const account = adminAccounts.find(item => item && item.id === id);
+    const sessionEmail = (adminSession?.email || '').toLowerCase().trim();
+    if (account && account.email && account.email.toLowerCase().trim() === sessionEmail) {
       setAdminSession(prev => ({
         ...prev,
         adminName: updates.fullName ?? prev.adminName,
@@ -1066,7 +1064,8 @@ const addOrder = async (order: Order) => {
   };
 
   const changeAdminPassword = async (currentPin: string, newPin: string) => {
-    const account = adminAccounts.find(item => item.email.toLowerCase() === adminSession.email.toLowerCase());
+    const sessionEmail = (adminSession?.email || '').toLowerCase().trim();
+    const account = adminAccounts.find(item => item && item.email && item.email.toLowerCase().trim() === sessionEmail);
     if (!account) throw new Error('Active admin account was not found');
     await api.patch(`/admin-accounts/${account.id}`, { currentPin, pin: newPin });
   };

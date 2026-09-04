@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, Flame, Truck, ShieldCheck, CreditCard, MessageCircle, Star, ShoppingBag } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
@@ -98,15 +98,13 @@ export const HomePage: React.FC = () => {
 
       {/* Category pills - sticky scrollable bar */}
       {homepageSections.categories && categoryPills.length > 0 && (
-        <div className="sticky top-[4.25rem] z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur sm:top-[4.7rem] sm:px-4">
-          <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {categoryPills.map((item, index) => (
+        <div className="sticky top-[4.25rem] z-20 mx-auto max-w-[1500px] overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2.5 backdrop-blur sm:top-[4.7rem] sm:px-4">
+          <div className="flex min-w-0 max-w-full gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5">
+            {categoryPills.map((item) => (
               <Link
                 key={item.id}
                 to={`/category/${item.slug}`}
-                className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all ${
-                    'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]'
-                }`}
+                className="whitespace-nowrap rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-primary)] transition-all hover:border-[#FD384F] hover:text-[#FD384F] hover:bg-red-50/50 dark:hover:bg-red-950/20 shadow-xs"
               >
                 {item.name}
               </Link>
@@ -115,7 +113,7 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-[1500px] space-y-4 px-3 pb-12 sm:space-y-5 sm:px-4">
+      <main className="mx-auto max-w-[1500px] space-y-5 px-3 pb-12 sm:space-y-6 sm:px-4">
         {/* Flash Deal Banner */}
         {homepageSections.flashDeal && activeFlashDeal && (
           <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--accent)]/35 border-l-4 border-l-[var(--accent)] bg-[var(--bg-card-alt)] p-3 text-[var(--text-primary)] sm:p-4">
@@ -132,27 +130,151 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* Compact Hero */}
+        {/* Rich AliExpress/Jumia-Style Hero */}
         {homepageSections.hero && (
-          <section className={`rounded-2xl border border-[var(--border-color)] bg-[linear-gradient(135deg,var(--bg-card),var(--bg-card-alt))] p-5 shadow-[var(--shadow-soft)] sm:p-8 ${storeSettings.heroImage ? 'grid gap-5 md:grid-cols-[1fr_minmax(260px,38%)] md:items-center' : ''}`}>
-            <div className="order-2 flex items-center justify-between gap-4 md:order-1">
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-strong)]">CR Cosmetics and Essential</p>
-                <h1 className="mt-2 max-w-[17ch] text-[1.9rem] font-black leading-[1.05] text-[var(--text-primary)] sm:text-4xl">
-                  {storeSettings.heroHeadline || 'Beauty, care, and everyday essentials.'}
-                </h1>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{storeSettings.heroSubtitle || 'Thoughtfully chosen beauty products and practical essentials, delivered with care.'}</p>
-                <Link to="/shop" className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--accent)] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
-                  {storeSettings.heroButtonText || 'Shop all products'} <ArrowRight className="h-3 w-3" />
-                </Link>
+          <div className="space-y-4 pt-1">
+            <section className="relative overflow-hidden rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-gradient-to-br from-white via-[#FFF8F5] to-[#FDF1EC] dark:from-[#181315] dark:via-[#1e1719] dark:to-[#140f11] p-6 sm:p-10 shadow-[0_10px_35px_-10px_rgba(253,56,79,0.08)]">
+              <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+                
+                {/* Left Content */}
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FD384F] dark:bg-red-950/40">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Official Store • Express Delivery Ghana</span>
+                  </div>
+
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 dark:text-stone-100 leading-[1.15]">
+                    {storeSettings.heroHeadline || 'Your Beauty. Your Essentials. Your Glow.'}
+                  </h1>
+
+                  <p className="max-w-xl text-sm sm:text-base text-stone-600 dark:text-stone-300 leading-relaxed">
+                    {storeSettings.heroSubtitle || 'Discover verified authentic skincare, luxury fragrances, makeup, and daily essentials with fast door-to-door delivery.'}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <Link
+                      to="/shop"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#FD384F] hover:bg-[#E02940] text-white px-7 py-3.5 text-xs font-bold uppercase tracking-wider shadow-lg shadow-red-500/25 transition-all hover:scale-105 active:scale-95"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>{storeSettings.heroButtonText || 'Shop All Products'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+
+                    <Link
+                      to="/offers"
+                      className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:border-red-400 text-stone-800 dark:text-stone-200 px-6 py-3.5 text-xs font-bold uppercase tracking-wider transition hover:text-[#FD384F]"
+                    >
+                      <Flame className="w-4 h-4 text-[#FD384F]" />
+                      <span>Today's SuperDeals</span>
+                    </Link>
+                  </div>
+
+                  {/* Trust Micro-Bullets */}
+                  <div className="pt-2 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs font-medium text-stone-500 dark:text-stone-400">
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Same-day delivery in Accra
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      MTN & Telecel MoMo Accepted
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#FD384F]" />
+                      100% Authentic Guaranteed
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Visual / Product Showcase */}
+                <div className="relative flex justify-center lg:justify-end">
+                  <div className="relative w-full max-w-sm rounded-3xl border border-stone-200/90 dark:border-stone-700 bg-white dark:bg-stone-900/90 p-4 shadow-xl transition-all">
+                    {/* Top Floating Badge */}
+                    <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1 rounded-full bg-[#FD384F] text-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                      <Flame className="w-3 h-3" />
+                      <span>Featured Pick</span>
+                    </div>
+
+                    <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-stone-50 dark:bg-stone-800/50 flex items-center justify-center p-2">
+                      <img
+                        src={storeSettings.heroImage || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800'}
+                        alt={storeSettings.heroHeadline || 'CR Cosmetics Featured'}
+                        className="h-full w-full object-contain rounded-xl transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+
+                    {/* Bottom Micro Showcase Details */}
+                    <div className="mt-3 flex items-center justify-between px-1">
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#FD384F]">Top Selling Essential</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <div className="flex text-amber-400">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          </div>
+                          <span className="text-[11px] font-bold text-stone-700 dark:text-stone-300">4.9 (120+ reviews)</span>
+                        </div>
+                      </div>
+                      <Link
+                        to="/shop"
+                        className="rounded-full bg-stone-100 hover:bg-red-50 text-stone-800 hover:text-[#FD384F] dark:bg-stone-800 dark:hover:bg-stone-700 dark:text-stone-200 px-3 py-1.5 text-xs font-bold transition"
+                      >
+                        View &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            {/* 4-Item Trust Perks Bar */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#FD384F] flex items-center justify-center shrink-0">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">Fast Delivery</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">Accra & nationwide</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">100% Authentic</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">Verified products only</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">MoMo & Cards</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">MTN, Telecel, Visa</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">Instant Support</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">WhatsApp & phone</p>
+                </div>
               </div>
             </div>
-            {storeSettings.heroImage && (
-              <div className="order-1 overflow-hidden rounded-xl border border-[var(--border-color)] bg-white/60 dark:bg-black/10 md:order-2">
-                <img src={storeSettings.heroImage} srcSet={getResponsiveImageSet(storeSettings.heroImage)} sizes="(max-width: 767px) 100vw, 38vw" alt="" width="800" height="600" fetchPriority="high" decoding="async" className="aspect-[4/3] h-full w-full object-cover" />
-              </div>
-            )}
-          </section>
+          </div>
         )}
 
         {homepageSections.flashDeal && flashDealProducts.length > 0 && (

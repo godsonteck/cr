@@ -77,8 +77,12 @@ export const AdminAccountsManagementScreen: React.FC = () => {
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  const hasFetched = React.useRef(false);
   React.useEffect(() => {
-    void fetchAdminAccounts();
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      void fetchAdminAccounts();
+    }
   }, [fetchAdminAccounts]);
 
   const safeAccounts = useMemo(() => {
@@ -124,7 +128,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
         Boolean(a) &&
         ((a.fullName || '').toLowerCase().includes(q) ||
         (a.email || '').toLowerCase().includes(q) ||
-        (a.phone || '').includes(searchTerm))
+        String(a.phone || '').includes(searchTerm))
     );
   }, [safeAccounts, searchTerm]);
 
@@ -376,11 +380,11 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] font-bold text-xs flex-shrink-0">
-                              {account.fullName?.charAt(0)?.toUpperCase() || '?'}
+                              {String(account.fullName || '?').charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <p className="font-semibold text-stone-900 dark:text-stone-100">
-                                {account.fullName}
+                                {account.fullName || 'Admin User'}
                               </p>
                               {account.id === currentAdminAccountId && (
                                 <span className="text-[10px] font-bold text-[#B27A52] uppercase tracking-wide">You</span>
@@ -388,11 +392,11 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{account.email}</td>
-                        <td className="px-6 py-4 text-stone-600 dark:text-stone-400 hidden md:table-cell">{account.phone}</td>
+                        <td className="px-6 py-4 text-stone-600 dark:text-stone-400">{account.email || '—'}</td>
+                        <td className="px-6 py-4 text-stone-600 dark:text-stone-400 hidden md:table-cell">{account.phone || '—'}</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_BADGE[account.role] ?? 'bg-stone-100 text-stone-700'}`}>
-                            {ROLE_LABEL[account.role] ?? account.role}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_BADGE[account.role || 'admin'] ?? 'bg-stone-100 text-stone-700'}`}>
+                            {ROLE_LABEL[account.role || 'admin'] ?? account.role ?? 'Admin'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
