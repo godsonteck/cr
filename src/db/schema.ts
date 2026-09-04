@@ -41,7 +41,6 @@ export const orderStatusEnum = pgEnum('order_status', [
   'Delivered',
 ]);
 export const paymentMethodEnum = pgEnum('payment_method', [
-  'korapay',
   'paystack',
   'momo-mtn',
   'momo-telecel',

@@ -234,7 +234,7 @@ export interface RiderTrackingInfo {
 
 export type DeliveryMethod = 'accra-express' | 'standard-delivery' | 'intercity' | 'store-pickup';
 
-export type PaymentMethod = 'momo-mtn' | 'momo-telecel' | 'momo-at' | 'cash-on-delivery' | 'card' | 'apple-pay' | 'paystack' | 'korapay';
+export type PaymentMethod = 'momo-mtn' | 'momo-telecel' | 'momo-at' | 'cash-on-delivery' | 'card' | 'apple-pay' | 'paystack';
 
 export interface ShippingAddress {
   id?: string;
@@ -270,7 +270,6 @@ export interface Order {
   appliedPromoCode?: string;
   paymentReference?: string;
   paymentSenderPhone?: string;
-  paystackReference?: string;
   riderInfo?: RiderTrackingInfo;
 }
 

@@ -27,14 +27,6 @@ const paystackInitializeSchema = z.object({
   reference: z.string().min(10).max(100),
   callbackUrl: z.string().url(),
 });
-const korapayInitializeSchema = z.object({
-  amount: z.number().positive(),
-  email: z.string().email(),
-  name: z.string().min(1).max(100),
-  reference: z.string().min(10).max(100),
-  redirectUrl: z.string().url(),
-});
-
 function stripPassword(user: typeof users.$inferSelect) {
   const { passwordHash, ...safeUser } = user;
   return safeUser;
@@ -171,30 +163,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Payment customer does not match this account' });
         }
         return res.status(200).json({ verified: true, reference: payload.data.reference || reference });
-      }
-
-      if (action === 'korapay-initialize') {
-        const auth = await requireAuth(req, res);
-        if (!auth) return;
-        const parsed = korapayInitializeSchema.safeParse(body);
-        const secretKey = process.env.KORAPAY_SECRET_KEY?.trim();
-        if (!parsed.success || !secretKey) return res.status(500).json({ error: 'Korapay is not configured on the server' });
-        if (parsed.data.email.toLowerCase() !== auth.email.toLowerCase()) return res.status(403).json({ error: 'Payment email must match the signed-in account' });
-
-        const korapayResponse = await fetch('https://api.korapay.com/merchant/api/v1/charges/initialize', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            reference: parsed.data.reference,
-            amount: parsed.data.amount,
-            currency: 'GHS',
-            redirect_url: parsed.data.redirectUrl,
-            customer: { name: parsed.data.name, email: parsed.data.email },
-          }),
-        });
-        const payload = await korapayResponse.json() as { status?: boolean; message?: string; data?: { checkout_url?: string; reference?: string } };
-        if (!korapayResponse.ok || !payload.status || !payload.data?.checkout_url) return res.status(502).json({ error: payload.message || 'Korapay checkout could not be started' });
-        return res.status(200).json({ checkoutUrl: payload.data.checkout_url, reference: payload.data.reference || parsed.data.reference });
       }
 
       if (action === 'paystack-initialize') {

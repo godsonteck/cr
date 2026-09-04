@@ -34,7 +34,7 @@ const orderCreateSchema = z.object({
   shippingFee: z.number().min(0),
   discount: z.number().min(0).default(0),
   total: z.number().positive(),
-  paymentMethod: z.enum(['korapay', 'paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
+  paymentMethod: z.enum(['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
   paymentStatus: z.enum(['paid', 'pending']).default('pending'),
   deliveryMethod: z.enum(['accra-express', 'standard-delivery', 'intercity', 'store-pickup']),
   shippingAddress: z.object({
@@ -242,29 +242,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Cart prices changed. Please review your order and try again.' });
       }
 
-      const onlinePaymentMethods = ['korapay', 'paystack', 'card'];
+      const onlinePaymentMethods = ['paystack', 'card'];
       if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
-        if (parsed.data.paymentMethod === 'korapay') {
-          const reference = parsed.data.paymentReference?.trim();
-          const secretKey = process.env.KORAPAY_SECRET_KEY;
-          if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Korapay payment reference is required to complete this order' });
-          const korapayRes = await fetch(`https://api.korapay.com/merchant/api/v1/charges/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
-          const korapayPayload = await korapayRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
-          if (!korapayRes.ok || !korapayPayload.status || !['success', 'successful', 'completed'].includes((korapayPayload.data?.status || '').toLowerCase()) || Number(korapayPayload.data?.amount) !== Number(calculatedTotal) || korapayPayload.data?.currency !== 'GHS' || korapayPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
-            return res.status(402).json({ error: 'Korapay payment could not be verified. Please try again.' });
-          }
-        }
         const reference = parsed.data.paymentReference?.trim();
         const secretKey = process.env.PAYSTACK_SECRET_KEY;
-        if (parsed.data.paymentMethod === 'korapay') {
-          // Korapay was verified above; skip the legacy Paystack verifier.
-        } else {
         if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
         const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
         const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
         if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.amount !== Math.round(calculatedTotal * 100) || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
           return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
-        }
         }
       }
 

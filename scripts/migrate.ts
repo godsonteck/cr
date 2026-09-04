@@ -106,13 +106,6 @@ async function runMigration() {
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profile_image" text`,
   ];
 
-  try {
-    await db.execute(`ALTER TYPE "payment_method" ADD VALUE IF NOT EXISTS 'korapay'`);
-    console.log('✅ Korapay payment method verified');
-  } catch (e: any) {
-    console.error('Korapay payment method error:', e.message);
-  }
-
   for (const columnSql of compatibilityColumns) {
     try {
       await db.execute(columnSql);
