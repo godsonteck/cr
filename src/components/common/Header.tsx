@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
-  ShoppingBag,
   Heart,
   Menu,
   X,
@@ -12,7 +11,6 @@ import {
   MessageCircle,
   UserRound
 } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
@@ -21,14 +19,12 @@ import logoImg from '../../assets/logo.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 interface HeaderProps {
-  onOpenCart: () => void;
   onOpenWishlist: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenWishlist }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
   const { user, isAuthenticated } = useAuth();
   const { storeSettings } = useStore();
@@ -164,13 +160,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <UserRound className="h-4 w-4" />
             </Link>
 
-            <button
-              onClick={onOpenCart}
-              className="flex h-10 items-center gap-2 rounded-full bg-[#181214] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:opacity-90 dark:bg-[#4a85f6] dark:text-slate-950 dark:hover:bg-[#6398fb]"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{totalItems}</span>
-            </button>
           </div>
         </div>
 
@@ -248,10 +237,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <MessageCircle className="w-4 h-4" />
             </a>
 
-            <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em]">
-              <ShoppingBag className="h-4 w-4" />
-              <span>Open cart ({totalItems})</span>
-            </button>
           </div>
         </div>,
         document.body

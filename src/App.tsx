@@ -9,7 +9,6 @@ import { PageSkeleton, StorefrontSkeleton } from './components/common/LoadingSta
 // Components
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
-import { CartDrawerComponent } from './components/common/CartDrawerComponent';
 import { WishlistModal } from './components/common/WishlistModal';
 import { HomePage } from './components/home/DepartmentStorefronts';
 const BeautyDepartmentPage = lazy(() => import('./components/home/DepartmentPages').then(module => ({ default: module.BeautyDepartmentPage })));
@@ -35,7 +34,6 @@ const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCh
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 function AppLayout() {
-  const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = React.useState(false);
   const { storeSettings } = useStore();
   const location = useLocation();
@@ -106,7 +104,6 @@ function AppLayout() {
       <ErrorBoundary>
         <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-[#C86D51] selection:text-white transition-colors">
           <Header
-            onOpenCart={() => setIsCartOpen(true)}
             onOpenWishlist={() => setIsWishlistOpen(true)}
           />
 
@@ -153,7 +150,6 @@ function AppLayout() {
 
           <Footer />
 
-          <CartDrawerComponent isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
           <WishlistModal isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
         </div>
       </ErrorBoundary>
