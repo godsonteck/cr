@@ -456,6 +456,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <Link to="/groceries" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
                 Groceries & Essentials
               </Link>
+              {pageVisibility.choice === true && (
+                <Link to="/shop?choice=true" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                  <Zap className="h-4 w-4 fill-amber-500 text-amber-500" /> Choice Collection
+                </Link>
+              )}
               {pageVisibility.routineBuilder === true && (
                 <Link to="/routine-builder" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
                   <Sparkles className="h-4 w-4 text-purple-600" /> Skincare Routine Builder

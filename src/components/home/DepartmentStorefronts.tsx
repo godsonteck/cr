@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, Flame, Truck, ShieldCheck, CreditCard, MessageCircle, Star, ShoppingBag } from 'lucide-react';
+import { Sparkles, ArrowRight, Flame, Star, ShoppingBag } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
@@ -231,49 +231,6 @@ export const HomePage: React.FC = () => {
 
               </div>
             </section>
-
-            {/* 4-Item Trust Perks Bar */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-                <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#FD384F] flex items-center justify-center shrink-0">
-                  <Truck className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">Fast Delivery</p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">Accra & nationwide</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">100% Authentic</p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">Verified products only</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">MoMo & Cards</p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">MTN, Telecel, Visa</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <MessageCircle className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">Instant Support</p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">WhatsApp & phone</p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
