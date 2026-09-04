@@ -221,7 +221,7 @@ export const FullCartPage: React.FC = () => {
               <span className="font-bold text-stone-900 dark:text-stone-100">GHS {subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-stone-600">
-              <span>Standard delivery:</span>
+              <span>Delivery:</span>
               <span className="font-bold text-stone-900 dark:text-stone-100">
                 {shippingFee === 0 ? <span className="text-emerald-700 font-bold">FREE</span> : `GHS ${shippingFee.toFixed(2)}`}
               </span>
@@ -340,11 +340,9 @@ export const MultiStepCheckoutPage: React.FC = () => {
     void completeReturnedOrder();
   }, [isAuthenticated]);
 
-  const standardShipping = subtotal >= (storeSettings.freeDeliveryThreshold || 300) || hasFreeShippingCoupon
-    ? 0
-    : storeSettings.standardShippingFee;
-  const shippingFee = standardShipping;
-  const totalAmount = Math.max(0, subtotal - discount + shippingFee);
+  const deliveryFee = hasFreeShippingCoupon ? 0 : storeSettings.standardShippingFee;
+  const shippingFee = deliveryFee;
+  const totalAmount = Math.max(0, subtotal - discount + deliveryFee);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
 
@@ -604,7 +602,7 @@ export const OrderConfirmationPage: React.FC = () => {
 
           <div className="pt-3 border-t border-[#E6DFD7] space-y-1">
             <div className="flex justify-between"><span>Subtotal:</span><span>GHS {order.subtotal.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Shipping:</span><span>GHS {order.shippingFee.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Delivery:</span><span>GHS {order.shippingFee.toFixed(2)}</span></div>
             <div className="flex justify-between text-sm font-extrabold pt-1"><span>{order.paymentStatus === 'pending' ? 'Amount to confirm:' : 'Total paid:'}</span><span className="text-[#C86D51]">GHS {order.total.toFixed(2)}</span></div>
           </div>
 

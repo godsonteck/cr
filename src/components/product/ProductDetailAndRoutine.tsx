@@ -41,7 +41,7 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [selectedOptionValues, setSelectedOptionValues] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<'description' | 'details' | 'shipping'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'details' | 'delivery'>('description');
 
   const galleryImages = product?.images?.length ? product.images : [product?.image].filter(Boolean) as string[];
 
@@ -318,16 +318,16 @@ export const ProductDetailPage: React.FC = () => {
 
       <div className="mt-8 rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[0_12px_28px_rgba(11,31,56,0.04)] sm:p-6">
         <div className="flex flex-wrap gap-3 border-b border-[var(--border-color)] pb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
-          {['description', 'details', 'shipping'].map((tab) => (
+              {['description', 'details', 'delivery'].map((tab) => (
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab as 'description' | 'details' | 'shipping')}
+              onClick={() => setActiveTab(tab as 'description' | 'details' | 'delivery')}
               className={`rounded-full px-3 py-2 transition ${
                 activeTab === tab ? 'bg-[var(--bg-soft)] text-[var(--text-primary)]' : 'hover:bg-[var(--bg-soft)]'
               }`}
             >
-              {tab === 'description' ? 'Description' : tab === 'details' ? 'Details' : 'Shipping & returns'}
+              {tab === 'description' ? 'Description' : tab === 'details' ? 'Details' : 'Delivery & returns'}
             </button>
           ))}
         </div>
@@ -375,20 +375,12 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'shipping' && (
+          {activeTab === 'delivery' && (
             <div className="space-y-4">
               {storeSettings.productShippingMessage?.trim() && <p className="text-[var(--text-primary)]">{storeSettings.productShippingMessage}</p>}
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  ['Standard delivery', storeSettings.standardShippingFee],
-                  ['Express delivery', storeSettings.expressShippingFee],
-                  ['Intercity delivery', storeSettings.intercityShippingFee],
-                ].map(([label, fee]) => (
-                  <div key={label} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
-                    <p className="text-xs font-bold text-[var(--text-primary)]">{label}</p>
-                    <p className="mt-2 text-sm text-[var(--text-muted)]">{storeSettings.currency} {Number(fee).toFixed(2)}</p>
-                  </div>
-                ))}
+              <div className="max-w-sm rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                <p className="text-xs font-bold text-[var(--text-primary)]">Delivery fee</p>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">{storeSettings.currency} {Number(storeSettings.standardShippingFee).toFixed(2)}</p>
               </div>
               {!storeSettings.productShippingMessage?.trim() && <p className="text-xs text-[var(--text-muted)]">Delivery details are set by the store and shown at checkout.</p>}
             </div>

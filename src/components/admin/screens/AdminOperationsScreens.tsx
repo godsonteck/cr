@@ -1163,6 +1163,13 @@ export function AdminSettingsScreen() {
               WhatsApp
               <input className={`${inputClass} mt-2`} value={form.whatsappNumber} onChange={e => update('whatsappNumber', e.target.value)} placeholder="+233 24 123 4567" />
             </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
+              Delivery fee
+              <div className="mt-2 flex items-center gap-1">
+                <span className="text-xs text-stone-500">GHS</span>
+                <input className={`${inputClass} flex-1`} type="number" min="0" step="0.01" value={form.standardShippingFee} onChange={e => update('standardShippingFee', Number(e.target.value) || 0)} />
+              </div>
+            </label>
           </div>
         </section>
 
