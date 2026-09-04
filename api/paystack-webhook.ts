@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import { db } from '../src/neon.js';
 import { orders } from '../src/db/schema.js';
