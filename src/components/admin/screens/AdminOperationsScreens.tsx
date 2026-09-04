@@ -1225,16 +1225,21 @@ export function AdminSettingsScreen() {
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Control which pages customers can access</p>
           <div className="mt-4 space-y-2">
             {([
-              ['shop', 'Shop page'],
+              ['shop', 'Shop catalog page'],
               ['products', 'Product detail pages'],
-              ['checkout', 'Checkout'],
+              ['offers', 'SuperDeals & Offers'],
+              ['beauty', 'Beauty & Skincare page'],
+              ['groceries', 'Groceries & Essentials page'],
+              ['routineBuilder', 'Skincare Routine Builder tool'],
+              ['choice', 'Choice collection'],
+              ['checkout', 'Checkout flow'],
               ['account', 'Customer accounts'],
               ['about', 'About page'],
-              ['support', 'Help &amp; support'],
+              ['support', 'Help & support'],
             ] as const).map(([key, label]) => (
-              <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2.5">
+              <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 dark:border-stone-800 px-3 py-2.5">
                 <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">{label}</span>
-                <Toggle checked={form.pageVisibility[key]} onChange={v => updateNested('pageVisibility', key, v)} />
+                <Toggle checked={Boolean(form.pageVisibility[key as keyof typeof form.pageVisibility])} onChange={v => updateNested('pageVisibility', key as any, v)} />
               </div>
             ))}
           </div>

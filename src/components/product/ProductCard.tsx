@@ -139,14 +139,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Product Information Area */}
       <div className="mt-2 flex flex-col justify-between flex-1 gap-1 text-left">
-        {/* Choice & Sale Badges Row (as seen in AliExpress screenshot) */}
+        {/* Dynamic Badges Row */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="inline-flex items-center rounded-xs bg-[#FFDE00] px-1 py-0.2 text-[9px] font-black uppercase tracking-tight text-black">
-            Choice
-          </span>
-          <span className="inline-flex items-center rounded-xs bg-[#FD384F] px-1 py-0.2 text-[9px] font-black uppercase tracking-tight text-white">
-            Sale
-          </span>
+          {product.discountBadge && (
+            <span className="inline-flex items-center rounded-xs bg-[#FD384F] px-1 py-0.2 text-[9px] font-black uppercase tracking-tight text-white">
+              {product.discountBadge}
+            </span>
+          )}
+          {product.badge && (
+            <span className="inline-flex items-center rounded-xs bg-[#1E1719] px-1 py-0.2 text-[9px] font-black uppercase tracking-tight text-white dark:bg-stone-700">
+              {product.badge}
+            </span>
+          )}
           {product.brand && (
             <span className="text-[9px] font-semibold text-stone-500 uppercase tracking-wider truncate max-w-[120px]">
               {product.brand}

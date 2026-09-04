@@ -1013,7 +1013,12 @@ const addOrder = async (order: Order) => {
     setLoadingAdmin(true);
     try {
       const accounts = await api.get<AdminAccount[]>('/admin-accounts');
-      setAdminAccounts(accounts);
+      if (Array.isArray(accounts)) {
+        setAdminAccounts(accounts);
+        try {
+          localStorage.setItem('cr_admin_accounts', JSON.stringify(accounts));
+        } catch {}
+      }
     } catch (e: any) {
       setError(e.message || "Operation failed");
     } finally {

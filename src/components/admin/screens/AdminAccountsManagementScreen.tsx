@@ -81,45 +81,52 @@ export const AdminAccountsManagementScreen: React.FC = () => {
     void fetchAdminAccounts();
   }, [fetchAdminAccounts]);
 
+  const safeAccounts = useMemo(() => {
+    return Array.isArray(adminAccounts) ? adminAccounts.filter(Boolean) : [];
+  }, [adminAccounts]);
+
   const currentAdminAccountId = useMemo(() => {
-    const match = (adminAccounts || []).find(
-      a => a.email.toLowerCase() === adminSession.email.toLowerCase()
+    const sessionEmail = (adminSession?.email || '').toLowerCase().trim();
+    if (!sessionEmail) return 'self';
+    const match = safeAccounts.find(
+      a => a?.email && a.email.toLowerCase().trim() === sessionEmail
     );
     return match?.id ?? 'self';
-  }, [adminAccounts, adminSession.email]);
+  }, [safeAccounts, adminSession?.email]);
 
   const currentAdminProfile = useMemo(
     () => ({
       id: currentAdminAccountId,
-      fullName: adminSession.adminName,
-      email: adminSession.email,
-      phone: adminAccounts.find(a => a.id === currentAdminAccountId)?.phone || '',
-      role: (adminSession.adminRole === 'Super Admin'
+      fullName: adminSession?.adminName || 'Store Administrator',
+      email: adminSession?.email || 'admin@crcosmetics.com',
+      phone: safeAccounts.find(a => a?.id === currentAdminAccountId)?.phone || '',
+      role: (adminSession?.adminRole === 'Super Admin'
         ? 'super_admin'
-        : adminSession.adminRole === 'Store Manager'
+        : adminSession?.adminRole === 'Store Manager'
         ? 'manager'
         : 'admin') as AdminAccount['role'],
     }),
-    [adminAccounts, adminSession, currentAdminAccountId]
+    [safeAccounts, adminSession, currentAdminAccountId]
   );
 
   React.useEffect(() => {
     setProfileForm({
-      fullName: currentAdminProfile.fullName,
-      email: currentAdminProfile.email,
-      phone: currentAdminProfile.phone,
+      fullName: currentAdminProfile.fullName || '',
+      email: currentAdminProfile.email || '',
+      phone: currentAdminProfile.phone || '',
     });
   }, [currentAdminProfile.fullName, currentAdminProfile.email, currentAdminProfile.phone]);
 
   const filteredAccounts = useMemo(() => {
-    const q = searchTerm.toLowerCase();
-    return (adminAccounts || []).filter(
+    const q = (searchTerm || '').toLowerCase().trim();
+    return safeAccounts.filter(
       a =>
-        a.fullName?.toLowerCase().includes(q) ||
-        a.email?.toLowerCase().includes(q) ||
-        a.phone?.includes(searchTerm)
+        Boolean(a) &&
+        ((a.fullName || '').toLowerCase().includes(q) ||
+        (a.email || '').toLowerCase().includes(q) ||
+        (a.phone || '').includes(searchTerm))
     );
-  }, [adminAccounts, searchTerm]);
+  }, [safeAccounts, searchTerm]);
 
   const startEdit = (account: AdminAccount) => {
     setEditingId(account.id);
@@ -207,7 +214,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       showAlert('Name, email, and phone are required', 'error');
       return;
     }
-    if (adminAccounts.some(a => a.email.toLowerCase() === email)) {
+    if (safeAccounts.some(a => a?.email && a.email.toLowerCase() === email)) {
       showAlert('An admin account with this email already exists', 'error');
       return;
     }
@@ -447,12 +454,12 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6 space-y-5">
         <div className="flex items-center gap-4 pb-5 border-b border-stone-100 dark:border-[#2e2428]">
           <div className="w-14 h-14 rounded-2xl bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] text-2xl font-bold flex-shrink-0">
-            {currentAdminProfile.fullName.charAt(0).toUpperCase()}
+            {(currentAdminProfile?.fullName || 'A').charAt(0).toUpperCase()}
           </div>
           <div>
             <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">My Profile</h2>
             <p className="text-sm text-stone-500 dark:text-stone-400">
-              {ROLE_LABEL[currentAdminProfile.role] ?? currentAdminProfile.role} · {currentAdminProfile.email}
+              {ROLE_LABEL[currentAdminProfile.role] ?? currentAdminProfile.role ?? 'Admin'} · {currentAdminProfile.email || 'No email set'}
             </p>
           </div>
         </div>

@@ -67,11 +67,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
   const topNavLinks = [
     pageVisibility.offers !== false ? { to: '/offers', label: 'SuperDeals', isHot: true } : null,
-    pageVisibility.shop !== false ? { to: '/shop', label: 'Choice', isChoice: true } : null,
+    pageVisibility.shop !== false ? { to: '/shop', label: 'Shop All' } : null,
     pageVisibility.beauty !== false ? { to: '/beauty', label: 'Beauty & Skincare' } : null,
     pageVisibility.groceries !== false ? { to: '/groceries', label: 'Groceries & Essentials' } : null,
-    pageVisibility.products !== false ? { to: '/routine-builder', label: 'Routine Builder' } : null,
     pageVisibility.about !== false ? { to: '/about', label: 'About Us' } : null,
+    pageVisibility.choice === true ? { to: '/shop?choice=true', label: 'Choice', isChoice: true } : null,
+    pageVisibility.routineBuilder === true ? { to: '/routine-builder', label: 'Routine Builder' } : null,
   ].filter(Boolean) as { to: string; label: string; isHot?: boolean; isChoice?: boolean }[];
 
   const brandSource = brands && brands.length > 0 ? brands : BRANDS_LIST;
@@ -455,9 +456,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <Link to="/groceries" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
                 Groceries & Essentials
               </Link>
-              <Link to="/routine-builder" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
-                <Sparkles className="h-4 w-4 text-purple-600" /> Skincare Routine Builder
-              </Link>
+              {pageVisibility.routineBuilder === true && (
+                <Link to="/routine-builder" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-slate-800">
+                  <Sparkles className="h-4 w-4 text-purple-600" /> Skincare Routine Builder
+                </Link>
+              )}
             </nav>
 
             <div className="mt-6 border-t border-gray-100 pt-4 dark:border-slate-800">

@@ -95,6 +95,8 @@ export interface StorefrontPageVisibility {
   support: boolean;
   contact: boolean;
   offers: boolean;
+  routineBuilder?: boolean;
+  choice?: boolean;
 }
 
 export interface StoreSettings {

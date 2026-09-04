@@ -129,7 +129,7 @@ function AppLayout() {
                 <Route path="/category/:categorySlug" element={pageVisibility.shop ? <ShopCatalogPage /> : renderUnavailable('Shop is currently offline')} />
                 <Route path="/product/:productId" element={pageVisibility.products ? <ProductDetailPage /> : renderUnavailable('Product details are currently offline')} />
                 <Route path="/search" element={pageVisibility.search ? <SearchResultsPage /> : renderUnavailable('Search is currently offline')} />
-                <Route path="/routine-builder" element={pageVisibility.products ? <RoutineBuilderPage /> : renderUnavailable('Routine builder is currently offline')} />
+                <Route path="/routine-builder" element={pageVisibility.routineBuilder ? <RoutineBuilderPage /> : renderUnavailable('Routine builder is currently offline')} />
 
                 <Route path="/cart" element={pageVisibility.shop ? <FullCartPage /> : renderUnavailable('Shopping cart is currently offline')} />
                 <Route path="/checkout" element={pageVisibility.checkout ? <MultiStepCheckoutPage /> : renderUnavailable('Checkout is temporarily closed')} />
