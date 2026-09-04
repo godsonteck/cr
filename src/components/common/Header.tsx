@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
   const { user, isAuthenticated } = useAuth();
-  const { storeSettings, categories } = useStore();
+  const { storeSettings, categories, brands } = useStore();
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -50,16 +50,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
   const activeCategories = categories.length ? categories.filter(c => c.isActive) : CATEGORIES_CONFIG;
 
-  const topNavLinks = [
-    { to: '/offers', label: 'SuperDeals', isHot: true },
-    { to: '/shop', label: 'Choice', isChoice: true },
-    { to: '/beauty', label: 'Beauty & Skincare' },
-    { to: '/groceries', label: 'Groceries & Essentials' },
-    { to: '/routine-builder', label: 'Routine Builder' },
-    { to: '/about', label: 'About Us' }
-  ];
+  const pageVisibility = storeSettings.pageVisibility || {
+    home: true,
+    beauty: true,
+    groceries: true,
+    shop: true,
+    products: true,
+    search: true,
+    account: true,
+    checkout: true,
+    about: true,
+    support: true,
+    contact: true,
+    offers: true,
+  };
 
-  const featuredBrands = BRANDS_LIST.filter(b => b !== 'All Brands').slice(0, 10);
+  const topNavLinks = [
+    pageVisibility.offers !== false ? { to: '/offers', label: 'SuperDeals', isHot: true } : null,
+    pageVisibility.shop !== false ? { to: '/shop', label: 'Choice', isChoice: true } : null,
+    pageVisibility.beauty !== false ? { to: '/beauty', label: 'Beauty & Skincare' } : null,
+    pageVisibility.groceries !== false ? { to: '/groceries', label: 'Groceries & Essentials' } : null,
+    pageVisibility.products !== false ? { to: '/routine-builder', label: 'Routine Builder' } : null,
+    pageVisibility.about !== false ? { to: '/about', label: 'About Us' } : null,
+  ].filter(Boolean) as { to: string; label: string; isHot?: boolean; isChoice?: boolean }[];
+
+  const brandSource = brands && brands.length > 0 ? brands : BRANDS_LIST;
+  const featuredBrands = brandSource.filter(b => b !== 'All Brands').slice(0, 10);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

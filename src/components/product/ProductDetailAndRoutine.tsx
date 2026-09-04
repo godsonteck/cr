@@ -50,7 +50,7 @@ function FlashCountdown({ expiresAt }: { expiresAt: string }) {
 }
 
 export const ProductDetailPage: React.FC = () => {
-  const { products, storeSettings, flashDeals } = useStore();
+  const { products, storeSettings, flashDeals, promoCodes } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
   const { addToCart } = useCart();
@@ -284,9 +284,13 @@ export const ProductDetailPage: React.FC = () => {
 
                     {/* Discount voucher banner */}
                     <div className="mt-1 flex items-center justify-between rounded-md bg-[#FFF0ED] px-2.5 py-1.5 text-[11px] font-bold text-[#FD384F] border border-[#FFD5CC] dark:bg-red-950/30">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 truncate">
                         <Tag className="h-3.5 w-3.5 shrink-0" />
-                        <span>GH₵25.49 off on orders over GH₵190.00</span>
+                        <span className="truncate">
+                          {promoCodes?.find(p => p.isActive)
+                            ? `Use code ${promoCodes.find(p => p.isActive)!.code}: ${promoCodes.find(p => p.isActive)!.discountType === 'percentage' ? `${promoCodes.find(p => p.isActive)!.discountValue}% OFF` : `GH₵${promoCodes.find(p => p.isActive)!.discountValue} OFF`}${promoCodes.find(p => p.isActive)!.minSpend ? ` on orders over GH₵${promoCodes.find(p => p.isActive)!.minSpend}` : ''}`
+                            : `Free delivery on orders over GH₵${Number(storeSettings.freeDeliveryThreshold || 300).toFixed(0)}`}
+                        </span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                     </div>
