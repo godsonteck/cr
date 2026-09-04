@@ -47,7 +47,15 @@
     },
     {
       "source": "/api/admin-accounts/:id",
-      "destination": "/api/admin-accounts?id=:id"
+      "destination": "/api/settings?resource=admin-accounts&id=:id"
+    },
+    {
+      "source": "/api/admin-accounts",
+      "destination": "/api/settings?resource=admin-accounts"
+    },
+    {
+      "source": "/api/wishlist",
+      "destination": "/api/cart?resource=wishlist"
     },
     {
       "source": "/api/orders/:id",

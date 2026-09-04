@@ -4,6 +4,7 @@ import { storeSettings } from '../src/db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
+import handleAdminAccounts from './_admin-accounts.js';
 
 const settingUpdateSchema = z.object({
   key: z.string().min(1).max(100),
@@ -13,6 +14,10 @@ const settingUpdateSchema = z.object({
 const toJsonbValue = (value: unknown) => value === null ? sql`'null'::jsonb` : value;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.query.resource === 'admin-accounts') {
+    return handleAdminAccounts(req, res);
+  }
+
   const { method, query, body } = req;
 
   try {

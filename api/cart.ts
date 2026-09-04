@@ -4,6 +4,7 @@ import { carts } from '../src/db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAuth } from './_auth.js';
+import handleWishlist from './_wishlist.js';
 
 const cartUpdateSchema = z.object({
   items: z.array(z.object({
@@ -25,6 +26,10 @@ const cartUpdateSchema = z.object({
 }).partial();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.query.resource === 'wishlist') {
+    return handleWishlist(req, res);
+  }
+
   const { method, query, body, headers } = req;
 
   let userId: string | undefined;
