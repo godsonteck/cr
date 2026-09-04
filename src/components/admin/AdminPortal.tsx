@@ -230,6 +230,17 @@ export const AdminPortal: React.FC = () => {
     setCurrentTab(navItems.some(item => item.id === tab) ? tab as AdminTab : 'overview');
   }, [location.search]);
 
+  React.useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
       {/* Sidebar */}
@@ -361,6 +372,14 @@ export const AdminPortal: React.FC = () => {
                 <span className="hidden sm:inline">Add product</span>
               </button>
             )}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="p-2.5 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] transition-colors"
+              title="Search (Ctrl+K)"
+              aria-label="Search products, orders, and customers"
+            >
+              <Search className="w-4 h-4" />
+            </button>
             <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1f1a1a] rounded-lg p-1">
               <button
                 onClick={toggleTheme}

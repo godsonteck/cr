@@ -486,7 +486,7 @@ export function AdminCustomersScreen() {
               const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
               const whatsappUrl = `https://wa.me/${
                 customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
-              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Cosmetics & Essentials.`)}`;
+              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Mart.`)}`;
 
               return (
                 <div key={customer.id} className="flex flex-wrap items-center gap-4 p-4 hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 transition-colors">
@@ -1315,7 +1315,13 @@ export function AdminNotificationsScreen({ notifications = [] }: { notifications
   const store = useStore();
   const { showAlert } = useAlert();
   const [filter, setFilter] = useState<'all' | AdminNotification['type']>('all');
-  const [reviewed, setReviewed] = useState<string[]>([]);
+  const [reviewed, setReviewed] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cr_admin_reviewed_notifications') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   const generated = useMemo<AdminNotification[]>(() => {
     const result: AdminNotification[] = [];
@@ -1354,7 +1360,9 @@ export function AdminNotificationsScreen({ notifications = [] }: { notifications
   const unread = generated.filter(item => !reviewed.includes(item.id)).length;
 
   const markAll = () => {
-    setReviewed(generated.map(item => item.id));
+    const nextReviewed = generated.map(item => item.id);
+    setReviewed(nextReviewed);
+    localStorage.setItem('cr_admin_reviewed_notifications', JSON.stringify(nextReviewed));
     showAlert('All visible alerts reviewed', 'success');
   };
 

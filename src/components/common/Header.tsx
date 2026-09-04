@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             <div className="shrink-0 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-sm">
               <img 
                 src={storeSettings.storeLogo || logoImg} 
-                alt="CR Cosmetics & Essentials" 
+                alt="CR Mart"
                 className="h-8 w-8 object-contain sm:h-9 sm:w-auto" 
                 onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
               />
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
                 <img 
                   src={storeSettings.storeLogo || logoImg} 
-                  alt="CR Cosmetics & Essentials" 
+                  alt="CR Mart"
                   className="h-8 w-8 rounded-lg object-contain" 
                   onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
                 />
@@ -226,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               href={getWhatsAppUrl(storeSettings.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Chat with CR Cosmetics on WhatsApp"
+              aria-label="Chat with CR Mart on WhatsApp"
               title="Chat with us on WhatsApp"
               className="mt-5 flex h-12 w-12 items-center justify-center self-start rounded-full bg-[#25D366] text-white shadow-xs"
             >

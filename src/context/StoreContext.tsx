@@ -95,7 +95,7 @@ interface StoreContextType {
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'CR Cosmetics & Essentials',
+  storeName: 'CR Mart',
   storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
   heroHeadline: '',
   heroSubtitle: '',
@@ -152,6 +152,13 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   productReturnsMessage: '',
   productShippingMessage: '',
 };
+
+const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<StoreSettings> => ({
+  ...settings,
+  storeName: settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics & Essential'
+    ? 'CR Mart'
+    : settings.storeName,
+});
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   {
@@ -364,7 +371,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
     try {
       const saved = localStorage.getItem('cr_settings');
-      return saved ? { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(saved) } : DEFAULT_STORE_SETTINGS;
+      return saved ? { ...DEFAULT_STORE_SETTINGS, ...normalizeStoreSettings(JSON.parse(saved)) } : DEFAULT_STORE_SETTINGS;
     } catch {
       return DEFAULT_STORE_SETTINGS;
     }
@@ -428,7 +435,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== 'cr_settings' || !event.newValue) return;
       try {
-        setStoreSettings(previous => ({ ...previous, ...JSON.parse(event.newValue!) }));
+        setStoreSettings(previous => ({ ...previous, ...normalizeStoreSettings(JSON.parse(event.newValue!)) }));
       } catch {
         // Ignore malformed cross-tab storage values.
       }
@@ -491,7 +498,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const fetchOrders = useCallback(async (params?: { userId?: string; status?: Order['status'] }) => {
-    if (!localStorage.getItem('auth_token')) {
+    if (!localStorage.getItem('auth_token') && !localStorage.getItem('admin_auth_token')) {
       return;
     }
     setLoadingOrders(true);
@@ -500,9 +507,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params?.userId) query.set('userId', params.userId);
       if (params?.status) query.set('status', params.status);
       const data = await api.get<{ orders: Order[] }>(`/orders?${query}`);
-      if (data && Array.isArray(data.orders) && data.orders.length > 0) {
-        setOrders(data.orders);
-      }
+      if (data && Array.isArray(data.orders)) setOrders(data.orders);
     } catch (e: any) {
       if (e?.status === 401 || e?.status === 403) {
         return;
@@ -551,7 +556,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }, {} as StoreSettings);
         
         console.log('Parsed settings:', settings);
-        setStoreSettings(prev => ({ ...prev, ...settings }));
+        setStoreSettings(prev => ({ ...prev, ...normalizeStoreSettings(settings) }));
       } else {
         console.log('No settings returned from API');
       }

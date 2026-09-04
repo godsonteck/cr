@@ -96,11 +96,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           {/* Brand Header */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center justify-center p-1 rounded-2xl bg-white border border-[#E8E2D8] shadow-sm mb-1">
-              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="CR Cosmetics & Essentials" className="w-16 h-16 rounded-xl object-contain" />
+              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="CR Mart" className="w-16 h-16 rounded-xl object-contain" />
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#C89B3C]">
-                CR Cosmetics & Essentials
+                CR Mart
               </p>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 tracking-tight mt-1">
                 Admin login
@@ -193,7 +193,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           {/* Footer Security Note */}
           <div className="pt-4 border-t border-stone-100 text-center">
             <p className="text-[11px] text-stone-400">
-              CR Cosmetics & Essentials • Accra, Ghana
+              CR Mart • Accra, Ghana
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
 
       {/* Page Footer */}
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-stone-500">
-        © {new Date().getFullYear()} CR Cosmetics & Essentials. All rights reserved.
+        © {new Date().getFullYear()} CR Mart. All rights reserved.
       </footer>
     </div>
   );

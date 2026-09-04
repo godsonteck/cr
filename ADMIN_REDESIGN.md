@@ -1,4 +1,4 @@
-# CR Cosmetics Admin Portal - Redesign Summary
+# CR Mart Admin Portal - Redesign Summary
 
 ## What's New
 

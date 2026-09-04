@@ -96,7 +96,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     const pendingOrders = orders.filter(o => o.status !== 'Delivered').length;
     const outOfStock = products.filter(p => (p.stockCount || 0) === 0).length;
     const lowStock = products.filter(p => (p.stockCount || 0) > 0 && (p.stockCount || 0) <= 5).length;
-    const totalCustomers = new Set(orders.map(o => o.shippingAddress?.email)).size;
+    const totalCustomers = new Set(
+      orders.map(order => {
+        const address = order.shippingAddress;
+        return address?.email?.trim().toLowerCase() || address?.phone?.trim() || address?.fullName?.trim().toLowerCase();
+      }).filter(Boolean)
+    ).size;
     const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
     const published = products.filter(p => p.isPublished).length;
 

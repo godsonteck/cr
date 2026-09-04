@@ -30,7 +30,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${
     customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
-  }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Cosmetics & Essentials.`)}`;
+  }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Mart.`)}`;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end font-sans animate-fadeIn">

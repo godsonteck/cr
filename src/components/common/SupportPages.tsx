@@ -73,12 +73,12 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="space-y-6 text-center">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">CR Cosmetics &amp; Essentials</span>
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">CR Mart</span>
         <h1 className="max-w-4xl mx-auto font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
           Products for your everyday routine.
         </h1>
         <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-          CR Cosmetics &amp; Essentials is an online shop for beauty, personal care, and household essentials. Browse the catalog, choose what suits you, and place your order in a few steps.
+          CR Mart is an online shop for beauty, personal care, and household essentials. Browse the catalog, choose what suits you, and place your order in a few steps.
         </p>
       </div>
 
@@ -267,7 +267,7 @@ export const ContactPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR Cosmetics</span>
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR Mart</span>
         <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Let&apos;s help you find what you need.</h1>
         <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.</p>
       </div>

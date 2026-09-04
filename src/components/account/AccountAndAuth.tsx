@@ -106,7 +106,7 @@ const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode
             <img
               src={storeSettings.storeLogo || logoImg}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoImg; }}
-              alt="CR Cosmetics & Essentials"
+              alt="CR Mart"
               className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain"
             />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
@@ -283,7 +283,7 @@ export const SignInPage: React.FC = () => {
               </Button>
               {storePhoneOrWhatsApp && (
                 <a
-                  href={`https://wa.me/${storePhoneOrWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello CR Cosmetics, I need assistance accessing my account.')}`}
+                  href={`https://wa.me/${storePhoneOrWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello CR Mart, I need assistance accessing my account.')}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-xl bg-[#25D366] px-4 py-2 text-xs font-bold text-white hover:bg-[#1EBE5D] transition"
@@ -359,7 +359,7 @@ export const SignUpPage: React.FC = () => {
         <div className="space-y-2">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C86D51]">Customer account</p>
           <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Create your account</h1>
-          <p className="text-sm text-[var(--text-muted)]">Join CR Cosmetics for faster checkouts, order tracking, and account management.</p>
+          <p className="text-sm text-[var(--text-muted)]">Join CR Mart for faster checkouts, order tracking, and account management.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -1991,7 +1991,7 @@ export const AccountPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <img src={logoImg} alt="CR" className="h-10 w-10 rounded-xl object-contain border p-1" />
                 <div>
-                  <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">CR Cosmetics & Essentials</h3>
+                  <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">CR Mart</h3>
                   <p className="text-[10px] text-stone-500">Customer Order Receipt</p>
                 </div>
               </div>

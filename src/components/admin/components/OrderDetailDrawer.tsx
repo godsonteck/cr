@@ -38,14 +38,20 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   onDeleteOrder,
   onPrintReceipt,
 }) => {
+  const [riderName, setRiderName] = useState('');
+  const [riderPhone, setRiderPhone] = useState('');
+  const [riderLocation, setRiderLocation] = useState('');
+
+  React.useEffect(() => {
+    setRiderName(order?.riderInfo?.riderName || '');
+    setRiderPhone(order?.riderInfo?.riderPhone || '');
+    setRiderLocation(order?.riderInfo?.riderLocation || '');
+  }, [order]);
+
   if (!isOpen || !order) return null;
 
-  const [riderName, setRiderName] = useState(order.riderInfo?.riderName || '');
-  const [riderPhone, setRiderPhone] = useState(order.riderInfo?.riderPhone || '');
-  const [riderLocation, setRiderLocation] = useState(order.riderInfo?.riderLocation || '');
-
   const customerPhoneClean = order.shippingAddress.phone.replace(/[^0-9]/g, '');
-  const whatsappUrl = `https://wa.me/${customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean}?text=${encodeURIComponent(`Hello ${order.shippingAddress.fullName}, thank you for shopping with CR Cosmetics & Essentials. We are currently preparing your delivery for order #${order.orderNumber}.`)}`;
+  const whatsappUrl = `https://wa.me/${customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean}?text=${encodeURIComponent(`Hello ${order.shippingAddress.fullName}, thank you for shopping with CR Mart. We are currently preparing your delivery for order #${order.orderNumber}.`)}`;
 
   const stages: { label: OrderStatus; desc: string }[] = [
     { label: 'Confirmed', desc: 'Order received & confirmed' },

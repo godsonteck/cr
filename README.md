@@ -1,4 +1,4 @@
-# CR Cosmetics & Essential
+# CR Mart
 
 A Vite + React storefront for beauty and grocery essentials with a secure admin backend, PostgreSQL persistence via Drizzle, and Vercel Serverless APIs.
 

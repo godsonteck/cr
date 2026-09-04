@@ -16,12 +16,12 @@ export const Footer: React.FC = () => {
             <img
               src={storeSettings.storeLogo || logoImg}
               onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }}
-              alt="CR Cosmetics & Essentials"
+              alt="CR Mart"
               className="h-8 w-auto rounded-md object-contain"
             />
             <div>
               <div className="text-sm font-black uppercase tracking-[-0.05em] text-[var(--text-primary)]">
-                CR <span className="text-[#b86649]">Cosmetics</span>
+                CR <span className="text-[#b86649]">Mart</span>
               </div>
               <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#79706c]">Essentials</div>
             </div>
@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
             href={getWhatsAppUrl(storeSettings.whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Chat with CR Cosmetics on WhatsApp"
+              aria-label="Chat with CR Mart on WhatsApp"
             title="Chat with us on WhatsApp"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20bd5a]"
           >
@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
-          © {new Date().getFullYear()} CR Cosmetics &amp; Essentials
+          © {new Date().getFullYear()} CR Mart
         </div>
       </div>
     </footer>

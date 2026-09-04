@@ -634,7 +634,7 @@ export const OrderConfirmationPage: React.FC = () => {
         </div>
       ) : (
         <p className="text-xs text-stone-500 text-center">
-          Thank you for shopping with CR Cosmetics &amp; Essentials.
+          Thank you for shopping with CR Mart.
         </p>
       )}
 

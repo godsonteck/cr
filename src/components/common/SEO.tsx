@@ -16,24 +16,24 @@ interface SEOProps {
   productDescription?: string;
 }
 
-const defaultTitle = 'CR Cosmetics & Essential | Beauty · Care · Essentials';
-const defaultDescription = 'CR Cosmetics & Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
+const defaultTitle = 'CR Mart | Beauty · Care · Essentials';
+const defaultDescription = 'CR Mart: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
 const defaultImage = '/logo.jpeg';
 
 const pageMeta: Record<string, { title: string; description: string }> = {
-  '/': { title: 'CR Cosmetics & Essentials | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR Cosmetics & Essentials.' },
-  '/shop': { title: 'Shop all products | CR Cosmetics & Essentials', description: 'Browse beauty, personal care, household, and everyday essentials available from CR Cosmetics & Essentials.' },
-  '/beauty': { title: 'Beauty collection | CR Cosmetics & Essentials', description: 'Explore skincare, makeup, fragrances, and beauty tools selected for your everyday routine.' },
-  '/groceries': { title: 'Groceries and essentials | CR Cosmetics & Essentials', description: 'Shop practical groceries, household care, snacks, beverages, and daily essentials.' },
-  '/about': { title: 'About CR Cosmetics & Essentials', description: 'Learn about CR Cosmetics & Essentials and the products we bring together for everyday routines.' },
-  '/support': { title: 'Customer support | CR Cosmetics & Essentials', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
-  '/contact': { title: 'Contact us | CR Cosmetics & Essentials', description: 'Contact the CR Cosmetics & Essentials team by phone, email, or WhatsApp.' },
-  '/signin': { title: 'Sign in | CR Cosmetics & Essentials', description: 'Sign in to manage your orders, saved items, and delivery details.' },
-  '/signup': { title: 'Create an account | CR Cosmetics & Essentials', description: 'Create your CR Cosmetics & Essentials account for faster checkout and order tracking.' },
-  '/account': { title: 'My account | CR Cosmetics & Essentials', description: 'Manage your CR Cosmetics & Essentials profile, orders, saved items, addresses, and preferences.' },
-  '/cart': { title: 'Your cart | CR Cosmetics & Essentials', description: 'Review your selected products before checkout.' },
-  '/checkout': { title: 'Checkout | CR Cosmetics & Essentials', description: 'Complete your delivery details and payment securely.' },
-  '/routine-builder': { title: 'Routine builder | CR Cosmetics & Essentials', description: 'Build a personalized beauty routine from products selected for each step.' },
+  '/': { title: 'CR Mart | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR Mart.' },
+  '/shop': { title: 'Shop all products | CR Mart', description: 'Browse beauty, personal care, household, and everyday essentials available from CR Mart.' },
+  '/beauty': { title: 'Beauty collection | CR Mart', description: 'Explore skincare, makeup, fragrances, and beauty tools selected for your everyday routine.' },
+  '/groceries': { title: 'Groceries and essentials | CR Mart', description: 'Shop practical groceries, household care, snacks, beverages, and daily essentials.' },
+  '/about': { title: 'About CR Mart', description: 'Learn about CR Mart and the products we bring together for everyday routines.' },
+  '/support': { title: 'Customer support | CR Mart', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
+  '/contact': { title: 'Contact us | CR Mart', description: 'Contact the CR Mart team by phone, email, or WhatsApp.' },
+  '/signin': { title: 'Sign in | CR Mart', description: 'Sign in to manage your orders, saved items, and delivery details.' },
+  '/signup': { title: 'Create an account | CR Mart', description: 'Create your CR Mart account for faster checkout and order tracking.' },
+  '/account': { title: 'My account | CR Mart', description: 'Manage your CR Mart profile, orders, saved items, addresses, and preferences.' },
+  '/cart': { title: 'Your cart | CR Mart', description: 'Review your selected products before checkout.' },
+  '/checkout': { title: 'Checkout | CR Mart', description: 'Complete your delivery details and payment securely.' },
+  '/routine-builder': { title: 'Routine builder | CR Mart', description: 'Build a personalized beauty routine from products selected for each step.' },
 };
 
 export const SEO: React.FC<SEOProps> = ({
@@ -53,9 +53,9 @@ export const SEO: React.FC<SEOProps> = ({
   const { storeSettings } = useStore();
 
   const routeMeta = pageMeta[location.pathname] || (location.pathname.startsWith('/product/')
-    ? { title: 'Product details | CR Cosmetics & Essentials', description: 'View product details, options, price, availability, and delivery information.' }
+    ? { title: 'Product details | CR Mart', description: 'View product details, options, price, availability, and delivery information.' }
     : location.pathname.startsWith('/category/')
-      ? { title: 'Category collection | CR Cosmetics & Essentials', description: 'Browse products in this CR Cosmetics & Essentials collection.' }
+      ? { title: 'Category collection | CR Mart', description: 'Browse products in this CR Mart collection.' }
       : { title: defaultTitle, description: defaultDescription });
   const pageTitle = title || routeMeta.title;
   const pageDescription = description || routeMeta.description;

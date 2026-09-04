@@ -58,7 +58,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export const AdminAccountsManagementScreen: React.FC = () => {
-  const { adminAccounts = [], adminSession, updateAdminAccount, addAdminAccount, deleteAdminAccount } = useStore();
+  const { adminAccounts = [], adminSession, updateAdminAccount, addAdminAccount, deleteAdminAccount, changeAdminPassword, fetchAdminAccounts } = useStore();
   const { showAlert } = useAlert();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,6 +76,10 @@ export const AdminAccountsManagementScreen: React.FC = () => {
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  React.useEffect(() => {
+    void fetchAdminAccounts();
+  }, [fetchAdminAccounts]);
 
   const currentAdminAccountId = useMemo(() => {
     const match = (adminAccounts || []).find(
@@ -172,7 +176,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
     }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordForm.next.length < 6) {
       showAlert('New password must be at least 6 characters', 'error');
@@ -182,13 +186,14 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       showAlert('New passwords do not match', 'error');
       return;
     }
-    localStorage.setItem(
-      `cr_admin_password_${currentAdminProfile.email.toLowerCase()}`,
-      passwordForm.next
-    );
-    setPasswordForm({ current: '', next: '', confirm: '' });
-    setIsChangingPassword(false);
-    showAlert('Password changed successfully', 'success');
+    try {
+      await changeAdminPassword(passwordForm.current, passwordForm.next);
+      setPasswordForm({ current: '', next: '', confirm: '' });
+      setIsChangingPassword(false);
+      showAlert('Password changed successfully', 'success');
+    } catch (error) {
+      showAlert(error instanceof Error ? error.message : 'Failed to change password', 'error');
+    }
   };
 
   const handleCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
