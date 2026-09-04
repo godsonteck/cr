@@ -17,7 +17,7 @@ import { PaymentMethod, DeliveryMethod, Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
-import { api } from '../../lib/api';
+import { api, ApiError } from '../../lib/api';
 
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
@@ -323,6 +323,14 @@ export const MultiStepCheckoutPage: React.FC = () => {
         navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
       } catch (error) {
         console.error('Paystack return error:', error);
+        if (error instanceof ApiError && error.status === 401) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_id');
+          localStorage.removeItem('cr_user_profile');
+          showAlert('Your session has expired. Please sign in again to confirm this payment.', 'error', { persistent: true });
+          navigate('/signin', { replace: true });
+          return;
+        }
         showAlert('Payment was returned, but it could not be verified. Please contact support.', 'error', { persistent: true });
       } finally {
         setIsProcessing(false);
@@ -389,6 +397,14 @@ export const MultiStepCheckoutPage: React.FC = () => {
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {
       sessionStorage.removeItem('paystack_pending_order');
+      if (error instanceof ApiError && error.status === 401) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('cr_user_profile');
+        showAlert('Your session has expired. Please sign in again before paying.', 'error', { persistent: true });
+        navigate('/signin', { replace: true });
+        return;
+      }
       showAlert(error?.message || 'Paystack checkout could not be started. Please try again.', 'error', { persistent: true });
       setIsProcessing(false);
     }

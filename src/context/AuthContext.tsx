@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, Order, ShippingAddress } from '../types';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -61,8 +61,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(normalizeUser(data));
         }
       }
-    } catch {
-      // If remote fetch fails, preserve existing localStorage profile
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('cr_user_profile');
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
