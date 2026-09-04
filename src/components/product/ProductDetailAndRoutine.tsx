@@ -187,16 +187,18 @@ export const ProductDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="hidden lg:grid grid-cols-3 gap-2">
+                <div className="hidden lg:grid grid-cols-3 gap-4">
                   {[
                     { icon: Truck, label: 'Fast Delivery', sub: 'Accra & beyond' },
                     { icon: ShieldCheck, label: 'Genuine', sub: '100% authentic' },
                     { icon: RotateCcw, label: 'Easy Returns', sub: '7-day policy' },
                   ].map(({ icon: Icon, label, sub }) => (
-                    <div key={label} className="flex flex-col items-center gap-1 rounded-2xl border border-[#ebdfe5] bg-[#fffdfc] p-3 text-center shadow-sm">
-                      <Icon className="h-5 w-5 text-[#ff7a00]" />
-                      <span className="text-[10px] font-bold text-[var(--text-primary)]">{label}</span>
-                      <span className="text-[9px] text-[var(--text-subtle)]">{sub}</span>
+                    <div key={label} className="flex min-h-[150px] flex-col items-center justify-center gap-3 rounded-[28px] border border-[#e6e1e1] bg-[#f4f2f2] p-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+                      <Icon className="h-10 w-10 text-[#ff7a00]" strokeWidth={2.25} />
+                      <div className="space-y-1">
+                        <div className="text-[18px] font-semibold leading-none text-[#1e1e1e]">{label}</div>
+                        <div className="text-[14px] leading-none text-[#4a4a4a]">{sub}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -341,15 +343,15 @@ export const ProductDetailPage: React.FC = () => {
                   </div>
                 ) : null}
 
-                <div className="grid grid-cols-3 gap-2 lg:hidden">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:hidden">
                   {[
                     { icon: Truck, label: 'Fast Delivery' },
                     { icon: ShieldCheck, label: 'Genuine' },
                     { icon: RotateCcw, label: 'Easy Returns' },
                   ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex flex-col items-center gap-1 rounded-2xl border border-[#ebdfe5] bg-white py-3 px-2">
-                      <Icon className="h-5 w-5 text-[#ff7a00]" />
-                      <span className="text-[10px] font-bold text-[var(--text-primary)] text-center">{label}</span>
+                    <div key={label} className="flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-[24px] border border-[#e6e1e1] bg-[#f4f2f2] px-3 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+                      <Icon className="h-9 w-9 text-[#ff7a00]" strokeWidth={2.25} />
+                      <span className="text-[17px] font-semibold leading-none text-[#1e1e1e]">{label}</span>
                     </div>
                   ))}
                 </div>
