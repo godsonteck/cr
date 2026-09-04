@@ -29,7 +29,7 @@ export function AdminLayout({
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#FBF9F6] text-cr-espresso flex flex-col font-sans selection:bg-[#1E1719] selection:text-[#FAF6F0]">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans selection:bg-[var(--accent)] selection:text-white">
       <header className="bg-[#140D10] text-stone-100 border-b border-stone-800/80 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -128,7 +128,7 @@ export function AdminLayout({
                 key={id}
                 onClick={() => setCurrentTab(id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
-                  currentTab === id ? 'bg-[#1E1719] text-[#FAF6F0] shadow-sm' : 'bg-white text-stone-600 border border-stone-200'
+                  currentTab === id ? 'bg-[var(--accent)] text-white shadow-sm' : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -137,15 +137,15 @@ export function AdminLayout({
             ))}
           </div>
 
-          <div className="hidden md:block bg-white border border-[#E8E2D8] rounded-2xl p-3 shadow-xs space-y-4">
+          <div className="hidden md:block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-3 shadow-xs space-y-4">
             <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Main</span>
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Main</span>
               {navTabs.filter((t) => t.group === 'MAIN').map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => setCurrentTab(id)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    currentTab === id ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
+                    currentTab === id ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -156,8 +156,8 @@ export function AdminLayout({
               ))}
             </div>
 
-            <div className="space-y-1 pt-2 border-t border-stone-100">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Shop & Sales</span>
+            <div className="space-y-1 pt-2 border-t border-[var(--border-color)]">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Shop & Sales</span>
               {navTabs.filter((t) => t.group === 'SHOPPING').map(({ id, label, icon: Icon }) => {
                 const isActive = currentTab === id;
                 return (
@@ -165,7 +165,7 @@ export function AdminLayout({
                     key={id}
                     onClick={() => setCurrentTab(id)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
+                      isActive ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -187,8 +187,8 @@ export function AdminLayout({
               })}
             </div>
 
-            <div className="space-y-1 pt-2 border-t border-stone-100">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Reports & Settings</span>
+            <div className="space-y-1 pt-2 border-t border-[var(--border-color)]">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Reports & Settings</span>
               {navTabs.filter((t) => t.group === 'REPORTS' || t.group === 'SETTINGS').map(({ id, label, icon: Icon }) => {
                 const isActive = currentTab === id;
                 return (

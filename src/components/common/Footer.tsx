@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
               <div className="text-sm font-black uppercase tracking-[-0.05em] text-[var(--text-primary)]">
                 CR <span className="text-[#b86649]">Mart</span>
               </div>
-              <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#79706c]">Essentials</div>
+              <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Essentials</div>
             </div>
           </div>
 
@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
           </a>
         </div>
 
-        <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[#756f6b]">
+        <div className="mt-5 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
           © {new Date().getFullYear()} CR Mart
         </div>
       </div>

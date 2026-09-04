@@ -95,7 +95,7 @@ export const AdminReviewsScreen: React.FC = () => {
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className="font-bold text-stone-900 dark:text-stone-100">{review.authorName}</span>
                   <span className="text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${review.isApproved ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{review.isApproved ? 'Published' : 'Pending'}</span>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${review.isApproved ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'}`}>{review.isApproved ? 'Published' : 'Pending'}</span>
                 </div>
                 <h2 className="mt-2 font-semibold text-stone-900 dark:text-stone-100">{review.title || 'Customer review'}</h2>
                 <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">{review.comment}</p>

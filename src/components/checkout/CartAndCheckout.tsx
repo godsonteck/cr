@@ -32,14 +32,14 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
       <div className="w-full max-w-md bg-[var(--bg-main)] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans" onClick={event => event.stopPropagation()}>
 
         {/* Drawer Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E6DFD7] dark:border-[#36322E]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#C86D51]" />
-            <h3 className="text-base font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
+            <h3 className="text-base font-extrabold uppercase text-[var(--text-primary)]">
               Your Cart ({totalItems})
             </h3>
           </div>
-          <button onClick={onClose} aria-label="Close cart" className="min-h-10 min-w-10 p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800">
+          <button onClick={onClose} aria-label="Close cart" className="min-h-10 min-w-10 p-1 rounded-lg text-[var(--text-primary)] hover:bg-[var(--bg-soft)]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -50,18 +50,18 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
             cartItems.map((item) => (
               <div
                 key={item.product.id}
-                className="flex gap-4 p-3 bg-white dark:bg-[#1C1917] rounded-2xl border border-[#E6DFD7] dark:border-[#36322E]"
+                className="flex gap-4 p-3 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)]"
               >
                 <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-xl" />
                 <div className="flex-1 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-stone-400">{item.product.brand}</span>
-                  <h4 className="text-xs font-bold text-[#1C1817] dark:text-stone-100 line-clamp-1">
+                  <span className="text-[10px] uppercase font-bold text-[var(--text-subtle)]">{item.product.brand}</span>
+                  <h4 className="text-xs font-bold text-[var(--text-primary)] line-clamp-1">
                     {item.product.name}
                   </h4>
-                  <span className="text-xs font-extrabold block">GHS {item.product.price.toFixed(2)}</span>
+                  <span className="text-xs font-extrabold block text-[var(--text-primary)]">GHS {item.product.price.toFixed(2)}</span>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center border border-[#E6DFD7] rounded-full px-2 py-0.5 text-xs bg-stone-50 dark:bg-stone-900">
+                    <div className="flex items-center border border-[var(--border-color)] rounded-full px-2 py-0.5 text-xs bg-[var(--bg-soft)] text-[var(--text-primary)]">
                       <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} aria-label={`Decrease quantity for ${item.product.name}`} className="min-h-10 min-w-10 px-1.5 font-bold">-</button>
                       <span className="px-2 font-extrabold">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} aria-label={`Increase quantity for ${item.product.name}`} className="min-h-10 min-w-10 px-1.5 font-bold">+</button>
@@ -70,7 +70,7 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
                     <button
                       onClick={() => removeFromCart(item.product.id)}
                       aria-label={`Remove ${item.product.name} from cart`}
-                      className="min-h-10 min-w-10 text-stone-400 hover:text-red-500 p-1"
+                      className="min-h-10 min-w-10 text-[var(--text-subtle)] hover:text-red-500 p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -80,8 +80,8 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
             ))
           ) : (
             <div className="text-center py-12 space-y-3">
-              <ShoppingBag className="w-12 h-12 text-stone-300 mx-auto" />
-              <p className="text-xs text-stone-500 font-semibold">Your shopping cart is currently empty.</p>
+              <ShoppingBag className="w-12 h-12 text-[var(--text-subtle)] mx-auto" />
+              <p className="text-xs text-[var(--text-muted)] font-semibold">Your shopping cart is currently empty.</p>
             </div>
           )}
         </div>
@@ -93,7 +93,7 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
               <span>Subtotal:</span>
               <span>GHS {subtotal.toFixed(2)}</span>
             </div>
-            <p className="text-[10px] text-stone-400">Shipping calculated at checkout.</p>
+            <p className="text-[10px] text-[var(--text-subtle)]">Shipping calculated at checkout.</p>
 
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -143,9 +143,9 @@ export const FullCartPage: React.FC = () => {
   if (cartItems.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4 font-sans">
-        <ShoppingBag className="w-16 h-16 text-stone-300 mx-auto" />
-        <h2 className="text-2xl font-extrabold text-[#1C1817] dark:text-stone-100 uppercase">Your Cart is Empty</h2>
-        <p className="text-xs text-stone-500">Discover dermatological skincare and fresh grocery provisions.</p>
+        <ShoppingBag className="w-16 h-16 text-[var(--text-subtle)] mx-auto" />
+        <h2 className="text-2xl font-extrabold text-[var(--text-primary)] uppercase">Your Cart is Empty</h2>
+        <p className="text-xs text-[var(--text-muted)]">Discover dermatological skincare and fresh grocery provisions.</p>
         <Link to="/shop">
           <Button variant="primary" className="rounded-full px-8">Start Shopping</Button>
         </Link>
@@ -155,10 +155,10 @@ export const FullCartPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-3 py-6 font-sans sm:space-y-8 sm:px-4 sm:py-10">
-      <div className="flex flex-col items-start gap-3 border-b border-[#E6DFD7] pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col items-start gap-3 border-b border-[var(--border-color)] pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Shopping Cart</h1>
-          <p className="text-xs text-stone-500">Review your chosen items before fast checkout.</p>
+          <p className="text-xs text-[var(--text-muted)]">Review your chosen items before fast checkout.</p>
         </div>
         <button onClick={clearCart} className="text-xs text-red-500 hover:underline">Clear Entire Cart</button>
       </div>
@@ -170,19 +170,19 @@ export const FullCartPage: React.FC = () => {
           {cartItems.map((item) => (
             <div
               key={item.product.id}
-              className="bg-white dark:bg-[#1C1917] p-4 rounded-2xl border border-[#E6DFD7] dark:border-[#36322E] flex flex-col sm:flex-row items-center justify-between gap-4"
+              className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <img src={item.product.image} alt={item.product.name} className="w-20 h-20 object-cover rounded-xl shrink-0" />
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-stone-400">{item.product.brand}</span>
-                  <h3 className="text-sm font-bold text-[#1C1817] dark:text-stone-100">{item.product.name}</h3>
-                  <span className="text-xs text-stone-500 block">{item.product.unit}</span>
+                  <span className="text-[10px] uppercase font-bold text-[var(--text-subtle)]">{item.product.brand}</span>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)]">{item.product.name}</h3>
+                  <span className="text-xs text-[var(--text-muted)] block">{item.product.unit}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-                <div className="flex items-center border border-[#E6DFD7] rounded-full px-3 py-1 text-xs font-bold bg-stone-50 dark:bg-stone-900">
+                <div className="flex items-center border border-[var(--border-color)] rounded-full px-3 py-1 text-xs font-bold bg-[var(--bg-soft)] text-[var(--text-primary)]">
                   <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="px-2">-</button>
                   <span className="px-3 font-extrabold">{item.quantity}</span>
                   <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="px-2">+</button>
@@ -192,7 +192,7 @@ export const FullCartPage: React.FC = () => {
                   <span className="text-sm font-extrabold block">GHS {(item.product.price * item.quantity).toFixed(2)}</span>
                 </div>
 
-                <button onClick={() => removeFromCart(item.product.id)} className="text-stone-400 hover:text-red-500 p-1">
+                <button onClick={() => removeFromCart(item.product.id)} className="text-[var(--text-subtle)] hover:text-red-500 p-1">
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
@@ -211,22 +211,22 @@ export const FullCartPage: React.FC = () => {
 
         {/* Order Summary Sidebar */}
         <div className="h-fit space-y-6 rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-card)] sm:p-6 lg:sticky lg:top-24">
-          <h3 className="text-base font-extrabold uppercase pb-3 border-b border-[#E6DFD7]">
+          <h3 className="text-base font-extrabold uppercase pb-3 border-b border-[var(--border-color)] text-[var(--text-primary)]">
             Order Summary
           </h3>
 
           <div className="space-y-3 text-xs">
-            <div className="flex justify-between text-stone-600">
+            <div className="flex justify-between text-[var(--text-muted)]">
               <span>Subtotal:</span>
-              <span className="font-bold text-stone-900 dark:text-stone-100">GHS {subtotal.toFixed(2)}</span>
+              <span className="font-bold text-[var(--text-primary)]">GHS {subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-stone-600">
+            <div className="flex justify-between text-[var(--text-muted)]">
               <span>Delivery:</span>
-              <span className="font-bold text-stone-900 dark:text-stone-100">
-                {shippingFee === 0 ? <span className="text-emerald-700 font-bold">FREE</span> : `GHS ${shippingFee.toFixed(2)}`}
+              <span className="font-bold text-[var(--text-primary)]">
+                {shippingFee === 0 ? <span className="text-emerald-500 dark:text-emerald-400 font-bold">FREE</span> : `GHS ${shippingFee.toFixed(2)}`}
               </span>
             </div>
-            <div className="pt-3 border-t border-[#E6DFD7] flex justify-between text-base font-extrabold">
+            <div className="pt-3 border-t border-[var(--border-color)] flex justify-between text-base font-extrabold text-[var(--text-primary)]">
               <span>Estimated Total:</span>
               <span className="text-[#C86D51]">GHS {total.toFixed(2)}</span>
             </div>
@@ -349,7 +349,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center font-sans">
-        <div className="space-y-4 rounded-[2rem] border border-[#E6DFD7] bg-white p-8 shadow-sm dark:bg-[#1C1917]">
+        <div className="space-y-4 rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-sm">
           <h2 className="font-serif text-3xl text-[var(--text-primary)]">Sign in required</h2>
           <p className="text-sm leading-7 text-[var(--text-muted)]">
             Please sign in to your account before placing an order.
@@ -408,29 +408,37 @@ export const MultiStepCheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-3 py-6 font-sans sm:space-y-8 sm:px-4 sm:py-10">
-      {/* Checkout Header */}
-      <div className="text-center space-y-2">
-        <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">Checkout</h1>
-        <p className="text-xs text-stone-500">Pay securely with Paystack using mobile money or a bank card.</p>
+    <div className="mx-auto max-w-6xl px-3 py-6 font-sans sm:px-6 sm:py-10">
+      <div className="mb-8 flex flex-col gap-5 border-b border-[var(--border-color)] pb-7 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--accent-strong)]">CR Mart checkout</p>
+          <h1 className="font-serif text-4xl leading-none tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Almost yours.</h1>
+          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--text-muted)]">Add your delivery details, then complete payment securely with Paystack.</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-muted)]"><ShieldCheck className="h-4 w-4 text-[var(--olive)]" /> Secure checkout</div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="grid grid-cols-2 gap-1.5 text-center text-[9px] font-bold uppercase sm:flex sm:items-center sm:justify-center sm:gap-4 sm:text-xs">
-        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 1 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>1. Shipping</span>
-        <span className="hidden text-stone-300 sm:inline">•</span>
-        <span className={`rounded-full px-2 py-2 sm:px-3 sm:py-1 ${step >= 2 ? 'bg-[#1C1817] text-white' : 'bg-stone-200 text-stone-500'}`}>2. Payment</span>
+      <div className="mb-6 grid grid-cols-2 gap-2 sm:max-w-md sm:gap-3">
+        <button type="button" onClick={() => setStep(1)} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${step === 1 ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}`}>
+          <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${step === 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-soft)] text-[var(--text-muted)]'}`}>1</span>
+          <span><strong className="block text-xs text-[var(--text-primary)]">Delivery details</strong><small className="text-[10px] text-[var(--text-muted)]">Where should we bring it?</small></span>
+        </button>
+        <div className={`flex items-center gap-3 rounded-xl border p-3 text-left ${step === 2 ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}`}>
+          <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${step === 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-soft)] text-[var(--text-muted)]'}`}>2</span>
+          <span><strong className="block text-xs text-[var(--text-primary)]">Payment</strong><small className="text-[10px] text-[var(--text-muted)]">Pay securely online</small></span>
+        </div>
       </div>
 
-      <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)] sm:p-8">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-card)] sm:p-7">
 
         {step === 1 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 1: Shipping Address</h3>
+            <div><h3 className="text-xl font-bold text-[var(--text-primary)]">Delivery details</h3><p className="mt-1 text-xs text-[var(--text-muted)]">Where should we bring your order?</p></div>
 
             {user?.savedAddresses && user.savedAddresses.length > 0 && (
-              <div className="rounded-2xl border border-[#E6DFD7] bg-stone-50 p-4">
-                <p className="mb-2 text-xs font-bold text-stone-700">Quick Select from Saved Addresses</p>
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                <p className="mb-2 text-xs font-bold text-[var(--text-primary)]">Quick Select from Saved Addresses</p>
                 <div className="flex flex-wrap gap-2">
                   {user.savedAddresses.map((address, index) => {
                     const isSelected = area === address.area && fullName === address.fullName;
@@ -448,14 +456,14 @@ export const MultiStepCheckoutPage: React.FC = () => {
                         }}
                         className={`rounded-xl border px-3.5 py-2.5 text-left text-xs transition ${
                           isSelected
-                            ? 'border-[#C86D51] bg-[#FFF8F5] text-[#C86D51] shadow-sm ring-1 ring-[#C86D51]'
-                            : 'border-stone-200 bg-white hover:border-[#C86D51]'
+                            ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)] shadow-sm ring-1 ring-[var(--accent)]'
+                            : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--accent)]'
                         }`}
                       >
                         <div className="flex items-center gap-1.5 mb-1">
-                          <b className="text-stone-900">{address.fullName}</b>
+                          <b className="text-[var(--text-primary)]">{address.fullName}</b>
                           {address.tag && (
-                            <span className="rounded bg-stone-100 px-1.5 py-0.2 text-[9px] font-bold uppercase text-stone-600">
+                            <span className="rounded bg-[var(--bg-soft)] px-1.5 py-0.2 text-[9px] font-bold uppercase text-[var(--text-muted)]">
                               {address.tag}
                             </span>
                           )}
@@ -465,7 +473,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-stone-500">
+                        <span className="text-[11px] text-[var(--text-muted)]">
                           {address.area}, {address.city} • {address.phone}
                         </span>
                       </button>
@@ -477,66 +485,66 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">Full Name</label>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
                   placeholder="e.g. Abena Mensah"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">Phone Number (MoMo Enabled)</label>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Phone Number (MoMo Enabled)</label>
                 <input
                   type="text"
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
                   placeholder="e.g. 0244123456"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">Email for order updates</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]" placeholder="you@example.com" />
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Email for order updates</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]" placeholder="you@example.com" />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">City</label>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">City</label>
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
                   placeholder="e.g. City name"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">Address / Landmark</label>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Address / Landmark</label>
                 <input
                   type="text"
                   required
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
                   placeholder="e.g. Main street, near local landmark"
                 />
               </div>
             </div>
 
-            <div><label className="text-xs font-bold text-stone-700 block mb-1">Delivery instructions (optional)</label><textarea value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value)} className="w-full bg-[#F5F0EB] text-xs p-3 rounded-xl border border-[#E6DFD7]" rows={2} placeholder="Gate, landmark, preferred delivery time..." /></div>
+            <div><label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Delivery instructions <span className="font-normal text-[var(--text-subtle)]">(optional)</span></label><textarea value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value)} className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]" rows={3} placeholder="Gate, landmark, preferred delivery time..." /></div>
 
             <Button
               variant="primary"
               size="md"
               disabled={!fullName || !phone || !area}
               onClick={() => setStep(2)}
-              className="rounded-full px-8 uppercase text-xs font-bold"
+              className="w-full rounded-xl px-8 uppercase text-xs font-bold sm:w-auto"
             >
               Continue to Payment
             </Button>
@@ -545,17 +553,29 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-bold uppercase pb-3 border-b border-[#E6DFD7]">Step 2: Pay with Paystack</h3>
+            <div><h3 className="text-xl font-bold text-[var(--text-primary)]">Complete payment</h3><p className="mt-1 text-xs text-[var(--text-muted)]">Your order is created after Paystack confirms payment.</p></div>
 
-            <div className="rounded-2xl border border-[#C86D51] bg-[#F5F0EB] p-5"><CreditCard className="h-6 w-6 text-[#C86D51]" /><p className="mt-3 text-base font-bold text-stone-800">Your total is GHS {totalAmount.toFixed(2)}</p><p className="mt-2 text-xs leading-5 text-stone-600">You will be taken to Paystack to complete payment securely. Choose mobile money or card there. Your order is created only after payment is verified.</p></div>
+            <div className="rounded-2xl border border-[var(--accent)] bg-[var(--accent-soft)] p-5"><CreditCard className="h-6 w-6 text-[var(--accent-strong)]" /><p className="mt-3 text-base font-bold text-[var(--text-primary)]">Amount to pay: GHS {totalAmount.toFixed(2)}</p><p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">You'll be taken to Paystack to choose mobile money or card. Your order is created only after payment is verified.</p></div>
 
             <div className="flex gap-4">
-              <Button variant="outline" size="md" onClick={() => setStep(1)} className="rounded-full px-6 text-xs">Back</Button>
-              <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startPaystackCheckout()} className="rounded-full px-8 uppercase text-xs font-bold">Continue to Paystack</Button>
+              <Button variant="outline" size="md" onClick={() => setStep(1)} className="rounded-xl px-6 text-xs">Back</Button>
+              <Button variant="primary" size="md" isLoading={isProcessing} onClick={() => void startPaystackCheckout()} className="flex-1 rounded-xl px-8 uppercase text-xs font-bold">Pay securely with Paystack</Button>
             </div>
           </div>
         )}
 
+      </section>
+
+      <aside className="space-y-4 lg:sticky lg:top-24">
+        <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+          <div className="mb-4 flex items-center justify-between"><h2 className="font-bold text-[var(--text-primary)]">Your order</h2><span className="text-xs text-[var(--text-muted)]">{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</span></div>
+          <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
+            {cartItems.map(item => <div key={`${item.product.id}-${item.selectedOption || ''}`} className="flex gap-3"><img src={item.product.image} alt="" className="h-14 w-14 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="line-clamp-2 text-xs font-bold text-[var(--text-primary)]">{item.product.name}</p><p className="mt-1 text-[11px] text-[var(--text-muted)]">Qty {item.quantity}</p></div><span className="text-xs font-bold text-[var(--text-primary)]">GHS {(item.product.price * item.quantity).toFixed(2)}</span></div>)}
+          </div>
+          <div className="mt-5 space-y-2 border-t border-[var(--border-color)] pt-4 text-xs"><div className="flex justify-between text-[var(--text-muted)]"><span>Subtotal</span><span>GHS {subtotal.toFixed(2)}</span></div><div className="flex justify-between text-[var(--text-muted)]"><span>Delivery</span><span>{deliveryFee === 0 ? 'FREE' : `GHS ${deliveryFee.toFixed(2)}`}</span></div>{discount > 0 && <div className="flex justify-between text-emerald-700"><span>Discount{promoCode ? ` (${promoCode})` : ''}</span><span>- GHS {discount.toFixed(2)}</span></div>}<div className="flex justify-between border-t border-[var(--border-color)] pt-3 text-base font-extrabold text-[var(--text-primary)]"><span>Total</span><span>GHS {totalAmount.toFixed(2)}</span></div></div>
+        </div>
+        <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4 text-xs text-[var(--text-muted)]"><div className="flex gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-[var(--olive)]" /><p><strong className="text-[var(--text-primary)]">Secure payment.</strong> Paystack protects your payment details. We never store your card information.</p></div></div>
+      </aside>
       </div>
     </div>
   );
@@ -573,7 +593,7 @@ export const OrderConfirmationPage: React.FC = () => {
         <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
+        <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[var(--text-primary)]">
           {order?.paymentStatus === 'pending' ? 'Order received' : 'Order confirmed'}
         </h1>
         {order && (
@@ -584,14 +604,14 @@ export const OrderConfirmationPage: React.FC = () => {
       </div>
 
       {order ? (
-        <div className="bg-white dark:bg-[#1C1917] p-6 rounded-3xl border border-[#E6DFD7] dark:border-[#36322E] space-y-4 text-xs">
-          <div className="flex justify-between pb-3 border-b border-[#E6DFD7]">
+        <div className="bg-[var(--bg-card)] p-6 rounded-3xl border border-[var(--border-color)] space-y-4 text-xs text-[var(--text-primary)]">
+          <div className="flex justify-between pb-3 border-b border-[var(--border-color)]">
             <span className="font-bold">Date: {order.createdAt}</span>
             <Badge variant="botanical">{order.status}</Badge>
           </div>
 
           <div className="space-y-2">
-            <span className="font-bold text-stone-500 uppercase block">Purchased Items:</span>
+            <span className="font-bold text-[var(--text-muted)] uppercase block">Purchased Items:</span>
             {order.items.map(item => (
               <div key={item.product.id} className="flex justify-between items-center">
                 <span>{item.quantity}x {item.product.name}</span>
@@ -600,21 +620,21 @@ export const OrderConfirmationPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="pt-3 border-t border-[#E6DFD7] space-y-1">
+          <div className="pt-3 border-t border-[var(--border-color)] space-y-1">
             <div className="flex justify-between"><span>Subtotal:</span><span>GHS {order.subtotal.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Delivery:</span><span>GHS {order.shippingFee.toFixed(2)}</span></div>
             <div className="flex justify-between text-sm font-extrabold pt-1"><span>{order.paymentStatus === 'pending' ? 'Amount to confirm:' : 'Total paid:'}</span><span className="text-[#C86D51]">GHS {order.total.toFixed(2)}</span></div>
           </div>
 
-          <div className="pt-3 border-t border-[#E6DFD7] space-y-1 text-stone-500">
+          <div className="pt-3 border-t border-[var(--border-color)] space-y-1 text-[var(--text-muted)]">
             <div><strong>Deliver To:</strong> {order.shippingAddress.fullName} ({order.shippingAddress.phone})</div>
             <div><strong>Address:</strong> {order.shippingAddress.area}, {order.shippingAddress.city}</div>
             <div><strong>Payment Method:</strong> <span className="uppercase">{order.paymentMethod}</span> ({order.paymentStatus})</div>
-            {order.paymentStatus === 'pending' && <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-800">We will confirm your mobile-money payment before dispatch.</p>}
+            {order.paymentStatus === 'pending' && <p className="rounded-xl bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-amber-800 dark:text-amber-300">We will confirm your mobile-money payment before dispatch.</p>}
           </div>
         </div>
       ) : (
-        <p className="text-xs text-stone-500 text-center">
+        <p className="text-xs text-[var(--text-muted)] text-center">
           Thank you for shopping with CR Mart.
         </p>
       )}

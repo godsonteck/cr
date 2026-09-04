@@ -123,28 +123,34 @@ export const ShopCatalogPage: React.FC = () => {
 
           {/* Department Filter */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Department</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Department</h4>
             <div className="space-y-1">
               <button
                 onClick={() => updateFilter('dept', null)}
-                className={`w-full text-left px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
-                  !selectedDepartment ? 'bg-[#1C1817] text-white' : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  !selectedDepartment
+                    ? 'bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 font-bold shadow-xs'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 All Departments
               </button>
               <button
                 onClick={() => updateFilter('dept', 'beauty')}
-                className={`w-full text-left px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
-                  selectedDepartment === 'beauty' ? 'bg-[#1C1817] text-white' : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  selectedDepartment === 'beauty'
+                    ? 'bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 font-bold shadow-xs'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 Beauty &amp; Skincare
               </button>
               <button
                 onClick={() => updateFilter('dept', 'groceries')}
-                className={`w-full text-left px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
-                  selectedDepartment === 'groceries' ? 'bg-[#4A5D4E] text-white' : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  selectedDepartment === 'groceries'
+                    ? 'bg-[#2e4c36] text-white dark:bg-[#52ba74] dark:text-slate-950 font-bold shadow-xs'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 Groceries &amp; Essentials
@@ -154,11 +160,11 @@ export const ShopCatalogPage: React.FC = () => {
 
           {/* Brand Filter */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Brand</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Brand</h4>
             <select
               value={selectedBrand}
               onChange={(e) => updateFilter('brand', e.target.value)}
-              className="w-full bg-white dark:bg-[#1C1A19] text-xs font-semibold p-2 rounded border border-[#E8E2DA] dark:border-[#2A2725]"
+              className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] text-xs font-semibold p-2.5 rounded-xl border border-[var(--border-color)] outline-none focus:border-[var(--accent)]"
             >
               {brands.map((brand) => (
                 <option key={brand} value={brand}>{brand}</option>

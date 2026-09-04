@@ -125,9 +125,9 @@ export const AdminCategoriesScreen: React.FC = () => {
             <div key={category.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
               <img src={category.image} alt="" className="h-12 w-12 rounded-xl object-cover" />
               <div className="min-w-0 flex-1"><p className="font-bold text-stone-900 dark:text-stone-100">{category.name}</p><p className="text-xs text-stone-500">{category.department} · /{category.slug}</p></div>
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${category.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>{category.isActive ? 'Visible' : 'Hidden'}</span>
-              <button className="rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold" onClick={() => beginEdit(category)}>Edit</button>
-              <button className="rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold" onClick={() => void toggle(category)}>{category.isActive ? 'Hide' : 'Show'}</button>
+              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${category.isActive ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'}`}>{category.isActive ? 'Visible' : 'Hidden'}</span>
+              <button className="rounded-xl border border-[var(--border-color)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)]" onClick={() => beginEdit(category)}>Edit</button>
+              <button className="rounded-xl border border-[var(--border-color)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)]" onClick={() => void toggle(category)}>{category.isActive ? 'Hide' : 'Show'}</button>
               <button className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600" onClick={() => void removeCategory(category)} aria-label={`Delete ${category.name}`}><Trash2 className="mr-1 inline h-3.5 w-3.5" />Remove</button>
             </div>
           ))}

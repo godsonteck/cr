@@ -7,20 +7,20 @@
     --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
     --font-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
     --bg-main: #fff7f8;
-    --bg-card: #fffdfd;
+    --bg-card: #ffffff;
     --bg-card-alt: #fce9f0;
     --bg-soft: #fff1f5;
-    --text-primary: #2a1d20;
-    --text-muted: #6f5b60;
-    --text-subtle: #8e7077;
-    --border-color: #f2dfe7;
+    --text-primary: #181214;
+    --text-muted: #4e3e44;
+    --text-subtle: #614d53;
+    --border-color: #edd6de;
     --accent: #cf6c8a;
     --accent-strong: #a94c63;
     --accent-soft: #fdeef4;
     --violet: #c78da8;
     --violet-strong: #9a667c;
-    --olive: #6a7786;
-    --olive-strong: #44536a;
+    --olive: #516070;
+    --olive-strong: #334254;
     --shadow-soft: 0 20px 45px rgba(130, 69, 92, 0.09);
     --shadow-card: 0 18px 38px rgba(128, 72, 93, 0.09);
   }
@@ -28,21 +28,22 @@
   html.dark {
     color-scheme: dark;
     --bg-main: #071a2f;
-    --bg-card: #0d2340;
-    --bg-card-alt: #112e4f;
-    --bg-soft: #16355c;
-    --text-primary: #ebf3ff;
-    --text-muted: #bfd3ee;
-    --text-subtle: #9db6d9;
-    --border-color: #234a7a;
-    --accent: #7aa7ff;
-    --accent-strong: #9ec2ff;
-    --accent-soft: rgba(122, 167, 255, 0.18);
+    --bg-card: #0d2442;
+    --bg-card-alt: #112e52;
+    --bg-soft: #173760;
+    --text-primary: #f2f7ff;
+    --text-muted: #c4d8f4;
+    --text-subtle: #a3c5ee;
+    --border-color: #244b7d;
+    --accent: #689dfa;
+    --accent-strong: #95bdff;
+    --accent-soft: rgba(104, 157, 250, 0.18);
     --violet: #97baf8;
     --violet-strong: #c7d8ff;
-    --olive: #8db0d9;
-    --olive-strong: #bdd2f2;
+    --olive: #92b5de;
+    --olive-strong: #bdd4f5;
     --shadow-soft: 0 12px 30px rgba(3, 14, 29, 0.45);
+    --shadow-card: 0 14px 32px rgba(2, 10, 22, 0.5);
   }
 
   * { box-sizing: border-box; }
@@ -67,126 +68,116 @@
 
   html.dark body {
     background:
-      radial-gradient(circle at top, rgba(122, 167, 255, 0.22), transparent 18%),
+      radial-gradient(circle at top, rgba(104, 157, 250, 0.18), transparent 22%),
       linear-gradient(180deg, #071a2f 0%, #0b1f38 38%, #071a2f 100%) !important;
     color: var(--text-primary);
   }
 
-  html.dark #root,
-  html.dark .app-shell,
-  html.dark .min-h-screen,
-  html.dark main,
-  html.dark section,
-  html.dark article,
-  html.dark aside,
-  html.dark header,
-  html.dark footer,
-  html.dark nav,
-  html.dark form,
-  html.dark .bg-white,
-  html.dark .bg-gray-50,
-  html.dark .bg-gray-100,
-  html.dark .bg-gray-200,
-  html.dark .bg-stone-50,
-  html.dark .bg-stone-100,
-  html.dark .bg-stone-200,
-  html.dark .bg-slate-50,
-  html.dark .bg-slate-100,
-  html.dark .bg-slate-200,
-  html.dark .bg-zinc-50,
-  html.dark .bg-zinc-100,
-  html.dark .bg-zinc-200,
-  html.dark [class*="bg-white"],
-  html.dark [class*="bg-gray-"],
-  html.dark [class*="bg-stone-"],
-  html.dark [class*="bg-slate-"],
-  html.dark [class*="bg-zinc-"] {
-    background-color: #0d2340 !important;
-    background-image: none !important;
+  /* Form control contrast in both themes */
+  select option {
+    background-color: #ffffff;
+    color: #181214;
   }
 
-  html.dark .border-gray-200,
-  html.dark .border-gray-300,
-  html.dark .border-stone-200,
-  html.dark .border-stone-100,
-  html.dark .border-slate-200,
-  html.dark .border-slate-300,
-  html.dark .border-slate-700,
-  html.dark .border-zinc-200,
-  html.dark .border-zinc-300,
-  html.dark [class*="border-gray-"],
-  html.dark [class*="border-stone-"],
-  html.dark [class*="border-slate-"],
-  html.dark [class*="border-zinc-"] {
-    border-color: #234a7a !important;
-  }
-
-  html.dark .text-white,
-  html.dark .text-gray-600,
-  html.dark .text-gray-700,
-  html.dark .text-gray-800,
-  html.dark .text-gray-900,
-  html.dark .text-stone-400,
-  html.dark .text-stone-500,
-  html.dark .text-stone-600,
-  html.dark .text-stone-700,
-  html.dark .text-stone-900,
-  html.dark .text-slate-400,
-  html.dark .text-slate-500,
-  html.dark .text-slate-600,
-  html.dark .text-slate-700,
-  html.dark .text-slate-800,
-  html.dark .text-slate-900,
-  html.dark .text-zinc-400,
-  html.dark .text-zinc-500,
-  html.dark .text-zinc-600,
-  html.dark .text-zinc-700,
-  html.dark .text-zinc-800,
-  html.dark [class*="text-gray-"],
-  html.dark [class*="text-stone-"],
-  html.dark [class*="text-slate-"],
-  html.dark [class*="text-zinc-"] {
-    color: #ebf3ff !important;
-  }
-
-  html.dark .text-muted,
-  html.dark .text-zinc-400,
-  html.dark .text-zinc-500,
-  html.dark .text-zinc-600,
-  html.dark .text-zinc-700,
-  html.dark .text-zinc-800 {
-    color: #bfd3ee !important;
+  html.dark select option {
+    background-color: #0d2442;
+    color: #f2f7ff;
   }
 
   html.dark input,
   html.dark textarea,
-  html.dark select,
-  html.dark button,
-  html.dark .input,
-  html.dark .form-control {
-    color: #ebf3ff !important;
+  html.dark select {
+    color: #f2f7ff;
   }
 
   html.dark input::placeholder,
-  html.dark textarea::placeholder,
-  html.dark select::placeholder {
-    color: #9db6d9 !important;
+  html.dark textarea::placeholder {
+    color: #8faecc;
   }
 
-  html.dark .bg-gradient-to-r,
-  html.dark .bg-gradient-to-b,
-  html.dark .bg-gradient-to-br,
-  html.dark .bg-gradient-to-l {
-    background-image: none !important;
-    background-color: #0d2340 !important;
+  /* Targeted theme adapters for legacy surface & text utility classes in dark mode */
+  html.dark .bg-white,
+  html.dark .bg-stone-50,
+  html.dark .bg-stone-100,
+  html.dark .bg-gray-50,
+  html.dark .bg-gray-100,
+  html.dark .bg-slate-50,
+  html.dark .bg-slate-100,
+  html.dark [class*="bg-[#FBF9F6]"],
+  html.dark [class*="bg-[#FDFBF7]"],
+  html.dark [class*="bg-[#F5F0EB]"],
+  html.dark [class*="bg-[#FAF8F5]"],
+  html.dark [class*="bg-[#F7F5F0]"] {
+    background-color: #0d2442 !important;
   }
 
-  html.dark [class*="shadow-"],
-  html.dark .shadow-sm,
-  html.dark .shadow-md,
-  html.dark .shadow-lg,
-  html.dark .shadow-xl {
-    box-shadow: 0 10px 28px rgba(2, 8, 18, 0.38) !important;
+  html.dark .border-stone-200,
+  html.dark .border-stone-300,
+  html.dark .border-gray-200,
+  html.dark .border-gray-300,
+  html.dark .border-slate-200,
+  html.dark .border-slate-300,
+  html.dark [class*="border-[#E6DFD7]"],
+  html.dark [class*="border-[#E8E2D8]"],
+  html.dark [class*="border-[#E8E2DA]"],
+  html.dark [class*="border-[#E2DBD0]"] {
+    border-color: #244b7d !important;
+  }
+
+  html.dark .text-stone-900,
+  html.dark .text-stone-800,
+  html.dark .text-gray-900,
+  html.dark .text-gray-800,
+  html.dark .text-slate-900,
+  html.dark .text-slate-800,
+  html.dark .text-cr-espresso,
+  html.dark [class*="text-[#1C1817]"],
+  html.dark [class*="text-[#1E1719]"] {
+    color: #f2f7ff !important;
+  }
+
+  html.dark .text-stone-600,
+  html.dark .text-stone-700,
+  html.dark .text-gray-600,
+  html.dark .text-gray-700,
+  html.dark .text-slate-600,
+  html.dark .text-slate-700,
+  html.dark .text-cr-muted {
+    color: #c4d8f4 !important;
+  }
+
+  html.dark .text-stone-400,
+  html.dark .text-stone-500,
+  html.dark .text-gray-400,
+  html.dark .text-gray-500,
+  html.dark .text-slate-400,
+  html.dark .text-slate-500 {
+    color: #a3c5ee !important;
+  }
+
+  /* Status badge contrast in dark mode */
+  html.dark .bg-emerald-50,
+  html.dark .bg-emerald-100 {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    color: #6ee7b7 !important;
+  }
+
+  html.dark .bg-amber-50,
+  html.dark .bg-amber-100 {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+    color: #fcd34d !important;
+  }
+
+  html.dark .bg-blue-50,
+  html.dark .bg-blue-100 {
+    background-color: rgba(59, 130, 246, 0.18) !important;
+    color: #93c5fd !important;
+  }
+
+  html.dark .bg-red-50,
+  html.dark .bg-red-100 {
+    background-color: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
   }
 
   #root {
@@ -235,6 +226,10 @@
     backdrop-filter: blur(6px);
   }
 
+  html.dark .luxury-card {
+    background: rgba(13, 36, 66, 0.85);
+  }
+
   .eyebrow {
     display: inline-flex;
     align-items: center;
@@ -258,6 +253,10 @@
   .detailed-shell {
     background: linear-gradient(180deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0) 100%);
   }
+
+  html.dark .detailed-shell {
+    background: linear-gradient(180deg, rgba(23,55,96,0.36) 0%, rgba(23,55,96,0) 100%);
+  }
 }
 
 .bg-cr-ivory { background-color: #FDFBF7; }
@@ -273,6 +272,13 @@
 .text-cr-muted { color: #6E6763; }
 
 .border-cr-sand { border-color: #E6DFD7; }
+
+html.dark .bg-cr-ivory,
+html.dark .bg-cr-sand { background-color: var(--bg-card) !important; }
+html.dark .bg-cr-espresso { background-color: var(--bg-card-alt) !important; }
+html.dark .text-cr-espresso { color: var(--text-primary) !important; }
+html.dark .text-cr-muted { color: var(--text-muted) !important; }
+html.dark .border-cr-sand { border-color: var(--border-color) !important; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 

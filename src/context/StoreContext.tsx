@@ -378,11 +378,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
   const [loadingSettings, setLoadingSettings] = useState(false);
 
-  const [adminSession, setAdminSession] = useState<AdminSession>({
-    isLoggedIn: false,
-    adminName: 'Store Administrator',
-    adminRole: 'Super Admin',
-    email: 'admin@crcosmetics.com',
+  const [adminSession, setAdminSession] = useState<AdminSession>(() => {
+    try {
+      const saved = localStorage.getItem('admin_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.isLoggedIn) return parsed;
+      }
+    } catch {}
+    return {
+      isLoggedIn: false,
+      adminName: 'Store Administrator',
+      adminRole: 'Super Admin',
+      email: 'admin@crcosmetics.com',
+    };
   });
   const [loadingAdmin, setLoadingAdmin] = useState(false);
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(() => {

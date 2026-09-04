@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 h-[4.25rem] border-b border-[var(--border-color)] bg-[rgba(255,247,248,0.94)] backdrop-blur-2xl transition-colors dark:bg-[rgba(23,19,17,0.94)] sm:h-[4.7rem]">
+    <header className="fixed inset-x-0 top-0 z-40 h-[4.25rem] border-b border-[var(--border-color)] bg-[rgba(255,247,248,0.94)] backdrop-blur-2xl transition-colors dark:bg-[rgba(7,26,47,0.95)] sm:h-[4.7rem]">
       <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-[4.25rem] items-center justify-between gap-2 py-3 sm:h-[4.7rem] sm:gap-4 sm:py-0">
 
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-1 rounded-full border border-[var(--border-color)] bg-[rgba(255,255,255,0.38)] p-1.5 lg:flex lg:gap-1.5">
+          <nav className="hidden items-center gap-1 rounded-full border border-[var(--border-color)] bg-[var(--bg-card-alt)] p-1.5 lg:flex lg:gap-1.5">
             {desktopLinks.map((item) => {
               const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
           <form onSubmit={handleSearchSubmit} className="hidden min-w-0 max-w-xs flex-1 md:flex">
             <div className="relative w-full">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-stone-400" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[var(--text-subtle)]" />
               <input
                 type="text"
                 placeholder="Search"
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
             <button
               onClick={onOpenCart}
-              className="flex h-10 items-center gap-2 rounded-full bg-[var(--text-primary)] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--bg-card)] transition-colors hover:opacity-90 dark:bg-[var(--accent)] dark:text-[#1a140d] dark:hover:brightness-110"
+              className="flex h-10 items-center gap-2 rounded-full bg-[#181214] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:opacity-90 dark:bg-[#4a85f6] dark:text-slate-950 dark:hover:bg-[#6398fb]"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>{totalItems}</span>
@@ -179,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
       {isMobileMenuOpen && createPortal(
         <div className="fixed inset-0 z-[100] isolate" role="dialog" aria-modal="true" aria-label="Mobile navigation" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="absolute inset-0 z-[100] bg-black/55" />
-          <div className="relative z-[110] flex h-full w-[min(86vw,23rem)] flex-col overflow-y-auto border-r border-[var(--border-color)] bg-[var(--bg-main)] p-5 shadow-2xl animate-menu-in no-scrollbar dark:bg-[#141211]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-[110] flex h-full w-[min(86vw,23rem)] flex-col overflow-y-auto border-r border-[var(--border-color)] bg-[var(--bg-main)] p-5 shadow-2xl animate-menu-in no-scrollbar dark:bg-[var(--bg-card)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
                 <img 
@@ -196,7 +196,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </div>
 
             <form onSubmit={handleSearchSubmit} className="relative mt-4">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--text-subtle)]" />
               <input
                 type="text"
                 placeholder="Search products..."
@@ -233,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               <MessageCircle className="w-4 h-4" />
             </a>
 
-            <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--text-primary)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--bg-card)]">
+            <button onClick={() => { setIsMobileMenuOpen(false); onOpenCart(); }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em]">
               <ShoppingBag className="h-4 w-4" />
               <span>Open cart ({totalItems})</span>
             </button>

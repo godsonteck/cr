@@ -16,16 +16,16 @@ export const Badge: React.FC<BadgeProps> = ({
   const sizeStyles = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
 
   const variantStyles = {
-    terracotta: 'bg-[var(--accent)] text-white font-medium',
-    botanical: 'bg-[var(--olive)] text-white font-medium',
-    espresso: 'bg-[var(--text-primary)] text-[var(--bg-card)] font-medium',
-    gold: 'bg-[#d9b26d] text-[#2a1d20] font-semibold',
-    secondary: 'bg-[var(--bg-soft)] text-[var(--text-primary)] font-medium',
-    outline: 'border border-[var(--border-color)] text-[var(--text-muted)] dark:text-[var(--text-primary)] font-medium'
+    terracotta: 'bg-[#b85b40] text-white font-bold',
+    botanical: 'bg-[#2e4c36] text-white font-bold',
+    espresso: 'bg-[#181214] text-white dark:bg-[#d5e5fc] dark:text-slate-950 font-bold',
+    gold: 'bg-[#d49e35] text-[#181214] font-bold',
+    secondary: 'bg-[var(--bg-soft)] text-[var(--text-primary)] border border-[var(--border-color)] font-semibold',
+    outline: 'border border-[var(--border-color)] text-[var(--text-primary)] font-semibold'
   };
 
   return (
-    <span className={`inline-flex items-center rounded-full uppercase tracking-wider font-semibold transition-all ${sizeStyles} ${variantStyles[variant]} ${className}`}>
+    <span className={`inline-flex items-center rounded-full uppercase tracking-wider transition-all ${sizeStyles} ${variantStyles[variant]} ${className}`}>
       {children}
     </span>
   );
@@ -53,12 +53,12 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-[var(--text-primary)] text-[var(--bg-card)] hover:opacity-90 shadow-sm',
-    secondary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)] shadow-sm',
-    botanical: 'bg-[var(--olive)] text-white hover:bg-[var(--olive-strong)] shadow-sm',
-    outline: 'border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-soft)]',
-    ghost: 'text-[var(--text-primary)] hover:bg-[var(--bg-soft)]',
-    danger: 'bg-red-600 text-white hover:bg-red-700'
+    primary: 'bg-[#181214] text-white hover:bg-[#2d2125] dark:bg-[#4a85f6] dark:text-slate-950 dark:hover:bg-[#6398fb] font-bold shadow-sm',
+    secondary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)] font-semibold shadow-sm',
+    botanical: 'bg-[#2e4c36] text-white hover:bg-[#233b2a] font-semibold shadow-sm',
+    outline: 'border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-soft)] font-semibold',
+    ghost: 'text-[var(--text-primary)] hover:bg-[var(--bg-soft)] font-semibold',
+    danger: 'bg-red-600 text-white hover:bg-red-700 font-semibold'
   };
 
   return (

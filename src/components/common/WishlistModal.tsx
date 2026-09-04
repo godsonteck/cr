@@ -21,10 +21,10 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
       <div className="w-full max-w-md bg-[var(--bg-main)] h-full flex flex-col p-6 shadow-2xl animate-fade-in font-sans" onClick={event => event.stopPropagation()}>
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E6DFD7] dark:border-[#36322E]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-[#C86D51] fill-current" />
-            <h3 className="text-base font-extrabold uppercase text-[#1C1817] dark:text-stone-100">
+            <h3 className="text-base font-extrabold uppercase text-[var(--text-primary)]">
               Saved Wishlist ({wishlistProducts.length})
             </h3>
           </div>
@@ -39,15 +39,15 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
             wishlistProducts.map((product) => (
               <div
                 key={product.id}
-                className="flex gap-4 p-3 bg-white dark:bg-[#1C1917] rounded-2xl border border-[#E6DFD7] dark:border-[#36322E]"
+                className="flex gap-4 p-3 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)]"
               >
                 <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-xl" />
                 <div className="flex-1 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-stone-400">{product.brand}</span>
-                  <h4 className="text-xs font-bold text-[#1C1817] dark:text-stone-100 line-clamp-1">
+                  <span className="text-[10px] uppercase font-bold text-[var(--text-subtle)]">{product.brand}</span>
+                  <h4 className="text-xs font-bold text-[var(--text-primary)] line-clamp-1">
                     {product.name}
                   </h4>
-                  <span className="text-xs font-extrabold block">GHS {product.price.toFixed(2)}</span>
+                  <span className="text-xs font-extrabold block text-[var(--text-primary)]">GHS {product.price.toFixed(2)}</span>
 
                   <div className="flex items-center justify-between pt-1">
                     <Button
@@ -66,7 +66,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
                     <button
                       onClick={() => toggleWishlist(product.id)}
                       aria-label={`Remove ${product.name} from wishlist`}
-                      className="text-stone-400 hover:text-red-500 p-1"
+                      className="text-[var(--text-subtle)] hover:text-red-500 p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -76,8 +76,8 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
             ))
           ) : (
             <div className="text-center py-12 space-y-3">
-              <Heart className="w-12 h-12 text-stone-300 mx-auto" />
-              <p className="text-xs text-stone-500 font-semibold">Your saved wishlist is currently empty.</p>
+              <Heart className="w-12 h-12 text-[var(--text-subtle)] mx-auto" />
+              <p className="text-xs text-[var(--text-muted)] font-semibold">Your saved wishlist is currently empty.</p>
             </div>
           )}
         </div>
