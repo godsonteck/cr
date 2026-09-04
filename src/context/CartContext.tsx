@@ -32,16 +32,45 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+type SavedCart = {
+  items: CartItem[];
+  promoCode: string;
+  discountAmount: number;
+  hasFreeShippingCoupon: boolean;
+  selectedSamples: string[];
+};
+
+const readSavedCart = (): SavedCart => {
+  try {
+    const saved = localStorage.getItem('cr_cart');
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<SavedCart>;
+      return {
+        items: Array.isArray(parsed.items) ? parsed.items : [],
+        promoCode: parsed.promoCode || '',
+        discountAmount: Number(parsed.discountAmount) || 0,
+        hasFreeShippingCoupon: Boolean(parsed.hasFreeShippingCoupon),
+        selectedSamples: Array.isArray(parsed.selectedSamples) ? parsed.selectedSamples : ['Baobab Barrier Crème (5ml Sample)'],
+      };
+    }
+  } catch {
+    // Ignore malformed local cart data and start with an empty cart.
+  }
+  return { items: [], promoCode: '', discountAmount: 0, hasFreeShippingCoupon: false, selectedSamples: ['Baobab Barrier Crème (5ml Sample)'] };
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { products, storeSettings, validatePromoCode } = useStore();
+  const savedCart = React.useRef(readSavedCart());
 
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(savedCart.current.items);
   const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [promoCode, setPromoCode] = useState<string>('');
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
-  const [hasFreeShippingCoupon, setHasFreeShippingCoupon] = useState<boolean>(false);
-  const [selectedSamples, setSelectedSamples] = useState<string[]>(['Baobab Barrier Crème (5ml Sample)']);
+  const [promoCode, setPromoCode] = useState<string>(savedCart.current.promoCode);
+  const [discountAmount, setDiscountAmount] = useState<number>(savedCart.current.discountAmount);
+  const [hasFreeShippingCoupon, setHasFreeShippingCoupon] = useState<boolean>(savedCart.current.hasFreeShippingCoupon);
+  const [selectedSamples, setSelectedSamples] = useState<string[]>(savedCart.current.selectedSamples);
 
   const freeShippingThreshold = storeSettings.freeDeliveryThreshold || 300;
 
@@ -61,23 +90,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const product = products.find(candidate => candidate.id === item.productId);
         return product ? [{ ...item, product }] : [];
       });
-      setCart(hydratedItems);
+      if (hydratedItems.length > 0 || items.length === 0) setCart(hydratedItems);
       setPromoCode(data.promoCode || '');
       setDiscountAmount(data.discountAmount);
       setHasFreeShippingCoupon(data.hasFreeShippingCoupon);
-      setSelectedSamples(data.selectedSamples);
+      setSelectedSamples(Array.isArray(data.selectedSamples) ? data.selectedSamples : savedCart.current.selectedSamples);
     } catch (e) {
       console.error('Failed to fetch cart:', e);
-      setCart([]);
-      setPromoCode('');
-      setDiscountAmount(0);
-      setHasFreeShippingCoupon(false);
+      // Keep the local snapshot when the cart API is unavailable or the user is offline.
     } finally {
       setLoading(false);
+      setIsHydrated(true);
     }
-  }, []);
+  }, [products]);
 
   const saveCart = useCallback(async () => {
+    if (!isHydrated) return;
+    localStorage.setItem('cr_cart', JSON.stringify({ items: cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples }));
     try {
       await api.post('/cart', {
         items: cart.map(item => ({
@@ -94,7 +123,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Failed to save cart:', e);
     }
-  }, [cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples]);
+  }, [cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples, isHydrated]);
 
   useEffect(() => {
     fetchCart();
