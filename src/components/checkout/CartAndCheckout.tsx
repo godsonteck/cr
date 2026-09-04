@@ -303,17 +303,19 @@ export const MultiStepCheckoutPage: React.FC = () => {
       setIsProcessing(true);
       try {
         const orderPayload = JSON.parse(pendingOrder) as Order;
+        const customerToken = localStorage.getItem('auth_token');
+        if (!customerToken) throw new ApiError(401, 'Authentication required');
         const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
           reference: returnedReference,
           amount: Math.round(orderPayload.total * 100),
-        });
+        }, customerToken);
         if (!verification.verified) throw new Error('Paystack payment could not be verified');
         const createdOrder = await api.post<Order>('/orders', {
           ...orderPayload,
           paymentMethod: 'paystack',
           paymentStatus: 'paid',
           paymentReference: verification.reference,
-        });
+        }, customerToken);
         sessionStorage.removeItem('paystack_pending_order');
         await addStoreOrder(createdOrder);
         addOrder(createdOrder);
@@ -391,9 +393,11 @@ export const MultiStepCheckoutPage: React.FC = () => {
       };
       sessionStorage.setItem('paystack_pending_order', JSON.stringify(orderPayload));
       const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const customerToken = localStorage.getItem('auth_token');
+      if (!customerToken) throw new ApiError(401, 'Authentication required');
       const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
         amount: Math.round(totalAmount * 100), email, name: fullName, reference, callbackUrl: `${window.location.origin}/checkout`,
-      });
+      }, customerToken);
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {
       sessionStorage.removeItem('paystack_pending_order');
