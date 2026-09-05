@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import logoImg from '../../assets/logo.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
@@ -31,11 +31,11 @@ export const Footer: React.FC = () => {
               href={getWhatsAppUrl(storeSettings.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#1FAE5B] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#189a51]"
+              aria-label="Chat with CR Cosmetics on WhatsApp"
+              title="Chat with us on WhatsApp"
+              className="mt-6 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#1FAE5B] text-white transition hover:bg-[#189a51]"
             >
               <MessageCircle className="h-4 w-4" />
-              Chat with us
-              <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
           </div>
 
