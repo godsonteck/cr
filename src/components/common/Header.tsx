@@ -43,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeCategorySlug, setActiveCategorySlug] = useState('skincare');
   const megaMenuRef = useRef<HTMLDivElement>(null);
@@ -111,6 +112,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     };
   }, [isMobileMenuOpen]);
 
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const query = searchInput.trim();
+    navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+    setSearchInput('');
+    setIsMobileMenuOpen(false);
+    setIsMegaMenuOpen(false);
+  };
+
   const currentCategoryData = activeCategories.find(c => c.slug === activeCategorySlug) || activeCategories[0];
 
   return (
@@ -143,10 +153,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </Link>
           </div>
 
+          <form onSubmit={handleSearchSubmit} className="mx-2 hidden min-w-0 flex-1 items-center md:flex md:max-w-md lg:max-w-xl">
+            <div className="relative flex w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] transition focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+              <Search className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--text-subtle)]" />
+              <input
+                type="text"
+                placeholder="Search products"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                className="w-full bg-transparent py-2.5 pl-11 pr-12 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] sm:text-sm"
+              />
+              <button
+                type="submit"
+                aria-label="Submit search"
+                className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </form>
+
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => navigate('/search')}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)] md:hidden"
               aria-label="Search"
             >
               <Search className="h-4 w-4" />

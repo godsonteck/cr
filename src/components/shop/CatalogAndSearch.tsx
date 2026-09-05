@@ -294,8 +294,19 @@ export const ShopCatalogPage: React.FC = () => {
 export const SearchResultsPage: React.FC = () => {
   const { products } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
+  const [searchInput, setSearchInput] = useState(query);
+
+  React.useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const nextQuery = searchInput.trim();
+    setSearchParams(nextQuery ? { q: nextQuery } : {});
+  };
 
   const matchedProducts = useMemo(() => {
     if (!query.trim()) return [];
@@ -313,6 +324,21 @@ export const SearchResultsPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans space-y-6">
+      <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-2xl items-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1.5 shadow-[var(--shadow-soft)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+        <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
+        <input
+          type="search"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="Search products"
+          aria-label="Search products"
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+        />
+        <button type="submit" aria-label="Submit search" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
+          <Search className="h-3.5 w-3.5" />
+        </button>
+      </form>
+
       <div className="pb-4 border-b border-[#E8E2DA] dark:border-[#2A2725]">
         <h1 className="text-xl sm:text-2xl font-extrabold text-[#1C1817] dark:text-stone-100 uppercase">
           Search Results for &ldquo;<span className="text-[#C86D51]">{query}</span>&rdquo;
