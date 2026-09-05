@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
-import { AdminNotification, FlashDeal, PromoCode, Product, StoreSettings, Customer } from '../../../types';
+import { AdminNotification, FlashDeal, PromoCode, Product, StoreSettings, Customer, Order } from '../../../types';
 import { api } from '../../../lib/api';
 import { CustomerDetailDrawer } from '../components/CustomerDetailDrawer';
 
@@ -1355,58 +1355,54 @@ export function AdminSettingsScreen() {
 
 // ─── Notifications Screen ─────────────────────────────────────────────────────
 
-export function AdminNotificationsScreen({ notifications = [] }: { notifications?: AdminNotification[] }) {
+export function getGeneratedAdminNotifications(products: Product[], orders: Order[], notifications: AdminNotification[] = []): AdminNotification[] {
+  const result: AdminNotification[] = [];
+
+  const low = products.filter(product => product.stockCount <= 5);
+  if (low.length) {
+    result.push({
+      id: 'low-stock',
+      type: 'inventory',
+      title: `${low.length} products need attention`,
+      message: `${low.filter(product => product.stockCount === 0).length} are out of stock and should be replenished.`,
+      timestamp: new Date().toISOString(),
+      read: false,
+    });
+  }
+
+  const pending = orders.filter(order => order.status !== 'Delivered');
+  if (pending.length) {
+    result.push({
+      id: 'pending-orders',
+      type: 'order',
+      title: `${pending.length} orders in progress`,
+      message: 'Review fulfillment status and delivery handoffs.',
+      timestamp: new Date().toISOString(),
+      read: false,
+    });
+  }
+
+  return [...notifications, ...result];
+}
+
+export function AdminNotificationsScreen({ notifications = [], reviewed = [], onReviewed }: { notifications?: AdminNotification[]; reviewed?: string[]; onReviewed?: (ids: string[]) => void }) {
   const store = useStore();
   const { showAlert } = useAlert();
   const [filter, setFilter] = useState<'all' | AdminNotification['type']>('all');
-  const [reviewed, setReviewed] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('cr_admin_reviewed_notifications') || '[]');
-    } catch {
-      return [];
-    }
-  });
 
   const generated = useMemo<AdminNotification[]>(() => {
-    const result: AdminNotification[] = [];
-
-    const low = store.products.filter(p => p.stockCount <= 5);
-    if (low.length) {
-      result.push({
-        id: 'low-stock',
-        type: 'inventory',
-        title: `${low.length} products need attention`,
-        message: `${low.filter(p => p.stockCount === 0).length} are out of stock and should be replenished.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-      });
-    }
-
-    const pending = store.orders.filter(o => o.status !== 'Delivered');
-    if (pending.length) {
-      result.push({
-        id: 'pending-orders',
-        type: 'order',
-        title: `${pending.length} orders in progress`,
-        message: 'Review fulfillment status and delivery handoffs.',
-        timestamp: new Date().toISOString(),
-        read: false,
-      });
-    }
-
-    return [...notifications, ...result];
+    return getGeneratedAdminNotifications(store.products, store.orders, notifications);
   }, [notifications, store.products, store.orders]);
 
   const visible = generated
     .filter(item => filter === 'all' || item.type === filter)
-    .filter(item => !reviewed.includes(item.id));
+    .filter(item => !item.read && !reviewed.includes(item.id));
 
-  const unread = generated.filter(item => !reviewed.includes(item.id)).length;
+  const unread = generated.filter(item => !item.read && !reviewed.includes(item.id)).length;
 
   const markAll = () => {
     const nextReviewed = generated.map(item => item.id);
-    setReviewed(nextReviewed);
-    localStorage.setItem('cr_admin_reviewed_notifications', JSON.stringify(nextReviewed));
+    onReviewed?.(Array.from(new Set([...reviewed, ...nextReviewed])));
     showAlert('All visible alerts reviewed', 'success');
   };
 
@@ -1478,7 +1474,7 @@ export function AdminNotificationsScreen({ notifications = [] }: { notifications
             {/* Actions */}
             <button
               className={mutedButton}
-              onClick={() => setReviewed(prev => [...prev, item.id])}
+              onClick={() => onReviewed?.(Array.from(new Set([...reviewed, item.id])))}
             >
               Mark reviewed
             </button>

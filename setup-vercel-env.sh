@@ -61,6 +61,12 @@ echo "vercel env add MOMO_AT_API_KEY production"
 echo "vercel env add MOMO_AT_API_SECRET production"
 echo "vercel env add MOMO_AT_SUBSCRIPTION_KEY production"
 
+# Email (Resend / SendGrid)
+echo "⚠️  Add Resend credentials:"
+echo "vercel env add RESEND_API_KEY production"
+echo "vercel env add RESEND_API_KEY preview"
+echo "vercel env add RESEND_API_KEY development"
+
 # Email (SendGrid)
 echo "⚠️  Add SendGrid credentials:"
 echo "vercel env add SENDGRID_API_KEY production"

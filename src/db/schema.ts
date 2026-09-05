@@ -308,6 +308,21 @@ export const adminSessions = pgTable('admin_sessions', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 30 }).notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  message: text('message').notNull(),
+  actionUrl: varchar('action_url', { length: 255 }),
+  isRead: boolean('is_read').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
+  readIdx: index('notifications_read_idx').on(table.isRead),
+}));
+
 export const carts = pgTable('carts', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),

@@ -31,6 +31,7 @@ import {
   Printer,
   CreditCard,
   Check,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -39,7 +40,7 @@ import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAlert } from '../../context/AlertContext';
 import { Button, Badge } from '../common/UIPrimitives';
-import { ShippingAddress, Order, Product } from '../../types';
+import { ShippingAddress, Order, Product, AdminNotification } from '../../types';
 import logoImg from '../../assets/logo.jpeg';
 import { api } from '../../lib/api';
 
@@ -490,7 +491,7 @@ export const SignUpPage: React.FC = () => {
 // ============================================================================
 // Customer Account Portal (100% Live Database Backed)
 // ============================================================================
-type AccountTab = 'overview' | 'orders' | 'addresses' | 'wishlist' | 'reviews' | 'security' | 'preferences';
+type AccountTab = 'overview' | 'orders' | 'notifications' | 'addresses' | 'wishlist' | 'reviews' | 'security' | 'preferences';
 
 export const AccountPage: React.FC = () => {
   const {
@@ -515,6 +516,7 @@ export const AccountPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [remoteOrders, setRemoteOrders] = useState<Order[]>([]);
+  const [serverNotifications, setServerNotifications] = useState<AdminNotification[]>([]);
 
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -571,6 +573,13 @@ export const AccountPage: React.FC = () => {
   // Preferences State
   const [orderNotifications, setOrderNotifications] = useState(() => localStorage.getItem('cr_order_notifications') !== 'false');
   const [promoAlerts, setPromoAlerts] = useState(() => localStorage.getItem('cr_promo_alerts') !== 'false');
+  const [reviewedNotifications, setReviewedNotifications] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`cr_customer_reviewed_notifications_${user?.id || 'guest'}`) || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   // Sync profile form when user updates
   useEffect(() => {
@@ -586,6 +595,10 @@ export const AccountPage: React.FC = () => {
       const res = await api.get<{ orders: Order[] }>('/orders');
       if (res?.orders && Array.isArray(res.orders)) {
         setRemoteOrders(res.orders);
+      }
+      const notificationResponse = await api.get<{ notifications: AdminNotification[] }>('/notifications');
+      if (Array.isArray(notificationResponse.notifications)) {
+        setServerNotifications(notificationResponse.notifications);
       }
     } catch {
       if (user?.orders) {
@@ -627,6 +640,35 @@ export const AccountPage: React.FC = () => {
       (o) => o.status === 'Confirmed' || o.status === 'Processing' || o.status === 'Packing Order' || o.status === 'Out for Delivery'
     );
   }, [allOrders]);
+
+  const customerNotifications = useMemo(() => serverNotifications.length > 0
+    ? serverNotifications.map(notification => ({
+      id: notification.id,
+      orderNumber: '',
+      status: '',
+      timestamp: notification.timestamp,
+      message: notification.message,
+      serverRead: notification.read,
+    }))
+    : allOrders.map(order => ({
+      id: `order-${order.id}-${order.status}`,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      timestamp: order.createdAt,
+      message: order.status === 'Delivered'
+        ? `Order #${order.orderNumber} has been delivered.`
+        : `Order #${order.orderNumber} is ${order.status.toLowerCase()}.`,
+      serverRead: false,
+    })), [allOrders, serverNotifications]);
+
+  const unreadCustomerNotifications = customerNotifications.filter(notification => !notification.serverRead && !reviewedNotifications.includes(notification.id)).length;
+
+  const markCustomerNotificationsReviewed = (ids: string[]) => {
+    setReviewedNotifications(ids);
+    localStorage.setItem(`cr_customer_reviewed_notifications_${user?.id || 'guest'}`, JSON.stringify(ids));
+    const newlyRead = customerNotifications.filter(notification => ids.includes(notification.id) && !notification.id.startsWith('order-'));
+    newlyRead.forEach(notification => { void api.patch(`/notifications?id=${encodeURIComponent(notification.id)}`, {}); });
+  };
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
@@ -972,6 +1014,7 @@ export const AccountPage: React.FC = () => {
               {[
                 { id: 'overview' as const, label: 'Overview', icon: Sparkles },
                 { id: 'orders' as const, label: 'Orders & Tracking', icon: Package, count: allOrders.length },
+                { id: 'notifications' as const, label: 'Notifications', icon: Bell, count: unreadCustomerNotifications },
                 { id: 'addresses' as const, label: 'Saved Addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
                 { id: 'wishlist' as const, label: 'Saved Wishlist', icon: Heart, count: wishlistIds.length },
                 { id: 'reviews' as const, label: 'Product Reviews', icon: Star, count: itemsToReview.length },
@@ -1404,6 +1447,61 @@ export const AccountPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="space-y-5">
+                <div className="flex items-end justify-between gap-4 border-b border-[#F0E4DC] pb-4 dark:border-[#2C2426]">
+                  <div>
+                    <h2 className="text-xl font-black text-[#1C1817] dark:text-stone-100">Notifications</h2>
+                    <p className="mt-1 text-xs text-stone-500">Updates about your orders and deliveries.</p>
+                  </div>
+                  {unreadCustomerNotifications > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => markCustomerNotificationsReviewed(customerNotifications.map(notification => notification.id))}
+                      className="text-xs font-bold text-[#C86D51] hover:underline"
+                    >
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
+
+                {customerNotifications.length > 0 ? (
+                  <div className="space-y-3">
+                    {customerNotifications.map(notification => {
+                      const isUnread = !notification.serverRead && !reviewedNotifications.includes(notification.id);
+                      return (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          onClick={() => markCustomerNotificationsReviewed(Array.from(new Set([...reviewedNotifications, notification.id])))}
+                          className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${isUnread ? 'border-[#C86D51]/40 bg-[#FCF4F0] dark:bg-[#2A2024]' : 'border-[#F0E4DC] bg-white dark:border-[#2C2426] dark:bg-[#1C1719]'}`}
+                        >
+                          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#C86D51]/10 text-[#C86D51]">
+                            <Bell className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-2 text-sm font-bold text-[#1C1817] dark:text-stone-100">
+                              Order update
+                              {isUnread && <span className="h-1.5 w-1.5 rounded-full bg-[#C86D51]" />}
+                            </span>
+                            <span className="mt-1 block text-xs text-stone-600 dark:text-stone-400">{notification.message}</span>
+                            <span className="mt-2 block text-[10px] text-stone-400">Updated {new Date(notification.timestamp).toLocaleString()}</span>
+                          </span>
+                          <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-stone-400" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-[#F0E4DC] bg-white p-10 text-center dark:border-[#2C2426] dark:bg-[#1C1719]">
+                    <Bell className="mx-auto h-7 w-7 text-stone-400" />
+                    <p className="mt-3 text-sm font-bold text-[#1C1817] dark:text-stone-100">No notifications yet</p>
+                    <p className="mt-1 text-xs text-stone-500">Order updates will appear here.</p>
+                  </div>
+                )}
               </div>
             )}
 

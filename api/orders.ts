@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { orders, products, storeSettings, promoCodes, flashDeals } from '../src/db/schema.js';
+import { orders, products, storeSettings, promoCodes, flashDeals, notifications } from '../src/db/schema.js';
 import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
+import { escapeHtml, sendEmail } from './_email.js';
 
 const orderCreateSchema = z.object({
   userId: z.string().uuid().optional().nullable(),
@@ -280,8 +281,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .where(eq(products.id, productId));
         }
 
+        await tx.insert(notifications).values([
+          {
+            userId: auth.sub,
+            type: 'order',
+            title: 'Order received',
+            message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
+            actionUrl: `/account/orders`,
+          },
+          {
+            userId: null,
+            type: 'order',
+            title: 'New order received',
+            message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
+            actionUrl: '/admin?tab=orders',
+          },
+        ]);
+
         return createdOrder;
       });
+
+      const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth.email;
+      const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1];
+      const orderLink = `${process.env.PUBLIC_SITE_URL || ''}/account/orders`;
+      await Promise.all([
+        sendEmail({
+          to: customerEmail,
+          subject: `Order received: ${newOrder.orderNumber}`,
+          html: `<p>Hi ${escapeHtml(parsed.data.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(newOrder.orderNumber)}</strong> and are preparing it now.</p><p>You can track your order in your account.</p><p><a href="${escapeHtml(orderLink)}">View order</a></p>`,
+        }),
+        storeEmail ? sendEmail({
+          to: storeEmail,
+          subject: `New order: ${newOrder.orderNumber}`,
+          html: `<p>A new order has been placed.</p><p><strong>${escapeHtml(newOrder.orderNumber)}</strong> from ${escapeHtml(parsed.data.shippingAddress.fullName)} for GHS ${escapeHtml(newOrder.total)}.</p>`,
+        }) : Promise.resolve(false),
+      ]);
 
       return res.status(201).json(newOrder);
     }
@@ -308,6 +342,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (!updated) {
         return res.status(404).json({ error: 'Order not found' });
+      }
+      if (parsed.data.status && updated.userId) {
+        await db.insert(notifications).values({
+          userId: updated.userId,
+          type: 'order',
+          title: 'Order status updated',
+          message: `Order #${updated.orderNumber} is now ${updated.status.toLowerCase()}.`,
+          actionUrl: '/account/orders',
+        });
+      }
+      if (parsed.data.status) {
+        const customerEmail = updated.shippingAddress?.email;
+        if (customerEmail) {
+          await sendEmail({
+            to: customerEmail,
+            subject: `Order update: ${updated.orderNumber}`,
+            html: `<p>Your order <strong>${escapeHtml(updated.orderNumber)}</strong> is now <strong>${escapeHtml(updated.status)}</strong>.</p><p>Open your account to view the latest delivery details.</p>`,
+          });
+        }
       }
       return res.status(200).json(updated);
     }

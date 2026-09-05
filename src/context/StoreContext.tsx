@@ -11,6 +11,7 @@ import {
   RiderTrackingInfo,
   FlashDeal,
   AdminAccount,
+  AdminNotification,
 } from '../types';
 import { api } from '../lib/api';
 import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
@@ -82,6 +83,9 @@ interface StoreContextType {
   updateAdminAccount: (id: string, updates: Partial<AdminAccount>) => Promise<void>;
   deleteAdminAccount: (id: string) => Promise<void>;
   changeAdminPassword: (currentPin: string, newPin: string) => Promise<void>;
+  adminNotifications: AdminNotification[];
+  fetchAdminNotifications: () => Promise<void>;
+  markAdminNotificationsRead: (id?: string) => Promise<void>;
 
   flashDeals: FlashDeal[];
   loadingFlashDeals: boolean;
@@ -423,6 +427,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   });
   const [loadingAdmin, setLoadingAdmin] = useState(false);
+  const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(() => {
     try {
       const saved = localStorage.getItem('cr_admin_accounts');
@@ -439,6 +444,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return INITIAL_SEED_FLASH_DEALS;
   });
   const [loadingFlashDeals, setLoadingFlashDeals] = useState(false);
+
+  const fetchAdminNotifications = useCallback(async () => {
+    try {
+      const response = await api.get<{ notifications: AdminNotification[] }>('/notifications');
+      setAdminNotifications(Array.isArray(response.notifications) ? response.notifications : []);
+    } catch {
+      setAdminNotifications([]);
+    }
+  }, []);
+
+  const markAdminNotificationsRead = useCallback(async (id?: string) => {
+    await api.patch(`/notifications${id ? `?id=${encodeURIComponent(id)}` : ''}`, {});
+    setAdminNotifications(prev => id ? prev.map(item => item.id === id ? { ...item, read: true } : item) : prev.map(item => ({ ...item, read: true })));
+  }, []);
 
   // Sync to localStorage on state changes
   useEffect(() => {
@@ -1187,6 +1206,9 @@ const addOrder = async (order: Order) => {
         adminSession,
         adminAccounts,
         loadingAdmin,
+        adminNotifications,
+        fetchAdminNotifications,
+        markAdminNotificationsRead,
         loginAdmin,
         logoutAdmin,
         switchAdminRole,

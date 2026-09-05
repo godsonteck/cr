@@ -47,8 +47,9 @@ import {
 } from './screens/AdminOperationsScreens';
 import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
 import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
+import { getGeneratedAdminNotifications } from './screens/AdminOperationsScreens';
 import logoImg from '../../assets/logo.jpeg';
-import { Product, Order, Customer } from '../../types';
+import { AdminNotification, Product, Order, Customer } from '../../types';
 
 type AdminTab =
   | 'overview'
@@ -180,6 +181,13 @@ export const AdminPortal: React.FC = () => {
   const [orderToPrint, setOrderToPrint] = useState<Order | null>(null);
   // Inline logout confirm state
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [reviewedNotifications, setReviewedNotifications] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cr_admin_reviewed_notifications') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   // Derive customers from orders for search and quick navigation
   const derivedCustomers = useMemo<Customer[]>(() => {
@@ -216,10 +224,30 @@ export const AdminPortal: React.FC = () => {
   }, [store.orders]);
 
   const unreadNotifications = useMemo(() => {
-    const lowStock = (store.products || []).filter(p => p.stockCount <= 5).length;
-    const pendingOrders = (store.orders || []).filter(o => o.status !== 'Delivered').length;
-    return lowStock + pendingOrders;
-  }, [store.products, store.orders]);
+    const alerts = getGeneratedAdminNotifications(store.products || [], store.orders || []);
+    const serverUnread = (store.adminNotifications || []).filter(alert => !alert.read).length;
+    return serverUnread + alerts.filter(alert => !reviewedNotifications.includes(alert.id)).length;
+  }, [reviewedNotifications, store.adminNotifications, store.products, store.orders]);
+
+  const updateReviewedNotifications = (ids: string[]) => {
+    setReviewedNotifications(ids);
+    localStorage.setItem('cr_admin_reviewed_notifications', JSON.stringify(ids));
+    const serverIds = (store.adminNotifications || []).filter(notification => ids.includes(notification.id) && !notification.read).map(notification => notification.id);
+    serverIds.forEach(id => { void store.markAdminNotificationsRead(id); });
+  };
+
+  React.useEffect(() => {
+    if (!store.adminSession.isLoggedIn) return;
+    const refresh = () => {
+      void Promise.allSettled([
+        store.fetchProducts({ includeUnpublished: true }),
+        store.fetchOrders(),
+        store.fetchAdminNotifications(),
+      ]);
+    };
+    const interval = window.setInterval(refresh, 30000);
+    return () => window.clearInterval(interval);
+  }, [store.adminSession.isLoggedIn, store.fetchAdminNotifications, store.fetchOrders, store.fetchProducts]);
 
   const handleLogout = () => {
     if (confirmLogout) {
@@ -467,7 +495,13 @@ export const AdminPortal: React.FC = () => {
               {currentTab === 'flash'         && <AdminFlashDealsScreen />}
               {currentTab === 'categories'    && <AdminCategoriesScreen />}
               {currentTab === 'analytics'     && <AdminAnalyticsScreen />}
-              {currentTab === 'notifications' && <AdminNotificationsScreen />}
+              {currentTab === 'notifications' && (
+                <AdminNotificationsScreen
+                  notifications={store.adminNotifications}
+                  reviewed={reviewedNotifications}
+                  onReviewed={updateReviewedNotifications}
+                />
+              )}
               {currentTab === 'reviews'       && <AdminReviewsScreen />}
               {currentTab === 'settings'      && <AdminSettingsScreen />}
             </AdminTabErrorBoundary>
