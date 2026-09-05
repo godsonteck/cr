@@ -18,11 +18,11 @@ export const Footer: React.FC = () => {
               <img
                 src={storeSettings.storeLogo || logoImg}
                 onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }}
-                alt="CR Cosmetics and Essential"
+                alt="CR COSMETICS AND ESSENTIALS"
                 className="h-11 w-11 rounded-lg border border-[var(--border-color)] bg-[var(--bg-soft)] object-contain p-1"
               />
               <span className="text-lg font-black tracking-[-0.05em] text-[var(--text-primary)]">
-                CR <span className="text-[var(--accent)]">Cosmetics</span>
+                CR <span className="text-[var(--accent)]">COSMETICS</span> AND ESSENTIALS
               </span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
@@ -32,7 +32,7 @@ export const Footer: React.FC = () => {
               href={getWhatsAppUrl(storeSettings.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Chat with CR Cosmetics on WhatsApp"
+              aria-label="Chat with CR COSMETICS AND ESSENTIALS on WhatsApp"
               title="Chat with us on WhatsApp"
               className="mt-5 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1FAE5B] text-white transition hover:bg-[#189a51]"
             >
@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-[var(--border-color)] pt-4 text-[10px] uppercase tracking-[0.12em] text-[var(--text-subtle)] sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} CR Cosmetics and Essential</span>
+          <span>© {new Date().getFullYear()} CR COSMETICS AND ESSENTIALS</span>
           <span>Beauty, care, everyday life</span>
         </div>
       </div>
