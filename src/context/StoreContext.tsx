@@ -96,7 +96,7 @@ interface StoreContextType {
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeName: 'CR Cosmetics',
-  storeTagline: 'Simple beauty essentials',
+  storeTagline: '',
   heroHeadline: 'Beauty made simple.',
   heroSubtitle: 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.',
   heroImage: '',
@@ -174,9 +174,9 @@ const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<Store
   storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics and Essential'
     ? 'CR Cosmetics'
     : (settings.storeName || 'CR Cosmetics'),
-  storeTagline: settings.storeTagline === 'Your Beauty. Your Essentials. Your Glow.' ? 'Simple beauty essentials' : (settings.storeTagline || 'Simple beauty essentials'),
-  heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' ? 'Beauty made simple.' : (settings.heroHeadline || 'Beauty made simple.'),
-  heroSubtitle: settings.heroSubtitle === 'A considered edit of skincare, beauty, fragrances and everyday essentials.' || settings.heroSubtitle === 'Thoughtful skincare, fragrance and daily essentials designed to feel simple and elevated.' || settings.heroSubtitle === 'Curated skincare, fragrance, and everyday essentials chosen for a calmer, more elevated routine.' ? 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.' : (settings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'),
+  storeTagline: '',
+  heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' || settings.heroHeadline === 'Your Beauty. Your Essentials. Your Glow.' ? 'Beauty made simple.' : (settings.heroHeadline || 'Beauty made simple.'),
+  heroSubtitle: settings.heroSubtitle === 'A considered edit of skincare, beauty, fragrances and everyday essentials.' || settings.heroSubtitle === 'Thoughtful skincare, fragrance and daily essentials designed to feel simple and elevated.' || settings.heroSubtitle === 'Curated skincare, fragrance, and everyday essentials chosen for a calmer, more elevated routine.' || settings.heroSubtitle === 'Shop beauty, personal care and household essentials.' ? 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.' : (settings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'),
   heroButtonText: settings.heroButtonText === 'Shop the collection' || settings.heroButtonText === 'Shop collection' || settings.heroButtonText === 'Shop now' ? 'Shop now' : (settings.heroButtonText || 'Shop now'),
   homepageHotDealsTitle: settings.homepageHotDealsTitle === "Today's hot deals" ? 'Hot deals' : (settings.homepageHotDealsTitle || 'Hot deals'),
   homepageBeautyTitle: settings.homepageBeautyTitle === 'Beauty & skincare' ? 'Beauty essentials' : (settings.homepageBeautyTitle || 'Beauty essentials'),
