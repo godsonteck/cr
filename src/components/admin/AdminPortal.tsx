@@ -221,22 +221,6 @@ export const AdminPortal: React.FC = () => {
     return lowStock + pendingOrders;
   }, [store.products, store.orders]);
 
-  // Auth gate
-  if (!store.adminSession.isLoggedIn) {
-    return <AdminLoginView onSuccess={() => {}} />;
-  }
-
-  if (store.loadingAdmin) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-600">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#B27A52]" />
-          <p className="mt-3 text-sm font-semibold">Opening admin portal...</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleLogout = () => {
     if (confirmLogout) {
       store.logoutAdmin();
@@ -291,6 +275,22 @@ export const AdminPortal: React.FC = () => {
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
+
+  // Keep all hooks above this gate so login does not change hook order.
+  if (!store.adminSession.isLoggedIn) {
+    return <AdminLoginView onSuccess={() => {}} />;
+  }
+
+  if (store.loadingAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-600">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#B27A52]" />
+          <p className="mt-3 text-sm font-semibold">Opening admin portal...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
