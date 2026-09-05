@@ -6,14 +6,14 @@
   :root {
     --font-sans: "Inter", "Segoe UI", sans-serif;
     --font-display: "Georgia", "Times New Roman", serif;
-    --bg-main: #faf0f2;
+    --bg-main: #f9f2f3;
     --bg-card: #ffffff;
-    --bg-card-alt: #f5e5e8;
-    --bg-soft: #f8e9ec;
-    --text-primary: #171412;
-    --text-muted: #534840;
-    --text-subtle: #766a63;
-    --border-color: #ecd9de;
+    --bg-card-alt: #f7e7eb;
+    --bg-soft: #f4e7ea;
+    --text-primary: #1d1716;
+    --text-muted: #4d403d;
+    --text-subtle: #655d5a;
+    --border-color: #eadfe2;
     --accent: #9a5b3c;
     --accent-strong: #7a4632;
     --accent-soft: #f7e1e5;
@@ -23,14 +23,14 @@
 
   html.dark {
     color-scheme: dark;
-    --bg-main: #12100f;
-    --bg-card: #1a1514;
+    --bg-main: #120f0f;
+    --bg-card: #1b1716;
     --bg-card-alt: #221d1b;
     --bg-soft: #2b2422;
-    --text-primary: #f4efe9;
-    --text-muted: #d9c9bf;
-    --text-subtle: #bfaea4;
-    --border-color: #3d322f;
+    --text-primary: #f8f1ed;
+    --text-muted: #e9d8cb;
+    --text-subtle: #cab5a7;
+    --border-color: #4b3c38;
     --accent: #d2936d;
     --accent-strong: #f0b58c;
     --accent-soft: rgba(210, 147, 109, 0.12);
@@ -88,6 +88,47 @@
     color: #bfaea4;
   }
 
+  /* Keep legacy utility classes readable while screens are migrated to tokens. */
+  html.dark .text-stone-900,
+  html.dark .text-stone-800,
+  html.dark .text-stone-700,
+  html.dark .text-gray-900,
+  html.dark .text-gray-800,
+  html.dark .text-gray-700,
+  html.dark .text-slate-900,
+  html.dark .text-slate-800,
+  html.dark .text-slate-700,
+  html.dark [class~="text-[#1C1817]"],
+  html.dark [class~="text-[#1E1719]"] {
+    color: var(--text-primary) !important;
+  }
+
+  html.dark .text-stone-600,
+  html.dark .text-stone-500,
+  html.dark .text-gray-600,
+  html.dark .text-gray-500,
+  html.dark .text-slate-600,
+  html.dark .text-slate-500,
+  html.dark .text-cr-muted {
+    color: var(--text-muted) !important;
+  }
+
+  html.dark .text-stone-400,
+  html.dark .text-gray-400,
+  html.dark .text-slate-400 {
+    color: var(--text-subtle) !important;
+  }
+
+  html.dark [class~="bg-white"] {
+    background-color: var(--bg-card);
+  }
+
+  html.dark [class~="bg-stone-50"],
+  html.dark [class~="bg-gray-50"],
+  html.dark [class~="bg-slate-50"] {
+    background-color: var(--bg-soft);
+  }
+
   #root {
     background: transparent;
     color: var(--text-primary);
@@ -104,6 +145,15 @@
 @layer components {
   .editorial-hero {
     display: flex;
+    background-blend-mode: multiply;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+  }
+
+  .editorial-hero h1,
+  .editorial-hero p,
+  .editorial-hero a,
+  .editorial-hero span {
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
   }
 
   .page-shell {

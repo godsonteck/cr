@@ -96,7 +96,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHasFreeShippingCoupon(data.hasFreeShippingCoupon);
       setSelectedSamples(Array.isArray(data.selectedSamples) ? data.selectedSamples : savedCart.current.selectedSamples);
     } catch (e) {
-      console.error('Failed to fetch cart:', e);
+      const isExpectedCartUnavailable = e instanceof Error && 'status' in e && typeof (e as { status?: number }).status === 'number' && (e as { status: number }).status === 404;
+      if (!isExpectedCartUnavailable) {
+        console.error('Failed to fetch cart:', e);
+      }
       // Keep the local snapshot when the cart API is unavailable or the user is offline.
     } finally {
       setLoading(false);
@@ -121,7 +124,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedSamples,
       });
     } catch (e) {
-      console.error('Failed to save cart:', e);
+      const isExpectedCartUnavailable = e instanceof Error && 'status' in e && typeof (e as { status?: number }).status === 'number' && (e as { status: number }).status === 404;
+      if (!isExpectedCartUnavailable) {
+        console.error('Failed to save cart:', e);
+      }
     }
   }, [cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples, isHydrated]);
 

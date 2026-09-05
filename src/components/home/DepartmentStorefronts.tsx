@@ -114,23 +114,26 @@ export const HomePage: React.FC = () => {
         {/* Editorial storefront introduction */}
         {homepageSections.hero && (
           <section
-            className="editorial-hero relative min-h-[30rem] overflow-hidden bg-cover bg-center sm:min-h-[36rem]"
+            className="editorial-hero relative min-h-[26rem] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:min-h-[32rem]"
             style={{
               backgroundImage: `url(${storeSettings.heroImage || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200'})`,
               backgroundPosition: 'center',
             }}
             aria-label="Store hero"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-black/5" />
-            <div className="relative flex max-w-xl flex-col justify-end px-6 py-12 text-white sm:px-12 sm:py-16 lg:px-16">
-              <h1 className="max-w-[10ch] font-display text-5xl leading-[0.92] sm:text-7xl">
-                {storeSettings.heroHeadline || 'Everyday care, chosen well.'}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
+            <div className="relative flex max-w-xl flex-col justify-end px-5 py-10 text-white sm:px-10 sm:py-14 lg:px-14">
+              <span className="mb-4 inline-flex w-fit items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
+                {storeSettings.storeTagline || 'Simple beauty essentials'}
+              </span>
+              <h1 className="max-w-[9ch] font-display text-2xl leading-[1] sm:text-4xl lg:text-5xl">
+                {storeSettings.heroHeadline || 'Beauty made simple.'}
               </h1>
-              <p className="mt-6 max-w-md text-sm leading-7 text-white/85">
-                {storeSettings.heroSubtitle || 'A considered edit of skincare, beauty, fragrances and everyday essentials.'}
+              <p className="mt-5 max-w-md text-sm leading-7 text-white/85 sm:text-[0.95rem]">
+                {storeSettings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'}
               </p>
-              <Link to="/shop" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-white pb-2 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
-                {storeSettings.heroButtonText || 'Shop the collection'} <ArrowRight className="h-3.5 w-3.5" />
+              <Link to="/shop" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-white/80 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                {storeSettings.heroButtonText || 'Shop now'} <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </section>
@@ -154,7 +157,7 @@ export const HomePage: React.FC = () => {
             <div className="flex items-center justify-between gap-2 px-1">
               <div className="flex items-center gap-2">
                 <Flame className="h-4 w-4 text-[var(--accent)]" />
-                <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageHotDealsTitle || "Today's hot deals"}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageHotDealsTitle || 'Hot deals'}</h3>
               </div>
               <Link to="/offers" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
@@ -172,7 +175,7 @@ export const HomePage: React.FC = () => {
         {homepageSections.newArrivals && newArrivals.length > 0 && (
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageNewArrivalsTitle || 'New in'}</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageNewArrivalsTitle || 'New arrivals'}</h3>
               <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
               </Link>
@@ -189,7 +192,7 @@ export const HomePage: React.FC = () => {
         {homepageSections.beauty && beautyProducts.length > 0 && (
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageBeautyTitle || 'Beauty & skincare'}</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageBeautyTitle || 'Beauty'}</h3>
               <Link to="/beauty" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
               </Link>
@@ -206,7 +209,7 @@ export const HomePage: React.FC = () => {
         {homepageSections.groceryFeed && groceryEssentials.length > 0 && (
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageGroceryTitle || 'Groceries & essentials'}</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageGroceryTitle || 'Essentials'}</h3>
               <Link to="/groceries" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
                 See all →
               </Link>

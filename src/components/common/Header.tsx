@@ -146,8 +146,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="font-sans text-xl sm:text-2xl font-black tracking-[-0.06em] text-[var(--text-primary)]">
-                  CR <span className="text-[var(--accent)]">Cosmetics</span>
+                <span className="font-sans text-sm sm:text-base font-black tracking-[-0.05em] text-[var(--text-primary)]">
+                  CR <span className="text-[var(--text-primary)]">Cosmetics</span>
                 </span>
               </div>
             </Link>
@@ -253,10 +253,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           <div className="relative">
             <button
               onClick={() => setIsMegaMenuOpen(!isMegaMenuOpen)}
-              className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-white px-4 py-2 font-bold text-xs uppercase tracking-wider rounded-t-lg transition-colors"
+              className="flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-4 py-2 text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] font-bold text-[10px] uppercase tracking-[0.18em]"
             >
               <Menu className="h-4 w-4" />
-              <span>{storeSettings.navAllCategoriesLabel || 'All Categories'}</span>
+              <span>{storeSettings.navAllCategoriesLabel || 'All categories'}</span>
               <ChevronDown className={`h-3 w-3 transition-transform ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>

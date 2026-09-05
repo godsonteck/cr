@@ -91,7 +91,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1">
           {(product.discountBadge || product.badge) && (
-            <span className="inline-flex w-fit items-center rounded-full bg-white/90 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] shadow-sm backdrop-blur-sm">
+            <span className="inline-flex w-fit items-center rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] shadow-sm">
               {product.discountBadge || product.badge}
             </span>
           )}
@@ -100,7 +100,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleToggleWishlist}
           aria-label="Wishlist"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[var(--text-muted)] shadow-sm backdrop-blur-sm transition-all hover:bg-[var(--bg-card)] hover:text-[var(--accent)]"
+          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] shadow-sm transition-all hover:bg-[var(--bg-card-alt)] hover:text-[var(--accent)]"
         >
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[var(--accent)] text-[var(--accent)]' : ''}`} />
         </button>

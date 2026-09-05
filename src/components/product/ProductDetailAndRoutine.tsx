@@ -283,11 +283,10 @@ export const ProductDetailPage: React.FC = () => {
                 {/* Color / Variant Selection */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
-                    <span>Color / Variant:</span>
+                    <span>Selected option:</span>
                     <span className="font-semibold text-stone-600 dark:text-stone-400">
                       {activeVariant?.name || Object.values(selectedOptionValues)[0] || 'Default'}
                     </span>
-                    <span className="text-rose-500">🔥</span>
                   </div>
 
                   {/* Swatch options as clickable image/pill tiles */}

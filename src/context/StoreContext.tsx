@@ -95,25 +95,25 @@ interface StoreContextType {
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'CR Cosmetics and Essential',
-  storeTagline: 'Your Beauty. Your Essentials. Your Glow.',
-  heroHeadline: '',
-  heroSubtitle: '',
+  storeName: 'CR Cosmetics',
+  storeTagline: 'Simple beauty essentials',
+  heroHeadline: 'Beauty made simple.',
+  heroSubtitle: 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.',
   heroImage: '',
   heroBadge: '',
-  heroButtonText: '',
+  heroButtonText: 'Shop now',
   heroSecondaryButtonText: '',
   homepageFlashDealLabel: '',
-  homepageHotDealsTitle: '',
-  homepageNewArrivalsTitle: '',
-  homepageBeautyTitle: '',
-  homepageGroceryTitle: '',
-  navAllCategoriesLabel: '',
-  navOffersLabel: '',
-  navShopLabel: '',
-  navBeautyLabel: '',
-  navGroceriesLabel: '',
-  navAboutLabel: '',
+  homepageHotDealsTitle: 'Hot deals',
+  homepageNewArrivalsTitle: 'New arrivals',
+  homepageBeautyTitle: 'Beauty',
+  homepageGroceryTitle: 'Essentials',
+  navAllCategoriesLabel: 'All categories',
+  navOffersLabel: 'Offers',
+  navShopLabel: 'Shop',
+  navBeautyLabel: 'Beauty',
+  navGroceriesLabel: 'Essentials',
+  navAboutLabel: 'About',
   announcementText: '',
   announcementVisible: false,
   announcementBg: '#1E1719',
@@ -171,9 +171,22 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
 
 const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<StoreSettings> => ({
   ...settings,
-  storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics & Essentials'
-    ? 'CR Cosmetics and Essential'
-    : (settings.storeName || 'CR Cosmetics and Essential'),
+  storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics and Essential'
+    ? 'CR Cosmetics'
+    : (settings.storeName || 'CR Cosmetics'),
+  storeTagline: settings.storeTagline === 'Your Beauty. Your Essentials. Your Glow.' ? 'Simple beauty essentials' : (settings.storeTagline || 'Simple beauty essentials'),
+  heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' ? 'Beauty made simple.' : (settings.heroHeadline || 'Beauty made simple.'),
+  heroSubtitle: settings.heroSubtitle === 'A considered edit of skincare, beauty, fragrances and everyday essentials.' || settings.heroSubtitle === 'Thoughtful skincare, fragrance and daily essentials designed to feel simple and elevated.' || settings.heroSubtitle === 'Curated skincare, fragrance, and everyday essentials chosen for a calmer, more elevated routine.' ? 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.' : (settings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'),
+  heroButtonText: settings.heroButtonText === 'Shop the collection' || settings.heroButtonText === 'Shop collection' || settings.heroButtonText === 'Shop now' ? 'Shop now' : (settings.heroButtonText || 'Shop now'),
+  homepageHotDealsTitle: settings.homepageHotDealsTitle === "Today's hot deals" ? 'Hot deals' : (settings.homepageHotDealsTitle || 'Hot deals'),
+  homepageBeautyTitle: settings.homepageBeautyTitle === 'Beauty & skincare' ? 'Beauty essentials' : (settings.homepageBeautyTitle || 'Beauty essentials'),
+  homepageGroceryTitle: settings.homepageGroceryTitle === 'Groceries & essentials' ? 'Daily essentials' : (settings.homepageGroceryTitle || 'Daily essentials'),
+  navAllCategoriesLabel: settings.navAllCategoriesLabel === 'All Categories' ? 'All categories' : (settings.navAllCategoriesLabel || 'All categories'),
+  navOffersLabel: settings.navOffersLabel === 'SuperDeals' ? 'Offers' : (settings.navOffersLabel || 'Offers'),
+  navShopLabel: settings.navShopLabel === 'Shop All' ? 'Shop' : (settings.navShopLabel || 'Shop'),
+  navBeautyLabel: settings.navBeautyLabel === 'Beauty & Skincare' ? 'Beauty' : (settings.navBeautyLabel || 'Beauty'),
+  navGroceriesLabel: settings.navGroceriesLabel === 'Groceries & Essentials' ? 'Essentials' : (settings.navGroceriesLabel || 'Essentials'),
+  navAboutLabel: settings.navAboutLabel === 'About Us' ? 'About' : (settings.navAboutLabel || 'About'),
 });
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
