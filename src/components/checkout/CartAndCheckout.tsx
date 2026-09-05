@@ -511,8 +511,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       <input type="text" value={city} onChange={e => setCity(e.target.value)} className={inputCls} placeholder="e.g. Accra" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Address / Landmark <span className="text-red-500">*</span></label>
-                      <input type="text" required value={area} onChange={e => setArea(e.target.value)} className={inputCls} placeholder="e.g. Ring Road Central, near Accra Mall" />
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Address, Suburb or GhanaPost GPS <span className="text-red-500">*</span></label>
+                      <input type="text" required value={area} onChange={e => setArea(e.target.value)} className={inputCls} placeholder="e.g. East Legon, GA-183-9024 or near Accra Mall" />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">

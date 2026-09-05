@@ -136,6 +136,17 @@ export const ACCRA_ZONES: AccraLocationZone[] = [
     cutoffHour: 15,
     expressFee: 40,
     courierType: 'Inter-City Courier Batch'
+  },
+  {
+    id: 'zone-intercity-ghana',
+    name: 'Kumasi, Takoradi & Other Regions (Intercity)',
+    suburbs: ['Kumasi', 'Takoradi', 'Cape Coast', 'Sunyani', 'Koforidua', 'Tamale', 'Ho', 'Bolgatanga', 'Wa', 'Other Ghana Regions'],
+    zoneLabel: 'Nationwide Ghana Dispatch',
+    minHours: 24,
+    maxHours: 48,
+    cutoffHour: 15,
+    expressFee: 50,
+    courierType: 'Intercity Bus / VIP Parcel Express'
   }
 ];
 
@@ -225,6 +236,17 @@ export const AccraDeliveryBadge: React.FC<AccraDeliveryBadgeProps> = ({
       return `${hours}:${minutesStr} ${ampm}`;
     };
 
+    if (matchedZone.id === 'zone-intercity-ghana') {
+      return {
+        isSameDay: false,
+        badgeTitle: '📦 Nationwide Ghana Dispatch',
+        deliveryWindow: '1 – 2 Business Days via Intercity Courier / VIP Parcel',
+        durationText: '24 – 48 Hours',
+        cutoffNotice: 'Daily parcel dispatch to Kumasi, Takoradi & all 16 regions',
+        statusColor: 'text-indigo-800 bg-indigo-50 border-indigo-200'
+      };
+    }
+
     if (isSameDayEligible) {
       // Calculate earliest and latest arrival today
       const minDate = new Date(now.getTime() + matchedZone.minHours * 60 * 60 * 1000);
@@ -305,9 +327,9 @@ export const AccraDeliveryBadge: React.FC<AccraDeliveryBadgeProps> = ({
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span className="text-xs font-serif font-bold text-gray-900 dark:text-white flex items-center gap-1">
                   <Navigation className="w-3 h-3 text-[#8A3D52] dark:text-rose-400" />
-                  <span>Select Your Accra Suburb</span>
+                  <span>Select Destination</span>
                 </span>
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">Greater Accra</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">Accra & Nationwide</span>
               </div>
 
               {/* Suburb Quick Search */}
@@ -433,7 +455,7 @@ export const AccraDeliveryBadge: React.FC<AccraDeliveryBadgeProps> = ({
           </div>
           <div className="flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-[#8A3D52] dark:text-rose-400 shrink-0" />
-            <span>Pay via MoMo or Cash on Delivery</span>
+            <span>Pay via MoMo or Card (Paystack)</span>
           </div>
         </div>
       </div>
