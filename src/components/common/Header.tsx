@@ -43,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeCategorySlug, setActiveCategorySlug] = useState('skincare');
@@ -103,6 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   useEffect(() => {
     setIsMegaMenuOpen(false);
     setIsMobileMenuOpen(false);
+    setIsMobileSearchOpen(false);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -119,6 +121,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     setSearchInput('');
     setIsMobileMenuOpen(false);
     setIsMegaMenuOpen(false);
+    setIsMobileSearchOpen(false);
   };
 
   const currentCategoryData = activeCategories.find(c => c.slug === activeCategorySlug) || activeCategories[0];
@@ -175,11 +178,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <button
-              onClick={() => navigate('/search')}
+              onClick={() => setIsMobileSearchOpen((open) => !open)}
               className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)] md:hidden"
-              aria-label="Search"
+              aria-label={isMobileSearchOpen ? 'Close search' : 'Search'}
+              aria-expanded={isMobileSearchOpen}
             >
-              <Search className="h-4 w-4" />
+              {isMobileSearchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
             </button>
 
             <button
@@ -227,6 +231,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </Link>
           </div>
         </div>
+
+        {isMobileSearchOpen && (
+          <form onSubmit={handleSearchSubmit} className="pb-3 md:hidden">
+            <div className="flex min-h-10 w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] shadow-[var(--shadow-soft)] transition focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+              <Search className="ml-3 h-3.5 w-3.5 shrink-0 text-[var(--text-subtle)]" />
+              <input
+                autoFocus
+                type="search"
+                placeholder="Search products"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                aria-label="Search products"
+                className="min-w-0 flex-1 bg-transparent px-3 py-2 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] sm:text-sm"
+              />
+              <button type="submit" aria-label="Submit search" className="mr-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </form>
+        )}
 
       </div>
 
