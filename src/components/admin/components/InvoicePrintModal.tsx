@@ -158,7 +158,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
 
           {/* Thank You Note */}
           <div className="pt-6 border-t border-stone-200 text-center text-xs text-stone-500 space-y-1">
-            <p className="font-bold text-stone-800">Thank you for shopping with CR COSMETICS AND ESSENTIALS!</p>
+            <p className="font-bold text-stone-800">Thank you for shopping with {storeSettings.storeName}!</p>
             <p>For inquiries, exchanges, or re-orders, contact us via WhatsApp: +{storeSettings.whatsappNumber}</p>
           </div>
 

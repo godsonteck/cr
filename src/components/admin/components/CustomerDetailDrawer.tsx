@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Phone, Mail, MapPin, ShoppingBag, MessageCircle, Save } from 'lucide-react';
 import { Customer, Order } from '../../../types';
+import { useStore } from '../../../context/StoreContext';
 
 interface CustomerDetailDrawerProps {
   customer: Customer | null;
@@ -17,6 +18,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   orders,
   onSaveCustomerNotes,
 }) => {
+  const { storeSettings } = useStore();
   if (!isOpen || !customer) return null;
 
   const [notes, setNotes] = useState(customer.notes || '');
@@ -30,7 +32,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${
     customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
-  }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR COSMETICS AND ESSENTIALS.`)}`;
+  }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${storeSettings.storeName}.`)}`;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end font-sans animate-fadeIn">

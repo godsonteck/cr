@@ -757,7 +757,7 @@ export const OrderConfirmationPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-muted)] text-center">Thank you for shopping with CR COSMETICS AND ESSENTIALS.</p>
+          <p className="text-sm text-[var(--text-muted)] text-center">Thank you for shopping with {storeSettings.storeName}.</p>
         )}
 
         <div className="flex flex-col sm:flex-row justify-center gap-3">

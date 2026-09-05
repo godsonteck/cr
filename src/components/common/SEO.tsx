@@ -52,11 +52,15 @@ export const SEO: React.FC<SEOProps> = ({
   const location = useLocation();
   const { storeSettings } = useStore();
 
-  const routeMeta = pageMeta[location.pathname] || (location.pathname.startsWith('/product/')
+  const routeMetaTemplate = pageMeta[location.pathname] || (location.pathname.startsWith('/product/')
     ? { title: 'Product details | CR COSMETICS AND ESSENTIALS', description: 'View product details, options, price, availability, and delivery information.' }
     : location.pathname.startsWith('/category/')
       ? { title: 'Category collection | CR COSMETICS AND ESSENTIALS', description: 'Browse products in this CR COSMETICS AND ESSENTIALS collection.' }
       : { title: defaultTitle, description: defaultDescription });
+  const routeMeta = {
+    title: routeMetaTemplate.title.replaceAll('CR COSMETICS AND ESSENTIALS', storeSettings.storeName),
+    description: routeMetaTemplate.description.replaceAll('CR COSMETICS AND ESSENTIALS', storeSettings.storeName),
+  };
   const pageTitle = title || routeMeta.title;
   const pageDescription = description || routeMeta.description;
   const pageImage = image || productImage || storeSettings.storeLogo || defaultImage;

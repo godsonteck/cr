@@ -150,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-sans text-sm sm:text-base font-black tracking-[-0.05em] text-[var(--text-primary)]">
-                  CR <span className="text-[var(--text-primary)]">COSMETICS</span> AND ESSENTIALS
+                  {storeSettings.storeName}
                 </span>
               </div>
             </Link>

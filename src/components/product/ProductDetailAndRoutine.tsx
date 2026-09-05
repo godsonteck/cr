@@ -120,7 +120,7 @@ export const ProductDetailPage: React.FC = () => {
   return (
     <>
       <SEO
-        title={`${product.name} | CR COSMETICS AND ESSENTIALS`}
+        title={`${product.name} | ${storeSettings.storeName}`}
         description={`${product.name} by ${product.brand}. View price, availability, product details, and delivery information.`}
         type="product"
         productName={product.name}
