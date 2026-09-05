@@ -47,7 +47,7 @@ interface StoreContextType {
   loadingOrders: boolean;
   fetchOrders: (params?: { userId?: string; status?: Order['status'] }) => Promise<void>;
   addOrder: (order: Order) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string) => Promise<void>;
   updatePaymentStatus: (orderId: string, paymentStatus: 'paid' | 'pending') => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   clearAllOrders: () => Promise<void>;
@@ -804,21 +804,27 @@ const addOrder = async (order: Order) => {
     });
   };
 
-  const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>) => {
+  const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string) => {
+    const previousOrder = orders.find(order => order.id === orderId);
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
         return {
           ...o,
           status,
-          riderInfo: riderInfo ? { ...o.riderInfo, ...riderInfo } as RiderTrackingInfo : o.riderInfo
+          estimatedDeliveryTime: estimatedDeliveryTime ?? o.estimatedDeliveryTime,
+          riderInfo: riderInfo ? { ...o.riderInfo, ...riderInfo } as RiderTrackingInfo : o.riderInfo,
         };
       }
       return o;
     }));
 
     try {
-      await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { status, riderInfo });
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+      await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { status, riderInfo, estimatedDeliveryTime });
+    } catch (e: any) {
+      if (previousOrder) setOrders(prev => prev.map(order => order.id === orderId ? previousOrder : order));
+      setError(e.message || "Operation failed");
+      throw e;
+    }
   };
 
   const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {

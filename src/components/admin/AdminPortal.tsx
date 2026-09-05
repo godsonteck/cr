@@ -519,7 +519,7 @@ export const AdminPortal: React.FC = () => {
         order={selectedOrder}
         isOpen={!!selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        onUpdateStatus={(orderId, status, riderInfo) => store.updateOrderStatus(orderId, status, riderInfo)}
+        onUpdateStatus={(orderId, status, riderInfo, estimatedDeliveryTime) => store.updateOrderStatus(orderId, status, riderInfo, estimatedDeliveryTime)}
         onUpdatePayment={(orderId, paymentStatus) => store.updatePaymentStatus(orderId, paymentStatus)}
         onDeleteOrder={(orderId) => store.deleteOrder(orderId)}
         onPrintReceipt={(order) => setOrderToPrint(order)}

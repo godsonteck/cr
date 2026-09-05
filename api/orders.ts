@@ -57,6 +57,7 @@ const orderCreateSchema = z.object({
 
 const orderUpdateSchema = z.object({
   status: z.enum(['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered']).optional(),
+  estimatedDeliveryTime: z.string().max(100).optional(),
   paymentStatus: z.enum(['paid', 'pending']).optional(),
   riderInfo: z.object({
     riderName: z.string(),

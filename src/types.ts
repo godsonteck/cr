@@ -284,7 +284,7 @@ export interface Order {
   deliveryMethod: DeliveryMethod;
   shippingAddress: ShippingAddress;
   status: OrderStatus;
-  estimatedDeliveryTime: string;
+  estimatedDeliveryTime?: string;
   appliedPromoCode?: string;
   paymentReference?: string;
   paymentSenderPhone?: string;

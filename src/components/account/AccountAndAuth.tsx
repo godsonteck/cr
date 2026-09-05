@@ -596,16 +596,18 @@ export const AccountPage: React.FC = () => {
       if (res?.orders && Array.isArray(res.orders)) {
         setRemoteOrders(res.orders);
       }
-      const notificationResponse = await api.get<{ notifications: AdminNotification[] }>('/notifications');
-      if (Array.isArray(notificationResponse.notifications)) {
-        setServerNotifications(notificationResponse.notifications);
-      }
     } catch {
       if (user?.orders) {
         setRemoteOrders(user.orders);
       }
     } finally {
       setLoadingOrders(false);
+    }
+    try {
+      const notificationResponse = await api.get<{ notifications: AdminNotification[] }>('/notifications');
+      if (Array.isArray(notificationResponse.notifications)) setServerNotifications(notificationResponse.notifications);
+    } catch {
+      // Notifications remain available from the order fallback when the API is unavailable.
     }
   };
 
@@ -625,6 +627,8 @@ export const AccountPage: React.FC = () => {
     if (isAuthenticated) {
       void loadOrders();
       void loadUserReviews();
+      const interval = window.setInterval(() => void loadOrders(), 30000);
+      return () => window.clearInterval(interval);
     }
   }, [isAuthenticated]);
 

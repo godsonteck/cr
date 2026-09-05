@@ -22,7 +22,7 @@ const userProfileUpdateSchema = z.object({
     fullName: z.string().min(1),
     phone: z.string().min(1),
     altPhone: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.preprocess(value => value === '' ? undefined : value, z.string().email().optional()),
     city: z.string().min(1),
     area: z.string().min(1),
     landmarkOrGps: z.string().optional(),
@@ -194,7 +194,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (parsed.data.fullName !== undefined) updates.fullName = parsed.data.fullName.trim();
       if (parsed.data.phone !== undefined) updates.phone = parsed.data.phone.trim();
       if (parsed.data.profileImage !== undefined) updates.profileImage = parsed.data.profileImage;
-      if (parsed.data.savedAddresses !== undefined) updates.savedAddresses = parsed.data.savedAddresses;
+      if (parsed.data.savedAddresses !== undefined) {
+        const addresses = parsed.data.savedAddresses.map(address => ({ ...address }));
+        if (addresses.length > 0 && !addresses.some(address => address.isDefault)) {
+          addresses[0].isDefault = true;
+        }
+        updates.savedAddresses = addresses;
+      }
       if (parsed.data.savedItemIds !== undefined) updates.savedItemIds = parsed.data.savedItemIds;
 
       // Only admins may toggle isActive status

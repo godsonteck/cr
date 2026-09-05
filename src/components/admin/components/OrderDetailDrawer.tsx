@@ -23,7 +23,7 @@ interface OrderDetailDrawerProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any) => void;
+  onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any, estimatedDeliveryTime?: string) => void;
   onUpdatePayment: (orderId: string, paymentStatus: 'paid' | 'pending') => void;
   onDeleteOrder?: (orderId: string) => void;
   onPrintReceipt?: (order: Order) => void;
@@ -41,11 +41,13 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   const [riderName, setRiderName] = useState('');
   const [riderPhone, setRiderPhone] = useState('');
   const [riderLocation, setRiderLocation] = useState('');
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState('');
 
   React.useEffect(() => {
     setRiderName(order?.riderInfo?.riderName || '');
     setRiderPhone(order?.riderInfo?.riderPhone || '');
     setRiderLocation(order?.riderInfo?.riderLocation || '');
+    setEstimatedDeliveryTime(order?.estimatedDeliveryTime || '');
   }, [order]);
 
   if (!isOpen || !order) return null;
@@ -136,7 +138,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                   <button
                     key={stage.label}
                     type="button"
-                    onClick={() => onUpdateStatus(order.id, stage.label, { riderName, riderPhone, riderLocation })}
+                    onClick={() => onUpdateStatus(order.id, stage.label, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime)}
                     className={`flex-1 min-w-[90px] p-2 rounded-xl text-center border transition-all cursor-pointer ${
                       isCurrent 
                         ? 'border-stone-900 bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' 
@@ -258,6 +260,16 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                 />
               </div>
             </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-stone-500 mb-1">Delivery ETA</label>
+              <input
+                type="text"
+                value={estimatedDeliveryTime}
+                onChange={e => setEstimatedDeliveryTime(e.target.value)}
+                placeholder="e.g. Today, 2-4 PM"
+                className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
+              />
+            </div>
           </div>
 
           {/* Items Breakdown Table */}
@@ -352,7 +364,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                     'Delivered': 'Delivered'
                   };
                   const next = nextStageMap[order.status];
-                  onUpdateStatus(order.id, next, { riderName, riderPhone, riderLocation });
+                    onUpdateStatus(order.id, next, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime);
                 }}
                 className="px-4 py-2 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] rounded-xl font-bold shadow-xs transition-colors flex items-center gap-1.5"
               >
