@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { useStore } from '../../context/StoreContext';
 import logoImg from '../../assets/logo.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
@@ -35,7 +36,7 @@ export const Footer: React.FC = () => {
               title="Chat with us on WhatsApp"
               className="mt-6 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#1FAE5B] text-white transition hover:bg-[#189a51]"
             >
-              <MessageCircle className="h-4 w-4" />
+              <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
             </a>
           </div>
 
