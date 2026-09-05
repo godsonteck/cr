@@ -16,9 +16,6 @@ import {
   Heart,
   Leaf,
   Zap,
-  Package,
-  Users,
-  Award,
   ShoppingBag,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
@@ -82,32 +79,32 @@ const faqs = [
 const pillars = [
   {
     icon: Heart,
-    label: 'Curated with care',
-    desc: 'Every product is hand-selected for quality, safety, and value — nothing lands in our catalog by chance.',
+    label: 'A useful edit',
+    desc: 'We keep the range focused on products people actually reach for: skincare, beauty, home, and pantry basics.',
     color: 'from-rose-500/20 to-pink-500/10',
     iconColor: 'text-rose-500',
     border: 'border-rose-200/40 dark:border-rose-800/30',
   },
   {
     icon: Leaf,
-    label: 'Real ingredients',
-    desc: 'We stock trusted brands and formulations that respect your skin and your household.',
+    label: 'Brands we trust',
+    desc: 'We look for familiar brands, clear product details, and dependable value before something joins the shop.',
     color: 'from-emerald-500/20 to-teal-500/10',
     iconColor: 'text-emerald-600',
     border: 'border-emerald-200/40 dark:border-emerald-800/30',
   },
   {
     icon: Zap,
-    label: 'Fast delivery',
-    desc: 'Same-day dispatch across Greater Accra. Intercity courier service to all 16 regions of Ghana.',
+    label: 'Close to home',
+    desc: 'We are based in Accra and build the service around practical delivery, clear updates, and real human help.',
     color: 'from-amber-500/20 to-orange-500/10',
     iconColor: 'text-amber-600',
     border: 'border-amber-200/40 dark:border-amber-800/30',
   },
   {
     icon: ShieldCheck,
-    label: 'Buyer protection',
-    desc: 'Secure Paystack checkout, MoMo payment options, and a responsive support team behind every order.',
+    label: 'No guesswork',
+    desc: 'Prices, availability, payment steps, and order progress should be easy to understand from start to finish.',
     color: 'from-blue-500/20 to-sky-500/10',
     iconColor: 'text-blue-500',
     border: 'border-blue-200/40 dark:border-blue-800/30',
@@ -115,19 +112,19 @@ const pillars = [
 ];
 
 const categories = [
-  { label: 'Skincare & Serums', emoji: '✨', description: 'Cleansers, toners, moisturisers, SPF & treatments' },
-  { label: 'Makeup & Beauty', emoji: '💄', description: 'Foundation, lips, eyes, brushes & tools' },
-  { label: 'Fragrances', emoji: '🌸', description: 'EDP, EDT, body mists & roll-ons' },
-  { label: 'Hair Care', emoji: '💆🏽‍♀️', description: 'Shampoos, conditioners, oils & treatments' },
-  { label: 'Body Care', emoji: '🧴', description: 'Lotions, scrubs, deodorants & soaps' },
-  { label: 'Groceries', emoji: '🛒', description: 'Rice, oils, pantry staples & household essentials' },
+  { label: 'Skin', emoji: '✦', description: 'Cleansers, treatments, moisturisers, and SPF.' },
+  { label: 'Beauty', emoji: '◌', description: 'Makeup, brushes, tools, and everyday colour.' },
+  { label: 'Scent', emoji: '⌁', description: 'Fragrance, body mists, and roll-ons.' },
+  { label: 'Body & Hair', emoji: '○', description: 'Simple care for the routines you already have.' },
+  { label: 'Pantry', emoji: '＋', description: 'Rice, oils, spices, and useful household staples.' },
+  { label: 'Daily care', emoji: '□', description: 'The practical essentials that keep a home moving.' },
 ];
 
 const stats = [
-  { value: '500+', label: 'Products in catalog', icon: Package },
-  { value: '1,000+', label: 'Happy customers', icon: Users },
-  { value: 'Same-day', label: 'Accra delivery', icon: Truck },
-  { value: '5★', label: 'Avg. product rating', icon: Award },
+  { value: 'Accra', label: 'Our home base', icon: MapPin },
+  { value: 'Beauty', label: 'At the heart of the shop', icon: Sparkles },
+  { value: 'Daily', label: 'Essentials when you need them', icon: ShoppingBag },
+  { value: 'Human', label: 'Support when it matters', icon: MessageCircle },
 ];
 
 export const AboutPage: React.FC = () => {
@@ -171,21 +168,21 @@ export const AboutPage: React.FC = () => {
               Est. in Accra, Ghana
             </div>
             <h1 className="font-serif text-4xl leading-[1.12] tracking-[-0.03em] text-white sm:text-6xl lg:text-7xl">
-              Beauty &amp; essentials,<br />
-              <span className="text-[#E89070]">made simple.</span>
+              The things you<br />
+              <span className="text-[#E89070]">reach for.</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base sm:leading-8">
-              CR Cosmetics and Essential brings premium skincare, makeup, fragrances, and everyday household goods together — delivered fast across Ghana.
+              A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/shop">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#C86D51] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#C86D51]/30 transition hover:bg-[#B05D41] hover:shadow-[#C86D51]/40">
-                  Shop the catalog <ArrowRight className="h-4 w-4" />
+                  Explore the shop <ArrowRight className="h-4 w-4" />
                 </button>
               </Link>
               <Link to="/beauty">
                 <button className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
-                  Beauty &amp; Skincare
+                  See the beauty edit
                 </button>
               </Link>
             </div>
@@ -220,25 +217,25 @@ export const AboutPage: React.FC = () => {
               Our story
             </div>
             <h2 className="font-serif text-3xl leading-tight tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
-              One stop for beauty<br />and every-day life.
+              A small shop with<br />a practical point of view.
             </h2>
             <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--text-muted)] sm:text-base">
               <p>
-                CR Cosmetics and Essential started with a simple goal — to make it easy for people in Ghana to access trusted beauty and household products without the hassle of hunting across multiple stores.
+                CR Cosmetics began with a familiar problem: finding good everyday products should not require a long list of tabs, calls, and trips across town.
               </p>
               <p>
-                From moisturisers to cooking oil, from serums to rice — our catalog is built around what real households in Accra, Kumasi, Takoradi, and beyond actually need every day.
+                So we built one straightforward place for the things people use, replace, and give as gifts — from a dependable moisturiser to the pantry item you forgot to pick up.
               </p>
               <p>
-                We work with established brands and trusted suppliers, so every product that lands in your cart is genuine, correctly labelled, and worth every pesewa.
+                We are based in Accra, and we are still close enough to listen. The shop changes as customers ask better questions, find new favourites, and tell us what is missing.
               </p>
             </div>
             <ul className="mt-8 space-y-3">
               {[
-                'Authentic products from trusted brands and suppliers',
-                'Same-day delivery across Greater Accra',
-                'Intercity courier to all 16 regions of Ghana',
-                'MoMo, card, and secure Paystack checkout',
+                'A focused range instead of endless browsing',
+                'Clear product information before you buy',
+                'Delivery arranged around where you are',
+                'A real team to contact when something is unclear',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-[var(--text-muted)]">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-[#C86D51]" />
@@ -290,9 +287,9 @@ export const AboutPage: React.FC = () => {
       <section className="bg-[var(--bg-soft)] py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Why CR Cosmetics</span>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">What we care about</span>
             <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
-              Built around what matters to you.
+              Less noise. Better choices.
             </h2>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -316,11 +313,11 @@ export const AboutPage: React.FC = () => {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 sm:py-20">
         <div className="text-center mb-12">
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Categories</span>
-          <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
-            Everything in one catalog.
+            <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
+              Start with what you need.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--text-muted)]">
-            From your morning skincare routine to your weekly household shop — find it all here.
+            Move between beauty and essentials without losing the simplicity of a good, focused shop.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -344,9 +341,9 @@ export const AboutPage: React.FC = () => {
       <section className="bg-[var(--bg-soft)] py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">How it works</span>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Shopping here</span>
             <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
-              Order in minutes.
+              Keep it simple.
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -383,22 +380,22 @@ export const AboutPage: React.FC = () => {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 text-center">
           <Star className="mx-auto mb-4 h-8 w-8 text-[#E89070]" />
           <h2 className="font-serif text-3xl leading-tight tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
-            Ready to find your next<br />
-            <span className="text-[#E89070]">everyday favourite?</span>
+            Find something good<br />
+            <span className="text-[#E89070]">for your everyday.</span>
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
-            Browse hundreds of authentic products, add your favourites to cart, and let us deliver to your door across Ghana.
+            Take a look around, choose what fits your routine, and we will take care of the rest.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link to="/shop">
               <button className="inline-flex items-center gap-2 rounded-full bg-[#C86D51] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#C86D51]/30 transition hover:bg-[#B05D41]">
                 <ShoppingBag className="h-4 w-4" />
-                Browse all products
+                Browse the shop
               </button>
             </Link>
             <Link to="/beauty">
               <button className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-7 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
-                Beauty &amp; Skincare <ArrowRight className="h-4 w-4" />
+                Shop beauty <ArrowRight className="h-4 w-4" />
               </button>
             </Link>
           </div>
