@@ -915,7 +915,7 @@ const addOrder = async (order: Order) => {
 
   // Settings Actions
   const updateStoreSettings = async (updates: Partial<StoreSettings>) => {
-    setStoreSettings(prev => ({ ...prev, ...updates }));
+    setStoreSettings(prev => ({ ...prev, ...normalizeStoreSettings(updates) }));
     try {
       console.log('Saving settings:', updates);
       const errors: string[] = [];
