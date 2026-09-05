@@ -16,24 +16,24 @@ interface SEOProps {
   productDescription?: string;
 }
 
-const defaultTitle = 'CR Cosmetics and Essential | Beauty · Care · Essentials';
-const defaultDescription = 'CR Cosmetics and Essential: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
+const defaultTitle = 'CR COSMETICS AND ESSENTIALS | Beauty · Care · Essentials';
+const defaultDescription = 'CR COSMETICS AND ESSENTIALS: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
 const defaultImage = '/logo.jpeg';
 
 const pageMeta: Record<string, { title: string; description: string }> = {
-  '/': { title: 'CR Cosmetics and Essential | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR Cosmetics and Essential.' },
-  '/shop': { title: 'Shop all products | CR Cosmetics and Essential', description: 'Browse beauty, personal care, household, and everyday essentials available from CR Cosmetics and Essential.' },
-  '/beauty': { title: 'Beauty collection | CR Cosmetics and Essential', description: 'Explore skincare, makeup, fragrances, and beauty tools selected for your everyday routine.' },
-  '/groceries': { title: 'Groceries and essentials | CR Cosmetics and Essential', description: 'Shop practical groceries, household care, snacks, beverages, and daily essentials.' },
-  '/about': { title: 'About CR Cosmetics and Essential', description: 'Learn about CR Cosmetics and Essential and the products we bring together for everyday routines.' },
-  '/support': { title: 'Customer support | CR Cosmetics and Essential', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
-  '/contact': { title: 'Contact us | CR Cosmetics and Essential', description: 'Contact the CR Cosmetics and Essential team by phone, email, or WhatsApp.' },
-  '/signin': { title: 'Sign in | CR Cosmetics and Essential', description: 'Sign in to manage your orders, saved items, and delivery details.' },
-  '/signup': { title: 'Create an account | CR Cosmetics and Essential', description: 'Create your CR Cosmetics and Essential account for faster checkout and order tracking.' },
-  '/account': { title: 'My account | CR Cosmetics and Essential', description: 'Manage your CR Cosmetics and Essential profile, orders, saved items, addresses, and preferences.' },
-  '/cart': { title: 'Your cart | CR Cosmetics and Essential', description: 'Review your selected products before checkout.' },
-  '/checkout': { title: 'Checkout | CR Cosmetics and Essential', description: 'Complete your delivery details and payment securely.' },
-  '/routine-builder': { title: 'Routine builder | CR Cosmetics and Essential', description: 'Build a personalized beauty routine from products selected for each step.' },
+  '/': { title: 'CR COSMETICS AND ESSENTIALS | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR COSMETICS AND ESSENTIALS.' },
+  '/shop': { title: 'Shop all products | CR COSMETICS AND ESSENTIALS', description: 'Browse beauty, personal care, household, and everyday essentials available from CR COSMETICS AND ESSENTIALS.' },
+  '/beauty': { title: 'Beauty collection | CR COSMETICS AND ESSENTIALS', description: 'Explore skincare, makeup, fragrances, and beauty tools selected for your everyday routine.' },
+  '/groceries': { title: 'Groceries and essentials | CR COSMETICS AND ESSENTIALS', description: 'Shop practical groceries, household care, snacks, beverages, and daily essentials.' },
+  '/about': { title: 'About CR COSMETICS AND ESSENTIALS', description: 'Learn about CR COSMETICS AND ESSENTIALS and the products we bring together for everyday routines.' },
+  '/support': { title: 'Customer support | CR COSMETICS AND ESSENTIALS', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
+  '/contact': { title: 'Contact us | CR COSMETICS AND ESSENTIALS', description: 'Contact the CR COSMETICS AND ESSENTIALS team by phone, email, or WhatsApp.' },
+  '/signin': { title: 'Sign in | CR COSMETICS AND ESSENTIALS', description: 'Sign in to manage your orders, saved items, and delivery details.' },
+  '/signup': { title: 'Create an account | CR COSMETICS AND ESSENTIALS', description: 'Create your CR COSMETICS AND ESSENTIALS account for faster checkout and order tracking.' },
+  '/account': { title: 'My account | CR COSMETICS AND ESSENTIALS', description: 'Manage your CR COSMETICS AND ESSENTIALS profile, orders, saved items, addresses, and preferences.' },
+  '/cart': { title: 'Your cart | CR COSMETICS AND ESSENTIALS', description: 'Review your selected products before checkout.' },
+  '/checkout': { title: 'Checkout | CR COSMETICS AND ESSENTIALS', description: 'Complete your delivery details and payment securely.' },
+  '/routine-builder': { title: 'Routine builder | CR COSMETICS AND ESSENTIALS', description: 'Build a personalized beauty routine from products selected for each step.' },
 };
 
 export const SEO: React.FC<SEOProps> = ({
@@ -53,9 +53,9 @@ export const SEO: React.FC<SEOProps> = ({
   const { storeSettings } = useStore();
 
   const routeMeta = pageMeta[location.pathname] || (location.pathname.startsWith('/product/')
-    ? { title: 'Product details | CR Cosmetics and Essential', description: 'View product details, options, price, availability, and delivery information.' }
+    ? { title: 'Product details | CR COSMETICS AND ESSENTIALS', description: 'View product details, options, price, availability, and delivery information.' }
     : location.pathname.startsWith('/category/')
-      ? { title: 'Category collection | CR Cosmetics and Essential', description: 'Browse products in this CR Cosmetics and Essential collection.' }
+      ? { title: 'Category collection | CR COSMETICS AND ESSENTIALS', description: 'Browse products in this CR COSMETICS AND ESSENTIALS collection.' }
       : { title: defaultTitle, description: defaultDescription });
   const pageTitle = title || routeMeta.title;
   const pageDescription = description || routeMeta.description;

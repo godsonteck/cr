@@ -486,7 +486,7 @@ export function AdminCustomersScreen() {
               const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
               const whatsappUrl = `https://wa.me/${
                 customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
-              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR Cosmetics and Essential.`)}`;
+              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is CR COSMETICS AND ESSENTIALS.`)}`;
 
               return (
                 <div key={customer.id} className="flex flex-wrap items-center gap-4 p-4 hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 transition-colors">

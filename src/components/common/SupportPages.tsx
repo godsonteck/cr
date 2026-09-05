@@ -221,7 +221,7 @@ export const AboutPage: React.FC = () => {
             </h2>
             <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--text-muted)] sm:text-base">
               <p>
-                CR Cosmetics began with a familiar problem: finding good everyday products should not require a long list of tabs, calls, and trips across town.
+                CR COSMETICS AND ESSENTIALS began with a familiar problem: finding good everyday products should not require a long list of tabs, calls, and trips across town.
               </p>
               <p>
                 So we built one straightforward place for the things people use, replace, and give as gifts — from a dependable moisturiser to the pantry item you forgot to pick up.
@@ -535,7 +535,7 @@ export const ContactPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR Cosmetics and Essential</span>
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact CR COSMETICS AND ESSENTIALS</span>
         <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Let&apos;s help you find what you need.</h1>
         <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.</p>
       </div>

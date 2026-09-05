@@ -79,7 +79,7 @@ function AppLayout() {
           <html lang="en" />
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>CR Cosmetics and Essential • Operations Command Center</title>
+          <title>CR COSMETICS AND ESSENTIALS • Operations Command Center</title>
         </Helmet>
         <ErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>

@@ -99,7 +99,7 @@ interface StoreContextType {
 }
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'CR Cosmetics',
+  storeName: 'CR COSMETICS AND ESSENTIALS',
   storeTagline: '',
   heroHeadline: 'Beauty essentials for a better you.',
   heroSubtitle: 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.',
@@ -175,9 +175,9 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
 
 const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<StoreSettings> => ({
   ...settings,
-  storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics and Essential'
-    ? 'CR Cosmetics'
-    : (settings.storeName || 'CR Cosmetics'),
+  storeName: settings.storeName === 'CR Mart' || settings.storeName === 'CR Cosmetics' || settings.storeName === 'CR Cosmetics & Essentials' || settings.storeName === 'CR Cosmetics and Essential'
+    ? 'CR COSMETICS AND ESSENTIALS'
+    : (settings.storeName || 'CR COSMETICS AND ESSENTIALS'),
   storeTagline: '',
   heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' || settings.heroHeadline === 'Your Beauty. Your Essentials. Your Glow.' || settings.heroHeadline === 'The things you reach for.' ? 'Beauty essentials for a better you.' : (settings.heroHeadline || 'Beauty essentials for a better you.'),
   heroSubtitle: settings.heroSubtitle === 'A considered edit of skincare, beauty, fragrances and everyday essentials.' || settings.heroSubtitle === 'Thoughtful skincare, fragrance and daily essentials designed to feel simple and elevated.' || settings.heroSubtitle === 'Curated skincare, fragrance, and everyday essentials chosen for a calmer, more elevated routine.' || settings.heroSubtitle === 'Shop beauty, personal care and household essentials.' ? 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.' : (settings.heroSubtitle || 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.'),

@@ -1,5 +1,5 @@
 /**
- * CSV and Report Export Utilities for CR Cosmetics and Essential Admin Platform
+ * CSV and Report Export Utilities for CR COSMETICS AND ESSENTIALS Admin Platform
  */
 
 import { Product, Order, Customer, InventoryMovement } from '../types';

@@ -1,4 +1,4 @@
-# CR Cosmetics and Essential - robots.txt
+# CR COSMETICS AND ESSENTIALS - robots.txt
 User-agent: *
 Allow: /
 
