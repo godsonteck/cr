@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -12,6 +12,14 @@ import {
   Truck,
   RefreshCcw,
   HelpCircle,
+  Star,
+  Heart,
+  Leaf,
+  Zap,
+  Package,
+  Users,
+  Award,
+  ShoppingBag,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Button } from '../common/UIPrimitives';
@@ -69,75 +77,338 @@ const faqs = [
   },
 ];
 
+/* ─── About Page ──────────────────────────────────────────────────────────── */
+
+const pillars = [
+  {
+    icon: Heart,
+    label: 'Curated with care',
+    desc: 'Every product is hand-selected for quality, safety, and value — nothing lands in our catalog by chance.',
+    color: 'from-rose-500/20 to-pink-500/10',
+    iconColor: 'text-rose-500',
+    border: 'border-rose-200/40 dark:border-rose-800/30',
+  },
+  {
+    icon: Leaf,
+    label: 'Real ingredients',
+    desc: 'We stock trusted brands and formulations that respect your skin and your household.',
+    color: 'from-emerald-500/20 to-teal-500/10',
+    iconColor: 'text-emerald-600',
+    border: 'border-emerald-200/40 dark:border-emerald-800/30',
+  },
+  {
+    icon: Zap,
+    label: 'Fast delivery',
+    desc: 'Same-day dispatch across Greater Accra. Intercity courier service to all 16 regions of Ghana.',
+    color: 'from-amber-500/20 to-orange-500/10',
+    iconColor: 'text-amber-600',
+    border: 'border-amber-200/40 dark:border-amber-800/30',
+  },
+  {
+    icon: ShieldCheck,
+    label: 'Buyer protection',
+    desc: 'Secure Paystack checkout, MoMo payment options, and a responsive support team behind every order.',
+    color: 'from-blue-500/20 to-sky-500/10',
+    iconColor: 'text-blue-500',
+    border: 'border-blue-200/40 dark:border-blue-800/30',
+  },
+];
+
+const categories = [
+  { label: 'Skincare & Serums', emoji: '✨', description: 'Cleansers, toners, moisturisers, SPF & treatments' },
+  { label: 'Makeup & Beauty', emoji: '💄', description: 'Foundation, lips, eyes, brushes & tools' },
+  { label: 'Fragrances', emoji: '🌸', description: 'EDP, EDT, body mists & roll-ons' },
+  { label: 'Hair Care', emoji: '💆🏽‍♀️', description: 'Shampoos, conditioners, oils & treatments' },
+  { label: 'Body Care', emoji: '🧴', description: 'Lotions, scrubs, deodorants & soaps' },
+  { label: 'Groceries', emoji: '🛒', description: 'Rice, oils, pantry staples & household essentials' },
+];
+
+const stats = [
+  { value: '500+', label: 'Products in catalog', icon: Package },
+  { value: '1,000+', label: 'Happy customers', icon: Users },
+  { value: 'Same-day', label: 'Accra delivery', icon: Truck },
+  { value: '5★', label: 'Avg. product rating', icon: Award },
+];
+
 export const AboutPage: React.FC = () => {
+  const heroBgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (heroBgRef.current) {
+        const scrollY = window.scrollY;
+        heroBgRef.current.style.transform = `translateY(${scrollY * 0.3}px)`;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="space-y-6 text-center">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">CR Cosmetics and Essential</span>
-        <h1 className="max-w-4xl mx-auto font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
-          Products for your everyday routine.
-        </h1>
-        <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-          CR Cosmetics and Essential is an online shop for beauty, personal care, and household essentials. Browse the catalog, choose what suits you, and place your order in a few steps.
-        </p>
-      </div>
+    <div className="bg-[var(--bg-main)] overflow-x-hidden">
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F5F0EB] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6F4B3D] dark:bg-stone-800 dark:text-stone-200">
-            <Sparkles className="h-3.5 w-3.5" />
-            What we do
-          </div>
+      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
+      <section className="relative min-h-[72vh] flex items-center overflow-hidden">
+        {/* Parallax background */}
+        <div
+          ref={heroBgRef}
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1600&q=80')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            willChange: 'transform',
+          }}
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#1A0F0A]/90 via-[#1A0F0A]/70 to-transparent dark:from-black/95 dark:via-black/70" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#1A0F0A]/60 via-transparent to-transparent" />
 
-          <div className="space-y-5 text-sm leading-7 text-[var(--text-muted)]">
-            <p>
-              We bring together skincare, cosmetics, fragrances, personal care, and household products so you can handle everyday shopping in one place.
+        <div className="relative z-20 mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#C86D51]/40 bg-[#C86D51]/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E89070] backdrop-blur-sm mb-6">
+              <Sparkles className="h-3 w-3" />
+              Est. in Accra, Ghana
+            </div>
+            <h1 className="font-serif text-4xl leading-[1.12] tracking-[-0.03em] text-white sm:text-6xl lg:text-7xl">
+              Beauty &amp; essentials,<br />
+              <span className="text-[#E89070]">made simple.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base sm:leading-8">
+              CR Cosmetics and Essential brings premium skincare, makeup, fragrances, and everyday household goods together — delivered fast across Ghana.
             </p>
-            <p>
-              Product pages show the available details, options, prices, and stock. Orders are placed through checkout and supported by our customer care team.
-            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/shop">
+                <button className="inline-flex items-center gap-2 rounded-full bg-[#C86D51] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#C86D51]/30 transition hover:bg-[#B05D41] hover:shadow-[#C86D51]/40">
+                  Shop the catalog <ArrowRight className="h-4 w-4" />
+                </button>
+              </Link>
+              <Link to="/beauty">
+                <button className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+                  Beauty &amp; Skincare
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-          <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">What we carry</h2>
-          <ul className="mt-5 space-y-4 text-sm text-[var(--text-muted)]">
-            {['Skincare and treatment products', 'Makeup and beauty tools', 'Fragrances and personal care', 'Household and daily essentials'].map((item) => (
-              <li key={item} className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-[#C86D51]" />
-                <span>{item}</span>
-              </li>
+      {/* ── STATS STRIP ──────────────────────────────────────────────────────── */}
+      <section className="border-y border-[var(--border-color)] bg-[var(--bg-card)]">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 divide-x divide-y divide-[var(--border-color)] md:grid-cols-4 md:divide-y-0">
+            {stats.map(({ value, label, icon: Icon }) => (
+              <div key={label} className="flex flex-col items-center gap-2 py-8 px-4 text-center group">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F0EB] text-[#C86D51] transition group-hover:bg-[#C86D51] group-hover:text-white dark:bg-stone-800 dark:group-hover:bg-[#C86D51]">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="font-serif text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">{value}</span>
+                <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>
+              </div>
             ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {values.map((value) => (
-          <div key={value.title} className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6">
-            <h3 className="text-lg font-serif text-[var(--text-primary)]">{value.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">{value.copy}</p>
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      <div className="mt-12 rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      {/* ── BRAND STORY ──────────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+          {/* Left: text */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#C86D51]">Ready to shop?</p>
-            <h2 className="mt-2 font-serif text-3xl text-[var(--text-primary)]">Explore your next favorite essential.</h2>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#F5F0EB] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6F4B3D] dark:bg-stone-800 dark:text-stone-200 mb-5">
+              <Sparkles className="h-3.5 w-3.5" />
+              Our story
+            </div>
+            <h2 className="font-serif text-3xl leading-tight tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
+              One stop for beauty<br />and every-day life.
+            </h2>
+            <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--text-muted)] sm:text-base">
+              <p>
+                CR Cosmetics and Essential started with a simple goal — to make it easy for people in Ghana to access trusted beauty and household products without the hassle of hunting across multiple stores.
+              </p>
+              <p>
+                From moisturisers to cooking oil, from serums to rice — our catalog is built around what real households in Accra, Kumasi, Takoradi, and beyond actually need every day.
+              </p>
+              <p>
+                We work with established brands and trusted suppliers, so every product that lands in your cart is genuine, correctly labelled, and worth every pesewa.
+              </p>
+            </div>
+            <ul className="mt-8 space-y-3">
+              {[
+                'Authentic products from trusted brands and suppliers',
+                'Same-day delivery across Greater Accra',
+                'Intercity courier to all 16 regions of Ghana',
+                'MoMo, card, and secure Paystack checkout',
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-[var(--text-muted)]">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-[#C86D51]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <Link to="/shop">
-            <Button variant="secondary" className="gap-2 rounded-full px-4 py-2.5">
-              Browse products
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+
+          {/* Right: image mosaic */}
+          <div className="grid grid-cols-2 gap-3 lg:gap-4">
+            <div className="space-y-3 lg:space-y-4">
+              <div className="overflow-hidden rounded-2xl aspect-[4/5]">
+                <img
+                  src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=600&q=80"
+                  alt="Skincare products"
+                  className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                />
+              </div>
+              <div className="overflow-hidden rounded-2xl aspect-[4/3]">
+                <img
+                  src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80"
+                  alt="Groceries and essentials"
+                  className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+            <div className="space-y-3 pt-8 lg:space-y-4 lg:pt-10">
+              <div className="overflow-hidden rounded-2xl aspect-[4/3]">
+                <img
+                  src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80"
+                  alt="Makeup and cosmetics"
+                  className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                />
+              </div>
+              <div className="overflow-hidden rounded-2xl aspect-[4/5]">
+                <img
+                  src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=80"
+                  alt="Fragrances"
+                  className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── PILLARS ──────────────────────────────────────────────────────────── */}
+      <section className="bg-[var(--bg-soft)] py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Why CR Cosmetics</span>
+            <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
+              Built around what matters to you.
+            </h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {pillars.map(({ icon: Icon, label, desc, color, iconColor, border }) => (
+              <div
+                key={label}
+                className={`group relative overflow-hidden rounded-3xl border ${border} bg-gradient-to-br ${color} p-6 backdrop-blur-sm transition hover:-translate-y-1 hover:shadow-xl`}
+              >
+                <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 dark:bg-black/30 ${iconColor} shadow-sm`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-serif text-lg font-semibold text-[var(--text-primary)]">{label}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHAT WE CARRY ────────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 sm:py-20">
+        <div className="text-center mb-12">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Categories</span>
+          <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
+            Everything in one catalog.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--text-muted)]">
+            From your morning skincare routine to your weekly household shop — find it all here.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map(({ label, emoji, description }) => (
+            <Link to="/shop" key={label}>
+              <div className="group flex items-start gap-4 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 transition hover:border-[#C86D51]/50 hover:shadow-md hover:-translate-y-0.5">
+                <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-[#F5F0EB] text-2xl dark:bg-stone-800 transition group-hover:scale-110">
+                  {emoji}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[var(--text-primary)] group-hover:text-[#C86D51] transition">{label}</h3>
+                  <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">{description}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────────────── */}
+      <section className="bg-[var(--bg-soft)] py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">How it works</span>
+            <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
+              Order in minutes.
+            </h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {values.map((value, idx) => (
+              <div key={value.title} className="relative rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-7">
+                {/* Step number */}
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C86D51] text-xs font-black text-white shadow-md shadow-[#C86D51]/30">
+                    {idx + 1}
+                  </span>
+                  {idx < values.length - 1 && (
+                    <div className="hidden md:block absolute top-11 left-[calc(100%-1rem)] w-8 border-t-2 border-dashed border-[#C86D51]/30 z-10" />
+                  )}
+                </div>
+                <h3 className="font-serif text-xl text-[var(--text-primary)]">{value.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">{value.copy}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1515688594390-b649af70d282?auto=format&fit=crop&w=1600&q=80')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+          }}
+        />
+        <div className="absolute inset-0 bg-[#1A0F0A]/85 dark:bg-black/90" />
+        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 text-center">
+          <Star className="mx-auto mb-4 h-8 w-8 text-[#E89070]" />
+          <h2 className="font-serif text-3xl leading-tight tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
+            Ready to find your next<br />
+            <span className="text-[#E89070]">everyday favourite?</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
+            Browse hundreds of authentic products, add your favourites to cart, and let us deliver to your door across Ghana.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/shop">
+              <button className="inline-flex items-center gap-2 rounded-full bg-[#C86D51] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#C86D51]/30 transition hover:bg-[#B05D41]">
+                <ShoppingBag className="h-4 w-4" />
+                Browse all products
+              </button>
+            </Link>
+            <Link to="/beauty">
+              <button className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-7 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+                Beauty &amp; Skincare <ArrowRight className="h-4 w-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 };
+
 
 export const SupportPage: React.FC = () => {
   const { storeSettings } = useStore();
