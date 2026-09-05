@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
               <div className="text-base font-black tracking-[-0.05em] text-[var(--text-primary)]">
                 CR <span className="text-[var(--accent)]">Cosmetics</span>
               </div>
-              <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">From Accra, with care</div>
+              <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Beauty, care, everyday life</div>
             </div>
           </div>
 

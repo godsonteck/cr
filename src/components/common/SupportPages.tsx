@@ -96,7 +96,7 @@ const pillars = [
   {
     icon: Zap,
     label: 'Close to home',
-    desc: 'We are based in Accra and build the service around practical delivery, clear updates, and real human help.',
+    desc: 'We build the service around practical delivery, clear updates, and real human help.',
     color: 'from-amber-500/20 to-orange-500/10',
     iconColor: 'text-amber-600',
     border: 'border-amber-200/40 dark:border-amber-800/30',
@@ -121,7 +121,7 @@ const categories = [
 ];
 
 const stats = [
-  { value: 'Accra', label: 'Our home base', icon: MapPin },
+  { value: 'Simple', label: 'Shopping without the noise', icon: MapPin },
   { value: 'Beauty', label: 'At the heart of the shop', icon: Sparkles },
   { value: 'Daily', label: 'Essentials when you need them', icon: ShoppingBag },
   { value: 'Human', label: 'Support when it matters', icon: MessageCircle },
@@ -165,7 +165,7 @@ export const AboutPage: React.FC = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#C86D51]/40 bg-[#C86D51]/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E89070] backdrop-blur-sm mb-6">
               <Sparkles className="h-3 w-3" />
-              Est. in Accra, Ghana
+              Beauty, care, and everyday life
             </div>
             <h1 className="font-serif text-4xl leading-[1.12] tracking-[-0.03em] text-white sm:text-6xl lg:text-7xl">
               The things you<br />
@@ -227,7 +227,7 @@ export const AboutPage: React.FC = () => {
                 So we built one straightforward place for the things people use, replace, and give as gifts — from a dependable moisturiser to the pantry item you forgot to pick up.
               </p>
               <p>
-                We are based in Accra, and we are still close enough to listen. The shop changes as customers ask better questions, find new favourites, and tell us what is missing.
+                We are still close enough to listen. The shop changes as customers ask better questions, find new favourites, and tell us what is missing.
               </p>
             </div>
             <ul className="mt-8 space-y-3">

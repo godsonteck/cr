@@ -101,7 +101,7 @@ interface StoreContextType {
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
   storeName: 'CR Cosmetics',
   storeTagline: '',
-  heroHeadline: 'The things you reach for.',
+  heroHeadline: 'Beauty essentials for a better you.',
   heroSubtitle: 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.',
   heroImage: '',
   heroBadge: '',
@@ -179,7 +179,7 @@ const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<Store
     ? 'CR Cosmetics'
     : (settings.storeName || 'CR Cosmetics'),
   storeTagline: '',
-  heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' || settings.heroHeadline === 'Your Beauty. Your Essentials. Your Glow.' ? 'The things you reach for.' : (settings.heroHeadline || 'The things you reach for.'),
+  heroHeadline: settings.heroHeadline === 'Everyday care, chosen well.' || settings.heroHeadline === 'Minimal beauty for everyday rituals.' || settings.heroHeadline === 'Beauty made simple.' || settings.heroHeadline === 'Your Beauty. Your Essentials. Your Glow.' || settings.heroHeadline === 'The things you reach for.' ? 'Beauty essentials for a better you.' : (settings.heroHeadline || 'Beauty essentials for a better you.'),
   heroSubtitle: settings.heroSubtitle === 'A considered edit of skincare, beauty, fragrances and everyday essentials.' || settings.heroSubtitle === 'Thoughtful skincare, fragrance and daily essentials designed to feel simple and elevated.' || settings.heroSubtitle === 'Curated skincare, fragrance, and everyday essentials chosen for a calmer, more elevated routine.' || settings.heroSubtitle === 'Shop beauty, personal care and household essentials.' ? 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.' : (settings.heroSubtitle || 'A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.'),
   heroButtonText: settings.heroButtonText === 'Shop the collection' || settings.heroButtonText === 'Shop collection' || settings.heroButtonText === 'Shop now' ? 'Shop now' : (settings.heroButtonText || 'Shop now'),
   homepageHotDealsTitle: settings.homepageHotDealsTitle === "Today's hot deals" ? 'Hot deals' : (settings.homepageHotDealsTitle || 'Hot deals'),

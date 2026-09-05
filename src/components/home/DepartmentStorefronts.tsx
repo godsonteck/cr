@@ -124,7 +124,7 @@ export const HomePage: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
             <div className="relative flex max-w-xl flex-col justify-end px-5 py-8 text-white sm:px-10 sm:py-14 lg:px-14">
               <h1 className="max-w-[9ch] font-display text-2xl leading-[1] sm:text-4xl lg:text-5xl">
-                {storeSettings.heroHeadline || 'Beauty made simple.'}
+                {storeSettings.heroHeadline || 'Beauty essentials for a better you.'}
               </h1>
               <p className="mt-5 max-w-md text-sm leading-7 text-white/85 sm:text-[0.95rem]">
                 {storeSettings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'}
