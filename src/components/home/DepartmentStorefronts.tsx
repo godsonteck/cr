@@ -123,9 +123,6 @@ export const HomePage: React.FC = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
             <div className="relative flex max-w-xl flex-col justify-end px-5 py-8 text-white sm:px-10 sm:py-14 lg:px-14">
-              <span className="mb-4 inline-flex w-fit items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
-                {storeSettings.storeTagline || 'Simple beauty essentials'}
-              </span>
               <h1 className="max-w-[9ch] font-display text-2xl leading-[1] sm:text-4xl lg:text-5xl">
                 {storeSettings.heroHeadline || 'Beauty made simple.'}
               </h1>

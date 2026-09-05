@@ -43,7 +43,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeCategorySlug, setActiveCategorySlug] = useState('skincare');
   const megaMenuRef = useRef<HTMLDivElement>(null);
@@ -112,15 +111,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
     };
   }, [isMobileMenuOpen]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchInput.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
-      setIsMobileMenuOpen(false);
-      setIsMegaMenuOpen(false);
-    }
-  };
-
   const currentCategoryData = activeCategories.find(c => c.slug === activeCategorySlug) || activeCategories[0];
 
   return (
@@ -153,30 +143,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </Link>
           </div>
 
-          <form
-            onSubmit={handleSearchSubmit}
-            className="relative hidden md:flex flex-1 max-w-xl mx-2 items-center"
-          >
-            <div className="relative flex w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] transition-all focus-within:border-[var(--text-primary)]">
-              <input
-                type="text"
-                placeholder="Search products and essentials"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full bg-transparent py-2.5 pl-5 pr-12 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] outline-none"
-              />
-
-              <button
-                type="submit"
-                aria-label="Search"
-                className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition-colors hover:bg-[var(--accent)]"
-              >
-                <Search className="h-4 w-4 stroke-[2.5]" />
-              </button>
-            </div>
-          </form>
-
           <div className="flex items-center gap-1 sm:gap-2">
+            <button
+              onClick={() => navigate('/search')}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]"
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+
             <button
               onClick={toggleTheme}
               className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)]"
@@ -223,23 +198,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
           </div>
         </div>
 
-        <div className="pb-2.5 md:hidden">
-          <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
-            <div className="relative flex w-full items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)]">
-              <Search className="absolute left-3 h-3.5 w-3.5 text-[var(--text-subtle)]" />
-              <input
-                type="text"
-                placeholder="Search products, brands..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full bg-transparent py-2 pl-9 pr-8 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] outline-none"
-              />
-              <button type="submit" className="absolute right-2 text-stone-500">
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
 
       {/* Tier 2: Category Navigation Bar & Mega Menu Toggle */}
