@@ -130,7 +130,7 @@ export const ProductDetailPage: React.FC = () => {
         productAvailability={product.inStock ? 'InStock' : 'OutOfStock'}
       />
 
-      <div className="min-h-screen bg-[#F5F5F5] dark:bg-[#0B1523] py-4">
+      <div className="min-h-screen bg-[var(--bg-main)] py-4">
         <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
           {/* Breadcrumbs */}
           <nav className="mb-3 flex items-center gap-1.5 text-xs text-stone-500">
@@ -152,7 +152,7 @@ export const ProductDetailPage: React.FC = () => {
           </nav>
 
           {/* Main AliExpress 3-Column Card */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm sm:p-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               
               {/* Column 1: Gallery with vertical thumbnail strip (lg:col-span-5) */}
@@ -178,7 +178,7 @@ export const ProductDetailPage: React.FC = () => {
                 )}
 
                 {/* Main Large Image */}
-                <div className="relative flex-1 aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100 dark:bg-slate-800 dark:border-slate-700 group">
+                <div className="relative flex-1 aspect-square rounded-xl overflow-hidden bg-[var(--bg-soft)] border border-[var(--border-color)] group">
                   {discountPct > 0 && (
                     <span className="absolute top-3 left-3 z-10 rounded-sm bg-[#FD384F] px-2 py-1 text-xs font-black text-white shadow-xs">
                       -{discountPct}%

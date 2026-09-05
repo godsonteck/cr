@@ -91,12 +91,12 @@ export const ShopCatalogPage: React.FC = () => {
       {/* Catalog Header */}
       <div className="pb-6 border-b border-[#E8E2DA] dark:border-[#2A2725]">
         <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
-          {currentCategoryObj ? currentCategoryObj.name : 'All Products & Essentials'}
+          {currentCategoryObj ? currentCategoryObj.name : 'Find your everyday'}
         </h1>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl">
           {currentCategoryObj
             ? currentCategoryObj.description
-            : 'Explore our complete retail catalog across dermatological skincare, cosmetics, rice, oils, and daily household provisions.'}
+            : 'A focused edit of skincare, beauty, fragrance, pantry basics, and useful things for home.'}
         </p>
       </div>
 
@@ -108,7 +108,7 @@ export const ShopCatalogPage: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-[#E8E2DA] dark:border-[#2A2725]">
             <span className="text-xs font-extrabold uppercase text-[#1C1817] dark:text-stone-100 flex items-center gap-2">
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#C86D51]" />
-              Filter Catalog
+              Narrow it down
             </span>
             {(selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
               <button
