@@ -191,6 +191,7 @@ const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<Store
   navBeautyLabel: settings.navBeautyLabel === 'Beauty & Skincare' ? 'Beauty' : (settings.navBeautyLabel || 'Beauty'),
   navGroceriesLabel: settings.navGroceriesLabel === 'Groceries & Essentials' ? 'Essentials' : (settings.navGroceriesLabel || 'Essentials'),
   navAboutLabel: settings.navAboutLabel === 'About Us' ? 'About' : (settings.navAboutLabel || 'About'),
+  storeAddress: (settings.storeAddress || 'East Legon / Accra Shopping Hub, Ghana').replace(/\s*\(Google Maps:\s*https?:\/\/[^)]+\)/i, '').trim(),
 });
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
