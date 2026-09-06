@@ -220,6 +220,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 </Link>
               ))}
             </div>
+            <button
+              onClick={toggleTheme}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-stone-200 dark:hover:bg-slate-800"
+            >
+              {isDarkMode ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4" />}
+              {isDarkMode ? 'Use light mode' : 'Use dark mode'}
+            </button>
             <Link
               to={isAuthenticated ? '/account' : '/signin'}
               onClick={() => setIsMobileMenuOpen(false)}
