@@ -31,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const { storeSettings } = useStore();
   const { isDarkMode, toggleTheme } = useTheme();
   const displayStoreName = storeSettings.storeName.replace(/\s+AND\s+/gi, ' & ');
+  const [brandPrimary, brandSecondary] = displayStoreName.split(' & ');
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -79,10 +80,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 className="h-7 w-7 shrink-0 rounded-md object-contain sm:h-8 sm:w-8"
                 onError={(event) => { event.currentTarget.src = logoImg; }}
               />
-              <span className="max-w-[10rem] text-[0.8rem] font-extrabold leading-[1.05] tracking-[-0.025em] sm:max-w-none sm:whitespace-nowrap sm:text-[1.15rem]">
-                {displayStoreName}
+              <span className="flex min-w-0 flex-col leading-none">
+                <span className="max-w-[10rem] truncate text-[0.78rem] font-black tracking-[-0.02em] sm:max-w-none sm:text-[1.1rem]">
+                  {brandPrimary || displayStoreName}
+                </span>
+                {brandSecondary && (
+                  <span className="mt-0.5 text-[0.58rem] font-bold uppercase tracking-[0.16em] text-[#f2c62c] sm:text-[0.7rem]">
+                    &amp; {brandSecondary}
+                  </span>
+                )}
               </span>
-              <span className="-ml-1 text-[1.05rem] font-black leading-none text-[#f2c62c] sm:text-[1.45rem]">.</span>
             </Link>
           </div>
 
