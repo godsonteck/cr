@@ -224,7 +224,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               to={isAuthenticated ? '/account' : '/signin'}
               className="hidden sm:flex items-center gap-1.5 rounded-full bg-[var(--bg-soft)] px-2.5 py-1.5 text-[var(--text-primary)] transition hover:bg-[var(--accent-soft)]"
             >
-              <UserRound className="h-4 w-4" />
+              {isAuthenticated && user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt=""
+                  className="h-6 w-6 rounded-full object-cover"
+                  onError={event => { event.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                <UserRound className="h-4 w-4" />
+              )}
               <span className="text-xs font-semibold">
                 {isAuthenticated ? (user?.fullName?.split(' ')[0] || 'Account') : 'Sign In'}
               </span>
