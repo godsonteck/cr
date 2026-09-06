@@ -910,7 +910,7 @@ export const AccountPage: React.FC = () => {
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#FCF9F7] dark:bg-[#121011] py-8 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Top Header Card */}
-        <div className="mb-6 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 sm:p-8 shadow-sm">
+        <div className="mb-6 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-4 shadow-sm sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white shadow-md">
@@ -937,19 +937,19 @@ export const AccountPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
               <Link to="/shop">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl border-[#E8D8CF] text-xs font-bold hover:border-[#C86D51]"
+                  className="w-full rounded-xl border-[#E8D8CF] text-xs font-bold hover:border-[#C86D51] sm:w-auto"
                 >
                   <ShoppingBag className="mr-1.5 h-3.5 w-3.5 text-[#C86D51]" /> Browse Catalog
                 </Button>
               </Link>
               <button
                 onClick={() => { logout(); navigate('/'); }}
-                className="flex items-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-xs font-bold text-stone-500 hover:bg-stone-100 dark:hover:bg-[#2A2024] hover:text-red-600 transition"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-xs font-bold text-stone-500 hover:bg-stone-100 dark:hover:bg-[#2A2024] hover:text-red-600 transition"
               >
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
@@ -957,7 +957,7 @@ export const AccountPage: React.FC = () => {
           </div>
 
           {/* Metrics Strip */}
-          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-6 sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-3 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-6 min-[380px]:grid-cols-2 sm:grid-cols-4">
             <button
               onClick={() => setActiveTab('orders')}
               className="flex items-center gap-3 rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-3.5 text-left transition hover:border-[#C86D51]"

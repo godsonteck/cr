@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
+  Activity,
   Boxes,
   ClipboardList,
   LogOut,
@@ -33,6 +34,7 @@ import { AdminLoginView } from './AdminLoginView';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminProductsScreen } from './screens/AdminProductsScreen';
 import { AdminOrdersScreen } from './screens/AdminOrdersScreen';
+import { AdminLiveOperationsScreen } from './screens/AdminLiveOperationsScreen';
 import { AdminAccountsManagementScreen } from './screens/AdminAccountsManagementScreen';
 import { ProductModal } from './ProductModal';
 import { OrderDetailDrawer } from './components/OrderDetailDrawer';
@@ -54,6 +56,7 @@ import { AdminNotification, AdminSession, Product, Order, Customer } from '../..
 
 type AdminTab =
   | 'overview'
+  | 'live'
   | 'products'
   | 'orders'
   | 'inventory'
@@ -76,6 +79,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview',       label: 'Dashboard',  icon: BarChart3,      group: 'main'   },
+  { id: 'live',           label: 'Live & Finance', icon: Activity,    group: 'main'   },
   { id: 'products',       label: 'Products',   icon: Boxes,          group: 'shop'   },
   { id: 'orders',         label: 'Orders',     icon: ClipboardList,  group: 'shop'   },
   { id: 'inventory',      label: 'Stock',      icon: Truck,          group: 'shop'   },
@@ -97,13 +101,14 @@ const navGroups: { key: NavItem['group']; label: string }[] = [
 ];
 
 const roleAccess: Record<AdminSession['adminRole'], AdminTab[]> = {
-  'Super Admin': ['overview', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
-  'Store Manager': ['overview', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
-  'Inventory Dispatcher': ['overview', 'products', 'orders', 'inventory', 'notifications'],
+  'Super Admin': ['overview', 'live', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
+  'Store Manager': ['overview', 'live', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
+  'Inventory Dispatcher': ['overview', 'live', 'products', 'orders', 'inventory', 'notifications'],
 };
 
 const tabLabels: Record<AdminTab, string> = {
   overview:      'Dashboard',
+  live:          'Live & Finance',
   products:      'Products',
   orders:        'Orders',
   inventory:     'Inventory',
@@ -259,7 +264,7 @@ export const AdminPortal: React.FC = () => {
         store.fetchAdminNotifications(),
       ]);
     };
-    const interval = window.setInterval(refresh, 30000);
+    const interval = window.setInterval(refresh, 15000);
     return () => window.clearInterval(interval);
   }, [store.adminSession.isLoggedIn, store.fetchAdminNotifications, store.fetchOrders, store.fetchProducts]);
 
@@ -499,6 +504,7 @@ export const AdminPortal: React.FC = () => {
               onReset={() => handleTabChange('overview')}
             >
               {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
+              {currentTab === 'live' && <AdminLiveOperationsScreen onViewOrder={handleViewOrder} />}
               {currentTab === 'products' && (
                 <AdminProductsScreen
                   onAddProduct={handleAddProduct}

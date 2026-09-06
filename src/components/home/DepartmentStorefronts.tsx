@@ -102,7 +102,7 @@ export const HomePage: React.FC = () => {
               <Flame className="h-5 w-5 shrink-0 text-[var(--accent)]" />
               <div className="min-w-0">
                 <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">{activeFlashDeal.badgeText || 'Flash Sale'}</p>
-                <h2 className="truncate text-sm font-bold text-[var(--text-primary)] sm:text-base">{activeFlashDeal.title}</h2>
+                <h2 className="break-words text-sm font-bold text-[var(--text-primary)] sm:text-base">{activeFlashDeal.title}</h2>
               </div>
             </div>
             <Link to="/offers" className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--accent-strong)]">
@@ -114,7 +114,7 @@ export const HomePage: React.FC = () => {
         {/* Editorial storefront introduction */}
         {homepageSections.hero && (
           <section
-            className="editorial-hero relative aspect-[4/3] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:aspect-[16/9] lg:aspect-[21/9]"
+            className="editorial-hero relative mt-4 min-h-[18rem] aspect-auto overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:mt-6 sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9]"
             style={{
               backgroundImage: `url(${storeSettings.heroImage || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200'})`,
               backgroundPosition: 'center',
@@ -123,14 +123,14 @@ export const HomePage: React.FC = () => {
             aria-label="Store hero"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
-            <div className="absolute inset-0 flex max-w-xl flex-col justify-end overflow-hidden px-5 py-6 text-white sm:px-10 sm:py-14 lg:px-14">
-              <h1 className="max-h-[3.3em] max-w-[12ch] overflow-hidden font-display text-2xl leading-[1.05] sm:max-h-[3.15em] sm:text-4xl lg:max-h-none lg:text-5xl">
+            <div className="absolute inset-0 flex max-w-xl flex-col justify-end px-5 py-6 text-white sm:px-10 sm:py-14 lg:px-14">
+              <h1 className="max-w-[12ch] break-words font-display text-2xl leading-[1.05] sm:text-4xl lg:text-5xl">
                 {storeSettings.heroHeadline || 'Beauty essentials for a better you.'}
               </h1>
-              <p className="mt-4 line-clamp-3 max-w-md text-sm leading-6 text-white/85 sm:mt-5 sm:text-[0.95rem] sm:leading-7">
+              <p className="mt-4 max-w-md break-words text-sm leading-6 text-white/85 sm:mt-5 sm:text-[0.95rem] sm:leading-7">
                 {storeSettings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'}
               </p>
-              <Link to="/shop" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-white/80 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+              <Link to="/shop" className="mt-5 inline-flex min-h-10 w-fit items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#2385ad] shadow-lg transition hover:bg-[var(--accent)] hover:text-white sm:mt-8 sm:rounded-none sm:bg-transparent sm:px-0 sm:py-0 sm:text-white sm:shadow-none sm:border-b sm:border-white/80 sm:hover:border-[var(--accent)] sm:hover:text-[var(--accent)]">
                 {storeSettings.heroButtonText || 'Shop now'} <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

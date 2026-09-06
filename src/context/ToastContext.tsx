@@ -22,7 +22,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', duration?: number, persistent = false) => {
     const id = Math.random().toString(36).substring(2, 9);
+    const toastDuration = duration ?? 3500;
     setToasts(prev => [...prev, { id, message, type, duration, persistent }]);
+    if (!persistent && toastDuration > 0) {
+      window.setTimeout(() => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+      }, toastDuration);
+    }
   }, []);
 
   const removeToast = (id: string) => {
@@ -32,7 +38,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
+      <div className="fixed inset-x-3 bottom-6 z-50 flex max-w-md flex-col gap-2 pointer-events-none sm:inset-x-auto sm:right-6 sm:w-full">
         <AnimatePresence>
           {toasts.map(toast => (
             <motion.div

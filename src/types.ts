@@ -262,6 +262,7 @@ export interface ShippingAddress {
   altPhone?: string;
   email?: string;
   city: string;
+  region?: string;
   area: string;
   landmarkOrGps?: string;
   deliveryNotes?: string;

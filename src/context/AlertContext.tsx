@@ -70,7 +70,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <AlertContext.Provider value={{ showAlert, removeAlert }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md w-full px-4 pointer-events-none">
+      <div className="fixed inset-x-3 bottom-6 z-50 flex max-w-md flex-col gap-3 pointer-events-none sm:inset-x-auto sm:right-6 sm:w-full">
         <AnimatePresence>
           {alerts.map(alert => {
             const colors = alertColors[alert.type];

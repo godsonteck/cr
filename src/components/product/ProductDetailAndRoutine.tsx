@@ -146,17 +146,17 @@ export const ProductDetailPage: React.FC = () => {
               </>
             )}
             <ChevronRight className="h-3 w-3" />
-            <span className="text-stone-900 dark:text-stone-100 font-medium truncate max-w-[280px]">
+            <span className="max-w-[280px] break-words font-medium text-stone-900 dark:text-stone-100">
               {product.name}
             </span>
           </nav>
 
           {/* Main AliExpress 3-Column Card */}
-          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm sm:p-6">
+          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-sm sm:p-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               
               {/* Column 1: Gallery with vertical thumbnail strip (lg:col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-3">
+              <div className="lg:col-span-5 flex flex-col-reverse gap-3 sm:flex-row">
                 {/* Vertical Thumbnails */}
                 {galleryImages.length > 1 && (
                   <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto max-h-[480px] no-scrollbar shrink-0">
@@ -271,9 +271,9 @@ export const ProductDetailPage: React.FC = () => {
                     </p>}
 
                     {storeSettings.productVoucherMessage && <div className="mt-1 flex items-center justify-between rounded-md bg-[#FFF0ED] px-2.5 py-1.5 text-[11px] font-bold text-[#FD384F] border border-[#FFD5CC] dark:bg-red-950/30">
-                      <div className="flex items-center gap-1.5 truncate">
+                      <div className="flex min-w-0 items-center gap-1.5">
                         <Tag className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{storeSettings.productVoucherMessage}</span>
+                        <span className="break-words">{storeSettings.productVoucherMessage}</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                     </div>}
@@ -348,7 +348,7 @@ export const ProductDetailPage: React.FC = () => {
 
               </div>
 
-              <div className="lg:col-span-3 xl:col-span-3 flex flex-col justify-between rounded-xl border border-gray-200 bg-stone-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50 space-y-4">
+              <div className="lg:col-span-3 xl:col-span-3 flex flex-col justify-between rounded-xl border border-gray-200 bg-stone-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/50 space-y-4 sm:p-4">
                 <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-slate-700">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-stone-800 dark:text-stone-200">Quantity:</span>

@@ -60,6 +60,14 @@
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   html.dark body {
     background:
       radial-gradient(circle at top, rgba(210, 147, 109, 0.12), transparent 18%),
@@ -160,6 +168,13 @@
     width: min(100% - 2rem, 87.5rem);
     margin-inline: auto;
     padding-block: 2rem 4rem;
+  }
+
+  @media (max-width: 639px) {
+    .page-shell {
+      width: min(100% - 1.25rem, 87.5rem);
+      padding-block: 1.25rem 2.5rem;
+    }
   }
 
   .surface-panel {

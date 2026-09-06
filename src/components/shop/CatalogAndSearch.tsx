@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
   Filter,
   ChevronRight,
@@ -14,14 +14,16 @@ import { ProductCard } from '../product/ProductCard';
 
 export const ShopCatalogPage: React.FC = () => {
   const { products, categories, brands } = useStore();
+  const navigate = useNavigate();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategorySlug = categorySlug || searchParams.get('category') || '';
 
   const currentCategoryObj = useMemo(() => {
-    if (!categorySlug) return null;
-    return categories.find(c => c.slug === categorySlug);
-  }, [categorySlug, categories]);
+    if (!selectedCategorySlug) return null;
+    return categories.find(category => category.slug === selectedCategorySlug) || null;
+  }, [selectedCategorySlug, categories]);
 
   const selectedDepartment = searchParams.get('dept') as DepartmentType | null;
   const selectedBrand = searchParams.get('brand') || 'All Brands';
@@ -29,6 +31,13 @@ export const ShopCatalogPage: React.FC = () => {
   const onlyInStock = searchParams.get('instock') === 'true';
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
+
+  const handleCatalogSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    const query = catalogSearch.trim();
+    navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+  };
 
   // Filter products based on URL parameters
   const filteredProducts = useMemo(() => {
@@ -100,6 +109,12 @@ export const ShopCatalogPage: React.FC = () => {
         </p>
       </div>
 
+      <form onSubmit={handleCatalogSearch} className="flex max-w-2xl items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] p-1 shadow-[var(--shadow-soft)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+        <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
+        <input type="search" value={catalogSearch} onChange={event => setCatalogSearch(event.target.value)} placeholder="Search products" aria-label="Search products" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]" />
+        <button type="submit" aria-label="Search" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]"><Search className="h-3.5 w-3.5" /></button>
+      </form>
+
       {/* Catalog Grid with Desktop Sidebar */}
       <div className="flex flex-col gap-8 lg:flex-row">
 
@@ -110,7 +125,7 @@ export const ShopCatalogPage: React.FC = () => {
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#C86D51]" />
               Narrow it down
             </span>
-            {(selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
+            {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
               <button
                 onClick={clearAllFilters}
                 className="text-[11px] text-[#C86D51] hover:underline font-bold flex items-center gap-1"
@@ -156,6 +171,25 @@ export const ShopCatalogPage: React.FC = () => {
                 Groceries &amp; Essentials
               </button>
             </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Category</h4>
+            <select
+              value={selectedCategorySlug}
+              onChange={(event) => {
+                const nextCategory = event.target.value;
+                navigate(nextCategory ? `/shop?category=${encodeURIComponent(nextCategory)}` : '/shop');
+              }}
+              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+              aria-label="Filter by category"
+            >
+              <option value="">All Categories</option>
+              {categories.filter(category => category.isActive).map(category => (
+                <option key={category.id} value={category.slug}>{category.name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Brand Filter */}
@@ -226,11 +260,20 @@ export const ShopCatalogPage: React.FC = () => {
                 <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-primary)]">Filter catalog</h2>
                 <button onClick={() => setIsMobileFilterOpen(false)} aria-label="Close filters" className="rounded-full p-1 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><X className="h-4 w-4" /></button>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
                 {([['', 'All'], ['beauty', 'Beauty'], ['groceries', 'Groceries']] as const).map(([value, label]) => (
                   <button key={value || 'all'} onClick={() => updateFilter('dept', value || null)} className={`rounded-xl border px-2 py-2 text-xs font-bold ${selectedDepartment === (value || null) ? 'border-[#1C1817] bg-[#1C1817] text-white' : 'border-stone-200 text-stone-700 dark:border-stone-700 dark:text-stone-300'}`}>{label}</button>
                 ))}
               </div>
+              <select
+                value={selectedCategorySlug}
+                onChange={event => navigate(event.target.value ? `/shop?category=${encodeURIComponent(event.target.value)}` : '/shop')}
+                className="w-full rounded-xl border border-[#E8E2DA] bg-white p-2.5 text-xs font-semibold dark:border-[#2A2725] dark:bg-[#1C1A19]"
+                aria-label="Filter by category"
+              >
+                <option value="">All Categories</option>
+                {categories.filter(category => category.isActive).map(category => <option key={category.id} value={category.slug}>{category.name}</option>)}
+              </select>
               <select value={selectedBrand} onChange={e => updateFilter('brand', e.target.value)} className="w-full rounded-xl border border-[#E8E2DA] bg-white p-2.5 text-xs font-semibold dark:border-[#2A2725] dark:bg-[#1C1A19]">
                 {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
               </select>
@@ -240,8 +283,14 @@ export const ShopCatalogPage: React.FC = () => {
           )}
 
           {/* Active Filter Badges */}
-          {(selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
+          {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
             <div className="flex items-center gap-2 flex-wrap text-xs">
+              {selectedCategorySlug && currentCategoryObj && (
+                <span className="bg-[#2385ad] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+                  Category: {currentCategoryObj.name}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => navigate('/shop')} />
+                </span>
+              )}
               {selectedDepartment && (
                 <span className="bg-[#1C1817] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
                   Dept: {selectedDepartment}

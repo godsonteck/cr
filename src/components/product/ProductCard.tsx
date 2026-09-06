@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, ShoppingBag, Eye } from 'lucide-react';
+import { Heart, Minus, Plus } from 'lucide-react';
 
 const getResponsiveImageSet = (image: string) => {
   if (!image.includes('images.unsplash.com')) return undefined;
@@ -32,13 +32,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, updateQuantity } = useCart();
   const { showToast } = useToast();
 
   const isFavorited = isInWishlist(product.id);
   const effectiveMode = mode === 'auto' ? (product.department === 'groceries' ? 'grocery' : 'beauty') : mode;
   const price = Number(product.price || 0);
   const originalPrice = product.originalPrice == null ? undefined : Number(product.originalPrice);
+  const cartItem = cartItems.find(item => item.product.id === product.id && !item.selectedOption && !item.selectedVariant);
+  const cartQuantity = cartItem?.quantity || 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,6 +58,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.preventDefault();
     toggleWishlist(product.id);
     showToast(isFavorited ? 'Removed from saved items' : 'Saved to wishlist');
+  };
+
+  const handleQuantityChange = (e: React.MouseEvent, nextQuantity: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (cartItem) {
+      updateQuantity(product.id, nextQuantity);
+    }
   };
 
   const handleCardClick = () => {
@@ -105,30 +115,51 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-[var(--accent)] text-[var(--accent)]' : ''}`} />
         </button>
 
-        <button
-          onClick={handleAddToCart}
-          disabled={!product.inStock || product.stockCount <= 0}
-          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] shadow-lg transition-all hover:bg-[var(--accent)] hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label={product.options?.length ? `Choose options for ${product.name}` : product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
-          title={product.options?.length ? "Choose options" : "Add to cart"}
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-        </button>
+        {cartQuantity > 0 && !product.options?.length ? (
+          <div className="absolute bottom-3 right-3 z-10 flex h-10 items-center overflow-hidden rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] shadow-lg" onClick={event => { event.stopPropagation(); event.preventDefault(); }}>
+            <button
+              onClick={event => handleQuantityChange(event, cartQuantity - 1)}
+              className="flex h-10 w-9 items-center justify-center transition hover:bg-[var(--accent)] active:scale-95"
+              aria-label={`Decrease quantity of ${product.name}`}
+            >
+              <Minus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </button>
+            <span className="min-w-5 text-center text-xs font-bold" aria-label={`${cartQuantity} in cart`}>{cartQuantity}</span>
+            <button
+              onClick={event => handleQuantityChange(event, Math.min(product.stockCount, cartQuantity + 1))}
+              disabled={cartQuantity >= product.stockCount}
+              className="flex h-10 w-9 items-center justify-center transition hover:bg-[var(--accent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label={`Increase quantity of ${product.name}`}
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleAddToCart}
+            disabled={!product.inStock || product.stockCount <= 0}
+            className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] shadow-lg transition-all hover:bg-[var(--accent)] hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={product.options?.length ? `Choose options for ${product.name}` : product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
+            title={product.options?.length ? "Choose options" : "Add to cart"}
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </button>
+        )}
 
       </div>
 
       <div className="mt-3 flex flex-1 flex-col justify-between gap-1.5 px-0.5 text-left">
         <div className="flex min-h-4 items-center gap-1.5 flex-wrap">
           {product.brand && (
-            <span className="max-w-[140px] truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+            <span className="max-w-[140px] break-words text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
               {product.brand}
             </span>
           )}
         </div>
 
-        <h3 className="line-clamp-2 min-h-9 text-[13px] font-semibold leading-5 text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
+        <h3 className="min-h-9 break-words text-[13px] font-semibold leading-5 text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
           {product.name}
         </h3>
 
