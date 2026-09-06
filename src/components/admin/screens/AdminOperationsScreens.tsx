@@ -1167,8 +1167,8 @@ export function AdminSettingsScreen() {
 
         {/* HOMEPAGE */}
         <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
-          <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage</h2>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Main welcome message customers see</p>
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage hero</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Choose the background image and copy customers see first on the storefront.</p>
           <div className="mt-4 space-y-4">
             <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">
               Main headline
@@ -1180,17 +1180,27 @@ export function AdminSettingsScreen() {
             </label>
             <div className="border-t border-stone-100 pt-4 dark:border-[#2e2428]">
               <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">Hero background image</label>
-              <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="aspect-[16/9] w-full overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50 dark:border-[#2e2428] dark:bg-[#2a2024] sm:w-56">
-                  {heroImagePreview ? <img src={heroImagePreview} alt="Hero background preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs text-stone-400">No hero background selected</div>}
+              <div className="mt-2 flex flex-col gap-4">
+                <div
+                  className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-stone-300 bg-stone-50 shadow-sm dark:border-[#2e2428] dark:bg-[#2a2024]"
+                  style={heroImagePreview ? { backgroundImage: `url(${heroImagePreview})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
+                  <div className="absolute inset-0 flex max-w-xl flex-col justify-end px-5 py-5 text-white sm:px-8">
+                    <span className="mb-2 text-[9px] font-bold uppercase tracking-[0.18em] text-white/70">Live hero preview</span>
+                    <p className="max-w-[14ch] break-words text-xl font-bold leading-tight">{form.heroHeadline || 'Beauty essentials for a better you.'}</p>
+                    <p className="mt-2 max-w-sm break-words text-xs leading-5 text-white/80">{form.heroSubtitle || 'Your store description will appear here.'}</p>
+                    <span className="mt-3 inline-flex w-fit rounded-full bg-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#2385ad]">{form.heroButtonText || 'Shop now'}</span>
+                  </div>
+                  {!heroImagePreview && <div className="absolute inset-0 -z-0 flex items-center justify-center bg-gradient-to-br from-[#2385ad] to-[#12617f] text-xs font-semibold text-white/80">Upload a wide image to preview it here</div>}
                 </div>
-                <div>
+                <div className="flex flex-wrap items-center gap-3">
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#1E1719] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#33282C]">
                     <Plus className="h-4 w-4" />
                     Choose image
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (file) handleHeroImageUpload(file); }} />
                   </label>
-                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">Use a wide cinematic landscape image, at least 16:10 (recommended 21:9). JPG, PNG, WEBP, or GIF up to 5MB.</p>
+                  <p className="max-w-xl text-xs text-stone-500 dark:text-stone-400">Use a wide cinematic landscape image, at least 16:10 (recommended 21:9). JPG, PNG, WEBP, or GIF up to 5MB.</p>
                   {heroImagePreview && <button type="button" onClick={() => { setHeroImagePreview(''); update('heroImage', ''); }} className="mt-3 text-xs font-medium text-red-600 hover:underline dark:text-red-400">Remove hero image</button>}
                 </div>
               </div>

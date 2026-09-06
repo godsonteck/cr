@@ -20,8 +20,12 @@ export const BeautyDepartmentPage: React.FC = () => {
       )}
 
       <div className="mx-auto max-w-[1400px] space-y-8 px-3 py-8 font-sans sm:px-4">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[1.75rem] border border-stone-800 bg-[#1C1817] p-6 text-white shadow-sm md:flex-row md:items-center sm:p-10">
-          <div className="max-w-xl space-y-2">
+        <div
+          className="relative flex min-h-[15rem] flex-col items-start justify-end gap-6 overflow-hidden rounded-[1.75rem] border border-white/20 bg-[#1C1817] bg-cover bg-center p-6 text-white shadow-sm sm:min-h-[19rem] sm:p-10 md:flex-row md:items-end md:justify-between"
+          style={{ backgroundImage: `url(${storeSettings.heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+          <div className="relative z-10 max-w-xl space-y-2">
             <h1 className="font-serif text-2xl font-bold sm:text-4xl">Beauty &amp; Skincare</h1>
             <p className="text-xs text-stone-300 sm:text-sm">
               Targeted dermatological formulas, hydration serums, luxury fragrances, and professional cosmetics.
@@ -29,7 +33,7 @@ export const BeautyDepartmentPage: React.FC = () => {
           </div>
           <Link
             to="/routine-builder"
-            className="flex shrink-0 items-center gap-2 rounded-full bg-[#C86D51] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-[#b05c42]"
+            className="relative z-10 flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#2385ad] shadow-lg transition-colors hover:bg-[#C86D51] hover:text-white"
           >
             <Sparkles className="h-4 w-4" />
             <span>Routine Builder</span>
@@ -62,8 +66,12 @@ export const GroceryDepartmentPage: React.FC = () => {
       )}
 
       <div className="mx-auto max-w-[1400px] space-y-8 px-3 py-8 font-sans sm:px-4">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[1.75rem] border border-stone-700 bg-[#4A5D4E] p-6 text-white shadow-sm md:flex-row md:items-center sm:p-10">
-          <div className="max-w-xl space-y-2">
+        <div
+          className="relative flex min-h-[15rem] flex-col items-start justify-end gap-6 overflow-hidden rounded-[1.75rem] border border-white/20 bg-[#4A5D4E] bg-cover bg-center p-6 text-white shadow-sm sm:min-h-[19rem] sm:p-10 md:flex-row md:items-end md:justify-between"
+          style={{ backgroundImage: `url(${storeSettings.heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+          <div className="relative z-10 max-w-xl space-y-2">
             <h1 className="font-serif text-2xl font-bold sm:text-4xl">Groceries &amp; Everyday Essentials</h1>
             <p className="text-xs text-stone-200 sm:text-sm">
               Premium Jasmine rice, pure vegetable oils, evaporated milk, seasonings, and trusted daily household products.
@@ -71,7 +79,7 @@ export const GroceryDepartmentPage: React.FC = () => {
           </div>
           <Link
             to="/groceries"
-            className="shrink-0 rounded-full bg-[#1C1817] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black"
+            className="relative z-10 shrink-0 rounded-full bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#2385ad] shadow-lg transition-colors hover:bg-[#1C1817] hover:text-white"
           >
             <span>Shop Pantry</span>
           </Link>
