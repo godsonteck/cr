@@ -5,6 +5,7 @@ import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
 import { escapeHtml, sendEmail } from './_email.js';
+import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 const orderCreateSchema = z.object({
   userId: z.string().uuid().optional().nullable(),
@@ -36,6 +37,7 @@ const orderCreateSchema = z.object({
   discount: z.number().min(0).default(0),
   total: z.number().positive(),
   paymentMethod: z.enum(['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
+  orderSource: z.enum(['website', 'whatsapp']).default('website'),
   paymentStatus: z.enum(['paid', 'pending']).default('pending'),
   deliveryMethod: z.enum(['accra-express', 'standard-delivery', 'intercity', 'store-pickup']),
   shippingAddress: z.object({
@@ -43,6 +45,7 @@ const orderCreateSchema = z.object({
     phone: z.string().min(1),
     email: z.string().email().optional(),
     city: z.string().min(1),
+    region: z.string().optional(),
     area: z.string().min(1),
     landmarkOrGps: z.string().optional(),
     deliveryNotes: z.string().optional(),
@@ -137,11 +140,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
-      const auth = await requireAuth(req, res);
-      if (!auth) return;
+      const isWhatsAppOrder = query.channel === 'whatsapp';
+      const auth = isWhatsAppOrder ? null : await requireAuth(req, res);
+      if (!isWhatsAppOrder && !auth) return;
+      if (isWhatsAppOrder) {
+        const rateLimit = checkRateLimit(`whatsapp-order:${getClientIp(req.headers)}`, 10, 60 * 60 * 1000);
+        if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many order attempts. Please try again later.' });
+      }
       const parsed = orderCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
+      }
+      if (isWhatsAppOrder && parsed.data.paymentMethod !== 'cash-on-delivery') {
+        return res.status(400).json({ error: 'WhatsApp orders must be confirmed with the store before payment.' });
       }
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
@@ -202,11 +213,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         intercityShippingFee?: number;
         freeDeliveryThreshold?: number;
         deliveryZones?: Array<{ keywords?: string[]; fee?: number }>;
+        deliveryPrices?: Array<{ region?: string; town?: string; fee?: number }>;
       };
+      const selectedLocationPrice = settings.deliveryPrices?.find(price => price.region === parsed.data.shippingAddress.region && price.town === parsed.data.shippingAddress.city)?.fee;
       const locationText = `${parsed.data.shippingAddress.city} ${parsed.data.shippingAddress.area}`.toLowerCase();
       const matchedZone = (settings.deliveryZones || []).find(zone => (zone.keywords || []).some(keyword => locationText.includes(keyword.toLowerCase())))
         || (settings.deliveryZones || []).find(zone => !(zone.keywords || []).length);
-      const zoneFee = Number(matchedZone?.fee ?? settings.standardShippingFee ?? 0);
+      const zoneFee = Number(selectedLocationPrice ?? matchedZone?.fee ?? settings.standardShippingFee ?? 0);
       const productFees = productRows.map(product => product.deliveryPrice == null ? null : Number(product.deliveryPrice)).filter((fee): fee is number => fee !== null);
       const standardFee = productFees.length > 0 ? Math.max(...productFees) : zoneFee;
       const expectedShippingFee = parsed.data.deliveryMethod === 'store-pickup' ? 0
@@ -251,7 +264,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
         const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
         const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
-        if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.amount !== Math.round(calculatedTotal * 100) || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+        if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.amount !== Math.round(calculatedTotal * 100) || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth?.email?.toLowerCase()) {
           return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
         }
       }
@@ -259,9 +272,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const orderNumber = generateOrderNumber();
       const orderData = {
         ...parsed.data,
+        orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource,
         items: verifiedItems,
         appliedPromoCode,
-        userId: auth.sub,
+        userId: auth?.sub || null,
         orderNumber,
         subtotal: calculatedSubtotal.toString(),
         shippingFee: finalShippingFee.toString(),
@@ -284,7 +298,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         await tx.insert(notifications).values([
           {
-            userId: auth.sub,
+            userId: auth?.sub || null,
             type: 'order',
             title: 'Order received',
             message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
@@ -302,15 +316,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return createdOrder;
       });
 
-      const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth.email;
+      const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth?.email;
       const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1];
       const orderLink = `${process.env.PUBLIC_SITE_URL || ''}/account/orders`;
       await Promise.all([
-        sendEmail({
+        customerEmail ? sendEmail({
           to: customerEmail,
           subject: `Order received: ${newOrder.orderNumber}`,
           html: `<p>Hi ${escapeHtml(parsed.data.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(newOrder.orderNumber)}</strong> and are preparing it now.</p><p>You can track your order in your account.</p><p><a href="${escapeHtml(orderLink)}">View order</a></p>`,
-        }),
+        }) : Promise.resolve(false),
         storeEmail ? sendEmail({
           to: storeEmail,
           subject: `New order: ${newOrder.orderNumber}`,

@@ -174,6 +174,7 @@ export const orders = pgTable('orders', {
   total: decimal('total', { precision: 10, scale: 2 }).notNull(),
   paymentMethod: paymentMethodEnum('payment_method').notNull(),
   paymentStatus: paymentStatusEnum('payment_status').notNull().default('pending'),
+  orderSource: varchar('order_source', { length: 20 }).notNull().default('website'),
   deliveryMethod: deliveryMethodEnum('delivery_method').notNull(),
   shippingAddress: jsonb('shipping_address').$type<{
     fullName: string;

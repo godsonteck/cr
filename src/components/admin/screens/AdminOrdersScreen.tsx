@@ -222,6 +222,11 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                         <span className="font-mono font-bold text-xs text-stone-900 dark:text-stone-100">
                           {order.orderNumber}
                         </span>
+                        {order.orderSource === 'whatsapp' && (
+                          <span className="mt-1 inline-flex rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[10px] font-bold text-[#168542] dark:text-[#7eeaa1]">
+                            WhatsApp
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <p className="font-semibold text-stone-900 dark:text-stone-100 text-sm">

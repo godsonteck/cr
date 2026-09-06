@@ -18,7 +18,9 @@ async function request<T>(
   };
 
   // Add auth headers if available
-  const token = authToken || localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
+  const token = authToken === undefined
+    ? (localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token'))
+    : authToken;
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

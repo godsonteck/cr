@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import {
   ShoppingCart,
   Trash2,
@@ -23,10 +23,12 @@ import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
 import { GHANA_LOCATIONS, GHANA_REGIONS, GhanaRegion } from '../../data/ghanaLocations';
+import { api, ApiError } from '../../lib/api';
 
 /* ─── Cart Drawer ─────────────────────────────────────────────────────────── */
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -257,7 +259,7 @@ export const FullCartPage: React.FC = () => {
 
 /* ─── Checkout Page ───────────────────────────────────────────────────────── */
 export const MultiStepCheckoutPage: React.FC = () => {
-  const { cartItems, subtotal, discount, promoCode } = useCart();
+  const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
   const { user } = useAuth();
   const { storeSettings } = useStore();
   const { showAlert } = useAlert();
@@ -270,6 +272,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [city, setCity] = useState('Accra');
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (user?.savedAddresses && user.savedAddresses.length > 0 && !area) {
@@ -291,12 +294,17 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   const configuredDeliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
 
-  const placeWhatsAppOrder = () => {
+  const placeWhatsAppOrder = async () => {
     if (!fullName || !phone || !area) {
       showAlert('Please complete your delivery details first.', 'error');
       setStep(1);
       return;
     }
+
+    setIsProcessing(true);
+    const whatsappWindow = window.open('', '_blank');
+    const deliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee ?? storeSettings.standardShippingFee;
+    const itemTotal = Math.max(0, subtotal - discount);
 
     const itemLines = cartItems.map(item => {
       const option = item.selectedOption ? ` (${item.selectedOption})` : '';
@@ -307,8 +315,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
       '',
       ...itemLines,
       '',
-      `Items total: GHS ${Math.max(0, subtotal - discount).toFixed(2)}`,
-      `Delivery fee: ${configuredDeliveryFee == null ? 'Please confirm' : `GHS ${configuredDeliveryFee.toFixed(2)} (please confirm)`}`,
+      `Items total: GHS ${itemTotal.toFixed(2)}`,
+      `Delivery fee: GHS ${deliveryFee.toFixed(2)} (please confirm)`,
       'Please confirm delivery fee, delivery time and payment details.',
       '',
       `Name: ${fullName}`,
@@ -318,8 +326,35 @@ export const MultiStepCheckoutPage: React.FC = () => {
       ...(email ? [`Email: ${email}`] : []),
     ].join('\n');
 
-    window.open(getWhatsAppUrl(storeSettings.whatsappNumber, message), '_blank', 'noopener,noreferrer');
-    showAlert('Your order details are ready in WhatsApp. Please send the message to confirm your order.', 'success', { persistent: true });
+    try {
+      const createdOrder = await api.post<Order>('/orders?channel=whatsapp', {
+        items: cartItems,
+        subtotal: itemTotal,
+        shippingFee: deliveryFee,
+        discount,
+        total: itemTotal + deliveryFee,
+        paymentMethod: 'cash-on-delivery',
+        paymentStatus: 'pending',
+        orderSource: 'whatsapp',
+        deliveryMethod: 'standard-delivery',
+        shippingAddress: { fullName, phone, email: email || undefined, city, region, area, deliveryNotes: deliveryNotes || undefined },
+        status: 'Confirmed',
+      }, localStorage.getItem('auth_token'));
+      const orderMessage = `Order reference: ${createdOrder.orderNumber}\n\n${message}`;
+      const whatsappUrl = getWhatsAppUrl(storeSettings.whatsappNumber, orderMessage);
+      if (whatsappWindow) {
+        whatsappWindow.location.href = whatsappUrl;
+      } else {
+        window.location.href = whatsappUrl;
+      }
+      await clearCart();
+      showAlert(`Order ${createdOrder.orderNumber} created. Please send it in WhatsApp to confirm.`, 'success', { persistent: true });
+    } catch (error) {
+      whatsappWindow?.close();
+      showAlert(error instanceof ApiError ? error.message : 'We could not create your order. Please try again.', 'error', { persistent: true });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const inputCls = "w-full rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] transition focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/15";
@@ -526,7 +561,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                         Back
                       </button>
                       <button
-                        onClick={placeWhatsAppOrder}
+                        onClick={() => void placeWhatsAppOrder()}
+                        disabled={isProcessing}
                         className="flex-1 h-12 bg-[#25D366] text-white font-black text-sm rounded-xl hover:bg-[#1fba59] transition disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/25"
                       >
                         <MessageCircle className="h-4 w-4" /> Order on WhatsApp
@@ -612,6 +648,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
 /* ─── Order Confirmation ──────────────────────────────────────────────────── */
 export const OrderConfirmationPage: React.FC = () => {
   const location = useLocation();
+  const { storeSettings } = useStore();
   const order = (location.state as { order?: Order })?.order;
 
   return (
