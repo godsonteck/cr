@@ -348,6 +348,7 @@ export interface InventoryMovement {
 export interface Customer {
   id: string;
   fullName: string;
+  profileImage?: string;
   email: string;
   phone: string;
   ordersCount: number;

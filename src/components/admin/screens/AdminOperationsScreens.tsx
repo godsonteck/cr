@@ -322,6 +322,7 @@ export function AdminCustomersScreen() {
         customerMap.set(key, {
           id,
           fullName: name,
+            profileImage: undefined,
           email: email || `${phone.replace(/[^0-9]/g, '')}@customer.cr`,
           phone: phone || 'No phone recorded',
           ordersCount: 1,
@@ -360,6 +361,9 @@ export function AdminCustomersScreen() {
           if (existing) {
             existing.id = u.id || existing.id;
             existing.fullName = u.fullName || existing.fullName;
+            existing.profileImage = u.profileImage || existing.profileImage;
+            existing.phone = u.phone || existing.phone;
+            existing.email = u.email || existing.email;
             existing.status = u.isActive === false ? 'Blocked' : existing.status;
             if (u.ordersCount !== undefined && u.ordersCount > existing.ordersCount) {
               existing.ordersCount = u.ordersCount;
@@ -379,6 +383,7 @@ export function AdminCustomersScreen() {
             customerMap.set(key, {
               id,
               fullName: u.fullName || 'Registered User',
+              profileImage: u.profileImage || undefined,
               email: u.email || '',
               phone: u.phone || '',
               ordersCount: u.ordersCount || 0,
@@ -416,7 +421,7 @@ export function AdminCustomersScreen() {
   }, [customers, query]);
 
   const activeCount = customers.filter(c => c.status === 'Active').length;
-  const repeatCount = filtered.filter(c => c.ordersCount > 1).length;
+  const repeatCount = customers.filter(c => c.ordersCount > 1).length;
 
   const toggleStatus = async (customer: Customer) => {
     const nextStatus = customer.status === 'Active' ? 'Blocked' : 'Active';
@@ -464,9 +469,9 @@ export function AdminCustomersScreen() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Total Customers" value={customers.length} detail="In shop records" icon={Users} />
-        <Stat label="Active Accounts" value={activeCount} detail="Allowed to shop" icon={ShieldCheck} />
-        <Stat label="Repeat Buyers" value={repeatCount} detail="2+ completed orders" icon={ShoppingBag} />
+        <Stat label="Total customers" value={customers.length} detail="Registered and guest records" icon={Users} />
+        <Stat label="Active accounts" value={activeCount} detail="Currently allowed to shop" icon={ShieldCheck} />
+        <Stat label="Repeat buyers" value={repeatCount} detail="Customers with 2+ orders" icon={ShoppingBag} />
       </div>
 
       <input
@@ -482,38 +487,37 @@ export function AdminCustomersScreen() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+          <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
+            Customer directory
+          </div>
           <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
             {filtered.map(customer => {
               const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
-              const whatsappUrl = `https://wa.me/${
+              const hasWhatsAppNumber = customerPhoneClean.length >= 7 && customer.phone !== 'No phone recorded';
+              const whatsappUrl = hasWhatsAppNumber ? `https://wa.me/${
                 customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
-              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${store.storeSettings.storeName}.`)}`;
+              }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${store.storeSettings.storeName}.`)}` : '';
 
               return (
-                <div key={customer.id} className="flex flex-wrap items-center gap-4 p-4 hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 transition-colors">
+                <div key={customer.id} className="grid gap-4 p-5 transition-colors hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 lg:grid-cols-[minmax(240px,1.4fr)_120px_110px_auto] lg:items-center">
                   {/* Avatar */}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] font-bold text-[#8A5738] dark:text-[#E8B792] flex-shrink-0">
-                    {customer.fullName.charAt(0).toUpperCase()}
-                  </div>
-
-                  {/* Details */}
-                  <div className="min-w-48 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:text-[#E8B792] bg-[#F2E3D7]/60 dark:bg-[#3d2a22] px-2 py-0.5 rounded-full">
-                        {customer.segment}
-                      </span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#F2E3D7] font-bold text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">
+                      {customer.profileImage ? <img src={customer.profileImage} alt="" className="h-full w-full object-cover" /> : customer.fullName.charAt(0).toUpperCase()}
                     </div>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                      {customer.email} · {customer.phone}
-                    </p>
-                    <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-600">
-                      Joined {new Date(customer.createdAt).toLocaleDateString()}
-                    </p>
+
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
+                        <span className="rounded-full bg-[#F2E3D7]/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">{customer.segment}</span>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400">{customer.email || 'No email recorded'}</p>
+                      <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-600">Joined {new Date(customer.createdAt).toLocaleDateString()}</p>
+                    </div>
                   </div>
 
                   {/* Order summary */}
-                  <div className="text-right">
+                  <div className="lg:text-right">
                     <p className="text-sm font-bold text-stone-900 dark:text-stone-100">
                       {money(customer.totalSpent)}
                     </p>
@@ -522,7 +526,6 @@ export function AdminCustomersScreen() {
                     </p>
                   </div>
 
-                  {/* Status badge */}
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-bold ${
                       customer.status === 'Active'
@@ -533,26 +536,11 @@ export function AdminCustomersScreen() {
                     {customer.status}
                   </span>
 
-                  {/* Actions */}
-                  <button
-                    className={mutedButton}
-                    onClick={() => setSelectedCustomer(customer)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    Details
-                  </button>
-                  <a
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    WhatsApp
-                  </a>
-                  <button className={mutedButton} onClick={() => void toggleStatus(customer)}>
-                    {customer.status === 'Active' ? 'Block' : 'Activate'}
-                  </button>
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <button className={mutedButton} onClick={() => setSelectedCustomer(customer)}><Eye className="h-4 w-4" /> Details</button>
+                    {hasWhatsAppNumber && <a className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</a>}
+                    <button className={mutedButton} onClick={() => void toggleStatus(customer)}>{customer.status === 'Active' ? 'Block' : 'Activate'}</button>
+                  </div>
                 </div>
               );
             })}
