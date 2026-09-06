@@ -15,6 +15,7 @@ import {
   Tag,
   Star,
   Lock,
+  MessageCircle,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -23,6 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
 import { api, ApiError } from '../../lib/api';
+import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 /* ─── Cart Drawer ─────────────────────────────────────────────────────────── */
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -405,6 +407,40 @@ export const MultiStepCheckoutPage: React.FC = () => {
     }
   };
 
+  const placeWhatsAppOrder = () => {
+    if (!fullName || !phone || !area || !email) {
+      showAlert('Please complete your delivery details first.', 'error');
+      setStep(1);
+      return;
+    }
+
+    const itemLines = cartItems.map(item => {
+      const option = item.selectedOption ? ` (${item.selectedOption})` : '';
+      return `- ${item.product.name}${option} x${item.quantity}: GHS ${(item.product.price * item.quantity).toFixed(2)}`;
+    });
+    const message = [
+      `Hello ${storeSettings.storeName}, I would like to place an order.`,
+      '',
+      'Order items:',
+      ...itemLines,
+      '',
+      `Subtotal: GHS ${subtotal.toFixed(2)}`,
+      `Delivery: ${shippingFee === 0 ? 'FREE' : `GHS ${shippingFee.toFixed(2)}`}`,
+      ...(discount > 0 ? [`Discount${promoCode ? ` (${promoCode})` : ''}: -GHS ${discount.toFixed(2)}`] : []),
+      `Total: GHS ${totalAmount.toFixed(2)}`,
+      '',
+      'Delivery details:',
+      `Name: ${fullName}`,
+      `Phone: ${phone}`,
+      `Email: ${email}`,
+      `Location: ${area}, ${city}`,
+      ...(deliveryNotes ? [`Notes: ${deliveryNotes}`] : []),
+    ].join('\n');
+
+    window.open(getWhatsAppUrl(storeSettings.whatsappNumber, message), '_blank', 'noopener,noreferrer');
+    showAlert('Your order details are ready in WhatsApp. Please send the message to confirm your order.', 'success', { persistent: true });
+  };
+
   const inputCls = "w-full rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] transition focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/15";
 
   return (
@@ -422,7 +458,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
           <div className="flex gap-2">
             {[
               { num: 1, label: 'Delivery Details', icon: MapPin },
-              { num: 2, label: 'Payment', icon: CreditCard },
+              { num: 2, label: 'Order', icon: MessageCircle },
             ].map(({ num, label, icon: Icon }) => (
               <button key={num} onClick={() => num < step ? setStep(num as 1 | 2) : undefined} className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-sm font-bold transition ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black ${step === num ? 'bg-white/20' : num < step ? 'bg-white/25' : 'bg-[#ebdfe5]'}`}>{num}</span>
@@ -543,10 +579,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
             {step === 2 && (
               <div>
                 <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-4 flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-[#FF6B00]" />
+                  <MessageCircle className="h-5 w-5 text-[#25D366]" />
                   <div>
-                    <h2 className="text-sm font-black text-[var(--text-primary)]">Complete Payment</h2>
-                    <p className="text-xs text-[var(--text-muted)]">Your order is created after Paystack confirms payment.</p>
+                    <h2 className="text-sm font-black text-[var(--text-primary)]">Order on WhatsApp</h2>
+                    <p className="text-xs text-[var(--text-muted)]">Send your order details to our team and confirm delivery.</p>
                   </div>
                 </div>
 
@@ -564,15 +600,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Paystack Payment Block */}
-                  <div className="rounded-2xl border-2 border-[#FF6B00]/30 bg-gradient-to-br from-[#FF6B00]/5 to-transparent p-5">
+                  {/* WhatsApp order block */}
+                  <div className="rounded-2xl border-2 border-[#25D366]/30 bg-[#25D366]/5 p-5">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-[#FF6B00] rounded-xl flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-white" />
+                      <div className="w-10 h-10 bg-[#25D366] rounded-xl flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-[var(--text-primary)]">Paystack Secure Checkout</p>
-                        <p className="text-xs text-[var(--text-muted)]">Card, Mobile Money & Bank Transfer</p>
+                        <p className="text-sm font-black text-[var(--text-primary)]">Send order via WhatsApp</p>
+                        <p className="text-xs text-[var(--text-muted)]">Our team will confirm your order and payment options.</p>
                       </div>
                     </div>
 
@@ -591,22 +627,18 @@ export const MultiStepCheckoutPage: React.FC = () => {
                         Back
                       </button>
                       <button
-                        onClick={() => void startPaystackCheckout()}
+                        onClick={placeWhatsAppOrder}
                         disabled={isProcessing}
-                        className="flex-1 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/25"
+                        className="flex-1 h-12 bg-[#25D366] text-white font-black text-sm rounded-xl hover:bg-[#1fba59] transition disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/25"
                       >
-                        {isProcessing ? (
-                          <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing…</>
-                        ) : (
-                          <><Lock className="h-4 w-4" /> Pay GHS {totalAmount.toFixed(2)} Securely</>
-                        )}
+                        <MessageCircle className="h-4 w-4" /> Order on WhatsApp
                       </button>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 text-xs text-[var(--text-subtle)] justify-center">
-                    <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span>Your payment is encrypted and secured by Paystack. We never store card details.</span>
+                    <ShieldCheck className="h-4 w-4 text-[#25D366] shrink-0" />
+                    <span>Your cart stays here until you send and confirm the order in WhatsApp.</span>
                   </div>
                 </div>
               </div>
