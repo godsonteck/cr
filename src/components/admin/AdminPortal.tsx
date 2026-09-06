@@ -49,7 +49,7 @@ import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
 import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
 import { getGeneratedAdminNotifications } from './screens/AdminOperationsScreens';
 import logoImg from '../../assets/logo.jpeg';
-import { AdminNotification, Product, Order, Customer } from '../../types';
+import { AdminNotification, AdminSession, Product, Order, Customer } from '../../types';
 
 type AdminTab =
   | 'overview'
@@ -94,6 +94,12 @@ const navGroups: { key: NavItem['group']; label: string }[] = [
   { key: 'shop',   label: 'Store'     },
   { key: 'system', label: 'Manage'    },
 ];
+
+const roleAccess: Record<AdminSession['adminRole'], AdminTab[]> = {
+  'Super Admin': ['overview', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
+  'Store Manager': ['overview', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
+  'Inventory Dispatcher': ['overview', 'products', 'orders', 'inventory', 'notifications'],
+};
 
 const tabLabels: Record<AdminTab, string> = {
   overview:      'Dashboard',
@@ -170,7 +176,9 @@ export const AdminPortal: React.FC = () => {
   // Default sidebar closed on mobile, open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const requestedTab = new URLSearchParams(location.search).get('tab');
-  const currentTab: AdminTab = navItems.some(item => item.id === requestedTab) ? requestedTab as AdminTab : 'overview';
+  const accessibleTabs = roleAccess[store.adminSession.adminRole] || roleAccess['Inventory Dispatcher'];
+  const currentTab: AdminTab = accessibleTabs.includes(requestedTab as AdminTab) ? requestedTab as AdminTab : 'overview';
+  const visibleNavItems = navItems.filter(item => accessibleTabs.includes(item.id));
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -278,6 +286,7 @@ export const AdminPortal: React.FC = () => {
   };
 
   const handleTabChange = (tab: AdminTab) => {
+    if (!accessibleTabs.includes(tab)) return;
     const params = new URLSearchParams(location.search);
     params.set('tab', tab);
     navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
@@ -345,7 +354,7 @@ export const AdminPortal: React.FC = () => {
           {/* Navigation */}
           <nav className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-6 px-2 space-y-1">
             {navGroups.map(group => {
-              const groupItems = navItems.filter(item => item.group === group.key);
+              const groupItems = visibleNavItems.filter(item => item.group === group.key);
               return (
                 <div key={group.key} className="mb-3">
                   {sidebarOpen && (

@@ -213,18 +213,24 @@ export const AdminAccountsManagementScreen: React.FC = () => {
     const fullName = String(form.get('fullName') || '').trim();
     const email = String(form.get('email') || '').trim().toLowerCase();
     const phone = String(form.get('phone') || '').trim();
+    const pin = String(form.get('pin') || '').trim();
     const role = String(form.get('role') || 'admin') as AdminAccount['role'];
-    if (!fullName || !email || !phone) {
-      showAlert('Name, email, and phone are required', 'error');
+    if (!fullName || !email || !phone || pin.length < 4) {
+      showAlert('Name, email, phone, and a PIN of at least 4 characters are required', 'error');
       return;
     }
     if (safeAccounts.some(a => a?.email && a.email.toLowerCase() === email)) {
       showAlert('An admin account with this email already exists', 'error');
       return;
     }
-    await addAdminAccount({ fullName, email, phone, role });
+    try {
+      await addAdminAccount({ fullName, email, phone, role, pin });
+    } catch {
+      showAlert('Failed to create team member account', 'error');
+      return;
+    }
     setIsCreatingNew(false);
-    showAlert('Admin account created successfully', 'success');
+    showAlert(`Account created. Share the temporary PIN ${pin} securely with ${fullName}.`, 'success', { persistent: true });
   };
 
   return (
@@ -262,12 +268,13 @@ export const AdminAccountsManagementScreen: React.FC = () => {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
             <input name="fullName" placeholder="Full name" required className={inputCls} />
             <input name="email" type="email" placeholder="Email address" required className={inputCls} />
             <input name="phone" placeholder="Phone number" required className={inputCls} />
+            <input name="pin" type="password" inputMode="numeric" minLength={4} placeholder="Temporary PIN" required className={inputCls} />
             <select name="role" defaultValue="admin" className={inputCls}>
-              <option value="admin">Admin</option>
+              <option value="admin">Inventory Dispatcher</option>
               <option value="manager">Manager</option>
               <option value="super_admin">Super Admin</option>
             </select>

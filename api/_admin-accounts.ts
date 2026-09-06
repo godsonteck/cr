@@ -37,6 +37,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const id = typeof req.query.id === 'string' ? req.query.id : undefined;
     if (req.method === 'POST') {
+      if (session.adminRole !== 'Super Admin') {
+        return res.status(403).json({ error: 'Only Super Admins can create team accounts' });
+      }
       const { fullName, email, phone, role, pin } = req.body || {};
       if (!fullName || !email || !pin || String(pin).length < 4) {
         return res.status(400).json({ error: 'Name, email, and a PIN of at least 4 characters are required' });
@@ -57,6 +60,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!target) return res.status(404).json({ error: 'Admin account not found' });
 
     if (req.method === 'PATCH') {
+      if (session.adminRole !== 'Super Admin' && target.id !== session.sub) {
+        return res.status(403).json({ error: 'Only Super Admins can manage other team accounts' });
+      }
       const { fullName, email, phone, role, isActive, pin, currentPin } = req.body || {};
       if (pin) {
         if (!currentPin || !(await bcrypt.compare(String(currentPin), target.pinHash))) {

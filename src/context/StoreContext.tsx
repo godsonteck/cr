@@ -1085,13 +1085,8 @@ const addOrder = async (order: Order) => {
       return created;
     } catch (e: any) {
       setError(e.message || 'Operation failed');
+      throw e;
     }
-    const newAccount: AdminAccount = {
-      ...account,
-      id: `admin-${Date.now()}`,
-    };
-    setAdminAccounts(prev => [newAccount, ...prev]);
-    return newAccount;
   };
 
   const updateAdminAccount = async (id: string, updates: Partial<AdminAccount>) => {
