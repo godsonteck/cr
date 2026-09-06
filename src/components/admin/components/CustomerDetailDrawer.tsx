@@ -43,8 +43,8 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
         {/* Header */}
         <div className="p-5 border-b border-stone-200 dark:border-[#2e2428] flex items-center justify-between bg-stone-50/80 dark:bg-[#201b1a]">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#F2E3D7] dark:bg-[#3d2a22] text-[#8A5738] dark:text-[#E8B792] flex items-center justify-center font-bold font-serif text-lg border border-stone-200 dark:border-[#3d2a22]">
-              {customer.fullName.charAt(0).toUpperCase()}
+            <div className="w-11 h-11 overflow-hidden rounded-2xl bg-[#F2E3D7] dark:bg-[#3d2a22] text-[#8A5738] dark:text-[#E8B792] flex items-center justify-center font-bold font-serif text-lg border border-stone-200 dark:border-[#3d2a22]">
+              {customer.profileImage ? <img src={customer.profileImage} alt="" className="h-full w-full object-cover" /> : customer.fullName.charAt(0).toUpperCase()}
             </div>
             <div>
               <h3 className="font-bold text-base text-stone-900 dark:text-stone-100 leading-tight">
@@ -86,23 +86,23 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
           <div className="p-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-stone-900 dark:text-stone-100">Contact Details</h4>
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-[11px] font-bold flex items-center gap-1 border border-emerald-200 dark:border-emerald-800 transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>WhatsApp</span>
-              </a>
+              {customerPhoneClean.length >= 7 && customer.phone !== 'No phone recorded' && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-[11px] font-bold flex items-center gap-1 border border-emerald-200 dark:border-emerald-800 transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              )}
             </div>
 
             <div className="space-y-2 text-xs text-stone-600 dark:text-stone-300">
               <p className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-stone-400" />
-                <a href={`tel:${customer.phone}`} className="font-bold text-stone-900 dark:text-stone-100 hover:underline">
-                  {customer.phone}
-                </a>
+                {customer.phone === 'No phone recorded' ? <span className="text-stone-400">No phone recorded</span> : <a href={`tel:${customer.phone}`} className="font-bold text-stone-900 dark:text-stone-100 hover:underline">{customer.phone}</a>}
               </p>
               {customer.email && (
                 <p className="flex items-center gap-2">

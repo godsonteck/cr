@@ -64,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           email: users.email,
           fullName: users.fullName,
           phone: users.phone,
+          profileImage: users.profileImage,
           savedAddresses: users.savedAddresses,
           savedItemIds: users.savedItemIds,
           isActive: users.isActive,
