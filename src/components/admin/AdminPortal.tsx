@@ -342,7 +342,7 @@ export const AdminPortal: React.FC = () => {
             </div>
             {sidebarOpen && (
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-stone-900 dark:text-stone-50 text-sm truncate">
+                <p className="font-bold text-stone-900 dark:text-stone-50 text-sm leading-tight line-clamp-2">
                   {store.storeSettings.storeName}
                 </p>
                 <p className="text-xs font-medium text-stone-500 dark:text-stone-500 uppercase tracking-wider truncate">Admin panel</p>
@@ -351,7 +351,7 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 px-2 space-y-1">
+          <nav className="flex-1 overflow-visible py-6 px-2 space-y-1">
             {navGroups.map(group => {
               const groupItems = navItems.filter(item => item.group === group.key);
               return (

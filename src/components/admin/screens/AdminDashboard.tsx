@@ -194,7 +194,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
       {/* Header */}
       <ScreenHeader
@@ -281,9 +281,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           accent="orange"
         />
         <StatCard
-          label="Low or out"
+          label="Out of stock"
           value={metrics.outOfStock}
-          detail={`${metrics.lowStock} more are low (≤ 5 units)`}
+          detail={`${metrics.lowStock} more running low (≤ 5 units)`}
           icon={AlertCircle}
           accent={metrics.outOfStock > 0 ? 'red' : undefined}
         />
