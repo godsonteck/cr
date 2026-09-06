@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--border-color)] bg-[rgba(255,255,255,0.9)] backdrop-blur-sm transition-colors dark:border-[var(--border-color)] dark:bg-[rgba(18,16,15,0.82)]">
       <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
-        <div className="flex h-16 items-center justify-between gap-3 sm:gap-6">
+        <div className="flex h-14 items-center justify-between gap-1.5 sm:h-16 sm:gap-6">
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -139,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
               <div className="shrink-0 overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5">
                 <img
                   src={storeSettings.storeLogo || logoImg}
@@ -148,8 +148,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                   onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
                 />
               </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-sans text-sm sm:text-base font-black tracking-[-0.05em] text-[var(--text-primary)]">
+              <div className="min-w-0 max-w-[94px] sm:max-w-none">
+                <span className="line-clamp-2 font-sans text-[11px] font-black leading-[1.05] tracking-normal text-[var(--text-primary)] sm:text-base sm:tracking-[-0.05em]">
                   {storeSettings.storeName}
                 </span>
               </div>
