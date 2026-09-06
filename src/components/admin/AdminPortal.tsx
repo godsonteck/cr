@@ -169,10 +169,8 @@ export const AdminPortal: React.FC = () => {
 
   // Default sidebar closed on mobile, open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
-  const [currentTab, setCurrentTab] = useState<AdminTab>(() => {
-    const tab = new URLSearchParams(window.location.search).get('tab');
-    return navItems.some(item => item.id === tab) ? tab as AdminTab : 'overview';
-  });
+  const requestedTab = new URLSearchParams(location.search).get('tab');
+  const currentTab: AdminTab = navItems.some(item => item.id === requestedTab) ? requestedTab as AdminTab : 'overview';
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -280,18 +278,12 @@ export const AdminPortal: React.FC = () => {
   };
 
   const handleTabChange = (tab: AdminTab) => {
-    setCurrentTab(tab);
     const params = new URLSearchParams(location.search);
     params.set('tab', tab);
     navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
     // Close sidebar on mobile after navigation
     if (window.innerWidth < 768) setSidebarOpen(false);
   };
-
-  React.useEffect(() => {
-    const tab = new URLSearchParams(location.search).get('tab');
-    setCurrentTab(navItems.some(item => item.id === tab) ? tab as AdminTab : 'overview');
-  }, [location.search]);
 
   React.useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -329,7 +321,7 @@ export const AdminPortal: React.FC = () => {
         }`}
       >
         {/* Sidebar inner */}
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden">
           {/* Store Logo & Branding */}
           <div className="px-4 py-6 border-b border-stone-200 dark:border-[#1f1a1a] flex items-center gap-3 min-w-0">
             <div className="flex-shrink-0 rounded-lg border border-stone-200 dark:border-[#1f1a1a] bg-white dark:bg-[#1a1515] p-2">
@@ -351,7 +343,7 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-visible py-6 px-2 space-y-1">
+          <nav className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-6 px-2 space-y-1">
             {navGroups.map(group => {
               const groupItems = navItems.filter(item => item.group === group.key);
               return (
@@ -368,6 +360,7 @@ export const AdminPortal: React.FC = () => {
                       <button
                         key={item.id}
                         onClick={() => handleTabChange(item.id)}
+                        aria-current={isActive ? 'page' : undefined}
                         title={!sidebarOpen ? item.label : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-left font-medium text-sm ${
                           isActive
