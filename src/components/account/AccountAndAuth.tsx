@@ -139,7 +139,7 @@ export const SignInPage: React.FC = () => {
   const handleGoogleCredential = async (credential: string) => {
     try {
       await loginWithGoogle(credential);
-      navigate('/account');
+        navigate('/');
     } catch (error: any) {
       showAlert(error?.message || 'Google sign-in failed. Please try again.', 'error');
     }
@@ -150,7 +150,7 @@ export const SignInPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await login(email, password);
-      navigate('/account');
+        navigate('/');
     } catch (error: any) {
       showAlert(error?.message || 'Sign in failed. Please check your credentials.', 'error');
     } finally {
@@ -321,7 +321,7 @@ export const SignUpPage: React.FC = () => {
   const handleGoogleCredential = async (credential: string) => {
     try {
       await loginWithGoogle(credential);
-      navigate('/account');
+        navigate('/');
     } catch {
       showAlert('Google sign-up failed. Please try again.', 'error');
     }
@@ -347,7 +347,7 @@ export const SignUpPage: React.FC = () => {
     try {
       await register(cleanEmail, fullName, password, phone);
       showAlert('Your account has been created successfully.', 'success');
-      navigate('/account');
+        navigate('/');
     } catch (error: any) {
       showAlert(error?.message || 'Account creation failed. Please verify your details.', 'error');
     } finally {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -9,6 +9,7 @@ import {
   X,
   Sun,
   Moon,
+  UserRound,
 } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
@@ -27,15 +28,28 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
   const location = useLocation();
   const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
-  const { user, isAuthenticated } = useAuth();
   const { storeSettings } = useStore();
   const { isDarkMode, toggleTheme } = useTheme();
   const displayStoreName = storeSettings.storeName.replace(/\s+AND\s+/gi, ' & ');
+  const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsAccountMenuOpen(false);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
@@ -129,12 +143,43 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
               )}
             </button>
 
-            <Link
-              to={isAuthenticated ? '/account' : '/signin'}
-              className="hidden items-center gap-1.5 rounded-full bg-[#2d8db8] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#247ba2] sm:flex"
-            >
-              <span>{isAuthenticated ? (user?.fullName?.split(' ')[0] || 'Account') : 'Sign In'}</span>
-            </Link>
+            {isAuthenticated ? (
+              <div ref={accountMenuRef} className="relative">
+                <button
+                  onClick={() => setIsAccountMenuOpen(open => !open)}
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition hover:border-[#2385ad] hover:text-[#2385ad] dark:border-slate-700 dark:bg-slate-800 dark:text-stone-200"
+                  aria-label="Open account menu"
+                  aria-expanded={isAccountMenuOpen}
+                >
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="" className="h-full w-full object-cover" onError={event => { event.currentTarget.style.display = 'none'; }} />
+                  ) : (
+                    <UserRound className="h-5 w-5" />
+                  )}
+                </button>
+                {isAccountMenuOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                    <Link to="/account" onClick={() => setIsAccountMenuOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50 hover:text-[#2385ad] dark:text-stone-200 dark:hover:bg-slate-800">
+                      Profile
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        setIsAccountMenuOpen(false);
+                        await logout();
+                        navigate('/');
+                      }}
+                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/signin" className="hidden items-center gap-1.5 rounded-full bg-[#2d8db8] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#247ba2] sm:flex">
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
 
