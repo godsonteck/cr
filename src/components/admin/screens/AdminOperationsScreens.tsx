@@ -961,6 +961,23 @@ export function AdminSettingsScreen() {
       return;
     }
     try {
+      const imageDimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        image.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve({ width: image.width, height: image.height });
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('Image could not be processed'));
+        };
+        image.src = objectUrl;
+      });
+      if (imageDimensions.width / imageDimensions.height < 1.6) {
+        showAlert('Hero images must be wide landscape images, at least 16:10.', 'error');
+        return;
+      }
       const optimizedImage = await optimizeUploadedImage(file);
       setHeroImagePreview(optimizedImage);
       update('heroImage', optimizedImage);
@@ -1164,7 +1181,7 @@ export function AdminSettingsScreen() {
             <div className="border-t border-stone-100 pt-4 dark:border-[#2e2428]">
               <label className="block text-xs font-bold text-stone-600 dark:text-stone-400">Hero background image</label>
               <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="h-32 w-full overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50 dark:border-[#2e2428] dark:bg-[#2a2024] sm:w-48">
+                <div className="aspect-[16/9] w-full overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50 dark:border-[#2e2428] dark:bg-[#2a2024] sm:w-56">
                   {heroImagePreview ? <img src={heroImagePreview} alt="Hero background preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs text-stone-400">No hero background selected</div>}
                 </div>
                 <div>
@@ -1173,7 +1190,7 @@ export function AdminSettingsScreen() {
                     Choose image
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (file) handleHeroImageUpload(file); }} />
                   </label>
-                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">This image fills the homepage hero background. JPG, PNG, WEBP, or GIF up to 5MB. Landscape images work best.</p>
+                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">Use a wide cinematic landscape image, at least 16:10 (recommended 21:9). JPG, PNG, WEBP, or GIF up to 5MB.</p>
                   {heroImagePreview && <button type="button" onClick={() => { setHeroImagePreview(''); update('heroImage', ''); }} className="mt-3 text-xs font-medium text-red-600 hover:underline dark:text-red-400">Remove hero image</button>}
                 </div>
               </div>

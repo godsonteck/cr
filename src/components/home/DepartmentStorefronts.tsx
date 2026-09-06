@@ -114,10 +114,11 @@ export const HomePage: React.FC = () => {
         {/* Editorial storefront introduction */}
         {homepageSections.hero && (
           <section
-            className="editorial-hero relative min-h-[24rem] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:min-h-[32rem]"
+            className="editorial-hero relative aspect-[16/9] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:aspect-[21/9]"
             style={{
               backgroundImage: `url(${storeSettings.heroImage || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200'})`,
               backgroundPosition: 'center',
+              backgroundSize: 'cover',
             }}
             aria-label="Store hero"
           >
