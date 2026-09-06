@@ -270,9 +270,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const orderNumber = generateOrderNumber();
+      const columnCheck = await db.execute(sql`
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'orders'
+            AND column_name = 'order_source'
+        ) AS exists
+      `);
+      const hasOrderSourceColumn = Boolean((columnCheck as Array<{ exists?: boolean }>)[0]?.exists);
       const orderData = {
         ...parsed.data,
-        orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource,
         items: verifiedItems,
         appliedPromoCode,
         userId: auth?.sub || null,
@@ -282,9 +291,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         discount: calculatedDiscount.toString(),
         total: calculatedTotal.toString(),
       };
+      const insertOrderData = hasOrderSourceColumn
+        ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource }
+        : orderData;
 
       const newOrder = await db.transaction(async (tx) => {
-        const [createdOrder] = await tx.insert(orders).values(orderData).returning();
+        const [createdOrder] = await tx.insert(orders).values(insertOrderData).returning();
 
         for (const [productId, quantity] of quantities) {
           const product = productMap.get(productId);
