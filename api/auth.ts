@@ -143,7 +143,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const reference = typeof body?.reference === 'string' ? body.reference.trim() : '';
         const expectedAmount = typeof body?.amount === 'number' ? body.amount : 0;
-        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        // Strip BOM (U+FEFF) and whitespace that PowerShell stdin may inject
+        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
         if (!reference || !expectedAmount || !secretKey) {
           return res.status(400).json({ error: 'Paystack payment details are incomplete' });
         }
@@ -170,7 +171,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const auth = await requireAuth(req, res);
         if (!auth) return;
         const parsed = paystackInitializeSchema.safeParse(body);
-        const secretKey = process.env.PAYSTACK_SECRET_KEY?.trim();
+        // Strip BOM (U+FEFF) and whitespace that PowerShell stdin may inject
+        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
         if (!parsed.success || !secretKey) return res.status(500).json({ error: 'Paystack is not configured on the server' });
         if (parsed.data.email.toLowerCase() !== auth.email.toLowerCase()) return res.status(403).json({ error: 'Payment email must match the signed-in account' });
 

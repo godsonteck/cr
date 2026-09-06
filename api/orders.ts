@@ -260,7 +260,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const onlinePaymentMethods = ['paystack', 'card'];
       if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
         const reference = parsed.data.paymentReference?.trim();
-        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
         if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
         const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
         const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
