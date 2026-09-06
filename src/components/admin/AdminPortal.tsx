@@ -339,8 +339,8 @@ export const AdminPortal: React.FC = () => {
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
       {/* Sidebar */}
-      <div
-        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#131010] border-r border-stone-200 dark:border-[#1f1a1a] transition-all duration-300 flex flex-col ${
+      <aside
+        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#131010] border-r border-stone-200 dark:border-[#1f1a1a] shadow-[8px_0_28px_rgba(28,20,22,0.04)] transition-all duration-300 flex flex-col ${
           sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-16 md:translate-x-0'
         }`}
       >
@@ -435,12 +435,12 @@ export const AdminPortal: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <div className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        <header className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-4 min-w-0">
             {/* Sidebar toggle */}
             <button
@@ -488,7 +488,7 @@ export const AdminPortal: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">

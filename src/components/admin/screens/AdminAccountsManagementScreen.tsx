@@ -312,6 +312,13 @@ export const AdminAccountsManagementScreen: React.FC = () => {
 
       {/* Accounts Table */}
       <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] shadow-sm">
+        <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50/70 px-5 py-3 dark:border-[#2e2428] dark:bg-[#1a1316]">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Access directory</p>
+            <p className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{filteredAccounts.length} team member{filteredAccounts.length === 1 ? '' : 's'}</p>
+          </div>
+          <Shield className="h-5 w-5 text-[#B27A52]" />
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-[680px] w-full text-sm">
             <thead className="bg-stone-50 dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428]">

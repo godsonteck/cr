@@ -10,6 +10,7 @@ import {
   DollarSign,
   ShoppingCart,
   TrendingUp,
+  MessageCircle,
 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
@@ -107,6 +108,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
       pending:      orders.filter(o => o.status !== 'Delivered').length,
       delivered:    orders.filter(o => o.status === 'Delivered').length,
       totalRevenue: orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0),
+      whatsapp: orders.filter(o => o.orderSource === 'whatsapp').length,
     };
   }, [store.orders]);
 
@@ -160,11 +162,12 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
         <StatCard label="Orders"         value={stats.total}                                              detail="All orders"             icon={ShoppingCart} />
         <StatCard label="Open"           value={stats.pending}                                            detail="Still in progress"      icon={Clock} />
         <StatCard label="Delivered"      value={stats.delivered}                                          detail="Completed"              icon={CheckCircle2} />
         <StatCard label="Sales"          value={`GHS ${stats.totalRevenue.toFixed(2)}`}                  detail="From all orders"        icon={DollarSign} />
+        <StatCard label="WhatsApp"       value={stats.whatsapp}                                           detail="Orders to confirm"       icon={MessageCircle} />
       </div>
 
       {/* Filters */}
@@ -204,7 +207,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             <thead className="bg-stone-50 dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Customer &amp; source</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Payment</th>
@@ -235,6 +238,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                         <p className="text-xs text-stone-500 dark:text-stone-400">
                           {order.shippingAddress?.phone}
                         </p>
+                        {order.orderSource === 'whatsapp' && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-[#168542] dark:text-[#7eeaa1]"><MessageCircle className="h-3 w-3" /> WhatsApp order</span>}
                       </td>
                       <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">
                         GHS {Number(order.total).toFixed(2)}
