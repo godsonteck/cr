@@ -114,7 +114,7 @@ export const HomePage: React.FC = () => {
         {/* Editorial storefront introduction */}
         {homepageSections.hero && (
           <section
-            className="editorial-hero relative aspect-[16/9] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:aspect-[21/9]"
+            className="editorial-hero relative aspect-[4/3] overflow-hidden rounded-[1.75rem] border border-white/20 bg-cover bg-center shadow-[0_24px_60px_rgba(32,19,17,0.12)] sm:aspect-[16/9] lg:aspect-[21/9]"
             style={{
               backgroundImage: `url(${storeSettings.heroImage || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200'})`,
               backgroundPosition: 'center',
@@ -123,11 +123,11 @@ export const HomePage: React.FC = () => {
             aria-label="Store hero"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10" />
-            <div className="absolute inset-0 flex max-w-xl flex-col justify-end px-5 py-6 text-white sm:px-10 sm:py-14 lg:px-14">
-              <h1 className="line-clamp-3 max-w-[12ch] font-display text-2xl leading-[1.05] sm:text-4xl lg:text-5xl">
+            <div className="absolute inset-0 flex max-w-xl flex-col justify-end overflow-hidden px-5 py-6 text-white sm:px-10 sm:py-14 lg:px-14">
+              <h1 className="max-h-[3.3em] max-w-[12ch] overflow-hidden font-display text-2xl leading-[1.05] sm:max-h-[3.15em] sm:text-4xl lg:max-h-none lg:text-5xl">
                 {storeSettings.heroHeadline || 'Beauty essentials for a better you.'}
               </h1>
-              <p className="mt-5 max-w-md text-sm leading-7 text-white/85 sm:text-[0.95rem]">
+              <p className="mt-4 line-clamp-3 max-w-md text-sm leading-6 text-white/85 sm:mt-5 sm:text-[0.95rem] sm:leading-7">
                 {storeSettings.heroSubtitle || 'Skincare, fragrance, and everyday essentials chosen for a cleaner, easier routine.'}
               </p>
               <Link to="/shop" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-white/80 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white transition hover:border-[var(--accent)] hover:text-[var(--accent)]">

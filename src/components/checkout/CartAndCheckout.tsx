@@ -310,6 +310,29 @@ export const MultiStepCheckoutPage: React.FC = () => {
       const option = item.selectedOption ? ` (${item.selectedOption})` : '';
       return `${item.quantity} x ${item.product.name}${option}`;
     });
+    const orderItems = cartItems.map(item => ({
+      product: {
+        id: item.product.id,
+        name: item.product.name,
+        brand: item.product.brand,
+        price: Number(item.product.price),
+        originalPrice: typeof item.product.originalPrice === 'number' ? item.product.originalPrice : undefined,
+        image: item.product.image || '',
+        unit: item.product.unit || '',
+        category: item.product.category,
+        inStock: Boolean(item.product.inStock),
+        stockCount: Number(item.product.stockCount) || 0,
+      },
+      quantity: item.quantity,
+      selectedOption: item.selectedOption || undefined,
+      selectedVariant: item.selectedVariant ? {
+        id: item.selectedVariant.id,
+        name: item.selectedVariant.name,
+        price: Number(item.selectedVariant.price),
+        originalPrice: typeof item.selectedVariant.originalPrice === 'number' ? item.selectedVariant.originalPrice : undefined,
+        inStock: Boolean(item.selectedVariant.inStock),
+      } : undefined,
+    }));
     const message = [
       'Hi, I would like to order:',
       '',
@@ -328,7 +351,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
     try {
       const createdOrder = await api.post<Order>('/orders?channel=whatsapp', {
-        items: cartItems,
+        items: orderItems,
         subtotal: itemTotal,
         shippingFee: deliveryFee,
         discount,
