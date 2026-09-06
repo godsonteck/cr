@@ -108,7 +108,7 @@ export function AdminLayout({
               <button
                 onClick={() => {
                   store.logoutAdmin();
-                  navigate('/');
+                  navigate('/admin', { replace: true });
                 }}
                 className="p-2 rounded-xl bg-stone-800 hover:bg-red-950 text-stone-400 hover:text-red-200 transition-colors cursor-pointer"
                 title="Sign Out"

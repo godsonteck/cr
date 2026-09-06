@@ -259,7 +259,6 @@ export const AdminPortal: React.FC = () => {
     if (confirmLogout) {
       store.logoutAdmin();
       showAlert('Logged out successfully', 'success');
-      navigate('/');
     } else {
       setConfirmLogout(true);
       // Auto-cancel after 4 seconds if no second click
