@@ -5,7 +5,6 @@ import {
   Boxes,
   ClipboardList,
   LogOut,
-  Menu,
   X,
   Settings,
   Users,
@@ -24,6 +23,8 @@ import {
   Moon,
   AlertTriangle,
   RefreshCw,
+  PanelLeft,
+  PanelLeftClose,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -174,7 +175,14 @@ export const AdminPortal: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
 
   // Default sidebar closed on mobile, open on desktop
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cr_admin_sidebar_open');
+      return saved === null ? window.innerWidth >= 768 : saved === 'true';
+    } catch {
+      return window.innerWidth >= 768;
+    }
+  });
   const requestedTab = new URLSearchParams(location.search).get('tab');
   const accessibleTabs = roleAccess[store.adminSession.adminRole] || roleAccess['Inventory Dispatcher'];
   const currentTab: AdminTab = accessibleTabs.includes(requestedTab as AdminTab) ? requestedTab as AdminTab : 'overview';
@@ -293,6 +301,14 @@ export const AdminPortal: React.FC = () => {
     if (window.innerWidth < 768) setSidebarOpen(false);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(previous => {
+      const next = !previous;
+      localStorage.setItem('cr_admin_sidebar_open', String(next));
+      return next;
+    });
+  };
+
   React.useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -325,14 +341,14 @@ export const AdminPortal: React.FC = () => {
       {/* Sidebar */}
       <div
         className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#131010] border-r border-stone-200 dark:border-[#1f1a1a] transition-all duration-300 flex flex-col ${
-          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-20 md:translate-x-0'
+          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-16 md:translate-x-0'
         }`}
       >
         {/* Sidebar inner */}
         <div className="flex h-full min-h-0 flex-col overflow-hidden">
           {/* Store Logo & Branding */}
-          <div className="px-4 py-6 border-b border-stone-200 dark:border-[#1f1a1a] flex items-center gap-3 min-w-0">
-            <div className="flex-shrink-0 rounded-lg border border-stone-200 dark:border-[#1f1a1a] bg-white dark:bg-[#1a1515] p-2">
+          <div className={`border-b border-stone-200 dark:border-[#1f1a1a] py-5 flex items-center min-w-0 ${sidebarOpen ? 'px-4 gap-3' : 'justify-center px-2'}`}>
+            <div className="flex-shrink-0 rounded-lg border border-stone-200 dark:border-[#1f1a1a] bg-white dark:bg-[#1a1515] p-1.5">
               <img
                 src={store.storeSettings.storeLogo || logoImg}
                 alt={store.storeSettings.storeName}
@@ -428,11 +444,13 @@ export const AdminPortal: React.FC = () => {
           <div className="flex items-center gap-4 min-w-0">
             {/* Sidebar toggle */}
             <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] rounded-lg transition-colors flex-shrink-0 md:hidden"
-              title="Toggle sidebar"
+              onClick={toggleSidebar}
+              className="p-2 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] rounded-lg transition-colors flex-shrink-0"
+              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              aria-expanded={sidebarOpen}
             >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {sidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
             </button>
 
             {/* Page Title */}
