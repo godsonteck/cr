@@ -242,6 +242,23 @@ html.dark .text-cr-espresso { color: var(--text-primary) !important; }
 html.dark .text-cr-muted { color: var(--text-muted) !important; }
 html.dark .border-cr-sand { border-color: var(--border-color) !important; }
 
+html.dark .checkout-page {
+  background: var(--bg-main) !important;
+}
+
+html.dark .checkout-page .checkout-header,
+html.dark .checkout-page .checkout-panel,
+html.dark .checkout-page .checkout-summary {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+html.dark .checkout-page .checkout-summary-head,
+html.dark .checkout-page .checkout-summary-item {
+  background: var(--bg-soft) !important;
+  border-color: var(--border-color) !important;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

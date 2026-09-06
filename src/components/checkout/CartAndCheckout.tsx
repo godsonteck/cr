@@ -444,15 +444,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const inputCls = "w-full rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] transition focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/15";
 
   return (
-    <div className="min-h-screen bg-[#f5f1ee]">
+    <div className="checkout-page min-h-screen bg-[#f5f1ee]">
       <div className="max-w-6xl mx-auto px-3 py-5 sm:px-4 sm:py-6">
-        <div className="mb-5 rounded-[24px] border border-[#ebdfe5] bg-[#fffdfb] px-4 py-4 shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
+        <div className="checkout-header mb-5 rounded-[24px] border border-[#ebdfe5] bg-[#fffdfb] px-4 py-4 shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
           <div className="flex items-center gap-2 text-xs text-[var(--text-subtle)] mb-3">
             <Link to="/cart" className="hover:text-[#ff7a00] transition flex items-center gap-1"><ShoppingCart className="h-3 w-3" /> Cart</Link>
             <ChevronRight className="h-3 w-3" />
             <span className={step >= 1 ? 'text-[#ff7a00] font-bold' : ''}>Delivery</span>
             <ChevronRight className="h-3 w-3" />
-            <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Payment</span>
+            <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Order</span>
           </div>
 
           <div className="flex gap-2">
@@ -470,7 +470,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         </div>
 
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
+          <div className="checkout-panel rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
 
             {/* Step 1: Delivery */}
             {step === 1 && (
@@ -569,7 +569,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     onClick={() => setStep(2)}
                     className="w-full sm:w-auto px-8 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/20"
                   >
-                    Continue to Payment <ArrowRight className="h-4 w-4" />
+                    Continue to Order <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -647,15 +647,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
           {/* Order Summary Sidebar */}
           <aside className="space-y-4 lg:sticky lg:top-24">
-            <div className="rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
-              <div className="bg-[#f8f0f3] border-b border-[#ebdfe5] px-5 py-3.5 flex items-center justify-between">
+            <div className="checkout-summary rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
+              <div className="checkout-summary-head bg-[#f8f0f3] border-b border-[#ebdfe5] px-5 py-3.5 flex items-center justify-between">
                 <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-wide">Your Order</h3>
                 <span className="text-xs text-[var(--text-muted)]">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</span>
               </div>
 
               <div className="p-4 space-y-3 max-h-56 overflow-y-auto">
                 {cartItems.map(item => (
-                  <div key={`${item.product.id}-${item.selectedOption || ''}`} className="flex gap-3 rounded-2xl border border-[#f0e4e8] bg-[#fffaf9] p-2">
+                  <div key={`${item.product.id}-${item.selectedOption || ''}`} className="checkout-summary-item flex gap-3 rounded-2xl border border-[#f0e4e8] bg-[#fffaf9] p-2">
                     <div className="relative shrink-0">
                       <img src={item.product.image} alt="" className="w-14 h-14 rounded-xl object-cover" />
                       <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#ff7a00] text-white text-[10px] font-black rounded-full flex items-center justify-center">{item.quantity}</span>
