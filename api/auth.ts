@@ -159,7 +159,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!paystackResponse.ok || !payload.status || payload.data?.status !== 'success' || payload.data.amount !== expectedAmount || payload.data.currency !== 'GHS') {
           return res.status(402).json({ error: payload.message || 'Payment could not be verified' });
         }
-        if (payload.data.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+        const paystackEmail = payload.data.customer?.email?.toLowerCase();
+        if (paystackEmail && paystackEmail !== auth.email.toLowerCase()) {
           return res.status(403).json({ error: 'Payment customer does not match this account' });
         }
         return res.status(200).json({ verified: true, reference: payload.data.reference || reference });

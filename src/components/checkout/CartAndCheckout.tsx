@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import {
   ShoppingCart,
@@ -275,6 +275,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const hasHandledReturn = useRef(false);
 
   useEffect(() => {
     if (user?.savedAddresses && user.savedAddresses.length > 0 && !area) {
@@ -298,6 +299,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
     const returnedStatus = (params.get('status') || '').toLowerCase();
     const pendingOrder = sessionStorage.getItem('paystack_pending_order');
     if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !pendingOrder || !isAuthenticated) return;
+    if (hasHandledReturn.current) return;
+    hasHandledReturn.current = true;
 
     const completeReturnedOrder = async () => {
       setIsProcessing(true);
@@ -305,6 +308,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
         const orderPayload = JSON.parse(pendingOrder) as Order;
         const customerToken = localStorage.getItem('auth_token');
         if (!customerToken) throw new ApiError(401, 'Authentication required');
+        // Remove pending order from session immediately to prevent duplicate submissions
+        sessionStorage.removeItem('paystack_pending_order');
         const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
           reference: returnedReference,
           amount: Math.round(orderPayload.total * 100),
@@ -316,7 +321,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
           paymentStatus: 'paid',
           paymentReference: verification.reference,
         }, customerToken);
-        sessionStorage.removeItem('paystack_pending_order');
         await addStoreOrder(createdOrder);
         addOrder(createdOrder);
         if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
@@ -325,13 +329,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
         navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
       } catch (error) {
         console.error('Paystack return error:', error);
-        showAlert('Payment was returned, but it could not be verified. Please contact support.', 'error', { persistent: true });
+        const message = error instanceof ApiError ? error.message : 'Payment was returned, but it could not be verified. Please contact support.';
+        showAlert(message, 'error', { persistent: true });
       } finally {
         setIsProcessing(false);
       }
     };
     void completeReturnedOrder();
-  }, [addOrder, addStoreOrder, clearCart, isAuthenticated, navigate, saveAddress, showAlert]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
 
