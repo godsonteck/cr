@@ -69,7 +69,7 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
       google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
         size: 'large',
-        width: 360,
+        width: Math.min(360, buttonRef.current.clientWidth || 360),
         text: 'continue_with',
         shape: 'pill',
       });
@@ -91,7 +91,7 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
   }, [clientId]);
 
   if (!clientId) return null;
-  return <div ref={buttonRef} className="flex min-h-10 justify-center" />;
+  return <div ref={buttonRef} className="flex min-h-10 w-full min-w-0 max-w-full justify-center overflow-hidden [&>div]:max-w-full [&_iframe]:max-w-full" />;
 };
 
 // ============================================================================
