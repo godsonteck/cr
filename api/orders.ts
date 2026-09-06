@@ -279,7 +279,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             AND column_name = 'order_source'
         ) AS exists
       `);
-      const hasOrderSourceColumn = Boolean((columnCheck as Array<{ exists?: boolean }>)[0]?.exists);
+      const hasOrderSourceColumn = Boolean((columnCheck as unknown as Array<{ exists?: boolean }>)[0]?.exists);
       const orderData = {
         ...parsed.data,
         items: verifiedItems,
