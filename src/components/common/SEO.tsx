@@ -32,7 +32,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/signup': { title: 'Create an account | CR COSMETICS AND ESSENTIALS', description: 'Create your CR COSMETICS AND ESSENTIALS account for faster checkout and order tracking.' },
   '/account': { title: 'My account | CR COSMETICS AND ESSENTIALS', description: 'Manage your CR COSMETICS AND ESSENTIALS profile, orders, saved items, addresses, and preferences.' },
   '/cart': { title: 'Your cart | CR COSMETICS AND ESSENTIALS', description: 'Review your selected products before checkout.' },
-  '/checkout': { title: 'Checkout | CR COSMETICS AND ESSENTIALS', description: 'Complete your delivery details and payment securely.' },
+  '/checkout': { title: 'Order on WhatsApp | CR COSMETICS AND ESSENTIALS', description: 'Complete your delivery details and send your order to CR COSMETICS AND ESSENTIALS on WhatsApp.' },
   '/routine-builder': { title: 'Routine builder | CR COSMETICS AND ESSENTIALS', description: 'Build a personalized beauty routine from products selected for each step.' },
 };
 

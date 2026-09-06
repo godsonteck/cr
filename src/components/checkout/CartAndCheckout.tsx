@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import {
   ShoppingCart,
   Trash2,
@@ -8,30 +8,25 @@ import {
   Truck,
   X,
   CheckCircle2,
-  CreditCard,
   MapPin,
   ChevronRight,
   Package,
   Tag,
   Star,
-  Lock,
   MessageCircle,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
-import { PaymentMethod, Order } from '../../types';
+import { Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
-import { api, ApiError } from '../../lib/api';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
+import { GHANA_LOCATIONS, GHANA_REGIONS, GhanaRegion } from '../../data/ghanaLocations';
 
 /* ─── Cart Drawer ─────────────────────────────────────────────────────────── */
 export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, totalItems } = useCart();
-  const { isAuthenticated } = useAuth();
-  const { showAlert } = useAlert();
-  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -97,8 +92,8 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
               </button>
               <button
                 onClick={() => {
-                  if (!isAuthenticated) { onClose(); showAlert('Please sign in to place your order.', 'error'); navigate('/signin'); return; }
-                  onClose(); navigate('/checkout');
+                  onClose();
+                  window.location.assign('/checkout');
                 }}
                 className="h-10 rounded-lg bg-[#FF6B00] text-white text-xs font-black hover:bg-[#E55A00] transition"
               >
@@ -116,9 +111,6 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
 export const FullCartPage: React.FC = () => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, shippingFee, total, clearCart } = useCart();
   const { storeSettings } = useStore();
-  const { isAuthenticated } = useAuth();
-  const { showAlert } = useAlert();
-  const navigate = useNavigate();
 
   if (cartItems.length === 0) {
     return (
@@ -227,8 +219,7 @@ export const FullCartPage: React.FC = () => {
 
                 <button
                   onClick={() => {
-                    if (!isAuthenticated) { showAlert('Please sign in to place your order.', 'error'); navigate('/signin'); return; }
-                    navigate('/checkout');
+                    window.location.assign('/checkout');
                   }}
                   className="w-full h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition shadow-lg shadow-[#FF6B00]/20 flex items-center justify-center gap-2"
                 >
@@ -266,21 +257,19 @@ export const FullCartPage: React.FC = () => {
 
 /* ─── Checkout Page ───────────────────────────────────────────────────────── */
 export const MultiStepCheckoutPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { cartItems, subtotal, discount, promoCode, clearCart, hasFreeShippingCoupon } = useCart();
-  const { user, addOrder, saveAddress, isAuthenticated } = useAuth();
-  const { storeSettings, addOrder: addStoreOrder } = useStore();
+  const { cartItems, subtotal, discount, promoCode } = useCart();
+  const { user } = useAuth();
+  const { storeSettings } = useStore();
   const { showAlert } = useAlert();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [region, setRegion] = useState<GhanaRegion>('Greater Accra');
   const [city, setCity] = useState('Accra');
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
-  const paymentMethod: PaymentMethod = 'paystack';
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (user?.savedAddresses && user.savedAddresses.length > 0 && !area) {
@@ -289,126 +278,19 @@ export const MultiStepCheckoutPage: React.FC = () => {
         setFullName(defaultAddr.fullName);
         setPhone(defaultAddr.phone);
         setEmail(defaultAddr.email || user.email);
-        setCity(defaultAddr.city);
+        const savedRegion = Object.entries(GHANA_LOCATIONS).find(([, towns]) => towns.includes(defaultAddr.city as never))?.[0] as GhanaRegion | undefined;
+        if (savedRegion) setRegion(savedRegion);
+        setCity(defaultAddr.city || 'Accra');
         setArea(defaultAddr.area);
         setDeliveryNotes(defaultAddr.deliveryNotes || '');
       }
     }
   }, [user]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const returnedReference = params.get('reference') || params.get('trxref');
-    const returnedStatus = (params.get('status') || '').toLowerCase();
-    const pendingOrder = sessionStorage.getItem('paystack_pending_order');
-    if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !pendingOrder || !isAuthenticated) return;
-
-    const completeReturnedOrder = async () => {
-      setIsProcessing(true);
-      try {
-        const orderPayload = JSON.parse(pendingOrder) as Order;
-        const customerToken = localStorage.getItem('auth_token');
-        if (!customerToken) throw new ApiError(401, 'Authentication required');
-        const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
-          reference: returnedReference,
-          amount: Math.round(orderPayload.total * 100),
-        }, customerToken);
-        if (!verification.verified) throw new Error('Paystack payment could not be verified');
-        const createdOrder = await api.post<Order>('/orders', {
-          ...orderPayload,
-          paymentMethod: 'paystack',
-          paymentStatus: 'paid',
-          paymentReference: verification.reference,
-        }, customerToken);
-        sessionStorage.removeItem('paystack_pending_order');
-        await addStoreOrder(createdOrder);
-        addOrder(createdOrder);
-        if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
-        await clearCart();
-        window.history.replaceState({}, '', '/checkout');
-        navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
-      } catch (error) {
-        console.error('Paystack return error:', error);
-        if (error instanceof ApiError && error.status === 401) {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_id');
-          localStorage.removeItem('cr_user_profile');
-          showAlert('Your session has expired. Please sign in again to confirm this payment.', 'error', { persistent: true });
-          navigate('/signin', { replace: true });
-          return;
-        }
-        showAlert('Payment was returned, but it could not be verified. Please contact support.', 'error', { persistent: true });
-      } finally {
-        setIsProcessing(false);
-      }
-    };
-    void completeReturnedOrder();
-  }, [isAuthenticated]);
-
-  const deliveryFee = hasFreeShippingCoupon ? 0 : storeSettings.standardShippingFee;
-  const shippingFee = deliveryFee;
-  const totalAmount = Math.max(0, subtotal - discount + deliveryFee);
-
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
 
-  if (!isAuthenticated) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center font-sans">
-        <div className="space-y-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-sm">
-          <Lock className="w-10 h-10 text-[#FF6B00] mx-auto" />
-          <h2 className="text-xl font-black text-[var(--text-primary)]">Sign in Required</h2>
-          <p className="text-sm text-[var(--text-muted)]">Please sign in to your account before placing an order.</p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link to="/signin"><button className="px-6 py-2.5 rounded-xl bg-[#FF6B00] text-white text-sm font-black hover:bg-[#E55A00] transition">Sign In</button></Link>
-            <Link to="/signup"><button className="px-6 py-2.5 rounded-xl border-2 border-[#FF6B00] text-[#FF6B00] text-sm font-black hover:bg-[#FF6B00]/5 transition">Create Account</button></Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const startPaystackCheckout = async () => {
-    if (!fullName || !phone || !area || !email) {
-      showAlert('Please complete your delivery details first.', 'error');
-      setStep(1);
-      return;
-    }
-    setIsProcessing(true);
-    try {
-      const orderPayload: Order = {
-        id: `ord-${Date.now()}`,
-        orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
-        items: [...cartItems], subtotal, shippingFee, discount, total: totalAmount,
-        paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '', deliveryMethod: 'standard-delivery',
-        shippingAddress: { fullName, phone, email, city, area, deliveryNotes: deliveryNotes || undefined },
-        status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
-        createdAt: new Date().toISOString(),
-      };
-      sessionStorage.setItem('paystack_pending_order', JSON.stringify(orderPayload));
-      const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const customerToken = localStorage.getItem('auth_token');
-      if (!customerToken) throw new ApiError(401, 'Authentication required');
-      const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
-        amount: Math.round(totalAmount * 100), email, name: fullName, reference, callbackUrl: `${window.location.origin}/checkout`,
-      }, customerToken);
-      window.location.assign(result.checkoutUrl);
-    } catch (error: any) {
-      sessionStorage.removeItem('paystack_pending_order');
-      if (error instanceof ApiError && error.status === 401) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('cr_user_profile');
-        showAlert('Your session has expired. Please sign in again before paying.', 'error', { persistent: true });
-        navigate('/signin', { replace: true });
-        return;
-      }
-      showAlert(error?.message || 'Paystack checkout could not be started. Please try again.', 'error', { persistent: true });
-      setIsProcessing(false);
-    }
-  };
-
   const placeWhatsAppOrder = () => {
-    if (!fullName || !phone || !area || !email) {
+    if (!fullName || !phone || !area) {
       showAlert('Please complete your delivery details first.', 'error');
       setStep(1);
       return;
@@ -416,25 +298,21 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
     const itemLines = cartItems.map(item => {
       const option = item.selectedOption ? ` (${item.selectedOption})` : '';
-      return `- ${item.product.name}${option} x${item.quantity}: GHS ${(item.product.price * item.quantity).toFixed(2)}`;
+      return `${item.quantity} x ${item.product.name}${option}`;
     });
     const message = [
-      `Hello ${storeSettings.storeName}, I would like to place an order.`,
+      'Hi, I would like to order:',
       '',
-      'Order items:',
       ...itemLines,
       '',
-      `Subtotal: GHS ${subtotal.toFixed(2)}`,
-      `Delivery: ${shippingFee === 0 ? 'FREE' : `GHS ${shippingFee.toFixed(2)}`}`,
-      ...(discount > 0 ? [`Discount${promoCode ? ` (${promoCode})` : ''}: -GHS ${discount.toFixed(2)}`] : []),
-      `Total: GHS ${totalAmount.toFixed(2)}`,
+      `Items total: GHS ${Math.max(0, subtotal - discount).toFixed(2)}`,
+      'Please confirm delivery fee, delivery time and payment details.',
       '',
-      'Delivery details:',
       `Name: ${fullName}`,
       `Phone: ${phone}`,
-      `Email: ${email}`,
-      `Location: ${area}, ${city}`,
-      ...(deliveryNotes ? [`Notes: ${deliveryNotes}`] : []),
+      `Location: ${area}, ${city}, ${region}`,
+      ...(deliveryNotes ? [`Note: ${deliveryNotes}`] : []),
+      ...(email ? [`Email: ${email}`] : []),
     ].join('\n');
 
     window.open(getWhatsAppUrl(storeSettings.whatsappNumber, message), '_blank', 'noopener,noreferrer');
@@ -499,6 +377,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                                 setFullName(address.fullName);
                                 setPhone(address.phone);
                                 setEmail(address.email || user.email);
+                                const savedRegion = Object.entries(GHANA_LOCATIONS).find(([, towns]) => towns.includes(address.city as never))?.[0] as GhanaRegion | undefined;
+                                if (savedRegion) setRegion(savedRegion);
                                 setCity(address.city);
                                 setArea(address.area);
                                 setDeliveryNotes(address.deliveryNotes || '');
@@ -539,15 +419,31 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} className={inputCls} placeholder="e.g. 0244123456" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Email Address <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Email Address <span className="text-[var(--text-subtle)] font-normal">(optional)</span></label>
                       <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputCls} placeholder="you@example.com" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">City</label>
-                      <input type="text" value={city} onChange={e => setCity(e.target.value)} className={inputCls} placeholder="e.g. Accra" />
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Region <span className="text-red-500">*</span></label>
+                      <select
+                        value={region}
+                        onChange={e => {
+                          const nextRegion = e.target.value as GhanaRegion;
+                          setRegion(nextRegion);
+                          setCity(GHANA_LOCATIONS[nextRegion][0]);
+                        }}
+                        className={inputCls}
+                      >
+                        {GHANA_REGIONS.map(option => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Town / City <span className="text-red-500">*</span></label>
+                      <select value={city} onChange={e => setCity(e.target.value)} className={inputCls}>
+                        {GHANA_LOCATIONS[region].map(option => <option key={option} value={option}>{option}</option>)}
+                      </select>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Address, Suburb or GhanaPost GPS <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Area, suburb or GhanaPost GPS <span className="text-red-500">*</span></label>
                       <input type="text" required value={area} onChange={e => setArea(e.target.value)} className={inputCls} placeholder="e.g. East Legon, GA-183-9024 or near Accra Mall" />
                     </div>
                     <div className="sm:col-span-2">
@@ -565,7 +461,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   </div>
 
                   <button
-                    disabled={!fullName || !phone || !area || !email}
+                    disabled={!fullName || !phone || !area || !region || !city}
                     onClick={() => setStep(2)}
                     className="w-full sm:w-auto px-8 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/20"
                   >
@@ -575,7 +471,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
               </div>
             )}
 
-            {/* Step 2: Payment */}
+            {/* Step 2: WhatsApp order */}
             {step === 2 && (
               <div>
                 <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-4 flex items-center gap-3">
@@ -614,8 +510,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
                     <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 mb-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-[var(--text-muted)]">Amount to Pay</span>
-                        <span className="text-2xl font-black text-[#FF6B00]">GHS {totalAmount.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-[var(--text-muted)]">Items total</span>
+                        <span className="text-2xl font-black text-[#FF6B00]">GHS {Math.max(0, subtotal - discount).toFixed(2)}</span>
                       </div>
                     </div>
 
@@ -628,7 +524,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       </button>
                       <button
                         onClick={placeWhatsAppOrder}
-                        disabled={isProcessing}
                         className="flex-1 h-12 bg-[#25D366] text-white font-black text-sm rounded-xl hover:bg-[#1fba59] transition disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/25"
                       >
                         <MessageCircle className="h-4 w-4" /> Order on WhatsApp
@@ -676,7 +571,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-xs text-[var(--text-muted)]">
                   <span>Delivery</span>
-                  <span className={deliveryFee === 0 ? 'text-emerald-500 font-bold' : ''}>{deliveryFee === 0 ? 'FREE' : `GHS ${deliveryFee.toFixed(2)}`}</span>
+                  <span className="text-[#FF6B00] font-bold">Confirm on WhatsApp</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-xs text-emerald-600">
@@ -685,8 +580,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   </div>
                 )}
                 <div className="flex justify-between items-center border-t border-[#ebdfe5] pt-3">
-                  <span className="text-sm font-black text-[var(--text-primary)]">Total</span>
-                  <span className="text-xl font-black text-[#ff7a00]">GHS {totalAmount.toFixed(2)}</span>
+                  <span className="text-sm font-black text-[var(--text-primary)]">Items total</span>
+                  <span className="text-xl font-black text-[#ff7a00]">GHS {Math.max(0, subtotal - discount).toFixed(2)}</span>
                 </div>
               </div>
             </div>
