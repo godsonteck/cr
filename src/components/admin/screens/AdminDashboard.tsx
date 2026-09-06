@@ -10,6 +10,8 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
+  ArrowUpRight,
+  Plus,
 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
@@ -195,23 +197,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   return (
     <div className="space-y-6">
-
-      {/* Header */}
-      <ScreenHeader
-        eyebrow="Store overview"
-        title="Dashboard"
-        description="See what needs attention and manage the store from one place."
-        action={
-          <button
-            onClick={handleRefresh}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-4 py-2.5 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-        }
-      />
+      <section className="relative overflow-hidden rounded-[28px] bg-[#201719] px-6 py-7 text-white shadow-[0_18px_40px_rgba(32,23,25,0.16)] sm:px-8 sm:py-8">
+        <div className="relative z-10 max-w-2xl">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#E8B792]">Store pulse</p>
+          <h1 className="mt-2 font-serif text-3xl font-bold tracking-tight sm:text-4xl">Your shop, at a glance.</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-stone-300">Review today&apos;s activity, resolve anything that needs attention, and keep the storefront moving.</p>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <button onClick={() => onNavigate?.('orders')} className="inline-flex items-center gap-2 rounded-xl bg-[#E8B792] px-4 py-2.5 text-sm font-bold text-[#201719] transition hover:bg-[#f1c8a8]">
+              Review orders <ArrowUpRight className="h-4 w-4" />
+            </button>
+            <button onClick={() => onNavigate?.('products')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">
+              <Plus className="h-4 w-4" /> Add product
+            </button>
+            <button onClick={handleRefresh} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-semibold text-stone-200 transition hover:bg-white/10 disabled:opacity-50">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Critical Alerts */}
       {criticalAlerts.length > 0 && (
@@ -244,7 +247,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       )}
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         <StatCard
           label="Revenue"
           value={`GHS ${metrics.totalRevenue.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -289,10 +292,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         />
       </div>
 
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
       {/* Recent Orders */}
       <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] shadow-sm">
-        <div className="px-6 py-4 border-b border-stone-200 dark:border-[#2e2428] flex items-center justify-between">
-          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">Latest orders</h2>
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4 dark:border-[#2e2428]">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Activity</p>
+            <h2 className="mt-1 text-base font-bold text-stone-900 dark:text-stone-100">Latest orders</h2>
+          </div>
           <button
             onClick={() => onNavigate?.('orders')}
             className="text-xs font-semibold text-[#B27A52] hover:underline"
@@ -348,6 +355,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">At a glance</p>
+            <h2 className="mt-1 text-base font-bold text-stone-900 dark:text-stone-100">What needs attention</h2>
+          </div>
+          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+        </div>
+        <div className="mt-6 space-y-4">
+          <button onClick={() => onNavigate?.('orders')} className="flex w-full items-center justify-between rounded-xl bg-stone-50 p-3 text-left transition hover:bg-stone-100 dark:bg-[#1a1316] dark:hover:bg-[#251b1e]">
+            <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Open orders</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Ready for review</span></span>
+            <span className="text-lg font-bold text-[#B27A52]">{metrics.pendingOrders}</span>
+          </button>
+          <button onClick={() => onNavigate?.('inventory')} className="flex w-full items-center justify-between rounded-xl bg-stone-50 p-3 text-left transition hover:bg-stone-100 dark:bg-[#1a1316] dark:hover:bg-[#251b1e]">
+            <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Stock watch</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Low or unavailable</span></span>
+            <span className="text-lg font-bold text-orange-600">{metrics.lowStock + metrics.outOfStock}</span>
+          </button>
+          <button onClick={() => onNavigate?.('products')} className="flex w-full items-center justify-between rounded-xl bg-stone-50 p-3 text-left transition hover:bg-stone-100 dark:bg-[#1a1316] dark:hover:bg-[#251b1e]">
+            <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Catalog live</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Published products</span></span>
+            <span className="text-lg font-bold text-emerald-600">{metrics.published}</span>
+          </button>
+        </div>
+      </div>
       </div>
 
       {/* Footer */}
