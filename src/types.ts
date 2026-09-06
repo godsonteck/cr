@@ -147,6 +147,7 @@ export interface StoreSettings {
   productPricingNote?: string;
   productVoucherMessage?: string;
   deliveryZones?: Array<{ name: string; keywords: string[]; fee: number }>;
+  deliveryPrices?: Array<{ region: string; town: string; fee: number }>;
 }
 
 export interface StoreSettingsRow {

@@ -289,6 +289,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   if (cartItems.length === 0) return <Navigate to="/cart" replace />;
 
+  const configuredDeliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
+
   const placeWhatsAppOrder = () => {
     if (!fullName || !phone || !area) {
       showAlert('Please complete your delivery details first.', 'error');
@@ -306,6 +308,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
       ...itemLines,
       '',
       `Items total: GHS ${Math.max(0, subtotal - discount).toFixed(2)}`,
+      `Delivery fee: ${configuredDeliveryFee == null ? 'Please confirm' : `GHS ${configuredDeliveryFee.toFixed(2)} (please confirm)`}`,
       'Please confirm delivery fee, delivery time and payment details.',
       '',
       `Name: ${fullName}`,
@@ -571,7 +574,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-xs text-[var(--text-muted)]">
                   <span>Delivery</span>
-                  <span className="text-[#FF6B00] font-bold">Confirm on WhatsApp</span>
+                  <span className="text-[#FF6B00] font-bold">{configuredDeliveryFee == null ? 'Confirm on WhatsApp' : `GHS ${configuredDeliveryFee.toFixed(2)}`}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-xs text-emerald-600">

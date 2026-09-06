@@ -26,6 +26,7 @@ import { useAlert } from '../../../context/AlertContext';
 import { AdminNotification, FlashDeal, PromoCode, Product, StoreSettings, Customer, Order } from '../../../types';
 import { api } from '../../../lib/api';
 import { CustomerDetailDrawer } from '../components/CustomerDetailDrawer';
+import { GHANA_LOCATIONS, GHANA_REGIONS } from '../../../data/ghanaLocations';
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -932,6 +933,24 @@ export function AdminSettingsScreen() {
   const deliveryZones = form.deliveryZones || [];
   const updateDeliveryZone = (index: number, updates: Partial<NonNullable<StoreSettings['deliveryZones']>[number]>) =>
     setForm(prev => ({ ...prev, deliveryZones: (prev.deliveryZones || []).map((zone, zoneIndex) => zoneIndex === index ? { ...zone, ...updates } : zone) }));
+  const deliveryPrices = GHANA_REGIONS.flatMap(region => GHANA_LOCATIONS[region].map(town => ({
+    region,
+    town,
+    fee: form.deliveryPrices?.find(price => price.region === region && price.town === town)?.fee ?? form.standardShippingFee,
+  })));
+  const updateDeliveryPrice = (region: string, town: string, fee: number) => {
+    setForm(prev => {
+      const current = prev.deliveryPrices || [];
+      const withoutLocation = current.filter(price => !(price.region === region && price.town === town));
+      return { ...prev, deliveryPrices: [...withoutLocation, { region, town, fee }] };
+    });
+  };
+  const applyStandardFeeToAllLocations = () => {
+    setForm(prev => ({
+      ...prev,
+      deliveryPrices: GHANA_REGIONS.flatMap(region => GHANA_LOCATIONS[region].map(town => ({ region, town, fee: prev.standardShippingFee }))),
+    }));
+  };
 
   const handleLogoUpload = async (file: File) => {
     if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
@@ -967,7 +986,7 @@ export function AdminSettingsScreen() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await store.updateStoreSettings(form);
+      await store.updateStoreSettings({ ...form, deliveryPrices });
       showAlert('Settings saved and live on your website', 'success');
     } catch (error) {
       showAlert('Failed to save settings', 'error');
@@ -1102,6 +1121,42 @@ export function AdminSettingsScreen() {
               Tagline
               <input className={`${inputClass} mt-2`} value={form.storeTagline} onChange={e => update('storeTagline', e.target.value)} placeholder="Short description of your store" />
             </label>
+          </div>
+          <div className="mt-6 border-t border-stone-200 dark:border-[#2e2428] pt-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="font-bold text-stone-900 dark:text-stone-100">Ghana delivery prices</h3>
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Set the delivery fee for each town. Customers will see the selected location's fee and can confirm it with you on WhatsApp.</p>
+              </div>
+              <button type="button" onClick={applyStandardFeeToAllLocations} className={mutedButton}>
+                Apply standard fee to all
+              </button>
+            </div>
+            <div className="mt-4 space-y-4">
+              {GHANA_REGIONS.map(region => (
+                <div key={region} className="rounded-xl border border-stone-200 dark:border-[#2e2428] p-4">
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">{region}</h4>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {deliveryPrices.filter(price => price.region === region).map(price => (
+                      <label key={`${price.region}-${price.town}`} className="text-xs font-semibold text-stone-600 dark:text-stone-400">
+                        {price.town}
+                        <div className="mt-1 flex items-center gap-1">
+                          <span className="text-[11px] text-stone-500">GHS</span>
+                          <input
+                            className={inputClass}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={price.fee}
+                            onChange={event => updateDeliveryPrice(price.region, price.town, Number(event.target.value) || 0)}
+                          />
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
