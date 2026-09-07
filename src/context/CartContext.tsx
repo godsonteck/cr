@@ -226,7 +226,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const calculatedShippingFee = subtotal >= freeShippingThreshold || hasFreeShippingCoupon || subtotal === 0
     ? 0
-    : (storeSettings.standardShippingFee || 30);
+    : (storeSettings.standardShippingFee ?? 30);
 
   const total = Math.max(0, subtotal - discountAmount + calculatedShippingFee);
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);

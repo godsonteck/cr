@@ -222,14 +222,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const zoneFee = Number(selectedLocationPrice ?? matchedZone?.fee ?? settings.standardShippingFee ?? 0);
       const productFees = productRows.map(product => product.deliveryPrice == null ? null : Number(product.deliveryPrice)).filter((fee): fee is number => fee !== null);
       const standardFee = productFees.length > 0 ? Math.max(...productFees) : zoneFee;
-      const expectedShippingFee = parsed.data.deliveryMethod === 'store-pickup' ? 0
-        : parsed.data.deliveryMethod === 'accra-express' ? Number(settings.expressShippingFee ?? 0)
-          : parsed.data.deliveryMethod === 'intercity' ? Number(settings.intercityShippingFee ?? 0)
-            : standardFee;
-      if (Math.abs(parsed.data.shippingFee - expectedShippingFee) > 0.01) {
-        return res.status(400).json({ error: 'Delivery price changed. Please review your delivery option and try again.' });
-      }
-
       let calculatedDiscount = 0;
       let freeShipping = false;
       let appliedPromoCode: string | undefined;
@@ -244,17 +236,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         calculatedDiscount = promo.discountType === 'percentage'
           ? calculatedSubtotal * Number(promo.discountValue) / 100
           : Math.min(calculatedSubtotal, Number(promo.discountValue));
-        freeShipping = promo.freeShipping;
+        freeShipping = Boolean(promo.freeShipping);
         appliedPromoCode = promo.code;
       }
+
+      const isFreeDelivery = freeShipping || calculatedSubtotal >= Number(settings.freeDeliveryThreshold ?? 300);
+      const baseShippingFee = parsed.data.deliveryMethod === 'store-pickup' ? 0
+        : parsed.data.deliveryMethod === 'accra-express' ? Number(settings.expressShippingFee ?? 0)
+          : parsed.data.deliveryMethod === 'intercity' ? Number(settings.intercityShippingFee ?? 0)
+            : standardFee;
+      const expectedShippingFee = isFreeDelivery ? 0 : baseShippingFee;
+
+      const shippingMatches = Math.abs(parsed.data.shippingFee - expectedShippingFee) <= 0.01
+        || (isFreeDelivery && Math.abs(parsed.data.shippingFee - baseShippingFee) <= 0.01);
+
+      if (!shippingMatches) {
+        return res.status(400).json({ error: 'Delivery price changed. Please review your delivery option and try again.' });
+      }
+
       if (parsed.data.paymentReference) {
         const [usedReference] = await db.select({ id: orders.id }).from(orders).where(eq(orders.paymentReference, parsed.data.paymentReference.trim())).limit(1);
         if (usedReference) return res.status(409).json({ error: 'This payment reference has already been submitted.' });
       }
-      const finalShippingFee = freeShipping || calculatedSubtotal >= Number(settings.freeDeliveryThreshold ?? 300) ? 0 : expectedShippingFee;
+
+      const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
+
       if (Math.abs(parsed.data.total - calculatedTotal) > 0.01 || Math.abs(parsed.data.subtotal - calculatedSubtotal) > 0.01 || Math.abs(parsed.data.discount - calculatedDiscount) > 0.01) {
-        return res.status(400).json({ error: 'Cart prices changed. Please review your order and try again.' });
+        console.error('Order price mismatch:', {
+          received: { total: parsed.data.total, subtotal: parsed.data.subtotal, discount: parsed.data.discount, shipping: parsed.data.shippingFee },
+          calculated: { total: calculatedTotal, subtotal: calculatedSubtotal, discount: calculatedDiscount, finalShippingFee, expectedShippingFee },
+          items: parsed.data.items.map(i => ({ id: i.product.id, name: i.product.name, sentPrice: i.product.price, qty: i.quantity })),
+        });
+        return res.status(400).json({
+          error: `Cart prices changed. Expected total: GHS ${calculatedTotal.toFixed(2)}, received: GHS ${parsed.data.total.toFixed(2)}. Please review your order and try again.`,
+          details: { expectedTotal: calculatedTotal, receivedTotal: parsed.data.total, calculatedSubtotal, receivedSubtotal: parsed.data.subtotal }
+        });
       }
 
       const onlinePaymentMethods = ['paystack', 'card'];

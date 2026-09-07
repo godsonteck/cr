@@ -308,8 +308,6 @@ export const MultiStepCheckoutPage: React.FC = () => {
         const orderPayload = JSON.parse(pendingOrder) as Order;
         const customerToken = localStorage.getItem('auth_token');
         if (!customerToken) throw new ApiError(401, 'Authentication required');
-        // Remove pending order from session immediately to prevent duplicate submissions
-        sessionStorage.removeItem('paystack_pending_order');
         const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
           reference: returnedReference,
           amount: Math.round(orderPayload.total * 100),
@@ -321,6 +319,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
           paymentStatus: 'paid',
           paymentReference: verification.reference,
         }, customerToken);
+        sessionStorage.removeItem('paystack_pending_order');
         await addStoreOrder(createdOrder);
         addOrder(createdOrder);
         if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
@@ -367,7 +366,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
     try {
       const customerToken = localStorage.getItem('auth_token');
       if (!customerToken) throw new ApiError(401, 'Authentication required');
-      const deliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee ?? storeSettings.standardShippingFee;
+      const rawLocationFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
+      const baseDeliveryFee = rawLocationFee ?? storeSettings.standardShippingFee ?? 0;
+      const isFreeDelivery = subtotal >= (storeSettings.freeDeliveryThreshold || 300);
+      const deliveryFee = isFreeDelivery ? 0 : baseDeliveryFee;
       const orderPayload: Order = {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
