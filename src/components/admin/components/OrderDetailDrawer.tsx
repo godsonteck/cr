@@ -46,6 +46,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState('');
   const [isSavingRider, setIsSavingRider] = useState(false);
   const [riderSavedNotice, setRiderSavedNotice] = useState(false);
+  const [isMovingStep, setIsMovingStep] = useState(false);
 
   React.useEffect(() => {
     setRiderName(order?.riderInfo?.riderName || '');
@@ -381,7 +382,8 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           <div className="flex items-center gap-2">
             {order.status !== 'Delivered' && (
               <button
-                onClick={() => {
+                disabled={isMovingStep}
+                onClick={async () => {
                   const nextStageMap: Record<OrderStatus, OrderStatus> = {
                     'Confirmed': 'Processing',
                     'Processing': 'Packing Order',
@@ -390,12 +392,18 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                     'Delivered': 'Delivered'
                   };
                   const next = nextStageMap[order.status];
-                    onUpdateStatus(order.id, next, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime);
+                  if (!next) return;
+                  setIsMovingStep(true);
+                  try {
+                    await onUpdateStatus(order.id, next, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime);
+                  } finally {
+                    setIsMovingStep(false);
+                  }
                 }}
-                className="px-4 py-2 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] rounded-xl font-bold shadow-xs transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#1E1719] hover:bg-[#33282C] disabled:opacity-60 text-[#FAF6F0] rounded-xl font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <PackageCheck className="w-4 h-4" />
-                <span>Move to Next Delivery Step</span>
+                <span>{isMovingStep ? 'Updating...' : 'Move to Next Delivery Step'}</span>
               </button>
             )}
           </div>

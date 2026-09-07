@@ -196,7 +196,9 @@ export const AdminPortal: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  // Always derive the live order from the store so status updates reflect immediately
+  const selectedOrder = selectedOrderId ? (store.orders || []).find(o => o.id === selectedOrderId) ?? null : null;
   const [orderToPrint, setOrderToPrint] = useState<Order | null>(null);
   // Inline logout confirm state
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -294,7 +296,7 @@ export const AdminPortal: React.FC = () => {
   };
 
   const handleViewOrder = (order: Order) => {
-    setSelectedOrder(order);
+    setSelectedOrderId(order.id);
   };
 
   const handleTabChange = (tab: AdminTab) => {
@@ -543,7 +545,7 @@ export const AdminPortal: React.FC = () => {
       <OrderDetailDrawer
         order={selectedOrder}
         isOpen={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
+        onClose={() => setSelectedOrderId(null)}
         onUpdateStatus={(orderId, status, riderInfo, estimatedDeliveryTime) => store.updateOrderStatus(orderId, status, riderInfo, estimatedDeliveryTime)}
         onUpdatePayment={(orderId, paymentStatus) => store.updatePaymentStatus(orderId, paymentStatus)}
         onDeleteOrder={(orderId) => store.deleteOrder(orderId)}
