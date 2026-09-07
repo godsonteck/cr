@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             >
               {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
-            <Link to="/" className="flex min-w-0 items-center gap-1.5 text-[#2385ad] sm:gap-2">
+            <Link to="/" className="flex min-w-0 items-center gap-1.5 text-[var(--text-primary)] sm:gap-2">
               <img
                 src={storeSettings.storeLogo || logoImg}
                 alt={storeSettings.storeName}
@@ -81,11 +81,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
                 onError={(event) => { event.currentTarget.src = logoImg; }}
               />
               <span className="flex min-w-0 flex-col leading-none">
-                <span className="max-w-[10rem] truncate text-[0.78rem] font-black tracking-[-0.02em] sm:max-w-none sm:text-[1.1rem]">
+                <span className="max-w-[10rem] truncate font-serif text-[0.78rem] font-bold tracking-[0.03em] sm:max-w-none sm:text-[1.05rem]">
                   {brandPrimary || displayStoreName}
                 </span>
                 {brandSecondary && (
-                  <span className="mt-0.5 text-[0.58rem] font-bold uppercase tracking-[0.16em] text-[#f2c62c] sm:text-[0.7rem]">
+                  <span className="mt-1 text-[0.52rem] font-semibold uppercase tracking-[0.18em] text-[var(--accent)] sm:text-[0.64rem]">
                     &amp; {brandSecondary}
                   </span>
                 )}
