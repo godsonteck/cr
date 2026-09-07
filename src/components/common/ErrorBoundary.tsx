@@ -19,6 +19,21 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+    // If a lazy-loaded chunk fails (stale deployment), reload the page once.
+    // Guard with sessionStorage so we don't loop if the chunk is truly gone.
+    const isChunkError =
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Importing a module script failed') ||
+      error.name === 'ChunkLoadError';
+    if (isChunkError) {
+      const reloaded = sessionStorage.getItem('chunk_reload_attempted');
+      if (!reloaded) {
+        sessionStorage.setItem('chunk_reload_attempted', '1');
+        window.location.reload();
+      } else {
+        sessionStorage.removeItem('chunk_reload_attempted');
+      }
+    }
   }
 
   private resetError = () => {

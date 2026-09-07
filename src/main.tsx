@@ -14,6 +14,13 @@ import { AlertProvider } from './context/AlertContext';
 import { ReviewsProvider } from './context/ReviewsContext';
 import './index.css';
 
+// Auto-reload when Vite can't fetch a chunk (happens after a new deployment
+// invalidates the old hashed filenames that the browser has cached).
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
