@@ -44,6 +44,8 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   const [riderPhone, setRiderPhone] = useState('');
   const [riderLocation, setRiderLocation] = useState('');
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState('');
+  const [isSavingRider, setIsSavingRider] = useState(false);
+  const [riderSavedNotice, setRiderSavedNotice] = useState(false);
 
   React.useEffect(() => {
     setRiderName(order?.riderInfo?.riderName || '');
@@ -262,15 +264,37 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                 />
               </div>
             </div>
-            <div>
+            <div className="flex items-center justify-between">
               <label className="block text-[11px] font-semibold text-stone-500 mb-1">Delivery ETA</label>
+              {riderSavedNotice && (
+                <span className="text-[11px] font-bold text-emerald-600 animate-fadeIn">✓ Delivery details saved</span>
+              )}
+            </div>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={estimatedDeliveryTime}
                 onChange={e => setEstimatedDeliveryTime(e.target.value)}
                 placeholder="e.g. Today, 2-4 PM"
-                className="w-full px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
+                className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs"
               />
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsSavingRider(true);
+                  try {
+                    await onUpdateStatus(order.id, order.status, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime);
+                    setRiderSavedNotice(true);
+                    setTimeout(() => setRiderSavedNotice(false), 3000);
+                  } finally {
+                    setIsSavingRider(false);
+                  }
+                }}
+                disabled={isSavingRider}
+                className="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-bold hover:bg-stone-800 disabled:opacity-50 shrink-0 cursor-pointer"
+              >
+                {isSavingRider ? 'Saving...' : 'Save Details'}
+              </button>
             </div>
           </div>
 

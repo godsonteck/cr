@@ -60,14 +60,14 @@ const orderCreateSchema = z.object({
 
 const orderUpdateSchema = z.object({
   status: z.enum(['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered']).optional(),
-  estimatedDeliveryTime: z.string().max(100).optional(),
+  estimatedDeliveryTime: z.string().max(100).optional().nullable(),
   paymentStatus: z.enum(['paid', 'pending']).optional(),
   riderInfo: z.object({
-    riderName: z.string(),
-    riderPhone: z.string(),
-    riderLocation: z.string(),
-    estimatedArrival: z.string(),
-    stageIndex: z.number().int().min(0).max(3),
+    riderName: z.string().optional(),
+    riderPhone: z.string().optional(),
+    riderLocation: z.string().optional(),
+    estimatedArrival: z.string().optional(),
+    stageIndex: z.number().int().min(0).max(4).optional(),
   }).optional(),
 }).partial();
 
@@ -388,15 +388,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
       }
 
-      const [updated] = await db
-        .update(orders)
-        .set({ ...parsed.data, updatedAt: new Date() })
-        .where(eq(orders.id, id))
-        .returning();
-
-      if (!updated) {
+      const [existingOrder] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+      if (!existingOrder) {
         return res.status(404).json({ error: 'Order not found' });
       }
+
+      const mergedRiderInfo = parsed.data.riderInfo !== undefined
+        ? { ...((existingOrder.riderInfo as Record<string, any>) || {}), ...(parsed.data.riderInfo || {}) }
+        : existingOrder.riderInfo;
+
+      const updateData: any = {
+        ...parsed.data,
+        updatedAt: new Date(),
+      };
+      if (parsed.data.riderInfo !== undefined) {
+        updateData.riderInfo = mergedRiderInfo;
+      }
+
+      const [updated] = await db
+        .update(orders)
+        .set(updateData)
+        .where(eq(orders.id, id))
+        .returning();
       if (parsed.data.status && updated.userId) {
         await db.insert(notifications).values({
           userId: updated.userId,

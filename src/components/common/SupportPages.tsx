@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -17,6 +17,11 @@ import {
   Leaf,
   Zap,
   ShoppingBag,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Send,
+  Clock,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Button } from '../common/UIPrimitives';
@@ -57,20 +62,34 @@ const supportHighlights = [
 
 const faqs = [
   {
+    category: 'Delivery',
     question: 'How quickly do you deliver?',
-    answer: 'Orders are prepared and dispatched as quickly as possible. Express delivery may also be available for time-sensitive orders.',
+    answer: 'Accra express orders are prepared and dispatched same-day or next-day. Standard deliveries within greater Accra take 24–48 hours, while deliveries to other regions typically take 2–3 business days.',
   },
   {
-    question: 'Do you process Mobile Money orders?',
-    answer: 'Yes. We support secure Mobile Money payment options, and our support team can guide you through any order or confirmation questions.',
+    category: 'Tracking',
+    question: 'How do I track my order progress?',
+    answer: 'You can track fulfillment and dispatch live in your Account > Orders & Tracking. Each stage (Confirmed, Processing, Packing Order, Out for Delivery, Delivered) updates automatically, including courier name, phone number, and delivery ETA.',
   },
   {
+    category: 'Payment',
+    question: 'Do you process Mobile Money & Paystack orders?',
+    answer: 'Yes! We support secure online checkout via Paystack with instant verification, as well as MTN MoMo, Telecel Cash, and AT Money.',
+  },
+  {
+    category: 'Pickup',
     question: 'Can I collect my order in person?',
-    answer: 'Yes. Store pickup is available for eligible orders. Please contact our support team to confirm collection details and order readiness.',
+    answer: 'Yes. Store pickup in Accra is available for eligible orders. Select Store Pickup at checkout, or contact customer care on WhatsApp to confirm collection timing.',
   },
   {
+    category: 'Returns',
     question: 'What if my item arrives damaged or incorrect?',
-    answer: 'Reach out to us right away with your order number and a photo of the issue. We will guide you on replacement, refund, or corrective delivery options.',
+    answer: 'Reach out to us on WhatsApp or through our Contact form within 48 hours with your order number and a photo of the item. We will arrange a free exchange, replacement, or refund immediately.',
+  },
+  {
+    category: 'Authenticity',
+    question: 'Are all skincare and cosmetic products genuine?',
+    answer: '100% authentic. We partner directly with verified distributors and brands. Every batch is inspected for freshness, seal integrity, and genuine origin before dispatch.',
   },
 ];
 
@@ -410,12 +429,37 @@ export const AboutPage: React.FC = () => {
 
 export const SupportPage: React.FC = () => {
   const { storeSettings } = useStore();
+  const [faqSearch, setFaqSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [openFaqIndices, setOpenFaqIndices] = useState<number[]>([0, 1]);
+
+  const toggleFaq = (idx: number) => {
+    setOpenFaqIndices((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
+
+  const categories = ['All', 'Delivery', 'Tracking', 'Payment', 'Returns', 'Authenticity'];
+
+  const filteredFaqs = faqs.filter((faq) => {
+    const matchesCat = selectedCategory === 'All' || faq.category === selectedCategory;
+    const matchesQuery =
+      faq.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(faqSearch.toLowerCase());
+    return matchesCat && matchesQuery;
+  });
+
+  const supportPhone = storeSettings.storePhone || '+233 59 215 3306';
+  const supportEmail = storeSettings.storeEmail || 'support@cr-cosmetics.com';
+  const supportAddress = storeSettings.storeAddress || 'Accra, Ghana';
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="text-center space-y-3">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Customer care</span>
-        <h1 className="mx-auto max-w-4xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Support that keeps your order moving.</h1>
+        <h1 className="mx-auto max-w-4xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
+          Support that keeps your order moving.
+        </h1>
         <p className="mx-auto max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
           We are here to help with product questions, order updates, delivery coordination, and shopping support before and after checkout.
         </p>
@@ -433,93 +477,157 @@ export const SupportPage: React.FC = () => {
         ))}
       </div>
 
+      {/* Quick Reach Cards */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[1.75rem] border border-[#E6DFD7] bg-white p-6 text-center dark:border-[#36322E] dark:bg-[#1C1917]">
+        <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#C86D51] hover:shadow-sm">
           <Phone className="mx-auto h-6 w-6 text-[#C86D51]" />
           <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Customer line</h4>
-          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{storeSettings.storePhone || '+233 59 215 3306'}</p>
-        </div>
+          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{supportPhone}</p>
+        </a>
 
-        <div className="rounded-[1.75rem] border border-[#E6DFD7] bg-white p-6 text-center dark:border-[#36322E] dark:bg-[#1C1917]">
+        <a
+          href={getWhatsAppUrl(storeSettings.whatsappNumber, 'Hello CR Cosmetics team, I would like some assistance with my shopping/order.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#25D366] hover:shadow-sm"
+        >
           <MessageCircle className="mx-auto h-6 w-6 text-[#25D366]" />
-          <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">WhatsApp</h4>
-          <a
-            href={getWhatsAppUrl(storeSettings.whatsappNumber)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 block text-sm font-semibold text-[#25D366] hover:underline"
-          >
-            Chat with us
-          </a>
-        </div>
+          <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">WhatsApp Support</h4>
+          <p className="mt-2 text-sm font-semibold text-[#25D366]">Chat with Customer Care</p>
+        </a>
 
-        <div className="rounded-[1.75rem] border border-[#E6DFD7] bg-white p-6 text-center dark:border-[#36322E] dark:bg-[#1C1917]">
+        <a href={`mailto:${supportEmail}`} className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#C86D51] hover:shadow-sm">
           <Mail className="mx-auto h-6 w-6 text-[#C86D51]" />
           <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Email</h4>
-          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{storeSettings.storeEmail}</p>
-        </div>
+          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)] break-all">{supportEmail}</p>
+        </a>
 
-        <div className="rounded-[1.75rem] border border-[#E6DFD7] bg-white p-6 text-center dark:border-[#36322E] dark:bg-[#1C1917]">
+        <div className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center">
           <MapPin className="mx-auto h-6 w-6 text-[#C86D51]" />
-          <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Store</h4>
-          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{storeSettings.storeAddress}</p>
+          <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Store Location</h4>
+          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{supportAddress}</p>
         </div>
       </div>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      {/* Interactive FAQ & Help Section */}
+      <div className="mt-12 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-full bg-[#F5F0EB] p-2 text-[#C86D51] dark:bg-stone-800">
-              <HelpCircle className="h-4 w-4" />
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-[#F5F0EB] p-2 text-[#C86D51] dark:bg-stone-800">
+                <HelpCircle className="h-4 w-4" />
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl text-[var(--text-primary)]">Frequently asked questions</h2>
             </div>
-            <h2 className="font-serif text-3xl text-[var(--text-primary)]">Frequently asked questions</h2>
           </div>
 
-          <div className="space-y-4">
-            {faqs.map((faq) => (
-              <div key={faq.question} className="rounded-2xl border border-[var(--border-color)] bg-white/40 p-4 dark:bg-stone-900/50">
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">{faq.question}</h3>
-                <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">{faq.answer}</p>
-              </div>
-            ))}
+          {/* FAQ Search & Category Filter */}
+          <div className="mb-6 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+              <input
+                type="text"
+                placeholder="Search questions (e.g. delivery, tracking, payment)..."
+                value={faqSearch}
+                onChange={(e) => setFaqSearch(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] pl-10 pr-4 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                    selectedCategory === cat
+                      ? 'bg-[#C86D51] text-white'
+                      : 'border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-muted)] hover:border-[#C86D51]'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Accordion FAQ Items */}
+          <div className="space-y-3">
+            {filteredFaqs.length > 0 ? (
+              filteredFaqs.map((faq, idx) => {
+                const isOpen = openFaqIndices.includes(idx);
+                return (
+                  <div
+                    key={faq.question}
+                    className="overflow-hidden rounded-2xl border border-[var(--border-color)] bg-white/50 dark:bg-stone-900/40 transition"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleFaq(idx)}
+                      className="flex w-full items-center justify-between p-4 text-left font-bold text-sm text-[var(--text-primary)] hover:text-[#C86D51] transition"
+                    >
+                      <span>{faq.question}</span>
+                      {isOpen ? (
+                        <ChevronUp className="h-4 w-4 shrink-0 text-[#C86D51]" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 shrink-0 text-stone-400" />
+                      )}
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 text-xs leading-6 text-[var(--text-muted)] border-t border-[var(--border-color)]/60 pt-3">
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <p className="py-6 text-center text-xs text-[var(--text-muted)]">
+                No matching questions found. Contact our team below and we will help you!
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-          <h2 className="font-serif text-3xl text-[var(--text-primary)]">Need a quick answer?</h2>
-          <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
-            For order updates, payment confirmation, or general support, send us a message and our team will respond as quickly as possible.
-          </p>
+        {/* Quick Assistance Card */}
+        <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8 flex flex-col justify-between">
+          <div>
+            <h2 className="font-serif text-3xl text-[var(--text-primary)]">Need a quick answer?</h2>
+            <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+              For immediate order status checks, payment confirmation, or product suggestions, send us a direct message.
+            </p>
 
-          <div className="mt-6 space-y-4 text-sm">
-            <div className="flex items-start gap-3 text-[var(--text-muted)]">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51]" />
-              <span>Friendly, human support from a real customer care team.</span>
-            </div>
-            <div className="flex items-start gap-3 text-[var(--text-muted)]">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51]" />
-              <span>Fast guidance for delivery updates, complaints, and product concerns.</span>
-            </div>
-            <div className="flex items-start gap-3 text-[var(--text-muted)]">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51]" />
-              <span>Convenient WhatsApp support for shoppers and repeat customers.</span>
+            <div className="mt-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 text-[var(--text-muted)]">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51] shrink-0" />
+                <span>Direct WhatsApp contact with prompt dispatch updates.</span>
+              </div>
+              <div className="flex items-start gap-3 text-[var(--text-muted)]">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#C86D51] shrink-0" />
+                <span>Fast guidance for delivery scheduling, order changes, and returns.</span>
+              </div>
+              <div className="flex items-start gap-3 text-[var(--text-muted)]">
+                <Clock className="mt-0.5 h-4 w-4 text-[#C86D51] shrink-0" />
+                <span>Support hours: Mon – Sat, 8:00 AM – 7:00 PM GMT.</span>
+              </div>
             </div>
           </div>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
-              href={getWhatsAppUrl(storeSettings.whatsappNumber)}
+              href={getWhatsAppUrl(storeSettings.whatsappNumber, 'Hello CR Cosmetics care team, I need help with an order.')}
               target="_blank"
               rel="noopener noreferrer"
+              className="flex-1"
             >
-              <Button variant="secondary" className="w-full justify-center gap-2 rounded-full px-4 py-2.5">
+              <Button variant="secondary" className="w-full justify-center gap-2 rounded-full px-4 py-3 font-bold bg-[#25D366] text-white hover:bg-[#1EBE5D]">
                 <MessageCircle className="h-4 w-4" />
                 Chat on WhatsApp
               </Button>
             </a>
-            <Link to="/shop">
-              <Button variant="outline" className="w-full justify-center gap-2 rounded-full px-4 py-2.5">
-                Continue shopping
+            <Link to="/contact" className="flex-1">
+              <Button variant="outline" className="w-full justify-center gap-2 rounded-full px-4 py-3 font-bold">
+                Send an Inquiry
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -532,37 +640,215 @@ export const SupportPage: React.FC = () => {
 
 export const ContactPage: React.FC = () => {
   const { storeSettings } = useStore();
+  const [fullName, setFullName] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
+  const [orderNumber, setOrderNumber] = useState('');
+  const [inquiryType, setInquiryType] = useState('Order Status & Delivery');
+  const [message, setMessage] = useState('');
+  const [submittedMessage, setSubmittedMessage] = useState(false);
+
+  const supportPhone = storeSettings.storePhone || '+233 59 215 3306';
+  const supportEmail = storeSettings.storeEmail || 'support@cr-cosmetics.com';
+  const supportAddress = storeSettings.storeAddress || 'Accra, Ghana';
+
+  const handleWhatsAppSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formattedMsg = `*New Customer Inquiry*\n\n*Name:* ${fullName || 'Customer'}\n*Contact:* ${contactInfo || 'Not provided'}\n*Inquiry Type:* ${inquiryType}\n${orderNumber ? `*Order #:* ${orderNumber}\n` : ''}\n*Message:*\n${message || 'Hello, I need assistance.'}`;
+    const url = getWhatsAppUrl(storeSettings.whatsappNumber, formattedMsg);
+    window.open(url, '_blank');
+    setSubmittedMessage(true);
+  };
+
+  const handleDirectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName || !contactInfo || !message) return;
+    setSubmittedMessage(true);
+  };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-2xl">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Contact {storeSettings.storeName}</span>
-        <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">Let&apos;s help you find what you need.</h1>
-        <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.</p>
+        <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
+          Let&apos;s help you find what you need.
+        </h1>
+        <p className="mt-5 text-sm leading-7 text-[var(--text-muted)] sm:text-base">
+          Reach the team for product questions, order changes, delivery guidance, or anything else about your shopping experience.
+        </p>
       </div>
 
+      {/* Contact Channels */}
       <div className="mt-10 grid gap-5 md:grid-cols-3">
-        <a href={`tel:${storeSettings.storePhone || '+233592153306'}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51]">
+        <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51] hover:shadow-sm">
           <Phone className="h-6 w-6 text-[#C86D51]" />
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Call us</h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">{storeSettings.storePhone || '+233 59 215 3306'}</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">{supportPhone}</p>
         </a>
-        <a href={`mailto:${storeSettings.storeEmail}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51]">
+        <a href={`mailto:${supportEmail}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51] hover:shadow-sm">
           <Mail className="h-6 w-6 text-[#C86D51]" />
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Email us</h2>
-          <p className="mt-2 break-words text-sm text-[var(--text-muted)]">{storeSettings.storeEmail}</p>
+          <p className="mt-2 break-words text-sm text-[var(--text-muted)]">{supportEmail}</p>
         </a>
-          <a href={getWhatsAppUrl(storeSettings.whatsappNumber)} target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#25D366]">
+        <a
+          href={getWhatsAppUrl(storeSettings.whatsappNumber, 'Hello CR Cosmetics care team, I have an inquiry.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#25D366] hover:shadow-sm"
+        >
           <MessageCircle className="h-6 w-6 text-[#25D366]" />
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">WhatsApp</h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">Chat with customer care</p>
         </a>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
-        <div className="flex items-start gap-4">
-          <MapPin className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
-          <div><h2 className="text-sm font-extrabold text-[var(--text-primary)]">Visit or receive delivery</h2><p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">{storeSettings.storeAddress || 'Accra, Ghana'}</p></div>
+      {/* Interactive Contact & Inquiry Form */}
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8">
+          <div className="mb-6">
+            <h2 className="font-serif text-2xl text-[var(--text-primary)]">Send us a message</h2>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Fill out this form and our support team will respond promptly.
+            </p>
+          </div>
+
+          {submittedMessage ? (
+            <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-6 text-center space-y-3">
+              <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
+              <h3 className="font-bold text-emerald-800 dark:text-emerald-200">Thank you! Your message was received.</h3>
+              <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                Our customer team is reviewing your message and will reach out to you shortly.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmittedMessage(false);
+                  setMessage('');
+                }}
+                className="mt-3 inline-block text-xs font-bold text-emerald-800 underline"
+              >
+                Send another message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleDirectSubmit} className="space-y-4 text-xs">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block font-bold text-[var(--text-primary)] mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] px-3.5 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[var(--text-primary)] mb-1">Phone or Email *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 0592153306 or email"
+                    value={contactInfo}
+                    onChange={(e) => setContactInfo(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] px-3.5 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block font-bold text-[var(--text-primary)] mb-1">Inquiry Topic</label>
+                  <select
+                    value={inquiryType}
+                    onChange={(e) => setInquiryType(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] px-3.5 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+                  >
+                    <option value="Order Status & Delivery">Order Status & Delivery</option>
+                    <option value="Payment Confirmation">Payment Confirmation</option>
+                    <option value="Return or Exchange">Return or Exchange</option>
+                    <option value="Product Advice">Product Advice</option>
+                    <option value="General Question">General Question</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-[var(--text-primary)] mb-1">Order # (if applicable)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. CR-GH-5819"
+                    value={orderNumber}
+                    onChange={(e) => setOrderNumber(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] px-3.5 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[var(--text-primary)] mb-1">Your Message *</label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Tell us how we can help you..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] px-3.5 py-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[#C86D51]"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleWhatsAppSubmit}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#25D366]/20 transition hover:bg-[#1EBE5D]"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat via WhatsApp
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#C86D51] px-5 py-3 text-xs font-bold text-white shadow-md shadow-[#C86D51]/20 transition hover:bg-[#B05D41]"
+                >
+                  <Send className="h-4 w-4" />
+                  Submit Inquiry
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* Location / Hours Info Card */}
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8 space-y-4">
+            <div className="flex items-start gap-4">
+              <MapPin className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
+              <div>
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Visit or receive delivery</h3>
+                <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">{supportAddress}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 pt-2 border-t border-[var(--border-color)]">
+              <Clock className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
+              <div>
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Operating Hours</h3>
+                <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">
+                  Monday – Friday: 8:00 AM – 7:00 PM<br />
+                  Saturday: 9:00 AM – 6:00 PM<br />
+                  Sunday: WhatsApp & online dispatch inquiries only
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 pt-2 border-t border-[var(--border-color)]">
+              <Truck className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
+              <div>
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Delivery coverage</h3>
+                <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">
+                  Accra Express delivery same day. Nationwide delivery across all regions in Ghana.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

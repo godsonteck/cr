@@ -244,11 +244,11 @@ export interface CartItem {
 }
 
 export interface RiderTrackingInfo {
-  riderName: string;
-  riderPhone: string;
-  riderLocation: string;
-  estimatedArrival: string;
-  stageIndex: number;
+  riderName?: string;
+  riderPhone?: string;
+  riderLocation?: string;
+  estimatedArrival?: string;
+  stageIndex?: number;
 }
 
 export type DeliveryMethod = 'accra-express' | 'standard-delivery' | 'intercity' | 'store-pickup';

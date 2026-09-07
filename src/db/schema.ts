@@ -191,11 +191,11 @@ export const orders = pgTable('orders', {
   paymentReference: varchar('payment_reference', { length: 100 }),
   paymentSenderPhone: varchar('payment_sender_phone', { length: 50 }),
   riderInfo: jsonb('rider_info').$type<{
-    riderName: string;
-    riderPhone: string;
-    riderLocation: string;
-    estimatedArrival: string;
-    stageIndex: number;
+    riderName?: string;
+    riderPhone?: string;
+    riderLocation?: string;
+    estimatedArrival?: string;
+    stageIndex?: number;
   }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

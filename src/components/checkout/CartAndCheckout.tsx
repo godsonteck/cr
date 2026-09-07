@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   ShoppingCart,
   Trash2,
@@ -693,8 +693,26 @@ export const MultiStepCheckoutPage: React.FC = () => {
 /* ─── Order Confirmation ──────────────────────────────────────────────────── */
 export const OrderConfirmationPage: React.FC = () => {
   const location = useLocation();
+  const { orderId } = useParams<{ orderId: string }>();
   const { storeSettings } = useStore();
-  const order = (location.state as { order?: Order })?.order;
+  const [order, setOrder] = useState<Order | null>((location.state as { order?: Order })?.order || null);
+  const [loading, setLoading] = useState(!order && Boolean(orderId));
+
+  useEffect(() => {
+    if (!order && orderId) {
+      setLoading(true);
+      api.get<Order>(`/orders?id=${encodeURIComponent(orderId)}`)
+        .then(fetched => {
+          if (fetched && fetched.id) setOrder(fetched);
+        })
+        .catch(() => {
+          api.get<Order>(`/orders?orderNumber=${encodeURIComponent(orderId)}`)
+            .then(fetched => { if (fetched && fetched.id) setOrder(fetched); })
+            .catch(() => {});
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [order, orderId]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)]">
@@ -708,26 +726,78 @@ export const OrderConfirmationPage: React.FC = () => {
             {order?.paymentStatus === 'pending' ? '🎉 Order Received!' : '🎉 Order Confirmed!'}
           </h1>
           {order && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#FF6B00]/30 bg-[#FF6B00]/5 px-4 py-2">
-              <Package className="h-4 w-4 text-[#FF6B00]" />
-              <span className="text-sm font-black text-[#FF6B00]">Order #{order.orderNumber}</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#C86D51]/30 bg-[#C86D51]/10 px-4 py-2">
+              <Package className="h-4 w-4 text-[#C86D51]" />
+              <span className="text-sm font-black text-[#C86D51]">Order #{order.orderNumber}</span>
             </div>
           )}
           <p className="text-sm text-[var(--text-muted)] max-w-sm mx-auto">
             {order?.paymentStatus === 'paid'
-              ? 'Your payment was confirmed. We\'re preparing your order now!'
-              : 'Thank you for your order! You\'ll receive a confirmation shortly.'}
+              ? 'Your payment was confirmed. We are preparing your items now!'
+              : 'Thank you for your order! We are reviewing and processing your order.'}
           </p>
         </div>
 
-        {order ? (
-          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden">
+        {loading ? (
+          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-8 text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#C86D51] border-t-transparent mb-3" />
+            <p className="text-xs font-bold text-[var(--text-muted)]">Loading order details...</p>
+          </div>
+        ) : order ? (
+          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden space-y-0">
             {/* Order Header */}
             <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-3 flex justify-between items-center">
               <span className="text-xs font-bold text-[var(--text-muted)]">
-                Placed on {new Date(order.createdAt).toLocaleDateString('en-GH', { dateStyle: 'medium' })}
+                Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GH', { dateStyle: 'medium' }) : 'Today'}
               </span>
               <Badge variant="botanical">{order.status}</Badge>
+            </div>
+
+            {/* Order Progress Stepper */}
+            <div className="p-5 border-b border-[var(--border-color)] bg-[#FCF9F7] dark:bg-[#241D20]/50">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500">
+                  Order Progress
+                </p>
+                {order.estimatedDeliveryTime && (
+                  <span className="text-[11px] font-bold text-[#C86D51]">
+                    Est. Arrival: {order.estimatedDeliveryTime}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
+                {['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map((step, idx) => {
+                  const stageMap: Record<string, number> = {
+                    'Confirmed': 0,
+                    'Processing': 1,
+                    'Packing Order': 2,
+                    'Out for Delivery': 3,
+                    'Delivered': 4,
+                  };
+                  const currentStage = stageMap[order.status] ?? 0;
+                  const isDone = idx <= currentStage;
+                  const isCurrent = idx === currentStage;
+                  return (
+                    <div key={step} className={isCurrent ? 'text-[#C86D51] font-black' : isDone ? 'text-stone-700 dark:text-stone-200' : 'text-stone-300 dark:text-stone-600'}>
+                      <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[#C86D51] ring-4 ring-[#C86D51]/25' : isDone ? 'bg-[#C86D51]' : 'bg-stone-200 dark:bg-stone-700'}`} />
+                      <span className="line-clamp-2 leading-tight">{step}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {(order.riderInfo?.riderName || order.riderInfo?.riderPhone) && (
+                <div className="mt-3 flex items-center justify-between rounded-xl bg-white dark:bg-[#1C1719] border border-[#F0E4DC] dark:border-[#2C2426] p-2.5 text-xs text-stone-700 dark:text-stone-300">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-[#C86D51]" />
+                    <span><strong>Courier:</strong> {order.riderInfo.riderName}</span>
+                  </div>
+                  {order.riderInfo.riderPhone && (
+                    <a href={`tel:${order.riderInfo.riderPhone}`} className="text-[#C86D51] font-bold hover:underline">
+                      Call {order.riderInfo.riderPhone}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Items */}
@@ -735,10 +805,10 @@ export const OrderConfirmationPage: React.FC = () => {
               <p className="text-xs font-black uppercase tracking-wide text-[var(--text-subtle)]">Items Ordered</p>
               {order.items.map(item => (
                 <div key={item.product.id} className="flex items-center gap-3">
-                  <img src={item.product.image} alt={item.product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                  <img src={item.product.image} alt={item.product.name} className="w-12 h-12 rounded-lg object-cover shrink-0 border border-[var(--border-color)]" />
                   <div className="flex-1 min-w-0">
                     <p className="break-words text-xs font-bold text-[var(--text-primary)]">{item.product.name}</p>
-                    <p className="text-xs text-[var(--text-muted)]">Qty: {item.quantity}</p>
+                    <p className="text-xs text-[var(--text-muted)]">Qty: {item.quantity} {item.selectedOption ? `• ${item.selectedOption}` : ''}</p>
                   </div>
                   <span className="text-xs font-black text-[var(--text-primary)]">GHS {(item.product.price * item.quantity).toFixed(2)}</span>
                 </div>
@@ -748,24 +818,29 @@ export const OrderConfirmationPage: React.FC = () => {
             {/* Cost Breakdown */}
             <div className="p-5 border-b border-[var(--border-color)] space-y-2">
               <div className="flex justify-between text-xs text-[var(--text-muted)]">
-                <span>Subtotal</span><span>GHS {order.subtotal.toFixed(2)}</span>
+                <span>Subtotal</span><span>GHS {Number(order.subtotal).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-xs text-[var(--text-muted)]">
-                <span>Delivery</span><span>GHS {order.shippingFee.toFixed(2)}</span>
+                <span>Delivery</span><span>GHS {Number(order.shippingFee).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-base font-black">
+              {Number(order.discount) > 0 && (
+                <div className="flex justify-between text-xs text-emerald-600 font-bold">
+                  <span>Discount</span><span>-GHS {Number(order.discount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-base font-black pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">{order.paymentStatus === 'pending' ? 'Amount Due' : 'Total Paid'}</span>
-                <span className="text-[#FF6B00]">GHS {order.total.toFixed(2)}</span>
+                <span className="text-[#C86D51]">GHS {Number(order.total).toFixed(2)}</span>
               </div>
             </div>
 
             {/* Delivery Details */}
             <div className="p-5 space-y-2 text-xs text-[var(--text-muted)]">
-              <p className="font-black uppercase tracking-wide text-[var(--text-subtle)] mb-2">Delivery Info</p>
-              <p><strong className="text-[var(--text-primary)]">Name:</strong> {order.shippingAddress.fullName}</p>
+              <p className="font-black uppercase tracking-wide text-[var(--text-subtle)] mb-2">Delivery Details</p>
+              <p><strong className="text-[var(--text-primary)]">Recipient:</strong> {order.shippingAddress.fullName}</p>
               <p><strong className="text-[var(--text-primary)]">Phone:</strong> {order.shippingAddress.phone}</p>
-              <p><strong className="text-[var(--text-primary)]">Address:</strong> {order.shippingAddress.area}, {order.shippingAddress.city}</p>
-              <p><strong className="text-[var(--text-primary)]">Payment:</strong> <span className="uppercase">{order.paymentMethod}</span> ({order.paymentStatus})</p>
+              <p><strong className="text-[var(--text-primary)]">Destination:</strong> {order.shippingAddress.area}, {order.shippingAddress.city}</p>
+              <p><strong className="text-[var(--text-primary)]">Payment:</strong> <span className="uppercase font-bold text-[#C86D51]">{order.paymentMethod}</span> ({order.paymentStatus})</p>
             </div>
           </div>
         ) : (
@@ -774,12 +849,12 @@ export const OrderConfirmationPage: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row justify-center gap-3">
           <Link to="/account/orders">
-            <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#FF6B00] text-white font-black text-sm hover:bg-[#E55A00] transition shadow-lg shadow-[#FF6B00]/20">
-              View My Orders
+            <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#C86D51] text-white font-bold text-sm hover:bg-[#B05D41] transition shadow-lg shadow-[#C86D51]/25">
+              Track in My Orders
             </button>
           </Link>
           <Link to="/shop">
-            <button className="w-full sm:w-auto px-6 py-3 rounded-xl border-2 border-[var(--border-color)] text-[var(--text-primary)] font-black text-sm hover:border-[#FF6B00] transition">
+            <button className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[var(--border-color)] bg-white dark:bg-[#1C1719] text-[var(--text-primary)] font-bold text-sm hover:border-[#C86D51] transition">
               Continue Shopping
             </button>
           </Link>

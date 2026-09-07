@@ -26,7 +26,7 @@ const productQuerySchema = z.object({
 });
 
 const productCreateSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string().min(1).max(255),
   brand: z.string().min(1).max(100),
   department: z.enum(['beauty', 'groceries']),
@@ -35,13 +35,13 @@ const productCreateSchema = z.object({
   price: z.union([z.string(), z.number()]).transform(v => String(v)),
   deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : Number(v)),
   originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : String(v)),
-  discountBadge: z.string().max(20).optional(),
+  discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100),
   image: z.string().min(1).max(2_100_000), // ~1.5 MB base64 cap
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
-  highlights: z.array(z.string()).min(1),
-  badge: z.string().max(50).optional(),
+  highlights: z.array(z.string()).default([]),
+  badge: z.string().max(50).optional().nullable(),
   inStock: z.boolean().default(true),
   isPublished: z.boolean().default(true),
   stockCount: z.number().int().min(0).default(0),
@@ -86,7 +86,7 @@ const productUpdateSchema = z.object({
   image: z.string().min(1).optional(),
   images: z.array(z.string().min(1)).min(1).optional(),
   description: z.string().min(1).optional(),
-  highlights: z.array(z.string()).min(1).optional(),
+  highlights: z.array(z.string()).optional(),
   badge: z.string().max(50).optional().nullable(),
   inStock: z.boolean().optional(),
   isPublished: z.boolean().optional(),

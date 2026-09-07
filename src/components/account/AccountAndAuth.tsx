@@ -1118,14 +1118,22 @@ export const AccountPage: React.FC = () => {
 
                     {/* Progress timeline */}
                     <div className="mt-6 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-4">
-                      <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-bold">
-                        {['Confirmed', 'Packing Order', 'Out for Delivery', 'Delivered'].map((step, idx) => {
-                          const currentStage = activeOrders[0].status === 'Delivered' ? 3 : activeOrders[0].status === 'Out for Delivery' ? 2 : activeOrders[0].status === 'Packing Order' ? 1 : 0;
+                      <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
+                        {['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map((step, idx) => {
+                          const stageMap: Record<string, number> = {
+                            'Confirmed': 0,
+                            'Processing': 1,
+                            'Packing Order': 2,
+                            'Out for Delivery': 3,
+                            'Delivered': 4,
+                          };
+                          const currentStage = stageMap[activeOrders[0].status] ?? 0;
                           const isDone = idx <= currentStage;
+                          const isCurrent = idx === currentStage;
                           return (
-                            <div key={step} className={isDone ? 'text-[#C86D51]' : 'text-stone-300 dark:text-stone-600'}>
-                              <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isDone ? 'bg-[#C86D51]' : 'bg-stone-200 dark:bg-stone-700'}`} />
-                              {step}
+                            <div key={step} className={isCurrent ? 'text-[#C86D51] font-black' : isDone ? 'text-stone-700 dark:text-stone-200' : 'text-stone-300 dark:text-stone-600'}>
+                              <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[#C86D51] ring-4 ring-[#C86D51]/25' : isDone ? 'bg-[#C86D51]' : 'bg-stone-200 dark:bg-stone-700'}`} />
+                              <span className="line-clamp-2 leading-tight">{step}</span>
                             </div>
                           );
                         })}
@@ -1365,25 +1373,55 @@ export const AccountPage: React.FC = () => {
 
                         {/* Order Stepper */}
                         <div className="rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-4">
-                          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-stone-500">
-                            Status
-                          </p>
-                          <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold">
-                            {['Confirmed', 'Packing Order', 'Out for Delivery', 'Delivered'].map((stage, idx) => {
-                              const currentStage = ord.status === 'Delivered' ? 3 : ord.status === 'Out for Delivery' ? 2 : ord.status === 'Packing Order' ? 1 : 0;
+                          <div className="mb-2 flex items-center justify-between">
+                            <p className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500">
+                              Status
+                            </p>
+                            {ord.estimatedDeliveryTime && (
+                              <span className="text-[11px] font-bold text-[#C86D51]">
+                                Est. Delivery: {ord.estimatedDeliveryTime}
+                              </span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
+                            {['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map((stage, idx) => {
+                              const stageMap: Record<string, number> = {
+                                'Confirmed': 0,
+                                'Processing': 1,
+                                'Packing Order': 2,
+                                'Out for Delivery': 3,
+                                'Delivered': 4,
+                              };
+                              const currentStage = stageMap[ord.status] ?? 0;
                               const isDone = idx <= currentStage;
+                              const isCurrent = idx === currentStage;
                               return (
-                                <div key={stage} className={isDone ? 'text-[#C86D51]' : 'text-stone-300 dark:text-stone-600'}>
-                                  <span className={`mx-auto mb-1 block h-2 w-2 rounded-full ${isDone ? 'bg-[#C86D51]' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                                  {stage}
+                                <div key={stage} className={isCurrent ? 'text-[#C86D51] font-black' : isDone ? 'text-stone-700 dark:text-stone-200' : 'text-stone-300 dark:text-stone-600'}>
+                                  <span className={`mx-auto mb-1 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[#C86D51] ring-4 ring-[#C86D51]/25' : isDone ? 'bg-[#C86D51]' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                                  <span className="line-clamp-2 leading-tight">{stage}</span>
                                 </div>
                               );
                             })}
                           </div>
-                          {ord.riderInfo?.riderName && (
-                            <p className="mt-3 text-xs text-stone-600 dark:text-stone-300">
-                              <strong>Courier Assigned:</strong> {ord.riderInfo.riderName} {ord.riderInfo.riderPhone ? `(${ord.riderInfo.riderPhone})` : ''} {ord.riderInfo.estimatedArrival ? `• ${ord.riderInfo.estimatedArrival}` : ''}
-                            </p>
+                          {(ord.riderInfo?.riderName || ord.riderInfo?.riderPhone || ord.riderInfo?.riderLocation) && (
+                            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white dark:bg-[#1C1719] border border-[#F0E4DC] dark:border-[#2C2426] p-3 text-xs text-stone-700 dark:text-stone-300">
+                              <div className="flex items-center gap-2">
+                                <Truck className="h-4 w-4 text-[#C86D51]" />
+                                <span>
+                                  <strong>Courier:</strong> {ord.riderInfo?.riderName || 'Assigned Driver'}
+                                  {ord.riderInfo?.riderLocation ? ` • Near ${ord.riderInfo.riderLocation}` : ''}
+                                  {ord.riderInfo?.estimatedArrival ? ` • ETA ${ord.riderInfo.estimatedArrival}` : ''}
+                                </span>
+                              </div>
+                              {ord.riderInfo?.riderPhone && (
+                                <a
+                                  href={`tel:${ord.riderInfo.riderPhone}`}
+                                  className="inline-flex items-center gap-1 rounded-lg bg-[#FAF3F0] dark:bg-[#2A2024] px-2.5 py-1 text-xs font-bold text-[#C86D51] hover:underline"
+                                >
+                                  <Phone className="h-3 w-3" /> Call Rider ({ord.riderInfo.riderPhone})
+                                </a>
+                              )}
+                            </div>
                           )}
                         </div>
 
