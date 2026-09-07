@@ -885,9 +885,10 @@ export const AccountPage: React.FC = () => {
     e.preventDefault();
     if (!reviewModalProduct) return;
     setIsSubmittingReview(true);
+    const prodId = reviewModalProduct.id;
     try {
-      await api.post('/reviews', {
-        productId: reviewModalProduct.id,
+      const result: any = await api.post('/reviews', {
+        productId: prodId,
         rating: reviewRating,
         title: reviewTitle.trim() || undefined,
         comment: reviewComment.trim(),
@@ -900,6 +901,20 @@ export const AccountPage: React.FC = () => {
       setReviewTitle('');
       setReviewImages([]);
       void loadUserReviews();
+
+      // Dispatch realtime event for store and all open tabs
+      const detail = {
+        type: 'REVIEW_ADDED',
+        productId: prodId,
+        rating: result?.productRating,
+        reviewCount: result?.productReviewCount,
+      };
+      window.dispatchEvent(new CustomEvent('cr_review_added', { detail }));
+      try {
+        const ch = new BroadcastChannel('cr_reviews_channel');
+        ch.postMessage(detail);
+        ch.close();
+      } catch {}
     } catch (error: any) {
       showAlert(error?.message || 'Failed to submit review', 'error');
     } finally {

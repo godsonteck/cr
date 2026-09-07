@@ -127,7 +127,41 @@ export const ProductDetailPage: React.FC = () => {
 
   useEffect(() => {
     void loadReviews();
-  }, [loadReviews]);
+
+    // Listen for realtime review events across tabs and windows
+    const handleReviewEvent = (e: any) => {
+      const data = e?.detail || e?.data;
+      if (data?.productId === productId) {
+        void loadReviews();
+      }
+    };
+
+    window.addEventListener('cr_review_added', handleReviewEvent);
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('cr_reviews_channel');
+        channel.onmessage = (e) => {
+          if (e.data?.productId === productId) {
+            void loadReviews();
+          }
+        };
+      }
+    } catch {}
+
+    // Realtime polling: refresh every 12s when tab is active so other visitors' reviews appear live
+    const pollInterval = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        void loadReviews();
+      }
+    }, 12000);
+
+    return () => {
+      window.removeEventListener('cr_review_added', handleReviewEvent);
+      if (channel) channel.close();
+      window.clearInterval(pollInterval);
+    };
+  }, [loadReviews, productId]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -157,11 +191,13 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleMarkHelpful = async (reviewId: string) => {
     if (helpfulVoted[reviewId]) return;
+    const rev = reviewsList.find((r) => r.id === reviewId);
+    const currentCount = rev?.helpfulCount || 0;
     try {
-      await markHelpful(reviewId);
+      await markHelpful(reviewId, currentCount);
       setHelpfulVoted((prev) => ({ ...prev, [reviewId]: true }));
       setReviewsList((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount || 0) + 1 } : r))
+        prev.map((r) => (r.id === reviewId ? { ...r, helpfulCount: currentCount + 1 } : r))
       );
       showAlert('Thank you for your feedback!', 'success');
     } catch {
@@ -179,7 +215,7 @@ export const ProductDetailPage: React.FC = () => {
     }
     setIsSubmittingReview(true);
     try {
-      await api.post('/reviews', {
+      const result: any = await api.post('/reviews', {
         productId,
         rating: newReviewRating,
         title: newReviewTitle.trim() || undefined,
@@ -192,8 +228,22 @@ export const ProductDetailPage: React.FC = () => {
       setNewReviewTitle('');
       setNewReviewComment('');
       setNewReviewImages([]);
-      void loadReviews();
+      await loadReviews();
       setActiveTab('reviews');
+
+      // Dispatch realtime event for store and all open tabs
+      const detail = {
+        type: 'REVIEW_ADDED',
+        productId,
+        rating: result?.productRating,
+        reviewCount: result?.productReviewCount,
+      };
+      window.dispatchEvent(new CustomEvent('cr_review_added', { detail }));
+      try {
+        const ch = new BroadcastChannel('cr_reviews_channel');
+        ch.postMessage(detail);
+        ch.close();
+      } catch {}
     } catch (err: any) {
       showAlert(err?.message || 'Failed to submit review', 'error');
     } finally {
@@ -234,6 +284,17 @@ export const ProductDetailPage: React.FC = () => {
   const wishlisted = isInWishlist(product.id);
   const currentImage = selectedImage || product.image;
   const hasOptions = Boolean(product.options?.length);
+
+  const effectiveReviewCount = ratingStats.totalReviews > 0
+    ? ratingStats.totalReviews
+    : (reviewsList.length > 0 ? reviewsList.length : (product.reviewCount || 0));
+
+  const effectiveRating = ratingStats.totalReviews > 0
+    ? ratingStats.averageRating
+    : (reviewsList.length > 0
+        ? Number((reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1))
+        : (effectiveReviewCount > 0 ? (Number(product.rating) || 5.0) : 0));
+
   const activeVariant = selectedVariant;
   const activeFlashDeal = flashDeals.find(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now() && deal.productIds?.includes(product.id));
   const baseDisplayPrice = activeVariant?.price ?? product.price;
@@ -363,9 +424,9 @@ export const ProductDetailPage: React.FC = () => {
                       <Star
                         key={star}
                         className={`h-3.5 w-3.5 ${
-                          star <= Math.round(ratingStats.totalReviews > 0 ? ratingStats.averageRating : Number(product.rating || 5))
+                          effectiveReviewCount > 0 && star <= Math.round(effectiveRating)
                             ? 'fill-amber-400 text-amber-400'
-                            : 'text-stone-300'
+                            : 'text-stone-300 dark:text-stone-600'
                         }`}
                       />
                     ))}
@@ -378,9 +439,9 @@ export const ProductDetailPage: React.FC = () => {
                     }}
                     className="text-xs text-stone-600 underline hover:text-[#C86D51] dark:text-stone-300 font-medium"
                   >
-                    {ratingStats.totalReviews > 0
-                      ? `${ratingStats.averageRating.toFixed(1)} (${ratingStats.totalReviews} ${ratingStats.totalReviews === 1 ? 'review' : 'reviews'})`
-                      : 'Be the first to review'}
+                    {effectiveReviewCount > 0
+                      ? `${effectiveRating.toFixed(1)} (${effectiveReviewCount} ${effectiveReviewCount === 1 ? 'verified review' : 'verified reviews'})`
+                      : 'No reviews yet · Be the first to review'}
                   </button>
                 </div>
 
@@ -607,7 +668,7 @@ export const ProductDetailPage: React.FC = () => {
                             : 'bg-stone-200 dark:bg-slate-700 text-stone-600 dark:text-stone-300'
                         }`}
                       >
-                        {ratingStats.totalReviews}
+                        {effectiveReviewCount}
                       </span>
                     </span>
                   )}
@@ -666,7 +727,7 @@ export const ProductDetailPage: React.FC = () => {
                       <div className="flex flex-col sm:items-start items-center">
                         <div className="flex items-baseline gap-2">
                           <span className="font-serif text-5xl font-black text-stone-900 dark:text-white">
-                            {ratingStats.totalReviews > 0 ? ratingStats.averageRating.toFixed(1) : Number(product.rating || 5).toFixed(1)}
+                            {effectiveReviewCount > 0 ? effectiveRating.toFixed(1) : '0.0'}
                           </span>
                           <span className="text-sm font-semibold text-stone-400">/ 5.0</span>
                         </div>
@@ -675,17 +736,17 @@ export const ProductDetailPage: React.FC = () => {
                             <Star
                               key={s}
                               className={`h-5 w-5 ${
-                                s <= Math.round(ratingStats.totalReviews > 0 ? ratingStats.averageRating : Number(product.rating || 5))
+                                effectiveReviewCount > 0 && s <= Math.round(effectiveRating)
                                   ? 'fill-amber-400 text-amber-400'
-                                  : 'text-stone-300'
+                                  : 'text-stone-300 dark:text-stone-600'
                               }`}
                             />
                           ))}
                         </div>
                         <p className="mt-2 text-xs font-semibold text-stone-600 dark:text-stone-300">
-                          {ratingStats.totalReviews > 0
-                            ? `Based on ${ratingStats.totalReviews} verified ${ratingStats.totalReviews === 1 ? 'customer review' : 'customer reviews'}`
-                            : 'Verified customer ratings'}
+                          {effectiveReviewCount > 0
+                            ? `Based on ${effectiveReviewCount} verified ${effectiveReviewCount === 1 ? 'customer review' : 'customer reviews'}`
+                            : 'No customer reviews yet'}
                         </p>
 
                         <button
@@ -702,8 +763,8 @@ export const ProductDetailPage: React.FC = () => {
                     <div className="sm:col-span-8 space-y-2">
                       {[5, 4, 3, 2, 1].map((stars) => {
                         const count = ratingStats.distribution?.[stars] || 0;
-                        const total = ratingStats.totalReviews || 1;
-                        const pct = ratingStats.totalReviews > 0 ? Math.round((count / total) * 100) : 0;
+                        const total = effectiveReviewCount;
+                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                         const isSelected = starFilter === stars;
                         return (
                           <button
@@ -941,7 +1002,7 @@ export const ProductDetailPage: React.FC = () => {
                             : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-slate-800 dark:text-stone-300'
                         }`}
                       >
-                        All ({ratingStats.totalReviews})
+                        All ({effectiveReviewCount})
                       </button>
                       {[5, 4, 3, 2, 1].map((s) => (
                         <button

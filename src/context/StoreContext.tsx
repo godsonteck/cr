@@ -503,6 +503,38 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  useEffect(() => {
+    const handleReviewAdded = (event: any) => {
+      const data = event?.detail || event?.data;
+      const { productId, rating, reviewCount } = data || {};
+      if (!productId) return;
+      setProducts(prev => prev.map(p => {
+        if (p.id !== productId) return p;
+        const nextCount = reviewCount !== undefined ? Number(reviewCount) : (p.reviewCount || 0) + 1;
+        const nextRating = rating !== undefined ? Number(rating) : p.rating;
+        return { ...p, reviewCount: nextCount, rating: nextRating };
+      }));
+    };
+
+    window.addEventListener('cr_review_added', handleReviewAdded);
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('cr_reviews_channel');
+        channel.onmessage = (e) => {
+          if (e.data?.type === 'REVIEW_ADDED') {
+            handleReviewAdded({ detail: e.data });
+          }
+        };
+      }
+    } catch {}
+
+    return () => {
+      window.removeEventListener('cr_review_added', handleReviewAdded);
+      if (channel) channel.close();
+    };
+  }, []);
+
   const fetchProducts = useCallback(async (params?: { category?: string; department?: string; published?: boolean; includeUnpublished?: boolean }) => {
     setLoading(true);
     setError(null);
