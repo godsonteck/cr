@@ -909,105 +909,194 @@ export const AccountPage: React.FC = () => {
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#FCF9F7] dark:bg-[#121011] py-8 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Top Header Card */}
-        <div className="mb-6 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-4 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white shadow-md">
-                {user?.profileImage ? <img src={user.profileImage} alt={`${user.fullName}'s profile`} className="h-full w-full object-cover" /> : (user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U')}
+        {/* Top Header Card - Redesigned Luxury Editorial Aesthetic */}
+        <div className="relative mb-8 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-gradient-to-b from-[#FFFFFF] via-[#FDFBF9] to-[#FBF6F2] dark:from-[#1E181B] dark:via-[#1A1417] dark:to-[#161113] p-6 sm:p-8 shadow-sm transition-all duration-300">
+          {/* Ambient glowing brand accent in background */}
+          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gradient-to-br from-[#C86D51]/10 via-[#D4AF37]/5 to-transparent blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-tr from-[#A94C63]/5 to-transparent blur-2xl" />
+          {/* Subtle top shimmer hairline */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C86D51]/40 to-transparent" />
+
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-5 sm:gap-6">
+              {/* Luxury Avatar Frame */}
+              <div className="relative shrink-0">
+                <div className="flex h-20 w-20 sm:h-22 sm:w-22 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] via-[#B85D43] to-[#8C3B50] p-0.5 shadow-md shadow-[#C86D51]/15 ring-2 ring-[#C86D51]/20 ring-offset-2 ring-offset-white dark:ring-offset-[#1E181B]">
+                  {user?.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt={`${user.fullName}'s profile`}
+                      className="h-full w-full rounded-[14px] object-cover"
+                    />
+                  ) : (
+                    <span className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-wide">
+                      {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                  )}
+                </div>
+                {/* Verified Customer Status Overlay */}
+                <div 
+                  title="Verified Customer"
+                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1C1817] text-[#D4AF37] ring-2 ring-white dark:ring-[#1E181B] shadow-sm"
+                >
+                  <Sparkles className="h-3 w-3 fill-[#D4AF37]" />
+                </div>
               </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-black tracking-tight text-[#1C1817] dark:text-stone-100">
+
+              {/* Name, Tier & Contact Info */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
                     {user?.fullName}
                   </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF0F4] dark:bg-[#2F1F24] px-2.5 py-0.5 text-[10px] font-extrabold text-[#C86D51]">
-                    <CheckCircle2 className="h-3 w-3" /> Registered Customer
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D4AF37]/35 bg-gradient-to-r from-[#FAF3E8] to-[#FFF9F2] dark:from-[#2A231C] dark:to-[#221B19] px-3 py-0.5 text-[11px] font-bold text-[#8C6219] dark:text-[#E5C07B] shadow-xs">
+                    <CheckCircle2 className="h-3 w-3 text-[#D4AF37]" />
+                    Verified Customer
                   </span>
                 </div>
-                <p className="mt-1 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
-                  <Mail className="h-3.5 w-3.5 text-stone-400" /> {user?.email}
+
+                {/* Contact info tags */}
+                <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#FAF6F0] dark:bg-[#251D21] px-2.5 py-1 text-xs text-stone-600 dark:text-stone-300 font-medium">
+                    <Mail className="h-3.5 w-3.5 text-[#C86D51]" />
+                    <span>{user?.email}</span>
+                  </div>
                   {user?.phone && (
-                    <>
-                      <span>•</span>
-                      <Phone className="h-3.5 w-3.5 text-stone-400" /> {user.phone}
-                    </>
+                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#FAF6F0] dark:bg-[#251D21] px-2.5 py-1 text-xs text-stone-600 dark:text-stone-300 font-medium">
+                      <Phone className="h-3.5 w-3.5 text-[#C86D51]" />
+                      <span>{user.phone}</span>
+                    </div>
                   )}
-                </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <Link to="/shop">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full rounded-xl border-[#E8D8CF] text-xs font-bold hover:border-[#C86D51] sm:w-auto"
-                >
-                  <ShoppingBag className="mr-1.5 h-3.5 w-3.5 text-[#C86D51]" /> Browse Catalog
-                </Button>
+            {/* Header Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3 self-start lg:self-center">
+              <Link to="/shop" className="flex-1 sm:flex-initial">
+                <button className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1C1817] dark:bg-stone-100 px-4 py-2.5 text-xs font-bold tracking-wide text-white dark:text-[#1C1817] shadow-sm hover:bg-[#C86D51] dark:hover:bg-[#C86D51] dark:hover:text-white transition-all duration-200">
+                  <ShoppingBag className="h-4 w-4 text-[#E28E74] dark:text-[#C86D51] group-hover:text-white group-hover:scale-110 transition-transform duration-200" />
+                  <span>Browse Catalog</span>
+                </button>
               </Link>
               <button
                 onClick={() => { logout(); navigate('/'); }}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-xs font-bold text-stone-500 hover:bg-stone-100 dark:hover:bg-[#2A2024] hover:text-red-600 transition"
+                className="flex flex-1 sm:flex-initial items-center justify-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/60 px-4 py-2.5 text-xs font-semibold text-stone-600 dark:text-stone-400 hover:border-red-200 hover:bg-red-50/50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-950/20 dark:hover:text-red-400 transition-all duration-200"
               >
-                <LogOut className="h-4 w-4" /> Sign out
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
               </button>
             </div>
           </div>
 
-          {/* Metrics Strip */}
-          <div className="mt-6 grid grid-cols-1 gap-3 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-6 min-[380px]:grid-cols-2 sm:grid-cols-4">
+          {/* Metrics Strip - Redesigned Luxury KPI Cards */}
+          <div className="relative z-10 mt-8 grid grid-cols-1 gap-3.5 border-t border-[#F0E4DC]/80 dark:border-[#2C2426] pt-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 1. Orders Placed */}
             <button
               onClick={() => setActiveTab('orders')}
-              className="flex items-center gap-3 rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-3.5 text-left transition hover:border-[#C86D51]"
+              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                activeTab === 'orders'
+                  ? 'border-[#C86D51] bg-[#FFFBF9] dark:bg-[#251A1D] shadow-sm'
+                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#C86D51]/50 hover:bg-white dark:hover:bg-[#241D20]'
+              }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#1C1719] text-[#C86D51] shadow-sm">
-                <Package className="h-5 w-5" />
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF2ED] to-[#FFE5DC] dark:from-[#35201B] dark:to-[#2B1B17] text-[#C86D51] shadow-xs ring-1 ring-[#C86D51]/20 transition-transform duration-300 group-hover:scale-105">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
+                    {allOrders.length}
+                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Orders Placed
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-black text-[#1C1817] dark:text-stone-100">{allOrders.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Orders placed</p>
-              </div>
+              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#C86D51]" />
             </button>
 
+            {/* 2. In Transit */}
             <button
               onClick={() => setActiveTab('orders')}
-              className="flex items-center gap-3 rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-3.5 text-left transition hover:border-[#C86D51]"
+              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                activeTab === 'orders' && activeOrders.length > 0
+                  ? 'border-[#D48B28] bg-[#FFFCF7] dark:bg-[#282117] shadow-sm'
+                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#D48B28]/50 hover:bg-white dark:hover:bg-[#241D20]'
+              }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#1C1719] text-[#C86D51] shadow-sm">
-                <Truck className="h-5 w-5" />
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF9ED] to-[#FFF0D4] dark:from-[#332716] dark:to-[#281F13] text-[#D48B28] shadow-xs ring-1 ring-[#D48B28]/20 transition-transform duration-300 group-hover:scale-105">
+                  <Truck className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
+                      {activeOrders.length}
+                    </p>
+                    {activeOrders.length > 0 && (
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D48B28] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D48B28]"></span>
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    In Transit
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-black text-[#1C1817] dark:text-stone-100">{activeOrders.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">In Transit</p>
-              </div>
+              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#D48B28]" />
             </button>
 
+            {/* 3. Saved Addresses */}
             <button
               onClick={() => setActiveTab('addresses')}
-              className="flex items-center gap-3 rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-3.5 text-left transition hover:border-[#C86D51]"
+              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                activeTab === 'addresses'
+                  ? 'border-[#A94C63] bg-[#FFF8FA] dark:bg-[#271920] shadow-sm'
+                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#A94C63]/50 hover:bg-white dark:hover:bg-[#241D20]'
+              }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#1C1719] text-[#C86D51] shadow-sm">
-                <MapPin className="h-5 w-5" />
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF0F4] to-[#FFE0E9] dark:from-[#341B24] dark:to-[#2A171D] text-[#A94C63] shadow-xs ring-1 ring-[#A94C63]/20 transition-transform duration-300 group-hover:scale-105">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
+                    {user?.savedAddresses?.length || 0}
+                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Saved Addresses
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-black text-[#1C1817] dark:text-stone-100">{user?.savedAddresses?.length || 0}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Saved Addresses</p>
-              </div>
+              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#A94C63]" />
             </button>
 
+            {/* 4. Saved Wishlist */}
             <button
               onClick={() => setActiveTab('wishlist')}
-              className="flex items-center gap-3 rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-3.5 text-left transition hover:border-[#C86D51]"
+              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                activeTab === 'wishlist'
+                  ? 'border-[#E11D48] bg-[#FFF5F6] dark:bg-[#2A171C] shadow-sm'
+                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#E11D48]/50 hover:bg-white dark:hover:bg-[#241D20]'
+              }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#1C1719] text-[#C86D51] shadow-sm">
-                <Heart className="h-5 w-5" />
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF1F2] to-[#FFE4E6] dark:from-[#36191E] dark:to-[#2B1519] text-[#E11D48] shadow-xs ring-1 ring-[#E11D48]/20 transition-transform duration-300 group-hover:scale-105">
+                  <Heart className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
+                    {wishlistIds.length}
+                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Saved Wishlist
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-black text-[#1C1817] dark:text-stone-100">{wishlistIds.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Saved Wishlist</p>
-              </div>
+              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#E11D48]" />
             </button>
           </div>
         </div>
