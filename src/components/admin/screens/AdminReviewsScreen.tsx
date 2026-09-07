@@ -99,6 +99,15 @@ export const AdminReviewsScreen: React.FC = () => {
                 </div>
                 <h2 className="mt-2 font-semibold text-stone-900 dark:text-stone-100">{review.title || 'Customer review'}</h2>
                 <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">{review.comment}</p>
+                {review.images && Array.isArray(review.images) && review.images.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {review.images.map((img, i) => (
+                      <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block">
+                        <img src={img} alt={`Review photo ${i + 1}`} className="h-14 w-14 rounded-lg object-cover border border-stone-200 dark:border-stone-700 shadow-xs hover:opacity-80 transition" />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex shrink-0 gap-2">
                 {!review.isApproved && <button className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white" onClick={() => void approve(review, true)}><Check className="h-4 w-4" />Publish</button>}

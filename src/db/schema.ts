@@ -239,6 +239,7 @@ export const reviews = pgTable('reviews', {
   comment: text('comment').notNull(),
   verifiedPurchase: boolean('verified_purchase').notNull().default(false),
   skinType: varchar('skin_type', { length: 50 }),
+  images: jsonb('images').$type<string[]>().default([]),
   helpfulCount: integer('helpful_count').notNull().default(0),
   adminReply: text('admin_reply'),
   isApproved: boolean('is_approved').notNull().default(true),

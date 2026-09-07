@@ -11,6 +11,7 @@ const reviewCreateSchema = z.object({
   title: z.string().max(200).optional(),
   comment: z.string().min(1),
   skinType: z.string().max(50).optional(),
+  images: z.array(z.string()).max(5).optional().default([]),
 });
 
 const reviewUpdateSchema = z.object({
@@ -96,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (method === 'POST') {
       const auth = await requireAuth(req, res);
-      if (!auth || auth.role !== 'customer') return;
+      if (!auth) return;
 
       const parsed = reviewCreateSchema.safeParse(body);
       if (!parsed.success) {
@@ -106,12 +107,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [product] = await db.select({ id: products.id }).from(products).where(eq(products.id, parsed.data.productId)).limit(1);
       if (!product) return res.status(404).json({ error: 'Product not found' });
 
+      const isCustomer = auth.role === 'customer';
+      const authorName = (isCustomer ? auth.name : (auth.adminName || auth.name)) || auth.email.split('@')[0] || 'CR Customer';
+      const userId = isCustomer ? auth.sub : null;
+
       const [newReview] = await db.insert(reviews).values({
-        ...parsed.data,
-        userId: auth.sub,
-        authorName: auth.name || auth.email.split('@')[0],
-        verifiedPurchase: false,
-        isApproved: false,
+        productId: parsed.data.productId,
+        rating: parsed.data.rating,
+        title: parsed.data.title || null,
+        comment: parsed.data.comment,
+        skinType: parsed.data.skinType || null,
+        images: parsed.data.images || [],
+        userId,
+        authorName,
+        verifiedPurchase: isCustomer,
+        isApproved: true,
       }).returning();
 
       const stats = await db

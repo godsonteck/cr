@@ -172,6 +172,7 @@ export interface ProductReview {
   comment: string;
   verifiedPurchase: boolean;
   skinType?: string;
+  images?: string[];
   helpfulCount: number;
   isApproved?: boolean;
   adminReply?: string;

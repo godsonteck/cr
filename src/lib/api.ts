@@ -18,9 +18,15 @@ async function request<T>(
   };
 
   // Add auth headers if available
-  const token = authToken === undefined
-    ? (localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token'))
-    : authToken;
+  let token = authToken;
+  if (token === undefined) {
+    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+    if (isAdminRoute) {
+      token = localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
+    } else {
+      token = localStorage.getItem('auth_token') || localStorage.getItem('admin_auth_token');
+    }
+  }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

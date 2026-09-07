@@ -32,6 +32,8 @@ import {
   CreditCard,
   Check,
   Bell,
+  Camera,
+  ImagePlus,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -560,6 +562,7 @@ export const AccountPage: React.FC = () => {
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSkinType, setReviewSkinType] = useState('Combination');
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [userReviews, setUserReviews] = useState<any[]>([]);
 
@@ -840,6 +843,43 @@ export const AccountPage: React.FC = () => {
     setIsAddressModalOpen(true);
   };
 
+  // Photo upload handler for review
+  const handleReviewPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (reviewImages.length + files.length > 4) {
+      showAlert('You can upload a maximum of 4 photos per review.', 'error');
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
+        showAlert('Please choose JPG, PNG, or WEBP images only.', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showAlert('Photos must be under 5MB each.', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = String(event.target?.result || '');
+        if (result) {
+          setReviewImages((prev) => [...prev, result]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+  };
+
+  const handleRemoveReviewPhoto = (index: number) => {
+    setReviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Submit verified review to live database
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -852,11 +892,13 @@ export const AccountPage: React.FC = () => {
         title: reviewTitle.trim() || undefined,
         comment: reviewComment.trim(),
         skinType: reviewSkinType,
+        images: reviewImages,
       });
-      showAlert('Review submitted successfully', 'success');
+      showAlert('Review submitted successfully! Thank you for your feedback.', 'success');
       setReviewModalProduct(null);
       setReviewComment('');
       setReviewTitle('');
+      setReviewImages([]);
       void loadUserReviews();
     } catch (error: any) {
       showAlert(error?.message || 'Failed to submit review', 'error');
@@ -1915,6 +1957,20 @@ export const AccountPage: React.FC = () => {
                           )}
                           <p className="text-xs text-stone-600 dark:text-stone-300">{rev.comment}</p>
 
+                          {rev.images && Array.isArray(rev.images) && rev.images.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {rev.images.map((img: string, i: number) => (
+                                <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block">
+                                  <img
+                                    src={img}
+                                    alt={`Review photo ${i + 1}`}
+                                    className="h-16 w-16 rounded-xl object-cover border border-[#F0E4DC] dark:border-[#2C2426] hover:opacity-90 transition shadow-xs"
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+
                           {rev.adminReply && (
                             <div className="rounded-xl bg-white dark:bg-[#1C1719] p-3 border border-[#F0E4DC] text-xs">
                               <p className="font-bold text-[#C86D51]">Reply from store:</p>
@@ -2409,6 +2465,56 @@ export const AccountPage: React.FC = () => {
                 />
               </div>
 
+              {/* Optional Photo Upload */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+                    <Camera className="h-3.5 w-3.5 text-[#C86D51]" />
+                    <span>Add Photos (Optional)</span>
+                  </label>
+                  <span className="text-[10px] text-stone-400 font-medium">
+                    {reviewImages.length}/4 uploaded
+                  </span>
+                </div>
+
+                {reviewImages.length > 0 && (
+                  <div className="mb-2.5 flex flex-wrap gap-2">
+                    {reviewImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group h-16 w-16 rounded-xl overflow-hidden border border-[#F0E4DC] dark:border-[#2C2426] shadow-xs"
+                      >
+                        <img src={img} alt={`Review photo ${idx + 1}`} className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveReviewPhoto(idx)}
+                          className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-red-600 transition"
+                          title="Remove photo"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {reviewImages.length < 4 && (
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0]/60 dark:bg-[#241D20]/60 p-3 hover:border-[#C86D51] hover:bg-[#FAF3F0] dark:hover:bg-[#2A2024] transition group">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
+                      multiple
+                      onChange={handleReviewPhotoUpload}
+                      className="hidden"
+                    />
+                    <ImagePlus className="h-4 w-4 text-[#C86D51] group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      Upload product or routine photos
+                    </span>
+                  </label>
+                )}
+              </div>
+
               <div className="flex gap-2 pt-2">
                 <Button
                   type="submit"
@@ -2421,7 +2527,10 @@ export const AccountPage: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setReviewModalProduct(null)}
+                  onClick={() => {
+                    setReviewModalProduct(null);
+                    setReviewImages([]);
+                  }}
                   className="rounded-xl px-4 text-xs font-bold"
                 >
                   Cancel
