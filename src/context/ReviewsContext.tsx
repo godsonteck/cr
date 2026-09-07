@@ -15,7 +15,7 @@ interface ReviewsContextType {
   addReview: (review: Omit<ProductReview, 'id' | 'date' | 'helpfulCount'>) => Promise<void>;
   deleteReview: (reviewId: string) => Promise<void>;
   replyToReview: (reviewId: string, replyText: string) => Promise<void>;
-  markHelpful: (reviewId: string) => Promise<void>;
+  markHelpful: (reviewId: string, currentHelpfulCount?: number) => Promise<void>;
   clearAllReviews: () => Promise<void>;
 }
 
@@ -97,13 +97,12 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const markHelpful = async (reviewId: string) => {
+  const markHelpful = async (reviewId: string, currentHelpfulCount?: number) => {
     try {
       const review = reviews.find(r => r.id === reviewId);
-      if (review) {
-        await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { helpfulCount: (review.helpfulCount || 0) + 1 });
-        setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount || 0) + 1 } : r));
-      }
+      const count = currentHelpfulCount !== undefined ? currentHelpfulCount + 1 : (review ? (review.helpfulCount || 0) + 1 : 1);
+      await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { helpfulCount: count });
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpfulCount: count } : r));
     } catch (e) {
       console.error('Failed to mark helpful:', e);
       throw e;

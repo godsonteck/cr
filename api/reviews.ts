@@ -24,6 +24,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
 
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     if (method === 'GET') {
       const { productId, id, approved, me } = query;
 
@@ -68,8 +72,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from(reviews)
           .where(and(eq(reviews.productId, productId), eq(reviews.isApproved, true)));
 
-        const stats = statsResult[0] || { avgRating: '5.0', totalReviews: 0 };
-        const avgRating = stats.avgRating ?? '5.0';
+        const stats = statsResult[0];
+        const totalReviews = Number(stats?.totalReviews ?? 0);
+        const avgRating = totalReviews > 0 && stats?.avgRating ? Number(parseFloat(stats.avgRating).toFixed(1)) : 0;
+        
         const distribution = results.reduce<Record<number, number>>((counts, review) => {
           counts[review.rating] = (counts[review.rating] || 0) + 1;
           return counts;
@@ -78,8 +84,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
           reviews: results,
           stats: {
-            averageRating: Number(parseFloat(avgRating).toFixed(1)),
-            totalReviews: Number(stats.totalReviews ?? 0),
+            averageRating: avgRating,
+            totalReviews,
             distribution,
           },
         });
@@ -132,24 +138,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from(reviews)
         .where(and(eq(reviews.productId, parsed.data.productId), eq(reviews.isApproved, true)));
 
-      if (stats[0] && stats[0].avgRating) {
-        await db
-          .update(products)
-          .set({
-            rating: sql`ROUND(${stats[0].avgRating}::numeric, 1)`,
-            reviewCount: stats[0].cnt,
-            updatedAt: new Date(),
-          })
-          .where(eq(products.id, parsed.data.productId));
-      }
+      const totalReviews = Number(stats[0]?.cnt ?? 0);
+      const avgRating = totalReviews > 0 && stats[0]?.avgRating ? Number(parseFloat(stats[0].avgRating).toFixed(1)) : 0;
 
-      return res.status(201).json(newReview);
+      await db
+        .update(products)
+        .set({
+          rating: avgRating > 0 ? avgRating.toFixed(1) : '0.0',
+          reviewCount: totalReviews,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, parsed.data.productId));
+
+      return res.status(201).json({
+        ...newReview,
+        productRating: avgRating,
+        productReviewCount: totalReviews,
+      });
     }
 
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
-      if (!auth) return;
-
       const { id } = query;
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ error: 'Review ID is required' });
@@ -160,9 +168,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid review data', details: parsed.error.flatten() });
       }
 
+      // If updating administrative fields (adminReply, isApproved), require admin
+      if (parsed.data.adminReply !== undefined || parsed.data.isApproved !== undefined) {
+        const auth = await requireAdmin(req, res);
+        if (!auth) return;
+      }
+
+      let updateValues: Record<string, any> = { updatedAt: new Date() };
+      if (parsed.data.adminReply !== undefined) updateValues.adminReply = parsed.data.adminReply;
+      if (parsed.data.isApproved !== undefined) updateValues.isApproved = parsed.data.isApproved;
+      if (parsed.data.helpfulCount !== undefined) {
+        updateValues.helpfulCount = parsed.data.helpfulCount;
+      }
+
       const [updated] = await db
         .update(reviews)
-        .set({ ...parsed.data, updatedAt: new Date() })
+        .set(updateValues)
         .where(eq(reviews.id, id))
         .returning();
 
@@ -179,16 +200,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from(reviews)
           .where(and(eq(reviews.productId, updated.productId), eq(reviews.isApproved, true)));
 
-        if (stats[0]) {
-          await db
-            .update(products)
-            .set({
-              rating: stats[0].avgRating ? sql`ROUND(${stats[0].avgRating}::numeric, 1)` : sql`'5.0'`,
-              reviewCount: stats[0].cnt,
-              updatedAt: new Date(),
-            })
-            .where(eq(products.id, updated.productId));
-        }
+        const totalReviews = Number(stats[0]?.cnt ?? 0);
+        const avgRating = totalReviews > 0 && stats[0]?.avgRating ? Number(parseFloat(stats[0].avgRating).toFixed(1)) : 0;
+
+        await db
+          .update(products)
+          .set({
+            rating: avgRating > 0 ? avgRating.toFixed(1) : '0.0',
+            reviewCount: totalReviews,
+            updatedAt: new Date(),
+          })
+          .where(eq(products.id, updated.productId));
       }
 
       return res.status(200).json(updated);
@@ -216,16 +238,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from(reviews)
         .where(and(eq(reviews.productId, deleted.productId), eq(reviews.isApproved, true)));
 
-      if (stats[0]) {
-        await db
-          .update(products)
-          .set({
-            rating: stats[0].avgRating ? sql`ROUND(${stats[0].avgRating}::numeric, 1)` : sql`'5.0'`,
-            reviewCount: stats[0].cnt,
-            updatedAt: new Date(),
-          })
-          .where(eq(products.id, deleted.productId));
-      }
+      const totalReviews = Number(stats[0]?.cnt ?? 0);
+      const avgRating = totalReviews > 0 && stats[0]?.avgRating ? Number(parseFloat(stats[0].avgRating).toFixed(1)) : 0;
+
+      await db
+        .update(products)
+        .set({
+          rating: avgRating > 0 ? avgRating.toFixed(1) : '0.0',
+          reviewCount: totalReviews,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, deleted.productId));
 
       return res.status(200).json({ success: true, id: deleted.id });
     }
