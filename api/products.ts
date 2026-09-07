@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { categories, products } from '../src/db/schema.js';
-import { eq, and, or, ilike, desc, asc, sql } from 'drizzle-orm';
+import { categories, products, reviews } from '../src/db/schema.js';
+import { eq, and, or, ilike, desc, asc, sql, inArray, avg, count } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
 
@@ -120,6 +120,30 @@ const productUpdateSchema = z.object({
 
 const sitemapBaseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cosmeticse.vercel.app');
 
+async function attachLiveReviewStats<T extends { id: string; rating: string; reviewCount: number }>(productRows: T[]) {
+  if (productRows.length === 0) return productRows;
+
+  const stats = await db
+    .select({
+      productId: reviews.productId,
+      averageRating: avg(reviews.rating),
+      reviewCount: count(),
+    })
+    .from(reviews)
+    .where(and(eq(reviews.isApproved, true), inArray(reviews.productId, productRows.map(product => product.id))))
+    .groupBy(reviews.productId);
+
+  const statsByProduct = new Map(stats.map(stat => [stat.productId, stat]));
+  return productRows.map(product => {
+    const stat = statsByProduct.get(product.id);
+    const reviewCount = Number(stat?.reviewCount ?? 0);
+    const rating = reviewCount > 0 && stat?.averageRating
+      ? Number(parseFloat(stat.averageRating).toFixed(1)).toFixed(1)
+      : '0.0';
+    return { ...product, rating, reviewCount };
+  });
+}
+
 function sitemapDate(date: Date | null | undefined) {
   return (date ? new Date(date) : new Date()).toISOString().split('T')[0];
 }
@@ -173,6 +197,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
 
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     if (method === 'GET') {
       if (query.sitemap === '1') {
         return sendSitemap(res);
@@ -183,7 +211,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!product) {
           return res.status(404).json({ error: 'Product not found' });
         }
-        return res.status(200).json(product);
+        const [liveProduct] = await attachLiveReviewStats([product]);
+        return res.status(200).json(liveProduct);
       }
 
       const parsed = productQuerySchema.safeParse(query);
@@ -233,6 +262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const paginatedQuery = sortedQuery.limit(limit).offset(offset);
 
       const results = await paginatedQuery;
+      const liveResults = await attachLiveReviewStats(results);
 
       const totalQuery = conditions.length > 0
         ? db.select({ count: sql<number>`count(*)` }).from(products).where(and(...conditions))
@@ -241,7 +271,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const total = totalResult[0]?.count ?? 0;
 
       return res.status(200).json({
-        products: results,
+        products: liveResults,
         pagination: { total, limit, offset, hasMore: offset + limit < total },
       });
     }

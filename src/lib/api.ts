@@ -47,6 +47,7 @@ async function request<T>(
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
+    cache: options.method === 'GET' ? 'no-store' : options.cache,
     headers,
   });
 

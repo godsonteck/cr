@@ -695,6 +695,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     void Promise.allSettled(startupRequests);
   }, [fetchProducts, fetchBrands, fetchCategories, fetchSettings, fetchFlashDeals]);
 
+  useEffect(() => {
+    const refreshVisibleCatalog = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) });
+      }
+    };
+
+    const interval = window.setInterval(refreshVisibleCatalog, 12000);
+    document.addEventListener('visibilitychange', refreshVisibleCatalog);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshVisibleCatalog);
+    };
+  }, [fetchProducts]);
+
   // Product Actions
   const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
     const newId = 'prod-' + Date.now();
