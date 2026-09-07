@@ -234,6 +234,12 @@ const normalizeProduct = (product: Product): Product => ({
   })),
 });
 
+const clearUnverifiedReviewStats = (product: Product): Product => ({
+  ...product,
+  rating: 0,
+  reviewCount: 0,
+});
+
 const INITIAL_SEED_ORDERS: Order[] = [
   {
     id: 'ord-gh-01',
@@ -355,9 +361,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('cr_products');
-      if (saved) return JSON.parse(saved);
-    } catch { return PRODUCTS; }
-    return PRODUCTS;
+      if (saved) return (JSON.parse(saved) as Product[]).map(clearUnverifiedReviewStats);
+    } catch { return PRODUCTS.map(clearUnverifiedReviewStats); }
+    return PRODUCTS.map(clearUnverifiedReviewStats);
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1197,7 +1203,7 @@ const addOrder = async (order: Order) => {
   };
 
   const resetStoreToDefaults = async () => {
-    setProducts(PRODUCTS);
+    setProducts(PRODUCTS.map(clearUnverifiedReviewStats));
     setCategories(CATEGORIES_CONFIG);
     setBrands(BRANDS_LIST);
     setOrders(INITIAL_SEED_ORDERS);
