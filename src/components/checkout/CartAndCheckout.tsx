@@ -384,7 +384,15 @@ export const MultiStepCheckoutPage: React.FC = () => {
       sessionStorage.setItem('paystack_pending_order', JSON.stringify(orderPayload));
       const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
-        amount: Math.round(orderPayload.total * 100), email, name: fullName, reference, callbackUrl: `${window.location.origin}/checkout`,
+        amount: Math.round(orderPayload.total * 100),
+        email,
+        name: fullName,
+        reference,
+        callbackUrl: `${window.location.origin}/checkout`,
+        items: orderPayload.items.map(item => ({
+          productId: item.product.id,
+          price: item.product.price,
+        })),
       }, customerToken);
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {

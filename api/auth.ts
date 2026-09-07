@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { db } from '../src/neon.js';
-import { adminSessions, users } from '../src/db/schema.js';
+import { adminSessions, users, products } from '../src/db/schema.js';
 import { requireAuth, signToken } from './_auth.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
@@ -26,6 +26,10 @@ const paystackInitializeSchema = z.object({
   name: z.string().min(1).max(100),
   reference: z.string().min(10).max(100),
   callbackUrl: z.string().url(),
+  items: z.array(z.object({
+    productId: z.string(),
+    price: z.number(),
+  })).optional(),
 });
 function stripPassword(user: typeof users.$inferSelect) {
   const { passwordHash, ...safeUser } = user;
@@ -175,6 +179,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
         if (!parsed.success || !secretKey) return res.status(500).json({ error: 'Paystack is not configured on the server' });
         if (parsed.data.email.toLowerCase() !== auth.email.toLowerCase()) return res.status(403).json({ error: 'Payment email must match the signed-in account' });
+
+        if (parsed.data.items && parsed.data.items.length > 0) {
+          const productIds = parsed.data.items.map(i => i.productId);
+          const productRows = await db.select().from(products).where(inArray(products.id, productIds));
+          const productMap = new Map(productRows.map(p => [p.id, p]));
+          for (const item of parsed.data.items) {
+            const prod = productMap.get(item.productId);
+            if (!prod) {
+              return res.status(400).json({ error: `Product no longer exists: ${item.productId}. Please refresh your cart.` });
+            }
+            const dbPrice = Number(prod.price);
+            if (Math.abs(item.price - dbPrice) > 0.01) {
+              return res.status(400).json({
+                error: `Cannot start payment: The price for "${prod.name}" in the store catalog is GHS ${dbPrice.toFixed(2)}, but your cart has GHS ${item.price.toFixed(2)}. Please refresh your cart before proceeding to checkout.`
+              });
+            }
+          }
+        }
 
         const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
           method: 'POST',

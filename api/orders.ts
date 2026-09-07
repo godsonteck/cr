@@ -262,27 +262,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
 
-      if (Math.abs(parsed.data.total - calculatedTotal) > 0.01 || Math.abs(parsed.data.subtotal - calculatedSubtotal) > 0.01 || Math.abs(parsed.data.discount - calculatedDiscount) > 0.01) {
-        console.error('Order price mismatch:', {
-          received: { total: parsed.data.total, subtotal: parsed.data.subtotal, discount: parsed.data.discount, shipping: parsed.data.shippingFee },
-          calculated: { total: calculatedTotal, subtotal: calculatedSubtotal, discount: calculatedDiscount, finalShippingFee, expectedShippingFee },
-          items: parsed.data.items.map(i => ({ id: i.product.id, name: i.product.name, sentPrice: i.product.price, qty: i.quantity })),
-        });
-        return res.status(400).json({
-          error: `Cart prices changed. Expected total: GHS ${calculatedTotal.toFixed(2)}, received: GHS ${parsed.data.total.toFixed(2)}. Please review your order and try again.`,
-          details: { expectedTotal: calculatedTotal, receivedTotal: parsed.data.total, calculatedSubtotal, receivedSubtotal: parsed.data.subtotal }
-        });
-      }
-
       const onlinePaymentMethods = ['paystack', 'card'];
+      let isPaystackVerified = false;
       if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
         const reference = parsed.data.paymentReference?.trim();
         const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
         if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
         const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
         const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
-        if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.amount !== Math.round(calculatedTotal * 100) || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth?.email?.toLowerCase()) {
-          return res.status(402).json({ error: 'Payment could not be verified. Please try again.' });
+        if (!paystackRes.ok || !paystackPayload.status || paystackPayload.data?.status !== 'success' || paystackPayload.data?.currency !== 'GHS' || paystackPayload.data?.customer?.email?.toLowerCase() !== auth?.email?.toLowerCase()) {
+          return res.status(402).json({ error: 'Payment could not be verified with Paystack. Please try again.' });
+        }
+        const paidAmount = paystackPayload.data?.amount;
+        const expectedTotalPesewas = Math.round(parsed.data.total * 100);
+        const calculatedTotalPesewas = Math.round(calculatedTotal * 100);
+        if (paidAmount !== expectedTotalPesewas && paidAmount !== calculatedTotalPesewas) {
+          return res.status(402).json({ error: 'Paid amount does not match order total.' });
+        }
+        isPaystackVerified = true;
+      }
+
+      if (!isPaystackVerified) {
+        if (Math.abs(parsed.data.total - calculatedTotal) > 0.01 || Math.abs(parsed.data.subtotal - calculatedSubtotal) > 0.01 || Math.abs(parsed.data.discount - calculatedDiscount) > 0.01) {
+          console.error('Order price mismatch:', {
+            received: { total: parsed.data.total, subtotal: parsed.data.subtotal, discount: parsed.data.discount, shipping: parsed.data.shippingFee },
+            calculated: { total: calculatedTotal, subtotal: calculatedSubtotal, discount: calculatedDiscount, finalShippingFee, expectedShippingFee },
+            items: parsed.data.items.map(i => ({ id: i.product.id, name: i.product.name, sentPrice: i.product.price, qty: i.quantity })),
+          });
+          return res.status(400).json({
+            error: `Cart prices changed. Expected total: GHS ${calculatedTotal.toFixed(2)}, received: GHS ${parsed.data.total.toFixed(2)}. Please review your order and try again.`,
+            details: { expectedTotal: calculatedTotal, receivedTotal: parsed.data.total, calculatedSubtotal, receivedSubtotal: parsed.data.subtotal }
+          });
         }
       }
 
