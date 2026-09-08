@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { House, Settings, ShoppingBag, UserRound } from 'lucide-react';
+import { House, Settings, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
@@ -45,6 +45,19 @@ export const Header: React.FC = () => {
             </Link>
             <div className="flex shrink-0 items-center gap-2">
               <HeaderNotifications />
+              <Link
+                to="/cart"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                aria-label={`Open shopping cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}
+                title="Shopping Cart"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white shadow-xs">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Link>
               {isAuthenticated && user ? (
                 <Link
                   to="/account"
@@ -95,7 +108,7 @@ export const Header: React.FC = () => {
           Products
         </Link>
         <Link to="/cart" className={`relative flex min-w-16 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname === '/cart' ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`} aria-label={`Cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}>
-          <ShoppingBag className="h-5 w-5" />
+          <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && <span className="absolute left-8 top-[-3px] flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">{totalItems > 99 ? '99+' : totalItems}</span>}
           Cart
         </Link>

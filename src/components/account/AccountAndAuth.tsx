@@ -11,6 +11,7 @@ import {
   Trash2,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
   ShoppingBag,
   Truck,
   RotateCcw,
@@ -52,6 +53,7 @@ import { Button, Badge } from '../common/UIPrimitives';
 import { ShippingAddress, Order, Product, AdminNotification } from '../../types';
 import logoImg from '../../assets/logo.jpeg';
 import { api } from '../../lib/api';
+import { SettingsView } from './SettingsView';
 
 // ============================================================================
 // Google Sign-In Button Component
@@ -523,54 +525,9 @@ const SettingsToggle: React.FC<{ checked: boolean; onChange: () => void; label: 
 );
 
 export const SettingsPage: React.FC = () => {
-  const { theme, setTheme } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const [orderNotifications, setOrderNotifications] = useState(() => localStorage.getItem('cr_order_notifications') !== 'false');
-  const [promoAlerts, setPromoAlerts] = useState(() => localStorage.getItem('cr_promo_alerts') !== 'false');
-
-  const updatePreference = (key: string, value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
-    setter(value);
-    localStorage.setItem(key, String(value));
-  };
-
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[var(--bg-main)] px-4 py-8 pb-24 sm:px-6 lg:px-8">
-      <main className="mx-auto max-w-2xl space-y-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Store settings</p>
-          <h1 className="mt-2 font-serif text-4xl tracking-[-0.04em] text-[var(--text-primary)]">Make it yours.</h1>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Control the way CR Cosmetics looks and keeps you updated.</p>
-        </div>
-
-        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-soft)]">
-          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Appearance</h2>
-          <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-[var(--bg-soft)] p-1">
-            {(['light', 'dark'] as const).map(option => (
-              <button key={option} type="button" onClick={() => setTheme(option)} className={`rounded-lg px-3 py-2.5 text-sm font-bold capitalize transition ${theme === option ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--text-muted)]'}`}>
-                {option} mode
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {isAuthenticated && (
-          <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] px-5 shadow-[var(--shadow-soft)]">
-            <h2 className="pt-5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Notifications</h2>
-            <SettingsToggle checked={orderNotifications} onChange={() => updatePreference('cr_order_notifications', !orderNotifications, setOrderNotifications)} label="Order updates" description="Keep delivery and dispatch updates enabled." />
-            <SettingsToggle checked={promoAlerts} onChange={() => updatePreference('cr_promo_alerts', !promoAlerts, setPromoAlerts)} label="Store promotions" description="Receive updates about offers and new arrivals." />
-          </section>
-        )}
-
-        <section className="flex flex-col gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-[var(--text-primary)]">Your account</h2>
-            <p className="mt-1 text-xs text-[var(--text-subtle)]">Manage orders, saved items, addresses, and notifications.</p>
-          </div>
-          <Link to={isAuthenticated ? '/account' : '/signin'} className="inline-flex min-h-10 items-center justify-center rounded-full bg-[var(--text-primary)] px-4 py-2 text-xs font-bold text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
-            {isAuthenticated ? 'Open account' : 'Sign in'}
-          </Link>
-        </section>
-      </main>
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[var(--bg-main)] px-3 py-6 pb-28 sm:px-6 lg:px-8 transition-colors">
+      <SettingsView standalone={true} />
     </div>
   );
 };
@@ -651,6 +608,7 @@ export const AccountPage: React.FC = () => {
     concerns: (user?.skinProfile?.concerns || []) as string[],
   });
   const profileImageInputRef = useRef<HTMLInputElement>(null);
+  const [jumiaExpandedSection, setJumiaExpandedSection] = useState<'profile' | 'security' | 'skin' | 'addresses' | null>(null);
 
   // Customer VIP and Standing Status (derived to match Admin system metrics)
   const customerStats = useMemo(() => {
@@ -711,9 +669,7 @@ export const AccountPage: React.FC = () => {
   const [orderFilter, setOrderFilter] = useState<'all' | 'active' | 'delivered'>('all');
   const [orderSearch, setOrderSearch] = useState('');
 
-  // Preferences State
-  const [orderNotifications, setOrderNotifications] = useState(() => localStorage.getItem('cr_order_notifications') !== 'false');
-  const [promoAlerts, setPromoAlerts] = useState(() => localStorage.getItem('cr_promo_alerts') !== 'false');
+  // Notification tracking state
   const [reviewedNotifications, setReviewedNotifications] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(`cr_customer_reviewed_notifications_${user?.id || 'guest'}`) || '[]');
@@ -2405,522 +2361,731 @@ export const AccountPage: React.FC = () => {
               </div>
             )}
 
-            {/* REDESIGNED PROFILE & SECURITY - SYNCHRONIZED WITH ADMIN */}
+            {/* PROFILE — JUMIA-STYLE CLEAN LIST & TILE LAYOUT */}
             {activeTab === 'security' && user && (
-              <div className="space-y-6">
-                {/* VIP Standing & Live Store Synchronization Banner */}
-                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border-color)] pb-5">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-black text-[var(--accent)] border border-[var(--accent)]/20">
-                          {customerStats.segment}
-                        </span>
-                        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Admin &amp; Store Sync Active</span>
-                        </div>
-                      </div>
-                      <h2 className="text-xl font-black text-[var(--text-primary)] pt-1">Profile &amp; Customer Record</h2>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        Account ID: <span className="font-mono font-bold text-[var(--text-primary)]">CR-{user.id.slice(0, 8).toUpperCase()}</span> • Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '2024'}
-                      </p>
-                    </div>
-
-                    {!isEditingProfile ? (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => setIsEditingProfile(true)}
-                        className="rounded-xl text-xs font-bold gap-1.5 self-start sm:self-auto bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                        <span>Edit Details</span>
-                      </Button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingProfile(false)}
-                        className="rounded-xl border border-[var(--border-color)] px-3 py-1.5 text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-soft)] self-start sm:self-auto"
-                      >
-                        Cancel Editing
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 4-Stat Synchronized KPI Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 text-left">
-                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Completed Orders</span>
-                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
-                        {customerStats.ordersCount} {customerStats.ordersCount === 1 ? 'order' : 'orders'}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Lifetime Spent</span>
-                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--accent)]">
-                        GH₵{customerStats.totalSpent.toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Saved Addresses</span>
-                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
-                        {user.savedAddresses?.length || 0} locations
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Wishlist Saved</span>
-                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
-                        {wishlistIds.length} items
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Personal Information & Avatar Card */}
-                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
-                  <div className="border-b border-[var(--border-color)] pb-4">
-                    <h3 className="text-base font-black text-[var(--text-primary)]">Personal Identity</h3>
-                    <p className="text-xs text-[var(--text-muted)]">Your customer profile details are used for courier dispatch and store communication.</p>
-                  </div>
-
-                  {!isEditingProfile ? (
-                    <div className="mt-5 space-y-5">
-                      {/* Avatar preview and name summary */}
-                      <div className="flex items-center gap-4">
-                        <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
+              <div className="space-y-4 sm:space-y-6">
+                {/* 1. JUMIA-STYLE PROFILE HEADER BANNER */}
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)] p-4 sm:p-6 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 sm:gap-4">
+                      {/* Avatar with Camera Trigger */}
+                      <div className="relative group shrink-0">
+                        <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-xl sm:text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
                           {user.profileImage ? (
                             <img src={user.profileImage} alt={user.fullName} className="h-full w-full object-cover" />
                           ) : (
                             user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'
                           )}
                         </div>
-                        <div className="space-y-1 min-w-0">
-                          <h4 className="text-base font-bold text-[var(--text-primary)] truncate">{user.fullName}</h4>
-                          <p className="text-xs text-[var(--text-muted)]">{user.email}</p>
-                          {user.phone ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)]">
-                              <Phone className="h-3.5 w-3.5" /> {user.phone}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-amber-600 dark:text-amber-400 italic">No phone number added yet</span>
-                          )}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setJumiaExpandedSection('profile');
+                            setTimeout(() => profileImageInputRef.current?.click(), 100);
+                          }}
+                          className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-white ring-2 ring-[var(--bg-card)] shadow-xs hover:scale-110 transition cursor-pointer"
+                          title="Change photo"
+                        >
+                          <Camera className="h-3 w-3" />
+                        </button>
                       </div>
 
-                      {/* Read-only Data Grid */}
-                      <div className="grid gap-3 sm:grid-cols-2 text-xs pt-2">
-                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Customer Full Name</span>
-                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.fullName}</p>
+                      {/* Welcome & Info */}
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h2 className="text-base sm:text-xl font-black text-[var(--text-primary)] truncate">
+                            Hello, {user.fullName || 'Shopper'}
+                          </h2>
+                          <span className="rounded-full bg-[var(--accent)]/10 px-2.5 py-0.5 text-[10px] font-black text-[var(--accent)] border border-[var(--accent)]/20">
+                            {customerStats.segment}
+                          </span>
                         </div>
-                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Contact Phone (Ghana)</span>
-                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.phone || 'None provided'}</p>
-                        </div>
-                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60 sm:col-span-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Registered Account Email</span>
-                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="h-3 w-3" /> Verified
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.email}</p>
-                          <p className="mt-1 text-[11px] text-[var(--text-subtle)]">Used for order invoices, tracking dispatch emails, and account recovery.</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate">{user.email}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-[var(--text-subtle)] flex-wrap pt-0.5">
+                          <span className="font-mono font-bold text-[var(--text-primary)]">
+                            ID: CR-{user.id.slice(0, 8).toUpperCase()}
+                          </span>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Synced with Store
+                          </span>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    /* Edit Profile Form */
-                    <form onSubmit={handleSaveProfile} className="mt-5 space-y-5">
-                      {/* Photo upload */}
-                      <div>
-                        <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Profile Picture</label>
-                        <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
-                          <div className="relative group flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
-                            {profileForm.profileImage ? (
-                              <img src={profileForm.profileImage} alt="Profile preview" className="h-full w-full object-cover" />
-                            ) : (
-                              profileForm.fullName ? profileForm.fullName.charAt(0).toUpperCase() : 'U'
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => profileImageInputRef.current?.click()}
-                              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer"
-                              title="Upload new image"
-                            >
-                              <Camera className="h-5 w-5" />
-                            </button>
-                          </div>
 
-                          <div className="space-y-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => profileImageInputRef.current?.click()}
-                                className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition cursor-pointer"
+                    {/* Quick Edit Profile CTA */}
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <Button
+                        variant={jumiaExpandedSection === 'profile' ? 'outline' : 'primary'}
+                        size="sm"
+                        onClick={() => setJumiaExpandedSection(prev => prev === 'profile' ? null : 'profile')}
+                        className="rounded-xl text-xs font-bold gap-1.5"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                        <span>{jumiaExpandedSection === 'profile' ? 'Close Editor' : 'Edit Profile'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. JUMIA 4-TILE QUICK ACCESS MATRIX */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('orders')}
+                    className="group flex flex-col items-start rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3.5 text-left transition hover:border-[var(--accent)] hover:shadow-sm"
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                        <Package className="h-4 w-4" />
+                      </span>
+                      <span className="font-serif text-lg font-black text-[var(--text-primary)] group-hover:text-[var(--accent)]">
+                        {allOrders.length}
+                      </span>
+                    </div>
+                    <span className="mt-2 text-xs font-bold text-[var(--text-primary)]">My Orders</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] truncate">
+                      {activeOrders.length > 0 ? `${activeOrders.length} active delivery` : 'Track & history'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('notifications')}
+                    className="group flex flex-col items-start rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3.5 text-left transition hover:border-[var(--accent)] hover:shadow-sm"
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                        <Bell className="h-4 w-4" />
+                      </span>
+                      <span className="font-serif text-lg font-black text-[var(--text-primary)] group-hover:text-[var(--accent)]">
+                        {unreadCustomerNotifications}
+                      </span>
+                    </div>
+                    <span className="mt-2 text-xs font-bold text-[var(--text-primary)]">Alerts &amp; Inbox</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] truncate">
+                      {unreadCustomerNotifications > 0 ? 'Unread updates' : 'All caught up'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('wishlist')}
+                    className="group flex flex-col items-start rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3.5 text-left transition hover:border-[var(--accent)] hover:shadow-sm"
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                        <Heart className="h-4 w-4" />
+                      </span>
+                      <span className="font-serif text-lg font-black text-[var(--text-primary)] group-hover:text-[var(--accent)]">
+                        {wishlistIds.length}
+                      </span>
+                    </div>
+                    <span className="mt-2 text-xs font-bold text-[var(--text-primary)]">Saved Wishlist</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] truncate">Favorite items</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('addresses')}
+                    className="group flex flex-col items-start rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3.5 text-left transition hover:border-[var(--accent)] hover:shadow-sm"
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <MapPin className="h-4 w-4" />
+                      </span>
+                      <span className="font-serif text-lg font-black text-[var(--text-primary)] group-hover:text-[var(--accent)]">
+                        {user.savedAddresses?.length || 0}
+                      </span>
+                    </div>
+                    <span className="mt-2 text-xs font-bold text-[var(--text-primary)]">Address Book</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] truncate">
+                      {user.savedAddresses?.find(a => a.isDefault)?.area || 'Manage addresses'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* 3. JUMIA GROUPED LIST SECTION: MY ACCOUNT */}
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
+                      My Account Details
+                    </h3>
+                  </div>
+
+                  <div className="divide-y divide-[var(--border-color)]">
+                    {/* Row 1: Personal Details */}
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setJumiaExpandedSection(prev => prev === 'profile' ? null : 'profile')}
+                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
+                            <User className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Personal Details</p>
+                            <p className="text-[11px] text-[var(--text-muted)] truncate">
+                              {user.fullName || 'Add name'} • {user.phone || 'No phone added'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[var(--text-subtle)]">
+                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                            {jumiaExpandedSection === 'profile' ? 'Hide' : 'Edit'}
+                          </span>
+                          {jumiaExpandedSection === 'profile' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </div>
+                      </button>
+
+                      {/* Expandable Edit Profile Panel */}
+                      {jumiaExpandedSection === 'profile' && (
+                        <div className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 animate-in fade-in duration-200">
+                          <form onSubmit={handleSaveProfile} className="space-y-4 max-w-xl">
+                            {/* Photo upload */}
+                            <div>
+                              <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Profile Photo</label>
+                              <div className="flex items-center gap-4">
+                                <div className="relative group flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-xl shadow-md ring-2 ring-[var(--accent)]/30">
+                                  {profileForm.profileImage ? (
+                                    <img src={profileForm.profileImage} alt="Profile preview" className="h-full w-full object-cover" />
+                                  ) : (
+                                    profileForm.fullName ? profileForm.fullName.charAt(0).toUpperCase() : 'U'
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => profileImageInputRef.current?.click()}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer"
+                                  >
+                                    <Camera className="h-4 w-4" />
+                                  </button>
+                                </div>
+
+                                <div className="space-y-1.5 text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => profileImageInputRef.current?.click()}
+                                      className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] hover:border-[var(--accent)] transition cursor-pointer"
+                                    >
+                                      Upload Photo
+                                    </button>
+                                    {profileForm.profileImage && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setProfileForm(p => ({ ...p, profileImage: '' }));
+                                          if (profileImageInputRef.current) profileImageInputRef.current.value = '';
+                                        }}
+                                        className="text-xs font-semibold text-rose-500 hover:underline"
+                                      >
+                                        Remove
+                                      </button>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-[var(--text-subtle)]">JPG, PNG, or WEBP up to 5MB.</p>
+                                  <input
+                                    ref={profileImageInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    onChange={e => handleProfileImageUpload(e.target.files?.[0])}
+                                    className="hidden"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div>
+                                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
+                                  Full Legal Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  value={profileForm.fullName}
+                                  onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                                  placeholder="Your full name"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
+                                  Phone Number (Ghana) <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  required
+                                  value={profileForm.phone}
+                                  onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                                  placeholder="e.g. 0244123456"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
+                                Account Email (Verified)
+                              </label>
+                              <div className="flex items-center justify-between rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)]/50 p-2.5 text-xs text-[var(--text-muted)]">
+                                <span>{user.email}</span>
+                                <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                                  <CheckCircle2 className="h-3 w-3" /> Verified
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2">
+                              <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={isSavingProfile}
+                                className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                               >
-                                Upload Photo
-                              </button>
-                              {profileForm.profileImage && (
+                                {isSavingProfile ? 'Saving & Syncing...' : 'Save & Sync with Admin'}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={isSavingProfile}
+                                onClick={() => setJumiaExpandedSection(null)}
+                                className="rounded-xl text-xs font-bold"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Row 2: Address Book */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('addresses')}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          <MapPin className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Address Book</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            {user.savedAddresses?.find(a => a.isDefault)?.area
+                              ? `Default: ${user.savedAddresses.find(a => a.isDefault)?.area}, ${user.savedAddresses.find(a => a.isDefault)?.city}`
+                              : `${user.savedAddresses?.length || 0} saved delivery addresses`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[var(--text-subtle)]">
+                        <span className="text-[11px] font-semibold text-[var(--accent)] hidden sm:inline">Manage</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </button>
+
+                    {/* Row 3: Skin Profile & Routine Preferences */}
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setJumiaExpandedSection(prev => prev === 'skin' ? null : 'skin')}
+                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                            <Sparkles className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Skin Profile &amp; Routine Needs</p>
+                            <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">
+                              {profileForm.skinType} skin • {profileForm.concerns.length} concern{profileForm.concerns.length === 1 ? '' : 's'} selected
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[var(--text-subtle)]">
+                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                            {jumiaExpandedSection === 'skin' ? 'Hide' : 'Update'}
+                          </span>
+                          {jumiaExpandedSection === 'skin' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </div>
+                      </button>
+
+                      {/* Expandable Skin Profile Selector */}
+                      {jumiaExpandedSection === 'skin' && (
+                        <div className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 space-y-4 animate-in fade-in duration-200">
+                          <div>
+                            <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Your Skin Type</label>
+                            <div className="flex flex-wrap gap-2">
+                              {(['normal', 'dry', 'oily', 'combination', 'sensitive'] as const).map(type => (
                                 <button
+                                  key={type}
                                   type="button"
                                   onClick={() => {
-                                    setProfileForm(p => ({ ...p, profileImage: '' }));
-                                    if (profileImageInputRef.current) profileImageInputRef.current.value = '';
+                                    setProfileForm(p => ({ ...p, skinType: type }));
+                                    void updateProfile({ skinProfile: { skinType: type, concerns: profileForm.concerns } });
+                                    showAlert(`Skin type set to ${type}`, 'success');
                                   }}
-                                  className="text-xs font-semibold text-rose-500 hover:underline"
+                                  className={`rounded-xl px-3 py-1.5 text-xs font-bold capitalize transition ${
+                                    profileForm.skinType === type
+                                      ? 'bg-[var(--accent)] text-white shadow-xs'
+                                      : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                                  }`}
                                 >
-                                  Remove
+                                  {type}
                                 </button>
-                              )}
+                              ))}
                             </div>
-                            <p className="text-[11px] text-[var(--text-subtle)]">Accepts JPG, PNG, WEBP, or GIF up to 5MB.</p>
-                            <input
-                              ref={profileImageInputRef}
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp,image/gif"
-                              onChange={e => handleProfileImageUpload(e.target.files?.[0])}
-                              className="hidden"
-                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Skin Concerns &amp; Routine Goals</label>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                'Deep Hydration',
+                                'Dark Spots & Hyperpigmentation',
+                                'Acne & Blemishes',
+                                'Anti-Aging & Fine Lines',
+                                'Sun Protection & SPF',
+                                'Brightening & Glow',
+                                'Pore Tightening',
+                              ].map(concern => {
+                                const isSelected = profileForm.concerns.includes(concern);
+                                return (
+                                  <button
+                                    key={concern}
+                                    type="button"
+                                    onClick={() => {
+                                      const nextConcerns = isSelected
+                                        ? profileForm.concerns.filter(c => c !== concern)
+                                        : [...profileForm.concerns, concern];
+                                      setProfileForm(p => ({ ...p, concerns: nextConcerns }));
+                                      void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
+                                    }}
+                                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                                      isSelected
+                                        ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
+                                        : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                                    }`}
+                                  >
+                                    {concern}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
-                            Full Legal / Delivery Name <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={profileForm.fullName}
-                            onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                            placeholder="Your full name"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
-                            Ghana Phone Number <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            required
-                            value={profileForm.phone}
-                            onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
-                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                            placeholder="e.g. 0244123456 or +233..."
-                          />
-                          <span className="mt-1 block text-[10px] text-[var(--text-subtle)]">Required for Accra Express couriers &amp; WhatsApp dispatch alerts.</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-2">
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          disabled={isSavingProfile}
-                          className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
-                        >
-                          {isSavingProfile ? 'Saving & Syncing...' : 'Save & Sync Profile'}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={isSavingProfile}
-                          onClick={() => setIsEditingProfile(false)}
-                          className="rounded-xl text-xs font-bold"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-
-                {/* Beauty & Skin Profile Personalization */}
-                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs space-y-4">
-                  <div className="border-b border-[var(--border-color)] pb-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-                      <h3 className="text-base font-black text-[var(--text-primary)]">Skin Profile &amp; Preferences</h3>
-                    </div>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">
-                      Helps our Routine Builder and beauty specialists recommend products matching your skin type.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4 pt-1">
-                    <div>
-                      <span className="text-xs font-bold text-[var(--text-primary)] block mb-2">Skin Type</span>
-                      <div className="flex flex-wrap gap-2">
-                        {(['normal', 'dry', 'oily', 'combination', 'sensitive'] as const).map(type => (
-                          <button
-                            key={type}
-                            type="button"
-                            onClick={() => {
-                              setProfileForm(p => ({ ...p, skinType: type }));
-                              void updateProfile({ skinProfile: { skinType: type, concerns: profileForm.concerns } });
-                              showAlert(`Skin type set to ${type}`, 'success');
-                            }}
-                            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold capitalize transition ${
-                              profileForm.skinType === type
-                                ? 'bg-[var(--accent)] text-white shadow-xs'
-                                : 'border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-muted)] hover:border-[var(--accent)]'
-                            }`}
-                          >
-                            {type}
-                          </button>
-                        ))}
-                      </div>
+                      )}
                     </div>
 
+                    {/* Row 4: Password & Security */}
                     <div>
-                      <span className="text-xs font-bold text-[var(--text-primary)] block mb-2">Primary Skin Goals &amp; Concerns</span>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          'Deep Hydration',
-                          'Dark Spots & Hyperpigmentation',
-                          'Acne & Blemishes',
-                          'Anti-Aging & Fine Lines',
-                          'Sun Protection & SPF',
-                          'Brightening & Glow',
-                          'Pore Tightening',
-                        ].map(concern => {
-                          const isSelected = profileForm.concerns.includes(concern);
-                          return (
-                            <button
-                              key={concern}
-                              type="button"
-                              onClick={() => {
-                                const nextConcerns = isSelected
-                                  ? profileForm.concerns.filter(c => c !== concern)
-                                  : [...profileForm.concerns, concern];
-                                setProfileForm(p => ({ ...p, concerns: nextConcerns }));
-                                void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
-                              }}
-                              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                                isSelected
-                                  ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
-                                  : 'border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-muted)] hover:border-[var(--accent)]'
-                              }`}
-                            >
-                              {concern}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setJumiaExpandedSection(prev => prev === 'security' ? null : 'security')}
+                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <ShieldCheck className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Login &amp; Password</p>
+                            <p className="text-[11px] text-[var(--text-muted)] truncate">
+                              {user.hasPassword ? 'Password protected • Tap to update' : 'OAuth account • Set a password'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[var(--text-subtle)]">
+                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                            {jumiaExpandedSection === 'security' ? 'Hide' : 'Change'}
+                          </span>
+                          {jumiaExpandedSection === 'security' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </div>
+                      </button>
+
+                      {/* Expandable Password Form */}
+                      {jumiaExpandedSection === 'security' && (
+                        <div className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 animate-in fade-in duration-200">
+                          <form onSubmit={handlePasswordSubmit} className="space-y-3.5 max-w-md">
+                            {user.hasPassword && (
+                              <div>
+                                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Current Password</label>
+                                <div className="relative">
+                                  <input
+                                    type={showPasswordFields ? 'text' : 'password'}
+                                    required
+                                    value={currentPassword}
+                                    onChange={e => setCurrentPassword(e.target.value)}
+                                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)] pr-10"
+                                    placeholder="Enter current password"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPasswordFields(!showPasswordFields)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
+                                  >
+                                    {showPasswordFields ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            <div>
+                              <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">New Password (8+ characters)</label>
+                              <input
+                                type={showPasswordFields ? 'text' : 'password'}
+                                required
+                                minLength={8}
+                                value={newPassword}
+                                onChange={e => setNewPassword(e.target.value)}
+                                className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                                placeholder="Choose new password"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">Confirm New Password</label>
+                              <input
+                                type={showPasswordFields ? 'text' : 'password'}
+                                required
+                                minLength={8}
+                                value={confirmNewPassword}
+                                onChange={e => setConfirmNewPassword(e.target.value)}
+                                className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                                placeholder="Confirm new password"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={isChangingPassword}
+                                className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
+                              >
+                                {isChangingPassword ? 'Saving Password...' : user.hasPassword ? 'Update Password' : 'Set Account Password'}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setJumiaExpandedSection(null)}
+                                className="rounded-xl text-xs font-bold"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Password & Authentication Security */}
-                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
-                        <h3 className="text-base font-black text-[var(--text-primary)]">Security &amp; Credentials</h3>
-                      </div>
-                      <p className="mt-1 text-xs text-[var(--text-muted)]">
-                        {user.hasPassword
-                          ? 'Your account is secured with a password.'
-                          : 'Signed in via Google OAuth. You can set a password for direct email sign-in.'}
-                      </p>
-                    </div>
-
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                      <Check className="h-3 w-3" /> Secure
-                    </span>
+                {/* 4. JUMIA GROUPED LIST SECTION: MY ORDERS & REVIEWS */}
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
+                      My Shopping &amp; Orders
+                    </h3>
                   </div>
 
-                  <form onSubmit={handlePasswordSubmit} className="mt-5 max-w-md space-y-4">
-                    {user.hasPassword && (
-                      <div>
-                        <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
-                          Current Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPasswordFields ? 'text' : 'password'}
-                            required
-                            value={currentPassword}
-                            onChange={e => setCurrentPassword(e.target.value)}
-                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                            placeholder="Enter current password"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPasswordFields(!showPasswordFields)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
-                          >
-                            {showPasswordFields ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
+                  <div className="divide-y divide-[var(--border-color)]">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('orders')}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                          <Package className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Orders &amp; Tracking</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            {allOrders.length} total orders • {activeOrders.length} in progress
+                          </p>
                         </div>
                       </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('reviews')}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                          <Star className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Pending Reviews</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            {itemsToReview.length} item{itemsToReview.length === 1 ? '' : 's'} awaiting your rating
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('wishlist')}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                          <Heart className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Saved Wishlist</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            {wishlistIds.length} item{wishlistIds.length === 1 ? '' : 's'} saved for later
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5. JUMIA GROUPED LIST SECTION: SETTINGS & PREFERENCES */}
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
+                      Settings &amp; Preferences
+                    </h3>
+                  </div>
+
+                  <div className="divide-y divide-[var(--border-color)]">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('preferences')}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-500/10 text-stone-600 dark:text-stone-300">
+                          <Settings className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">App &amp; Notification Settings</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            Sound alerts, push preferences &amp; theme appearance
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6. JUMIA GROUPED LIST SECTION: HELP & SUPPORT */}
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
+                      Reach Out &amp; Support
+                    </h3>
+                  </div>
+
+                  <div className="divide-y divide-[var(--border-color)]">
+                    {storeSettings.supportPhone && (
+                      <a
+                        href={`https://wa.me/${storeSettings.supportPhone.replace(/[^0-9]/g, '').startsWith('0') ? '233' + storeSettings.supportPhone.replace(/[^0-9]/g, '').slice(1) : storeSettings.supportPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-emerald-500/5 transition cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            <MessageCircle className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">WhatsApp Support Concierge</p>
+                            <p className="text-[11px] text-[var(--text-muted)] truncate">
+                              Chat directly with our store support team
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                      </a>
                     )}
 
-                    <div>
-                      <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
-                        New Password (min 8 characters)
-                      </label>
-                      <input
-                        type={showPasswordFields ? 'text' : 'password'}
-                        required
-                        minLength={8}
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                        placeholder="Choose new password"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
-                        Confirm New Password
-                      </label>
-                      <input
-                        type={showPasswordFields ? 'text' : 'password'}
-                        required
-                        minLength={8}
-                        value={confirmNewPassword}
-                        onChange={e => setConfirmNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                        placeholder="Confirm new password"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      disabled={isChangingPassword}
-                      className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
+                    <Link
+                      to="/support"
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
                     >
-                      {isChangingPassword ? 'Saving Password...' : user.hasPassword ? 'Update Password' : 'Set Account Password'}
-                    </Button>
-                  </form>
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                          <HelpCircle className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Help Center &amp; FAQs</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            Deliveries, store policies, order guidance
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </Link>
+                  </div>
                 </div>
 
-                {/* Direct Store Concierge Support Link */}
-                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      <h4 className="text-sm font-black text-[var(--text-primary)]">Direct Store Concierge &amp; WhatsApp Support</h4>
-                    </div>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      Have questions about your customer record, orders, or need urgent assistance from store management?
-                    </p>
-                  </div>
-                  {storeSettings.supportPhone && (
-                    <a
-                      href={`https://wa.me/${storeSettings.supportPhone.replace(/[^0-9]/g, '').startsWith('0') ? '233' + storeSettings.supportPhone.replace(/[^0-9]/g, '').slice(1) : storeSettings.supportPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-xs"
+                {/* 7. JUMIA GROUPED LIST SECTION: ACCOUNT ACTIONS */}
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                  <div className="divide-y divide-[var(--border-color)]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        navigate('/');
+                      }}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-rose-500/5 transition cursor-pointer text-rose-600 dark:text-rose-400"
                     >
-                      <MessageCircle className="h-4 w-4" />
-                      <span>Chat on WhatsApp</span>
-                    </a>
-                  )}
-                </div>
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                          <LogOut className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold">Log Out</p>
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
+                            Sign out of this device
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-rose-400" />
+                    </button>
 
-                {/* Danger Zone */}
-                <div className="rounded-3xl border border-rose-200 dark:border-rose-950 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6">
-                  <div className="flex items-center gap-3">
-                    <ShieldAlert className="h-5 w-5 text-rose-600" />
-                    <h3 className="text-base font-black text-rose-900 dark:text-rose-300">Deactivate Account</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-rose-500/10 transition cursor-pointer text-[var(--text-subtle)] hover:text-rose-600"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-500/10 text-stone-500">
+                          <ShieldAlert className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold">Deactivate Account</p>
+                          <p className="text-[10px] text-[var(--text-subtle)] truncate">
+                            Close your account and delete saved addresses
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
+                    </button>
                   </div>
-                  <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">
-                    Deactivating your account will disable your login, delete your saved delivery addresses, and archive your profile.
-                  </p>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => setShowDeleteModal(true)}
-                    className="mt-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
-                  >
-                    Deactivate Account
-                  </Button>
                 </div>
               </div>
             )}
 
-            {/* PREFERENCES */}
+            {/* PREFERENCES / SETTINGS */}
             {activeTab === 'preferences' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-black text-[#1C1817] dark:text-stone-100">Preferences</h2>
-                  <p className="text-xs text-stone-500">Configure theme and notifications.</p>
-                </div>
-
-                <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-black text-[#1C1817] dark:text-stone-100">Store Theme</h4>
-                      <p className="text-xs text-stone-500">Select light or dark mode.</p>
-                    </div>
-                    <div className="flex rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FCF9F7] dark:bg-[#241D20] p-1">
-                      {(['light', 'dark'] as const).map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() => setTheme(opt)}
-                          className={`rounded-lg px-4 py-1.5 text-xs font-bold capitalize transition ${
-                            theme === opt
-                              ? 'bg-[#C86D51] text-white shadow-sm'
-                              : 'text-stone-600 dark:text-stone-300'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#F0E4DC] dark:border-[#2C2426] pb-4">
-                    <div>
-                      <h4 className="text-sm font-black text-[#1C1817] dark:text-stone-100">Order Delivery Updates</h4>
-                      <p className="text-xs text-stone-500">SMS / WhatsApp dispatch alerts for your orders.</p>
-                    </div>
-                    <button
-                      role="switch"
-                      aria-checked={orderNotifications}
-                      onClick={() => {
-                        const val = !orderNotifications;
-                        setOrderNotifications(val);
-                        localStorage.setItem('cr_order_notifications', String(val));
-                      }}
-                      className={`relative h-6 w-11 shrink-0 rounded-full transition ${orderNotifications ? 'bg-[#C86D51]' : 'bg-stone-300'}`}
-                    >
-                      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition ${orderNotifications ? 'left-6' : 'left-1'}`} />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <div>
-                      <h4 className="text-sm font-black text-[#1C1817] dark:text-stone-100">Store Promotions</h4>
-                      <p className="text-xs text-stone-500">Notifications regarding discounts and new arrivals.</p>
-                    </div>
-                    <button
-                      role="switch"
-                      aria-checked={promoAlerts}
-                      onClick={() => {
-                        const val = !promoAlerts;
-                        setPromoAlerts(val);
-                        localStorage.setItem('cr_promo_alerts', String(val));
-                      }}
-                      className={`relative h-6 w-11 shrink-0 rounded-full transition ${promoAlerts ? 'bg-[#C86D51]' : 'bg-stone-300'}`}
-                    >
-                      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition ${promoAlerts ? 'left-6' : 'left-1'}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <SettingsView standalone={false} />
             )}
           </main>
         </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
-import { X, Heart, ShoppingBag, Trash2 } from 'lucide-react';
+import { X, Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from './UIPrimitives';
 
 interface WishlistModalProps {
@@ -59,7 +59,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose })
                       }}
                       className="rounded-full px-3 py-1 text-[11px]"
                     >
-                      <ShoppingBag className="w-3 h-3" />
+                      <ShoppingCart className="w-3 h-3" />
                       <span>Move to Cart</span>
                     </Button>
 

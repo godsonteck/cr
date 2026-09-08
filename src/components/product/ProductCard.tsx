@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, Minus, Plus, ShoppingBag, Star } from 'lucide-react';
+import { Heart, Minus, Plus, ShoppingCart, Star } from 'lucide-react';
 
 const getResponsiveImageSet = (image: string) => {
   if (!image.includes('images.unsplash.com')) return undefined;
@@ -197,7 +197,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   aria-label={product.options?.length ? `Choose options for ${product.name}` : product.inStock && product.stockCount > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
                   title={product.options?.length ? "Choose options" : "Add to cart"}
                 >
-                  <ShoppingBag className="h-3.5 w-3.5" />
+                  <ShoppingCart className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
