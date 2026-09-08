@@ -496,6 +496,78 @@ export const SignUpPage: React.FC = () => {
 // ============================================================================
 type AccountTab = 'overview' | 'orders' | 'notifications' | 'addresses' | 'wishlist' | 'reviews' | 'security' | 'preferences';
 
+const SettingsToggle: React.FC<{ checked: boolean; onChange: () => void; label: string; description: string }> = ({ checked, onChange, label, description }) => (
+  <div className="flex items-center justify-between gap-4 border-b border-[var(--border-color)] py-4 last:border-b-0">
+    <div>
+      <h3 className="text-sm font-bold text-[var(--text-primary)]">{label}</h3>
+      <p className="mt-1 text-xs leading-5 text-[var(--text-subtle)]">{description}</p>
+    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-[var(--accent)]' : 'bg-stone-300 dark:bg-stone-700'}`}
+    >
+      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition ${checked ? 'left-6' : 'left-1'}`} />
+    </button>
+  </div>
+);
+
+export const SettingsPage: React.FC = () => {
+  const { theme, setTheme } = useTheme();
+  const { isAuthenticated } = useAuth();
+  const [orderNotifications, setOrderNotifications] = useState(() => localStorage.getItem('cr_order_notifications') !== 'false');
+  const [promoAlerts, setPromoAlerts] = useState(() => localStorage.getItem('cr_promo_alerts') !== 'false');
+
+  const updatePreference = (key: string, value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setter(value);
+    localStorage.setItem(key, String(value));
+  };
+
+  return (
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[var(--bg-main)] px-4 py-8 pb-24 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Store settings</p>
+          <h1 className="mt-2 font-serif text-4xl tracking-[-0.04em] text-[var(--text-primary)]">Make it yours.</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Control the way CR Cosmetics looks and keeps you updated.</p>
+        </div>
+
+        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-soft)]">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Appearance</h2>
+          <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-[var(--bg-soft)] p-1">
+            {(['light', 'dark'] as const).map(option => (
+              <button key={option} type="button" onClick={() => setTheme(option)} className={`rounded-lg px-3 py-2.5 text-sm font-bold capitalize transition ${theme === option ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--text-muted)]'}`}>
+                {option} mode
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {isAuthenticated && (
+          <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] px-5 shadow-[var(--shadow-soft)]">
+            <h2 className="pt-5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Notifications</h2>
+            <SettingsToggle checked={orderNotifications} onChange={() => updatePreference('cr_order_notifications', !orderNotifications, setOrderNotifications)} label="Order updates" description="Keep delivery and dispatch updates enabled." />
+            <SettingsToggle checked={promoAlerts} onChange={() => updatePreference('cr_promo_alerts', !promoAlerts, setPromoAlerts)} label="Store promotions" description="Receive updates about offers and new arrivals." />
+          </section>
+        )}
+
+        <section className="flex flex-col gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-[var(--text-primary)]">Your account</h2>
+            <p className="mt-1 text-xs text-[var(--text-subtle)]">Manage orders, saved items, addresses, and notifications.</p>
+          </div>
+          <Link to={isAuthenticated ? '/account' : '/signin'} className="inline-flex min-h-10 items-center justify-center rounded-full bg-[var(--text-primary)] px-4 py-2 text-xs font-bold text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
+            {isAuthenticated ? 'Open account' : 'Sign in'}
+          </Link>
+        </section>
+      </main>
+    </div>
+  );
+};
+
 export const AccountPage: React.FC = () => {
   const {
     user,

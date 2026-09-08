@@ -20,6 +20,7 @@ const SearchResultsPage = lazy(() => import('./components/shop/CatalogAndSearch'
 const ProductDetailPage = lazy(() => import('./components/product/ProductDetailAndRoutine').then(module => ({ default: module.ProductDetailPage })));
 const RoutineBuilderPage = lazy(() => import('./components/product/ProductDetailAndRoutine').then(module => ({ default: module.RoutineBuilderPage })));
 const AccountPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.AccountPage })));
+const SettingsPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SettingsPage })));
 const SignInPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignInPage })));
 const SignUpPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignUpPage })));
 const AboutPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.AboutPage })));
@@ -100,7 +101,7 @@ function AppLayout() {
       <SEO />
 
       <ErrorBoundary>
-        <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-[#C86D51] selection:text-white transition-colors">
+        <div className="min-h-screen flex flex-col bg-[var(--bg-main)] pb-16 text-[var(--text-primary)] font-sans selection:bg-[#C86D51] selection:text-white transition-colors">
           <Header />
 
           <main className="flex-1">
@@ -130,6 +131,7 @@ function AppLayout() {
 
                 <Route path="/account" element={pageVisibility.account ? <AccountPage /> : renderUnavailable('Account area is currently offline')} />
                 <Route path="/account/orders" element={pageVisibility.account ? <AccountPage /> : renderUnavailable('Account area is currently offline')} />
+                <Route path="/settings" element={pageVisibility.account ? <SettingsPage /> : renderUnavailable('Settings are currently offline')} />
                 <Route path="/signin" element={pageVisibility.account ? <SignInPage /> : renderUnavailable('Sign in is currently offline')} />
                 <Route path="/signup" element={pageVisibility.account ? <SignUpPage /> : renderUnavailable('Sign up is currently offline')} />
 

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
-import { Order } from '../../types';
+import { DeliveryMethod, Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -274,6 +274,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const [city, setCity] = useState('Accra');
   const [area, setArea] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard-delivery');
   const [isProcessing, setIsProcessing] = useState(false);
   const hasHandledReturn = useRef(false);
 
@@ -356,7 +357,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const configuredDeliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
 
   const startPaystackCheckout = async () => {
-    if (!fullName || !phone || !area) {
+    if (!fullName || !phone || (deliveryMethod !== 'store-pickup' && !area)) {
       showAlert('Please complete your delivery details first.', 'error');
       setStep(1);
       return;
@@ -367,7 +368,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
       const customerToken = localStorage.getItem('auth_token');
       if (!customerToken) throw new ApiError(401, 'Authentication required');
       const rawLocationFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
-      const baseDeliveryFee = rawLocationFee ?? storeSettings.standardShippingFee ?? 0;
+      const baseDeliveryFee = deliveryMethod === 'store-pickup' ? 0 : rawLocationFee ?? storeSettings.standardShippingFee ?? 0;
       const isFreeDelivery = subtotal >= (storeSettings.freeDeliveryThreshold || 300);
       const deliveryFee = isFreeDelivery ? 0 : baseDeliveryFee;
       const orderPayload: Order = {
@@ -376,8 +377,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
         items: [...cartItems], subtotal, shippingFee: deliveryFee, discount,
         total: Math.max(0, subtotal - discount + deliveryFee),
         paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '',
-        deliveryMethod: 'standard-delivery',
-        shippingAddress: { fullName, phone, email: email || undefined, city, region, area, deliveryNotes: deliveryNotes || undefined },
+        deliveryMethod,
+        shippingAddress: { fullName, phone, email: email || undefined, city: deliveryMethod === 'store-pickup' ? 'Accra' : city, region, area: deliveryMethod === 'store-pickup' ? 'Store pickup' : area, deliveryNotes: deliveryNotes || undefined },
         status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
         createdAt: new Date().toISOString(),
       };
@@ -445,6 +446,39 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
 
                 <div className="p-5 space-y-5">
+                  <div>
+                    <p className="mb-3 text-xs font-black uppercase tracking-wide text-[var(--text-primary)]">How would you like to receive your order?</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        { value: 'standard-delivery' as const, title: 'Delivery', description: 'We bring it to your address.', icon: Truck },
+                        { value: 'store-pickup' as const, title: 'Store pickup', description: 'Collect from our Accra location.', icon: ShoppingCart },
+                      ].map(({ value, title, description, icon: Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setDeliveryMethod(value)}
+                          className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${deliveryMethod === value ? 'border-[#FF6B00] bg-[#FF6B00]/5' : 'border-[var(--border-color)] hover:border-[#FF6B00]/50'}`}
+                        >
+                          <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[#FF6B00]" />
+                          <span><strong className="block text-xs text-[var(--text-primary)]">{title}</strong><span className="mt-1 block text-[11px] text-[var(--text-muted)]">{description}</span></span>
+                        </button>
+                      ))}
+                    </div>
+                    {deliveryMethod === 'store-pickup' && (
+                      <p className="mt-3 rounded-xl bg-[var(--bg-soft)] p-3 text-xs leading-5 text-[var(--text-muted)]">
+                        Pickup location: <strong className="text-[var(--text-primary)]">{storeSettings.storeAddress}</strong>. We will confirm when your order is ready.
+                      </p>
+                    )}
+                  </div>
+
+                  {deliveryMethod === 'store-pickup' && (
+                    <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                      <p className="text-xs font-bold text-[var(--text-primary)]">Pickup details</p>
+                      <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Bring your order number and phone used at checkout. Pickup is free.</p>
+                    </div>
+                  )}
+
+                  {deliveryMethod !== 'store-pickup' && (<>
                   {/* Saved Addresses */}
                   {user?.savedAddresses && user.savedAddresses.length > 0 && (
                     <div>
@@ -542,9 +576,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       />
                     </div>
                   </div>
+                  </>)}
 
                   <button
-                    disabled={!fullName || !phone || !area || !region || !city}
+                    disabled={!fullName || !phone || (deliveryMethod !== 'store-pickup' && (!area || !region || !city))}
                     onClick={() => setStep(2)}
                     className="w-full sm:w-auto px-8 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/20"
                   >
@@ -574,7 +609,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-bold text-[var(--text-primary)]">{fullName}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{area}, {city}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{deliveryMethod === 'store-pickup' ? `Pickup at ${storeSettings.storeAddress}` : `${area}, ${city}`}</p>
                       <p className="text-xs text-[var(--text-muted)]">{phone}</p>
                     </div>
                   </div>
@@ -594,7 +629,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 mb-4">
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-[var(--text-muted)]">Amount to pay</span>
-                        <span className="text-2xl font-black text-[#FF6B00]">GHS {Math.max(0, subtotal - discount + (storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee ?? storeSettings.standardShippingFee)).toFixed(2)}</span>
+                        <span className="text-2xl font-black text-[#FF6B00]">GHS {Math.max(0, subtotal - discount + (deliveryMethod === 'store-pickup' ? 0 : storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee ?? storeSettings.standardShippingFee)).toFixed(2)}</span>
                       </div>
                     </div>
 
@@ -655,7 +690,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-xs text-[var(--text-muted)]">
                   <span>Delivery</span>
-                  <span className="text-[#FF6B00] font-bold">{configuredDeliveryFee == null ? 'Confirm on WhatsApp' : `GHS ${configuredDeliveryFee.toFixed(2)}`}</span>
+                  <span className="text-[#FF6B00] font-bold">{deliveryMethod === 'store-pickup' ? 'Free' : configuredDeliveryFee == null ? 'Confirm on WhatsApp' : `GHS ${configuredDeliveryFee.toFixed(2)}`}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-xs text-emerald-600">
