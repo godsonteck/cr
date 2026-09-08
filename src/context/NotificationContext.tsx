@@ -183,30 +183,32 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const updated = [...prev];
 
       orders.forEach(order => {
-        const orderNotificationId = `order-status-${order.id}-${order.status}`;
-        const exists = updated.some(n => n.id === orderNotificationId || (n.orderNumber === order.orderNumber && n.message.includes(order.status)));
+        const orderStatus = String(order?.status || 'Pending');
+        const orderNum = String(order?.orderNumber || '');
+        const orderNotificationId = `order-status-${order?.id || 'id'}-${orderStatus}`;
+        const exists = updated.some(n => n.id === orderNotificationId || (n.orderNumber === orderNum && (n.message || '').includes(orderStatus)));
 
         if (!exists) {
           changed = true;
-          let message = `Order #${order.orderNumber} is currently ${order.status.toLowerCase()}.`;
-          if (order.status === 'Delivered') {
-            message = `Order #${order.orderNumber} has been delivered. Thank you for shopping with us!`;
-          } else if (order.status === 'Out for Delivery') {
-            message = `Rider is on the way with order #${order.orderNumber}.`;
-          } else if (order.status === 'Processing') {
-            message = `Order #${order.orderNumber} is being processed and packed.`;
+          let message = `Order #${orderNum} is currently ${orderStatus.toLowerCase()}.`;
+          if (orderStatus === 'Delivered') {
+            message = `Order #${orderNum} has been delivered. Thank you for shopping with us!`;
+          } else if (orderStatus === 'Out for Delivery') {
+            message = `Rider is on the way with order #${orderNum}.`;
+          } else if (orderStatus === 'Processing') {
+            message = `Order #${orderNum} is being processed and packed.`;
           }
 
           updated.unshift({
             id: orderNotificationId,
             type: 'order',
-            title: `Order #${order.orderNumber} Update`,
+            title: `Order #${orderNum} Update`,
             message,
-            timestamp: order.createdAt || new Date().toISOString(),
+            timestamp: order?.createdAt || new Date().toISOString(),
             read: false,
             actionUrl: `/account?tab=orders`,
-            orderNumber: order.orderNumber,
-            priority: order.status === 'Out for Delivery' ? 'high' : 'normal',
+            orderNumber: orderNum,
+            priority: orderStatus === 'Out for Delivery' ? 'high' : 'normal',
           });
         }
       });

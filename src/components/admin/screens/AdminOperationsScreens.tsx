@@ -315,7 +315,7 @@ export function AdminCustomersScreen() {
       const orderDate = order.createdAt;
 
       if (!existing) {
-        const id = 'cust-' + (email ? email.replace(/[^a-z0-9]/g, '-') : phone.replace(/[^0-9]/g, ''));
+        const id = 'cust-' + (email ? String(email).replace(/[^a-z0-9]/g, '-') : String(phone || '').replace(/[^0-9]/g, ''));
         const savedNotes = localStorage.getItem(`cr_customer_notes_${id}`) || '';
         const isBlocked = localStorage.getItem(`cr_customer_blocked_${id}`) === 'true';
 
@@ -323,7 +323,7 @@ export function AdminCustomersScreen() {
           id,
           fullName: name,
             profileImage: undefined,
-          email: email || `${phone.replace(/[^0-9]/g, '')}@customer.cr`,
+          email: email || `${String(phone || '').replace(/[^0-9]/g, '')}@customer.cr`,
           phone: phone || 'No phone recorded',
           ordersCount: 1,
           totalSpent: orderTotal,
@@ -492,7 +492,7 @@ export function AdminCustomersScreen() {
           </div>
           <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
             {filtered.map(customer => {
-              const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
+              const customerPhoneClean = String(customer.phone || '').replace(/[^0-9]/g, '');
               const hasWhatsAppNumber = customerPhoneClean.length >= 7 && customer.phone !== 'No phone recorded';
               const whatsappUrl = hasWhatsAppNumber ? `https://wa.me/${
                 customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean

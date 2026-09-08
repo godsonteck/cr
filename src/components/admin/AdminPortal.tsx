@@ -224,9 +224,9 @@ export const AdminPortal: React.FC = () => {
       const total = Number(order.total) || 0;
       if (!existing) {
         map.set(key, {
-          id: 'cust-' + (email ? email.replace(/[^a-z0-9]/g, '-') : phone.replace(/[^0-9]/g, '')),
+          id: 'cust-' + (email ? String(email).replace(/[^a-z0-9]/g, '-') : String(phone || '').replace(/[^0-9]/g, '')),
           fullName: name,
-          email: email || `${phone.replace(/[^0-9]/g, '')}@customer.cr`,
+          email: email || `${String(phone || '').replace(/[^0-9]/g, '')}@customer.cr`,
           phone: phone || '',
           ordersCount: 1,
           totalSpent: total,

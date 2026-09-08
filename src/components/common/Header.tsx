@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
   const { storeSettings } = useStore();
   const { user, isAuthenticated } = useAuth();
   const [profileImgError, setProfileImgError] = React.useState(false);
-  const displayStoreName = storeSettings.storeName.replace(/\s+AND\s+/gi, ' & ');
+  const displayStoreName = String(storeSettings?.storeName || 'CR COSMETICS').replace(/\s+AND\s+/gi, ' & ');
   const [brandPrimary, brandSecondary] = displayStoreName.split(' & ');
 
   React.useEffect(() => {

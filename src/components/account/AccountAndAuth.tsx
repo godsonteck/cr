@@ -295,7 +295,7 @@ export const SignInPage: React.FC = () => {
               </Button>
               {storePhoneOrWhatsApp && (
                 <a
-                  href={`https://wa.me/${storePhoneOrWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I need assistance accessing my account.`)}`}
+                  href={`https://wa.me/${String(storePhoneOrWhatsApp).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${String(storeSettings?.storeName || 'Store')}, I need assistance accessing my account.`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-xl bg-[#25D366] px-4 py-2 text-xs font-bold text-white hover:bg-[#1EBE5D] transition"

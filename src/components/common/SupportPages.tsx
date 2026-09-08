@@ -513,7 +513,7 @@ export const SupportPage: React.FC = () => {
 
       {/* Quick Reach Cards */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#C86D51] hover:shadow-sm">
+        <a href={`tel:${String(supportPhone || '').replace(/\s+/g, '')}`} className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#C86D51] hover:shadow-sm">
           <Phone className="mx-auto h-6 w-6 text-[#C86D51]" />
           <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Customer line</h4>
           <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{supportPhone}</p>
@@ -713,7 +713,7 @@ export const ContactPage: React.FC = () => {
 
       {/* Contact Channels */}
       <div className="mt-10 grid gap-5 md:grid-cols-3">
-        <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51] hover:shadow-sm">
+        <a href={`tel:${String(supportPhone || '').replace(/\s+/g, '')}`} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 transition hover:border-[#C86D51] hover:shadow-sm">
           <Phone className="h-6 w-6 text-[#C86D51]" />
           <h2 className="mt-5 text-sm font-extrabold text-[var(--text-primary)]">Call us</h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">{supportPhone}</p>

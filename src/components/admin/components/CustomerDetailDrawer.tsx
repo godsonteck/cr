@@ -29,7 +29,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
       (o.shippingAddress.email && o.shippingAddress.email.toLowerCase() === customer.email.toLowerCase())
   );
 
-  const customerPhoneClean = customer.phone.replace(/[^0-9]/g, '');
+  const customerPhoneClean = String(customer?.phone || '').replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${
     customerPhoneClean.startsWith('0') ? '233' + customerPhoneClean.slice(1) : customerPhoneClean
   }?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${storeSettings.storeName}.`)}`;

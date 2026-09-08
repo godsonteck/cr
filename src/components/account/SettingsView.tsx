@@ -233,10 +233,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
   };
 
   // WhatsApp concierge URL
-  const contactPhone = storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone || '';
+  const contactPhone = String(storeSettings?.whatsappNumber || storeSettings?.storePhone || storeSettings?.supportPhone || '');
   const cleanPhone = contactPhone.replace(/[^0-9+]/g, '');
   const conciergeMessage = encodeURIComponent(
-    `Hello ${storeSettings.storeName} Support, I have a quick inquiry about my account preferences and store services.`
+    `Hello ${String(storeSettings?.storeName || 'Store')} Support, I have a quick inquiry about my account preferences and store services.`
   );
   const whatsappUrl = `https://wa.me/${cleanPhone.replace('+', '')}?text=${conciergeMessage}`;
 
