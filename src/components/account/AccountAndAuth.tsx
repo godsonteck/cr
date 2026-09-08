@@ -604,7 +604,7 @@ export const AccountPage: React.FC = () => {
     fullName: user?.fullName || '',
     phone: user?.phone || '',
     profileImage: user?.profileImage || '',
-    skinType: user?.skinProfile?.skinType || 'normal',
+    skinType: (user?.skinProfile?.skinType || 'Normal') as 'Dry' | 'Oily' | 'Combination' | 'Sensitive' | 'Normal',
     concerns: (user?.skinProfile?.concerns || []) as string[],
   });
   const profileImageInputRef = useRef<HTMLInputElement>(null);
@@ -685,7 +685,7 @@ export const AccountPage: React.FC = () => {
         fullName: user.fullName,
         phone: user.phone,
         profileImage: user.profileImage || '',
-        skinType: user.skinProfile?.skinType || 'normal',
+        skinType: user.skinProfile?.skinType || 'Normal',
         concerns: user.skinProfile?.concerns || [],
       });
     }
@@ -2721,7 +2721,7 @@ export const AccountPage: React.FC = () => {
                           <div>
                             <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Your Skin Type</label>
                             <div className="flex flex-wrap gap-2">
-                              {(['normal', 'dry', 'oily', 'combination', 'sensitive'] as const).map(type => (
+                              {(['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive'] as const).map(type => (
                                 <button
                                   key={type}
                                   type="button"
@@ -2993,13 +2993,17 @@ export const AccountPage: React.FC = () => {
                   </div>
 
                   <div className="divide-y divide-[var(--border-color)]">
-                    {storeSettings.supportPhone && (
-                      <a
-                        href={`https://wa.me/${storeSettings.supportPhone.replace(/[^0-9]/g, '').startsWith('0') ? '233' + storeSettings.supportPhone.replace(/[^0-9]/g, '').slice(1) : storeSettings.supportPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-emerald-500/5 transition cursor-pointer"
-                      >
+                    {(storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone) && (() => {
+                      const activeSupportPhone = storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone || '';
+                      const rawNumber = activeSupportPhone.replace(/[^0-9]/g, '');
+                      const formattedWa = rawNumber.startsWith('0') ? '233' + rawNumber.slice(1) : rawNumber;
+                      return (
+                        <a
+                          href={`https://wa.me/${formattedWa}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-emerald-500/5 transition cursor-pointer"
+                        >
                         <div className="flex items-center gap-3.5 min-w-0">
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                             <MessageCircle className="h-4 w-4" />
@@ -3013,7 +3017,8 @@ export const AccountPage: React.FC = () => {
                         </div>
                         <ChevronRight className="h-4 w-4 text-[var(--text-subtle)]" />
                       </a>
-                    )}
+                      );
+                    })()}
 
                     <Link
                       to="/support"

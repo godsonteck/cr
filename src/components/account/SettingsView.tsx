@@ -233,7 +233,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
   };
 
   // WhatsApp concierge URL
-  const cleanPhone = storeSettings.supportPhone.replace(/[^0-9+]/g, '');
+  const contactPhone = storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone || '';
+  const cleanPhone = contactPhone.replace(/[^0-9+]/g, '');
   const conciergeMessage = encodeURIComponent(
     `Hello ${storeSettings.storeName} Support, I have a quick inquiry about my account preferences and store services.`
   );
@@ -813,7 +814,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
           <div className="space-y-0.5">
             <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Direct WhatsApp Concierge</p>
             <p className="text-[11px] text-[var(--text-subtle)]">
-              Support Line: <strong className="text-[var(--text-primary)]">{storeSettings.supportPhone}</strong> ({storeSettings.supportEmail})
+              Support Line: <strong className="text-[var(--text-primary)]">{storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone || 'Available on WhatsApp'}</strong> ({storeSettings.storeEmail || storeSettings.supportEmail || 'support@cr.com'})
             </p>
           </div>
           <a

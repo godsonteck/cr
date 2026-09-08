@@ -134,6 +134,8 @@ export interface StoreSettings {
   storeAddress: string;
   storeHours: string;
   whatsappNumber: string;
+  supportPhone?: string;
+  supportEmail?: string;
   maintenanceMode: boolean;
   bannerAlert: string | null;
   storeLogo?: string;
