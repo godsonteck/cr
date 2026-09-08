@@ -41,6 +41,7 @@ import { useStore } from '../../context/StoreContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAlert } from '../../context/AlertContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { Button, Badge } from '../common/UIPrimitives';
 import { ShippingAddress, Order, Product, AdminNotification } from '../../types';
 import logoImg from '../../assets/logo.jpeg';
@@ -587,6 +588,14 @@ export const AccountPage: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const { showAlert } = useAlert();
   const navigate = useNavigate();
+  const {
+    notifications: customerNotifications,
+    unreadCount: unreadCustomerNotifications,
+    markAsRead: markCustomerNotificationRead,
+    markAllAsRead: markAllCustomerNotificationsRead,
+    deleteNotification: deleteCustomerNotification,
+    clearAllRead: clearAllReadCustomerNotifications,
+  } = useNotifications();
 
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
 
@@ -729,33 +738,8 @@ export const AccountPage: React.FC = () => {
     );
   }, [allOrders]);
 
-  const customerNotifications = useMemo(() => serverNotifications.length > 0
-    ? serverNotifications.map(notification => ({
-      id: notification.id,
-      orderNumber: '',
-      status: '',
-      timestamp: notification.timestamp,
-      message: notification.message,
-      serverRead: notification.read,
-    }))
-    : allOrders.map(order => ({
-      id: `order-${order.id}-${order.status}`,
-      orderNumber: order.orderNumber,
-      status: order.status,
-      timestamp: order.createdAt,
-      message: order.status === 'Delivered'
-        ? `Order #${order.orderNumber} has been delivered.`
-        : `Order #${order.orderNumber} is ${order.status.toLowerCase()}.`,
-      serverRead: false,
-    })), [allOrders, serverNotifications]);
-
-  const unreadCustomerNotifications = customerNotifications.filter(notification => !notification.serverRead && !reviewedNotifications.includes(notification.id)).length;
-
   const markCustomerNotificationsReviewed = (ids: string[]) => {
-    setReviewedNotifications(ids);
-    localStorage.setItem(`cr_customer_reviewed_notifications_${user?.id || 'guest'}`, JSON.stringify(ids));
-    const newlyRead = customerNotifications.filter(notification => ids.includes(notification.id) && !notification.id.startsWith('order-'));
-    newlyRead.forEach(notification => { void api.patch(`/notifications?id=${encodeURIComponent(notification.id)}`, {}); });
+    ids.forEach(id => { void markCustomerNotificationRead(id); });
   };
 
   // Filtered orders
@@ -1044,203 +1028,179 @@ export const AccountPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[#FCF9F7] dark:bg-[#121011] py-8 font-sans">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Top Header Card - Redesigned Luxury Editorial Aesthetic */}
-        <div className="relative mb-8 overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-gradient-to-b from-[#FFFFFF] via-[#FDFBF9] to-[#FBF6F2] dark:from-[#1E181B] dark:via-[#1A1417] dark:to-[#161113] p-6 sm:p-8 shadow-sm transition-all duration-300">
-          {/* Ambient glowing brand accent in background */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gradient-to-br from-[#C86D51]/10 via-[#D4AF37]/5 to-transparent blur-3xl" />
-          <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-tr from-[#A94C63]/5 to-transparent blur-2xl" />
-          {/* Subtle top shimmer hairline */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C86D51]/40 to-transparent" />
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+        {/* Mobile-First Profile Header Card */}
+        <div className="relative mb-4 sm:mb-6 overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)]/50 p-4 sm:p-7 shadow-xs">
+          {/* Ambient accent glows */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-[var(--accent)]/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-16 -bottom-16 h-52 w-52 rounded-full bg-[var(--accent-strong)]/5 blur-2xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)]/50 to-transparent" />
 
-          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-5 sm:gap-6">
-              {/* Luxury Avatar Frame */}
-              <div className="relative shrink-0">
-                <div className="flex h-20 w-20 sm:h-22 sm:w-22 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] via-[#B85D43] to-[#8C3B50] p-0.5 shadow-md shadow-[#C86D51]/15 ring-2 ring-[#C86D51]/20 ring-offset-2 ring-offset-white dark:ring-offset-[#1E181B]">
-                  {user?.profileImage ? (
-                    <img
-                      src={user.profileImage}
-                      alt={`${user.fullName}'s profile`}
-                      className="h-full w-full rounded-[14px] object-cover"
-                    />
-                  ) : (
-                    <span className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-wide">
-                      {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-                    </span>
-                  )}
-                </div>
-                {/* Verified Customer Status Overlay */}
-                <div 
-                  title="Verified Customer"
-                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1C1817] text-[#D4AF37] ring-2 ring-white dark:ring-[#1E181B] shadow-sm"
-                >
-                  <Sparkles className="h-3 w-3 fill-[#D4AF37]" />
-                </div>
-              </div>
-
-              {/* Name, Tier & Contact Info */}
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
-                    {user?.fullName}
-                  </h1>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D4AF37]/35 bg-gradient-to-r from-[#FAF3E8] to-[#FFF9F2] dark:from-[#2A231C] dark:to-[#221B19] px-3 py-0.5 text-[11px] font-bold text-[#8C6219] dark:text-[#E5C07B] shadow-xs">
-                    <CheckCircle2 className="h-3 w-3 text-[#D4AF37]" />
-                    Verified Customer
-                  </span>
-                </div>
-
-                {/* Contact info tags */}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600 dark:text-stone-400">
-                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#FAF6F0] dark:bg-[#251D21] px-2.5 py-1 text-xs text-stone-600 dark:text-stone-300 font-medium">
-                    <Mail className="h-3.5 w-3.5 text-[#C86D51]" />
-                    <span>{user?.email}</span>
-                  </div>
-                  {user?.phone && (
-                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#FAF6F0] dark:bg-[#251D21] px-2.5 py-1 text-xs text-stone-600 dark:text-stone-300 font-medium">
-                      <Phone className="h-3.5 w-3.5 text-[#C86D51]" />
-                      <span>{user.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Header Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 self-start lg:self-center">
-              <Link to="/shop" className="flex-1 sm:flex-initial">
-                <button className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1C1817] dark:bg-stone-100 px-4 py-2.5 text-xs font-bold tracking-wide text-white dark:text-[#1C1817] shadow-sm hover:bg-[#C86D51] dark:hover:bg-[#C86D51] dark:hover:text-white transition-all duration-200">
-                  <ShoppingBag className="h-4 w-4 text-[#E28E74] dark:text-[#C86D51] group-hover:text-white group-hover:scale-110 transition-transform duration-200" />
-                  <span>Browse Catalog</span>
-                </button>
-              </Link>
-              <button
-                onClick={() => { logout(); navigate('/'); }}
-                className="flex flex-1 sm:flex-initial items-center justify-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/60 px-4 py-2.5 text-xs font-semibold text-stone-600 dark:text-stone-400 hover:border-red-200 hover:bg-red-50/50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-950/20 dark:hover:text-red-400 transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign out</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Metrics Strip - Redesigned Luxury KPI Cards */}
-          <div className="relative z-10 mt-8 grid grid-cols-1 gap-3.5 border-t border-[#F0E4DC]/80 dark:border-[#2C2426] pt-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* 1. Orders Placed */}
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                activeTab === 'orders'
-                  ? 'border-[#C86D51] bg-[#FFFBF9] dark:bg-[#251A1D] shadow-sm'
-                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#C86D51]/50 hover:bg-white dark:hover:bg-[#241D20]'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF2ED] to-[#FFE5DC] dark:from-[#35201B] dark:to-[#2B1B17] text-[#C86D51] shadow-xs ring-1 ring-[#C86D51]/20 transition-transform duration-300 group-hover:scale-105">
-                  <Package className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
-                    {allOrders.length}
-                  </p>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                    Orders Placed
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#C86D51]" />
-            </button>
-
-            {/* 2. In Transit */}
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                activeTab === 'orders' && activeOrders.length > 0
-                  ? 'border-[#D48B28] bg-[#FFFCF7] dark:bg-[#282117] shadow-sm'
-                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#D48B28]/50 hover:bg-white dark:hover:bg-[#241D20]'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF9ED] to-[#FFF0D4] dark:from-[#332716] dark:to-[#281F13] text-[#D48B28] shadow-xs ring-1 ring-[#D48B28]/20 transition-transform duration-300 group-hover:scale-105">
-                  <Truck className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
-                      {activeOrders.length}
-                    </p>
-                    {activeOrders.length > 0 && (
-                      <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D48B28] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D48B28]"></span>
+          <div className="relative z-10 flex flex-col gap-4 sm:gap-6">
+            {/* Top row: Avatar + Identity + Quick Actions */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+                {/* Avatar Frame */}
+                <div className="relative shrink-0">
+                  <div className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] p-0.5 shadow-md shadow-[var(--accent)]/20 ring-2 ring-[var(--accent)]/25">
+                    {user?.profileImage ? (
+                      <img
+                        src={user.profileImage}
+                        alt={`${user.fullName}'s profile`}
+                        className="h-full w-full rounded-[14px] object-cover"
+                      />
+                    ) : (
+                      <span className="font-serif text-xl sm:text-3xl font-bold text-white tracking-wide">
+                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                    In Transit
-                  </p>
+                  {/* Verified Badge */}
+                  <div 
+                    title="Verified Customer"
+                    className="absolute -bottom-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-[var(--text-primary)] text-amber-400 ring-2 ring-[var(--bg-card)] shadow-xs"
+                  >
+                    <Sparkles className="h-3 w-3 fill-amber-400" />
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#D48B28]" />
-            </button>
 
-            {/* 3. Saved Addresses */}
-            <button
-              onClick={() => setActiveTab('addresses')}
-              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                activeTab === 'addresses'
-                  ? 'border-[#A94C63] bg-[#FFF8FA] dark:bg-[#271920] shadow-sm'
-                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#A94C63]/50 hover:bg-white dark:hover:bg-[#241D20]'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF0F4] to-[#FFE0E9] dark:from-[#341B24] dark:to-[#2A171D] text-[#A94C63] shadow-xs ring-1 ring-[#A94C63]/20 transition-transform duration-300 group-hover:scale-105">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
-                    {user?.savedAddresses?.length || 0}
-                  </p>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                    Saved Addresses
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#A94C63]" />
-            </button>
+                {/* Name, Status & Contact */}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="truncate font-serif text-base sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+                      {user?.fullName || 'My Account'}
+                    </h1>
+                    <span className="hidden xs:inline-flex items-center gap-1 rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                      <CheckCircle2 className="h-2.5 w-2.5" />
+                      Verified
+                    </span>
+                  </div>
 
-            {/* 4. Saved Wishlist */}
-            <button
-              onClick={() => setActiveTab('wishlist')}
-              className={`group relative flex items-center justify-between rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                activeTab === 'wishlist'
-                  ? 'border-[#E11D48] bg-[#FFF5F6] dark:bg-[#2A171C] shadow-sm'
-                  : 'border-[#F0E4DC] dark:border-[#2C2426] bg-white/80 dark:bg-[#211B1E]/60 hover:border-[#E11D48]/50 hover:bg-white dark:hover:bg-[#241D20]'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF1F2] to-[#FFE4E6] dark:from-[#36191E] dark:to-[#2B1519] text-[#E11D48] shadow-xs ring-1 ring-[#E11D48]/20 transition-transform duration-300 group-hover:scale-105">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-serif text-2xl font-bold tracking-tight text-[#1C1817] dark:text-stone-100">
-                    {wishlistIds.length}
+                  <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+                    {user?.email}
                   </p>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                    Saved Wishlist
-                  </p>
+                  {user?.phone && (
+                    <p className="truncate text-[11px] text-[var(--text-subtle)]">
+                      {user.phone}
+                    </p>
+                  )}
                 </div>
               </div>
-              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#E11D48]" />
-            </button>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('security')}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-subtle)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition"
+                  title="Edit Profile"
+                  aria-label="Edit Profile"
+                >
+                  <Edit3 className="h-4 w-4" />
+                </button>
+                <Link to="/shop" className="hidden sm:inline-flex">
+                  <button className="flex items-center gap-1.5 rounded-xl bg-[var(--text-primary)] px-3.5 py-2 text-xs font-bold text-[var(--bg-card)] hover:bg-[var(--accent)] transition">
+                    <ShoppingBag className="h-3.5 w-3.5 text-[var(--accent)]" />
+                    <span>Shop</span>
+                  </button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => { logout(); navigate('/'); }}
+                  className="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-950 bg-rose-50/60 dark:bg-rose-950/20 px-2.5 sm:px-3 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100/80 transition"
+                  title="Sign out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Sign out</span>
+                </button>
+              </div>
+            </div>
+
+            {/* KPI Chips Grid (Touch-friendly 4-stat row) */}
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 border-t border-[var(--border-color)]/70 pt-3 sm:pt-4">
+              {[
+                { id: 'orders' as const, label: 'Orders', count: allOrders.length, icon: Package },
+                { id: 'orders' as const, label: 'In Transit', count: activeOrders.length, icon: Truck, isPing: activeOrders.length > 0 },
+                { id: 'wishlist' as const, label: 'Wishlist', count: wishlistIds.length, icon: Heart },
+                { id: 'addresses' as const, label: 'Addresses', count: user?.savedAddresses?.length || 0, icon: MapPin },
+              ].map(({ id, label, count, icon: Icon, isPing }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setActiveTab(id)}
+                  className={`group flex flex-col items-center justify-center rounded-xl border p-2 sm:p-3 text-center transition-all ${
+                    activeTab === id && (label !== 'In Transit' || activeOrders.length > 0)
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)] shadow-xs'
+                      : 'border-[var(--border-color)] bg-[var(--bg-card)]/80 hover:border-[var(--accent)]/40 text-[var(--text-primary)]'
+                  }`}
+                >
+                  <div className="relative mb-1 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-[var(--bg-soft)] text-[var(--accent)] group-hover:scale-105 transition-transform">
+                    <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    {isPing && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-serif text-sm sm:text-lg font-bold leading-none">
+                    {count}
+                  </span>
+                  <span className="mt-0.5 text-[9px] sm:text-[10px] font-semibold text-[var(--text-subtle)] truncate max-w-full">
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Main Grid: Sidebar + Screen */}
-        <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-          <aside className="h-fit space-y-2 rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-3 shadow-sm">
+        {/* Sticky Horizontal Mobile Tab Bar (< lg) */}
+        <div className="lg:hidden sticky top-14 sm:top-16 z-30 -mx-3 px-3 py-2 mb-4 bg-[var(--bg-main)]/95 backdrop-blur-md border-y border-[var(--border-color)]">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {[
+              { id: 'overview' as const, label: 'Overview', icon: Sparkles },
+              { id: 'orders' as const, label: 'Orders', icon: Package, count: allOrders.length },
+              { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, count: wishlistIds.length },
+              { id: 'addresses' as const, label: 'Addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
+              { id: 'notifications' as const, label: 'Alerts', icon: Bell, count: unreadCustomerNotifications },
+              { id: 'reviews' as const, label: 'Reviews', icon: Star, count: itemsToReview.length },
+              { id: 'security' as const, label: 'Profile', icon: User },
+              { id: 'preferences' as const, label: 'Settings', icon: Settings },
+            ].map(({ id, label, icon: Icon, count }) => {
+              const isActive = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveTab(id)}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                    isActive
+                      ? 'bg-[var(--accent)] text-white shadow-sm scale-[1.02]'
+                      : 'bg-[var(--bg-card)] text-[var(--text-subtle)] border border-[var(--border-color)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{label}</span>
+                  {count !== undefined && count > 0 && (
+                    <span
+                      className={`rounded-full px-1.5 py-0.2 text-[9px] font-extrabold ${
+                        isActive ? 'bg-white/25 text-white' : 'bg-[var(--bg-soft)] text-[var(--accent)]'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
+        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+          <aside className="hidden lg:block h-fit space-y-2 rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-xs">
             <nav className="space-y-1">
               {[
                 { id: 'overview' as const, label: 'Overview', icon: Sparkles },
@@ -1256,11 +1216,12 @@ export const AccountPage: React.FC = () => {
                 return (
                   <button
                     key={id}
+                    type="button"
                     onClick={() => setActiveTab(id)}
                     className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-xs font-bold transition ${
                       isActive
-                        ? 'bg-[#1C1817] text-white shadow-sm dark:bg-[#C86D51]'
-                        : 'text-stone-600 dark:text-stone-300 hover:bg-[#FAF3F0] dark:hover:bg-[#2A2024] hover:text-[#C86D51]'
+                        ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
+                        : 'text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -1272,7 +1233,7 @@ export const AccountPage: React.FC = () => {
                         className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
                           isActive
                             ? 'bg-white/20 text-white'
-                            : 'bg-[#F0E4DC] dark:bg-[#2C2426] text-stone-700 dark:text-stone-300'
+                            : 'bg-[var(--bg-soft)] text-[var(--text-primary)]'
                         }`}
                       >
                         {count}
@@ -1283,10 +1244,10 @@ export const AccountPage: React.FC = () => {
               })}
             </nav>
 
-            <div className="border-t border-[#F0E4DC] dark:border-[#2C2426] pt-3">
+            <div className="border-t border-[var(--border-color)] pt-3">
               <Link
                 to="/support"
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold text-stone-600 dark:text-stone-300 hover:bg-[#FAF3F0] dark:hover:bg-[#2A2024] hover:text-[#C86D51] transition"
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)] transition"
               >
                 <Headphones className="h-4 w-4" /> Customer Support
               </Link>
@@ -1322,12 +1283,12 @@ export const AccountPage: React.FC = () => {
                           Delivery ETA: <strong className="text-stone-800 dark:text-stone-200">{activeOrders[0].estimatedDeliveryTime || 'Scheduled'}</strong>
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setViewingInvoiceOrder(activeOrders[0])}
-                          className="rounded-xl text-xs font-bold"
+                          className="flex-1 sm:flex-initial rounded-xl text-xs font-bold justify-center"
                         >
                           <Printer className="mr-1 h-3.5 w-3.5" /> Digital Receipt
                         </Button>
@@ -1335,7 +1296,7 @@ export const AccountPage: React.FC = () => {
                           variant="primary"
                           size="sm"
                           onClick={() => setActiveTab('orders')}
-                          className="rounded-xl text-xs font-bold bg-[#1C1817] text-white hover:bg-[#2A1D20]"
+                          className="flex-1 sm:flex-initial rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:opacity-90 justify-center"
                         >
                           View Details <ChevronRight className="ml-1 h-3.5 w-3.5" />
                         </Button>
@@ -1343,9 +1304,9 @@ export const AccountPage: React.FC = () => {
                     </div>
 
                     {/* Progress timeline */}
-                    <div className="mt-6 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-4">
-                      <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
-                        {['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map((step, idx) => {
+                    <div className="mt-5 border-t border-[var(--border-color)] pt-4">
+                      <div className="grid grid-cols-5 gap-0.5 sm:gap-1 text-center text-[9px] sm:text-[10px] font-bold">
+                        {['Confirmed', 'Processing', 'Packing', 'On the Way', 'Delivered'].map((step, idx) => {
                           const stageMap: Record<string, number> = {
                             'Confirmed': 0,
                             'Processing': 1,
@@ -1357,9 +1318,9 @@ export const AccountPage: React.FC = () => {
                           const isDone = idx <= currentStage;
                           const isCurrent = idx === currentStage;
                           return (
-                            <div key={step} className={isCurrent ? 'text-[#C86D51] font-black' : isDone ? 'text-stone-700 dark:text-stone-200' : 'text-stone-300 dark:text-stone-600'}>
-                              <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[#C86D51] ring-4 ring-[#C86D51]/25' : isDone ? 'bg-[#C86D51]' : 'bg-stone-200 dark:bg-stone-700'}`} />
-                              <span className="line-clamp-2 leading-tight">{step}</span>
+                            <div key={step} className={isCurrent ? 'text-[var(--accent)] font-black' : isDone ? 'text-[var(--text-primary)]' : 'text-[var(--text-subtle)]/40'}>
+                              <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[var(--accent)] ring-4 ring-[var(--accent)]/25' : isDone ? 'bg-[var(--accent)]' : 'bg-stone-200 dark:bg-stone-700'}`} />
+                              <span className="line-clamp-1 sm:line-clamp-2 leading-tight">{step}</span>
                             </div>
                           );
                         })}
@@ -1435,53 +1396,53 @@ export const AccountPage: React.FC = () => {
                 )}
 
                 {/* Recent Purchases */}
-                <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm">
-                  <div className="flex items-center justify-between pb-4 border-b border-[#F0E4DC] dark:border-[#2C2426]">
+                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-6 shadow-xs">
+                  <div className="flex items-center justify-between pb-3.5 border-b border-[var(--border-color)]">
                     <div>
-                      <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">Recent Orders</h3>
-                      <p className="text-xs text-stone-500">Your latest purchases</p>
+                      <h3 className="text-sm sm:text-base font-black text-[var(--text-primary)]">Recent Orders</h3>
+                      <p className="text-[11px] sm:text-xs text-[var(--text-subtle)]">Your latest purchases</p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setActiveTab('orders')}
-                      className="text-xs font-bold text-[#C86D51]"
+                      className="text-xs font-bold text-[var(--accent)]"
                     >
                       View All ({allOrders.length})
                     </Button>
                   </div>
 
-                  <div className="mt-4 space-y-4">
+                  <div className="mt-3.5 space-y-3 sm:space-y-4">
                     {allOrders.length > 0 ? (
                       allOrders.slice(0, 3).map((ord) => (
                         <div
                           key={ord.id}
-                          className="flex flex-col gap-4 rounded-2xl border border-[#F0E4DC] dark:border-[#2C2426] p-4 sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-3 rounded-2xl border border-[var(--border-color)] p-3.5 sm:p-4 bg-[var(--bg-card)] sm:flex-row sm:items-center sm:justify-between transition hover:border-[var(--accent)]/40"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FAF3F0] dark:bg-[#2A2024] text-[#C86D51]">
-                              <ShoppingBag className="h-6 w-6" />
+                            <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--bg-soft)] text-[var(--accent)]">
+                              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-[#1C1817] dark:text-stone-100">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                                   #{ord.orderNumber}
                                 </p>
                                 <Badge variant={ord.status === 'Delivered' ? 'botanical' : 'terracotta'} size="sm">
                                   {ord.status}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-stone-500">
+                              <p className="text-[11px] text-[var(--text-subtle)] mt-0.5">
                                 {ord.items?.length || 0} item{(ord.items?.length || 0) > 1 ? 's' : ''} • GHS {Number(ord.total).toFixed(2)}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleReorder(ord)}
-                              className="rounded-xl text-xs font-bold"
+                              className="flex-1 sm:flex-initial rounded-xl text-xs font-bold justify-center"
                             >
                               <RotateCcw className="mr-1 h-3.5 w-3.5" /> Re-order
                             </Button>
@@ -1489,7 +1450,7 @@ export const AccountPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => setViewingInvoiceOrder(ord)}
-                              className="text-xs text-stone-600 dark:text-stone-300"
+                              className="flex-1 sm:flex-initial rounded-xl text-xs font-bold text-[var(--text-subtle)] hover:text-[var(--text-primary)] justify-center border border-[var(--border-color)] sm:border-0"
                             >
                               Receipt
                             </Button>
@@ -1498,10 +1459,10 @@ export const AccountPage: React.FC = () => {
                       ))
                     ) : (
                       <div className="py-8 text-center">
-                        <ShoppingBag className="mx-auto h-10 w-10 text-stone-300 mb-2" />
-                        <p className="text-xs font-semibold text-stone-500">No orders placed yet.</p>
+                        <ShoppingBag className="mx-auto h-10 w-10 text-[var(--text-subtle)]/40 mb-2" />
+                        <p className="text-xs font-semibold text-[var(--text-subtle)]">No orders placed yet.</p>
                         <Link to="/shop" className="mt-3 inline-block">
-                          <Button variant="primary" size="sm" className="rounded-xl text-xs bg-[#1C1817] text-white">
+                          <Button variant="primary" size="sm" className="rounded-xl text-xs bg-[var(--text-primary)] text-[var(--bg-card)]">
                             Start Shopping
                           </Button>
                         </Link>
@@ -1724,43 +1685,94 @@ export const AccountPage: React.FC = () => {
                 <div className="flex items-end justify-between gap-4 border-b border-[#F0E4DC] pb-4 dark:border-[#2C2426]">
                   <div>
                     <h2 className="text-xl font-black text-[#1C1817] dark:text-stone-100">Notifications</h2>
-                    <p className="mt-1 text-xs text-stone-500">Updates about your orders and deliveries.</p>
+                    <p className="mt-1 text-xs text-stone-500">Updates about your orders, promotions, and deliveries.</p>
                   </div>
-                  {unreadCustomerNotifications > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => markCustomerNotificationsReviewed(customerNotifications.map(notification => notification.id))}
-                      className="text-xs font-bold text-[#C86D51] hover:underline"
-                    >
-                      Mark all as read
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {customerNotifications.some(n => n.read) && (
+                      <button
+                        type="button"
+                        onClick={() => clearAllReadCustomerNotifications()}
+                        className="text-xs font-semibold text-stone-500 hover:text-rose-600 dark:text-stone-400 transition"
+                      >
+                        Clear read
+                      </button>
+                    )}
+                    {unreadCustomerNotifications > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => void markAllCustomerNotificationsRead()}
+                        className="text-xs font-bold text-[#C86D51] hover:underline"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {customerNotifications.length > 0 ? (
                   <div className="space-y-3">
                     {customerNotifications.map(notification => {
-                      const isUnread = !notification.serverRead && !reviewedNotifications.includes(notification.id);
+                      const isUnread = !notification.read;
                       return (
-                        <button
+                        <div
                           key={notification.id}
-                          type="button"
-                          onClick={() => markCustomerNotificationsReviewed(Array.from(new Set([...reviewedNotifications, notification.id])))}
-                          className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${isUnread ? 'border-[#C86D51]/40 bg-[#FCF4F0] dark:bg-[#2A2024]' : 'border-[#F0E4DC] bg-white dark:border-[#2C2426] dark:bg-[#1C1719]'}`}
+                          className={`group flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${isUnread ? 'border-[#C86D51]/40 bg-[#FCF4F0] dark:bg-[#2A2024]' : 'border-[#F0E4DC] bg-white dark:border-[#2C2426] dark:bg-[#1C1719]'}`}
                         >
                           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#C86D51]/10 text-[#C86D51]">
                             <Bell className="h-4 w-4" />
                           </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="flex items-center gap-2 text-sm font-bold text-[#1C1817] dark:text-stone-100">
-                              Order update
-                              {isUnread && <span className="h-1.5 w-1.5 rounded-full bg-[#C86D51]" />}
-                            </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2 text-sm font-bold text-[#1C1817] dark:text-stone-100">
+                                {notification.title}
+                                {isUnread && <span className="h-1.5 w-1.5 rounded-full bg-[#C86D51]" />}
+                              </span>
+                              <span className="text-[10px] text-stone-400">
+                                {new Date(notification.timestamp).toLocaleString()}
+                              </span>
+                            </div>
                             <span className="mt-1 block text-xs text-stone-600 dark:text-stone-400">{notification.message}</span>
-                            <span className="mt-2 block text-[10px] text-stone-400">Updated {new Date(notification.timestamp).toLocaleString()}</span>
-                          </span>
-                          <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-stone-400" />
-                        </button>
+                            <div className="mt-2 flex items-center gap-2">
+                              {notification.orderNumber && (
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab('orders')}
+                                  className="inline-flex items-center gap-1 rounded bg-[#C86D51]/10 px-2 py-0.5 text-[10px] font-bold text-[#C86D51] hover:underline"
+                                >
+                                  View Order #{notification.orderNumber}
+                                </button>
+                              )}
+                              {notification.actionUrl && (
+                                <Link
+                                  to={notification.actionUrl}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C86D51] hover:underline"
+                                >
+                                  Explore <ChevronRight className="h-3 w-3" />
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100">
+                            {isUnread && (
+                              <button
+                                type="button"
+                                onClick={() => void markCustomerNotificationRead(notification.id)}
+                                className="rounded p-1.5 text-stone-400 hover:text-[#C86D51] transition"
+                                title="Mark as read"
+                              >
+                                <Check className="h-4 w-4" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => deleteCustomerNotification(notification.id)}
+                              className="rounded p-1.5 text-stone-400 hover:text-rose-600 transition"
+                              title="Delete notification"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -1768,7 +1780,7 @@ export const AccountPage: React.FC = () => {
                   <div className="rounded-2xl border border-[#F0E4DC] bg-white p-10 text-center dark:border-[#2C2426] dark:bg-[#1C1719]">
                     <Bell className="mx-auto h-7 w-7 text-stone-400" />
                     <p className="mt-3 text-sm font-bold text-[#1C1817] dark:text-stone-100">No notifications yet</p>
-                    <p className="mt-1 text-xs text-stone-500">Order updates will appear here.</p>
+                    <p className="mt-1 text-xs text-stone-500">Order updates and promotions will appear here.</p>
                   </div>
                 )}
               </div>
@@ -1899,13 +1911,13 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {wishlistedProducts.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
                     {wishlistedProducts.map((p) => (
                       <div
                         key={p.id}
-                        className="flex flex-col justify-between overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] shadow-sm transition hover:border-[#C86D51]"
+                        className="flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs transition hover:border-[var(--accent)]"
                       >
-                        <div className="relative aspect-square overflow-hidden bg-stone-100">
+                        <div className="relative aspect-square overflow-hidden bg-[var(--bg-soft)]">
                           <img
                             src={p.image}
                             alt={p.name}
@@ -1913,18 +1925,18 @@ export const AccountPage: React.FC = () => {
                           />
                           <button
                             onClick={() => toggleWishlist(p.id)}
-                            className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-red-500 shadow hover:bg-white"
+                            className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-rose-500 shadow-sm hover:bg-white transition"
                             title="Remove from wishlist"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
-                        <div className="p-4 space-y-2">
-                          <p className="text-[10px] font-extrabold uppercase text-[#C86D51]">{p.brand}</p>
-                          <Link to={`/product/${p.id}`} className="block font-bold text-xs hover:text-[#C86D51] line-clamp-2">
+                        <div className="p-2.5 sm:p-4 space-y-1 sm:space-y-2">
+                          <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-[var(--accent)]">{p.brand}</p>
+                          <Link to={`/product/${p.id}`} className="block font-bold text-xs hover:text-[var(--accent)] line-clamp-1 sm:line-clamp-2">
                             {p.name}
                           </Link>
-                          <p className="text-sm font-black text-[#1C1817] dark:text-stone-100">
+                          <p className="text-xs sm:text-sm font-black text-[var(--text-primary)]">
                             GHS {Number(p.price).toFixed(2)}
                           </p>
                           <Button
@@ -1935,7 +1947,7 @@ export const AccountPage: React.FC = () => {
                               showAlert(`Added ${p.name} to cart!`, 'success');
                               setIsCartOpen(true);
                             }}
-                            className="w-full rounded-xl text-xs font-bold bg-[#1C1817] text-white hover:bg-[#2A1D20]"
+                            className="w-full rounded-xl text-[11px] sm:text-xs font-bold bg-[var(--text-primary)] text-[var(--bg-card)] hover:bg-[var(--accent)] transition py-1.5 sm:py-2"
                           >
                             Add to Cart
                           </Button>
@@ -2366,47 +2378,48 @@ export const AccountPage: React.FC = () => {
 
       {/* DIGITAL INVOICE MODAL */}
       {viewingInvoiceOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-[#1C1719] p-6 sm:p-8 shadow-2xl border border-[#F0E4DC] dark:border-[#2C2426] space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#F0E4DC] dark:border-[#2C2426] pb-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full sm:max-w-2xl rounded-t-[28px] sm:rounded-3xl bg-[var(--bg-card)] p-5 sm:p-8 shadow-2xl border-t sm:border border-[var(--border-color)] space-y-5 sm:space-y-6 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="sm:hidden mx-auto -mt-2 mb-2 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700" />
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
               <div className="flex items-center gap-3">
-                <img src={logoImg} alt="CR" className="h-10 w-10 rounded-xl object-contain border p-1" />
+                <img src={logoImg} alt="CR" className="h-10 w-10 rounded-xl object-contain border border-[var(--border-color)] p-1 bg-white" />
                 <div>
-                  <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">{storeSettings.storeName}</h3>
-                  <p className="text-[10px] text-stone-500">Customer Order Receipt</p>
+                  <h3 className="text-base font-black text-[var(--text-primary)]">{storeSettings.storeName}</h3>
+                  <p className="text-[10px] text-[var(--text-subtle)]">Customer Order Receipt</p>
                 </div>
               </div>
               <button
                 onClick={() => setViewingInvoiceOrder(null)}
-                className="rounded-lg p-1 text-stone-400 hover:text-stone-600"
+                className="rounded-lg p-1 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 text-xs">
-              <div className="rounded-2xl bg-stone-50 dark:bg-[#241D20] p-4 space-y-1">
-                <p className="text-stone-400 font-bold uppercase text-[10px]">Order Details</p>
-                <p className="font-black text-sm text-[#1C1817] dark:text-stone-100">#{viewingInvoiceOrder.orderNumber}</p>
-                <p className="text-stone-500">Date: {viewingInvoiceOrder.createdAt ? new Date(viewingInvoiceOrder.createdAt).toLocaleDateString() : 'Recent'}</p>
-                <p className="text-stone-500">Payment: <strong className="uppercase">{viewingInvoiceOrder.paymentMethod}</strong> ({viewingInvoiceOrder.paymentStatus})</p>
+            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
+              <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 sm:p-4 space-y-1">
+                <p className="text-[var(--text-subtle)] font-bold uppercase text-[10px]">Order Details</p>
+                <p className="font-black text-sm text-[var(--text-primary)]">#{viewingInvoiceOrder.orderNumber}</p>
+                <p className="text-[var(--text-muted)]">Date: {viewingInvoiceOrder.createdAt ? new Date(viewingInvoiceOrder.createdAt).toLocaleDateString() : 'Recent'}</p>
+                <p className="text-[var(--text-muted)]">Payment: <strong className="uppercase">{viewingInvoiceOrder.paymentMethod}</strong> ({viewingInvoiceOrder.paymentStatus})</p>
                 {viewingInvoiceOrder.paymentReference && (
-                  <p className="text-stone-500 font-mono text-[10px]">Ref: {viewingInvoiceOrder.paymentReference}</p>
+                  <p className="text-[var(--text-subtle)] font-mono text-[10px]">Ref: {viewingInvoiceOrder.paymentReference}</p>
                 )}
               </div>
 
-              <div className="rounded-2xl bg-stone-50 dark:bg-[#241D20] p-4 space-y-1">
-                <p className="text-stone-400 font-bold uppercase text-[10px]">Shipping Destination</p>
-                <p className="font-bold text-sm text-[#1C1817] dark:text-stone-100">{viewingInvoiceOrder.shippingAddress?.fullName}</p>
-                <p className="text-stone-500">{viewingInvoiceOrder.shippingAddress?.area}, {viewingInvoiceOrder.shippingAddress?.city}</p>
-                <p className="text-stone-500">{viewingInvoiceOrder.shippingAddress?.phone}</p>
-                <p className="text-[10px] text-[#C86D51] font-bold uppercase">{viewingInvoiceOrder.deliveryMethod}</p>
+              <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 sm:p-4 space-y-1">
+                <p className="text-[var(--text-subtle)] font-bold uppercase text-[10px]">Shipping Destination</p>
+                <p className="font-bold text-sm text-[var(--text-primary)]">{viewingInvoiceOrder.shippingAddress?.fullName}</p>
+                <p className="text-[var(--text-muted)]">{viewingInvoiceOrder.shippingAddress?.area}, {viewingInvoiceOrder.shippingAddress?.city}</p>
+                <p className="text-[var(--text-muted)]">{viewingInvoiceOrder.shippingAddress?.phone}</p>
+                <p className="text-[10px] text-[var(--accent)] font-bold uppercase">{viewingInvoiceOrder.deliveryMethod}</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#F0E4DC] dark:border-[#2C2426] overflow-hidden text-xs">
+            <div className="rounded-2xl border border-[var(--border-color)] overflow-hidden text-xs">
               <table className="w-full text-left">
-                <thead className="bg-[#FAF3F0] dark:bg-[#241D20] text-[10px] font-bold uppercase text-stone-500">
+                <thead className="bg-[var(--bg-soft)] text-[10px] font-bold uppercase text-[var(--text-subtle)]">
                   <tr>
                     <th className="p-3">Item</th>
                     <th className="p-3 text-center">Qty</th>
@@ -2414,12 +2427,12 @@ export const AccountPage: React.FC = () => {
                     <th className="p-3 text-right">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0E4DC] dark:divide-[#2C2426]">
+                <tbody className="divide-y divide-[var(--border-color)]">
                   {viewingInvoiceOrder.items?.map((item, idx) => (
                     <tr key={idx}>
                       <td className="p-3">
-                        <p className="font-bold text-[#1C1817] dark:text-stone-100">{item.product?.name}</p>
-                        <p className="text-[10px] text-stone-400">{item.product?.brand}</p>
+                        <p className="font-bold text-[var(--text-primary)]">{item.product?.name}</p>
+                        <p className="text-[10px] text-[var(--text-subtle)]">{item.product?.brand}</p>
                       </td>
                       <td className="p-3 text-center font-bold">{item.quantity}</td>
                       <td className="p-3 text-right">GHS {Number(item.selectedVariant?.price || item.product?.price || 0).toFixed(2)}</td>
@@ -2432,11 +2445,11 @@ export const AccountPage: React.FC = () => {
 
             <div className="flex justify-end text-xs">
               <div className="w-64 space-y-1.5 text-right">
-                <div className="flex justify-between text-stone-500">
+                <div className="flex justify-between text-[var(--text-subtle)]">
                   <span>Subtotal:</span>
                   <span className="font-bold">GHS {Number(viewingInvoiceOrder.subtotal).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-stone-500">
+                <div className="flex justify-between text-[var(--text-subtle)]">
                   <span>Delivery Fee:</span>
                   <span className="font-bold">GHS {Number(viewingInvoiceOrder.shippingFee).toFixed(2)}</span>
                 </div>
@@ -2446,19 +2459,19 @@ export const AccountPage: React.FC = () => {
                     <span>- GHS {Number(viewingInvoiceOrder.discount).toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-[#F0E4DC] dark:border-[#2C2426] pt-2 text-sm font-black text-[#1C1817] dark:text-stone-100">
+                <div className="flex justify-between border-t border-[var(--border-color)] pt-2 text-sm font-black text-[var(--text-primary)]">
                   <span>Total:</span>
-                  <span className="text-[#C86D51]">GHS {Number(viewingInvoiceOrder.total).toFixed(2)}</span>
+                  <span className="text-[var(--accent)]">GHS {Number(viewingInvoiceOrder.total).toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-[#F0E4DC] dark:border-[#2C2426]">
+            <div className="flex gap-2 pt-2 border-t border-[var(--border-color)]">
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => window.print()}
-                className="flex-1 rounded-xl text-xs font-bold bg-[#1C1817] text-white"
+                className="flex-1 rounded-xl text-xs font-bold bg-[var(--text-primary)] text-[var(--bg-card)]"
               >
                 <Printer className="mr-1.5 h-3.5 w-3.5" /> Print Receipt
               </Button>
@@ -2477,16 +2490,17 @@ export const AccountPage: React.FC = () => {
 
       {/* REVIEW SUBMISSION MODAL */}
       {reviewModalProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1C1719] p-6 shadow-2xl border border-[#F0E4DC] dark:border-[#2C2426] space-y-4">
-            <div className="flex items-center justify-between border-b border-[#F0E4DC] dark:border-[#2C2426] pb-3">
-              <div className="flex items-center gap-2 text-[#C86D51]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full sm:max-w-md rounded-t-[28px] sm:rounded-3xl bg-[var(--bg-card)] p-5 sm:p-6 shadow-2xl border-t sm:border border-[var(--border-color)] space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="sm:hidden mx-auto -mt-2 mb-2 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700" />
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <div className="flex items-center gap-2 text-[var(--accent)]">
                 <Star className="h-5 w-5" />
-                <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">Write a Review</h3>
+                <h3 className="text-base font-black text-[var(--text-primary)]">Write a Review</h3>
               </div>
               <button
                 onClick={() => setReviewModalProduct(null)}
-                className="rounded-lg p-1 text-stone-400 hover:text-stone-600"
+                className="rounded-lg p-1 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2638,18 +2652,19 @@ export const AccountPage: React.FC = () => {
 
       {/* ADDRESS MODAL */}
       {isAddressModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#1C1719] p-6 shadow-2xl border border-[#F0E4DC] dark:border-[#2C2426] space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#F0E4DC] dark:border-[#2C2426] pb-3">
-              <div className="flex items-center gap-2 text-[#C86D51]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full sm:max-w-lg rounded-t-[28px] sm:rounded-3xl bg-[var(--bg-card)] p-5 sm:p-6 shadow-2xl border-t sm:border border-[var(--border-color)] space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="sm:hidden mx-auto -mt-2 mb-2 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700" />
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <div className="flex items-center gap-2 text-[var(--accent)]">
                 <MapPin className="h-5 w-5" />
-                <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">
+                <h3 className="text-base font-black text-[var(--text-primary)]">
                   {editingAddressIndex !== null ? 'Edit Delivery Address' : 'Add Delivery Address'}
                 </h3>
               </div>
               <button
                 onClick={() => setIsAddressModalOpen(false)}
-                className="rounded-lg p-1 text-stone-400 hover:text-stone-600"
+                className="rounded-lg p-1 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2658,24 +2673,24 @@ export const AccountPage: React.FC = () => {
             <form onSubmit={handleSaveAddress} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">Recipient Name</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">Recipient Name</label>
                   <input
                     type="text"
                     required
                     value={addressForm.fullName}
                     onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     placeholder="Full Name"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">Primary Phone</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">Primary Phone</label>
                   <input
                     type="tel"
                     required
                     value={addressForm.phone}
                     onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     placeholder="024 123 4567"
                   />
                 </div>
@@ -2683,21 +2698,21 @@ export const AccountPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">Alt Phone (Optional)</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">Alt Phone (Optional)</label>
                   <input
                     type="tel"
                     value={addressForm.altPhone || ''}
                     onChange={(e) => setAddressForm({ ...addressForm, altPhone: e.target.value })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     placeholder="Backup phone"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">Address Label</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">Address Label</label>
                   <select
                     value={addressForm.tag || 'Home'}
                     onChange={(e) => setAddressForm({ ...addressForm, tag: e.target.value as any })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                   >
                     <option value="Home">Home</option>
                     <option value="Work">Work / Office</option>
@@ -2708,50 +2723,50 @@ export const AccountPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">City</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">City</label>
                   <input
                     type="text"
                     required
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     placeholder="Accra, Tema, Kumasi..."
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">Area</label>
+                  <label className="font-bold text-[var(--text-primary)] block mb-1">Area</label>
                   <input
                     type="text"
                     required
                     value={addressForm.area}
                     onChange={(e) => setAddressForm({ ...addressForm, area: e.target.value })}
-                    className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                    className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     placeholder="East Legon, Osu, Airport..."
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">
+                <label className="font-bold text-[var(--text-primary)] block mb-1">
                   GhanaPost Digital Address or Landmark
                 </label>
                 <input
                   type="text"
                   value={addressForm.landmarkOrGps || ''}
                   onChange={(e) => setAddressForm({ ...addressForm, landmarkOrGps: e.target.value })}
-                  className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                   placeholder="e.g. GA-123-4567 or near landmark"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-[#1C1817] dark:text-stone-100 block mb-1">
+                <label className="font-bold text-[var(--text-primary)] block mb-1">
                   Delivery Notes (Optional)
                 </label>
                 <textarea
                   value={addressForm.deliveryNotes || ''}
                   onChange={(e) => setAddressForm({ ...addressForm, deliveryNotes: e.target.value })}
-                  className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51] h-20 resize-none"
+                  className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)] h-20 resize-none"
                   placeholder="Gate instructions or specific directions"
                 />
               </div>
@@ -2762,9 +2777,9 @@ export const AccountPage: React.FC = () => {
                   id="defaultAddrCheck"
                   checked={Boolean(addressForm.isDefault)}
                   onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                  className="rounded text-[#C86D51] focus:ring-[#C86D51]"
+                  className="rounded text-[var(--accent)] focus:ring-[var(--accent)]"
                 />
-                <label htmlFor="defaultAddrCheck" className="text-xs font-bold text-stone-700 dark:text-stone-300">
+                <label htmlFor="defaultAddrCheck" className="text-xs font-bold text-[var(--text-muted)]">
                   Set as default delivery address
                 </label>
               </div>
@@ -2773,7 +2788,7 @@ export const AccountPage: React.FC = () => {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="flex-1 rounded-xl py-3 text-xs font-bold uppercase tracking-wider bg-[#C86D51] text-white hover:bg-[#8A3D52]"
+                  className="flex-1 rounded-xl py-3 text-xs font-bold uppercase tracking-wider bg-[var(--accent)] text-white hover:opacity-90"
                 >
                   {editingAddressIndex !== null ? 'Update Address' : 'Save Address'}
                 </Button>
@@ -2793,13 +2808,14 @@ export const AccountPage: React.FC = () => {
 
       {/* ACCOUNT DELETION MODAL */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1C1719] p-6 shadow-2xl border border-red-200 dark:border-red-950 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full sm:max-w-md rounded-t-[28px] sm:rounded-3xl bg-[var(--bg-card)] p-5 sm:p-6 shadow-2xl border-t sm:border border-red-200 dark:border-red-950 space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="sm:hidden mx-auto -mt-2 mb-2 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700" />
             <div className="flex items-center gap-2 text-red-600">
               <ShieldAlert className="h-6 w-6" />
-              <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">Delete Account Confirmation</h3>
+              <h3 className="text-base font-black text-[var(--text-primary)]">Delete Account Confirmation</h3>
             </div>
-            <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">
               This action is permanent. Your saved addresses and profile will be deleted.
               Type <strong className="text-red-600">DELETE</strong> to confirm:
             </p>

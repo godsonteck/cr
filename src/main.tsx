@@ -12,6 +12,7 @@ import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
 import { AlertProvider } from './context/AlertContext';
 import { ReviewsProvider } from './context/ReviewsContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './index.css';
 
 // Auto-reload when Vite can't fetch a chunk (happens after a new deployment
@@ -33,7 +34,9 @@ createRoot(document.getElementById('root')!).render(
                   <ToastProvider>
                     <AlertProvider>
                       <ReviewsProvider>
-                        <App />
+                        <NotificationProvider>
+                          <App />
+                        </NotificationProvider>
                       </ReviewsProvider>
                     </AlertProvider>
                   </ToastProvider>

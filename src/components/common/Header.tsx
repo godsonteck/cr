@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, House, Settings, ShoppingBag, UserRound } from 'lucide-react';
+import { House, Settings, ShoppingBag, UserRound } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
+import { HeaderNotifications } from './HeaderNotifications';
 import logoImg from '../../assets/logo.jpeg';
 
 export const Header: React.FC = () => {
@@ -36,9 +37,7 @@ export const Header: React.FC = () => {
               </span>
             </Link>
             <div className="flex shrink-0 items-center gap-2">
-              <Link to="/account?tab=notifications" className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]" aria-label="Open notifications" title="Notifications">
-                <Bell className="h-4 w-4" />
-              </Link>
+              <HeaderNotifications />
               <Link to="/account" className="flex items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]" aria-label="Open account">
                 <UserRound className="h-4 w-4" />
                 <span className="hidden sm:inline">Account</span>
