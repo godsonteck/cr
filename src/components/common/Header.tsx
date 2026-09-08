@@ -45,19 +45,6 @@ export const Header: React.FC = () => {
             </Link>
             <div className="flex shrink-0 items-center gap-2">
               <HeaderNotifications />
-              <Link
-                to="/cart"
-                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                aria-label={`Open shopping cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}
-                title="Shopping Cart"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white shadow-xs">
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </span>
-                )}
-              </Link>
               {isAuthenticated && user ? (
                 <Link
                   to="/account"
