@@ -33,6 +33,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true });
     }
 
+    if (req.method === 'DELETE') {
+      const id = typeof req.query.id === 'string' ? req.query.id : undefined;
+      const readOnly = req.query.read === 'true';
+      const all = req.query.all === 'true';
+      const owner = auth.role === 'admin' ? isNull(notifications.userId) : eq(notifications.userId, auth.sub);
+
+      if (id) {
+        await db.delete(notifications).where(and(eq(notifications.id, id), owner));
+      } else if (readOnly) {
+        await db.delete(notifications).where(and(eq(notifications.isRead, true), owner));
+      } else if (all) {
+        await db.delete(notifications).where(owner);
+      } else {
+        return res.status(400).json({ error: 'Missing deletion parameter' });
+      }
+      return res.status(200).json({ success: true });
+    }
+
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
     console.error('Notifications API error:', error);

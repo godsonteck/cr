@@ -53,6 +53,7 @@ export const HeaderNotifications: React.FC = () => {
     markAllAsRead,
     deleteNotification,
     clearAllRead,
+    clearAll,
     preferences,
     updatePreference,
     playNotificationSound,
@@ -398,10 +399,11 @@ export const HeaderNotifications: React.FC = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotification(item.id);
+                        void deleteNotification(item.id);
                       }}
-                      className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-subtle)] hover:bg-rose-500/10 hover:text-rose-500"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-subtle)] hover:bg-rose-500/10 hover:text-rose-500 transition"
                       title="Dismiss notification"
+                      aria-label="Dismiss notification"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -427,20 +429,34 @@ export const HeaderNotifications: React.FC = () => {
           </div>
 
           {/* Footer Bar */}
-          <div className="flex items-center justify-between border-t border-[var(--border-color)] bg-[var(--bg-soft)]/40 px-4 py-2.5 text-xs">
-            {readCount > 0 ? (
-              <button
-                type="button"
-                onClick={() => clearAllRead()}
-                className="text-[11px] font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
-              >
-                Clear read ({readCount})
-              </button>
-            ) : (
-              <span className="text-[11px] text-[var(--text-subtle)]">
-                {notifications.length} total
-              </span>
-            )}
+          <div className="flex items-center justify-between border-t border-[var(--border-color)] bg-[var(--bg-soft)]/50 px-4 py-2.5 text-xs">
+            <div className="flex items-center gap-3">
+              {readCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void clearAllRead()}
+                  className="text-[11px] font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
+                  title="Remove all read notifications"
+                >
+                  Clear read ({readCount})
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void clearAll()}
+                  className="text-[11px] font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
+                  title="Clear all notifications"
+                >
+                  Clear all
+                </button>
+              )}
+              {notifications.length === 0 && (
+                <span className="text-[11px] text-[var(--text-subtle)]">
+                  All caught up
+                </span>
+              )}
+            </div>
 
             <button
               type="button"

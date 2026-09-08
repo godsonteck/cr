@@ -558,6 +558,7 @@ export const AccountPage: React.FC = () => {
     markAllAsRead: markAllCustomerNotificationsRead,
     deleteNotification: deleteCustomerNotification,
     clearAllRead: clearAllReadCustomerNotifications,
+    clearAll: clearAllCustomerNotifications,
     preferences: notificationPreferences,
     updatePreference: updateNotificationPreference,
     playNotificationSound,
@@ -595,7 +596,6 @@ export const AccountPage: React.FC = () => {
   }, []);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [remoteOrders, setRemoteOrders] = useState<Order[]>([]);
-  const [serverNotifications, setServerNotifications] = useState<AdminNotification[]>([]);
 
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -705,12 +705,6 @@ export const AccountPage: React.FC = () => {
       }
     } finally {
       setLoadingOrders(false);
-    }
-    try {
-      const notificationResponse = await api.get<{ notifications: AdminNotification[] }>('/notifications');
-      if (Array.isArray(notificationResponse.notifications)) setServerNotifications(notificationResponse.notifications);
-    } catch {
-      // Notifications remain available from the order fallback when the API is unavailable.
     }
   };
 
@@ -1736,10 +1730,20 @@ export const AccountPage: React.FC = () => {
                     {customerNotifications.some(n => n.read) && (
                       <button
                         type="button"
-                        onClick={() => clearAllReadCustomerNotifications()}
+                        onClick={() => void clearAllReadCustomerNotifications()}
                         className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
                       >
                         Clear Read
+                      </button>
+                    )}
+
+                    {customerNotifications.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => void clearAllCustomerNotifications()}
+                        className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
+                      >
+                        Clear All
                       </button>
                     )}
 
@@ -2012,7 +2016,7 @@ export const AccountPage: React.FC = () => {
 
                             <button
                               type="button"
-                              onClick={() => deleteCustomerNotification(notification.id)}
+                              onClick={() => void deleteCustomerNotification(notification.id)}
                               className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-subtle)] hover:bg-rose-500/10 hover:text-rose-600 transition"
                               title="Delete notification"
                               aria-label="Delete notification"

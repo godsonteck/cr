@@ -34,9 +34,9 @@ interface NotificationContextType {
   filteredNotifications: AppNotification[];
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  deleteNotification: (id: string) => void;
-  clearAllRead: () => void;
-  clearAll: () => void;
+  deleteNotification: (id: string) => Promise<void> | void;
+  clearAllRead: () => Promise<void> | void;
+  clearAll: () => Promise<void> | void;
   addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'> & Partial<Pick<AppNotification, 'id' | 'timestamp' | 'read'>>) => void;
   preferences: NotificationPreferences;
   updatePreference: <K extends keyof NotificationPreferences>(key: K, value: NotificationPreferences[K]) => void;
@@ -125,6 +125,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { orders } = useStore();
   const storageKey = `cr_notifications_${user?.id || 'guest'}`;
   const prefsKey = `cr_notification_prefs_${user?.id || 'guest'}`;
+  const dismissedKey = `cr_notifications_dismissed_${user?.id || 'guest'}`;
+  const seedsDismissedKey = `cr_seeds_dismissed_${user?.id || 'guest'}`;
+
+  // Helper to get set of dismissed notification IDs
+  const getDismissedIds = useCallback((): Set<string> => {
+    try {
+      const saved = localStorage.getItem(dismissedKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch {
+      // Ignored
+    }
+    return new Set();
+  }, [dismissedKey]);
+
+  // Record a notification ID as dismissed
+  const recordDismissedId = useCallback((id: string) => {
+    try {
+      const dismissed = getDismissedIds();
+      dismissed.add(id);
+      localStorage.setItem(dismissedKey, JSON.stringify(Array.from(dismissed).slice(-300)));
+    } catch {
+      // Ignored
+    }
+  }, [dismissedKey, getDismissedIds]);
 
   // Notification Preferences State
   const [preferences, setPreferences] = useState<NotificationPreferences>(() => {
@@ -152,10 +179,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Notifications State
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     try {
+      const dismissed = (() => {
+        try {
+          const raw = localStorage.getItem(`cr_notifications_dismissed_${user?.id || 'guest'}`);
+          return raw ? new Set(JSON.parse(raw)) : new Set();
+        } catch {
+          return new Set();
+        }
+      })();
+
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((n: AppNotification) => !dismissed.has(n.id));
+        }
+      }
+
+      // If user is authenticated or seeds have been dismissed, don't generate starter seeds
+      const seedsDismissed = localStorage.getItem(`cr_seeds_dismissed_${user?.id || 'guest'}`) === 'true';
+      if (user || seedsDismissed) {
+        return [];
       }
     } catch {
       // Fallback
@@ -178,6 +222,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     if (!preferences.orderUpdates || !orders || orders.length === 0) return;
 
+    const dismissed = getDismissedIds();
+
     setNotifications(prev => {
       let changed = false;
       const updated = [...prev];
@@ -186,6 +232,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const orderStatus = String(order?.status || 'Pending');
         const orderNum = String(order?.orderNumber || '');
         const orderNotificationId = `order-status-${order?.id || 'id'}-${orderStatus}`;
+
+        // Don't recreate if previously dismissed or already present
+        if (dismissed.has(orderNotificationId)) return;
         const exists = updated.some(n => n.id === orderNotificationId || (n.orderNumber === orderNum && (n.message || '').includes(orderStatus)));
 
         if (!exists) {
@@ -215,7 +264,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       return changed ? updated : prev;
     });
-  }, [orders, preferences.orderUpdates]);
+  }, [orders, preferences.orderUpdates, getDismissedIds]);
 
   // Fetch server notifications if authenticated
   const refreshNotifications = useCallback(async () => {
@@ -223,21 +272,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const response = await api.get<{ notifications: Array<{ id: string; type: string; title: string; message: string; actionUrl?: string; timestamp: string; read: boolean }> }>('/notifications');
       if (response && Array.isArray(response.notifications)) {
+        const dismissed = getDismissedIds();
         setNotifications(prev => {
           const map = new Map<string, AppNotification>();
-          // Preserve local notifications
-          prev.forEach(n => map.set(n.id, n));
-          // Merge server notifications
+          // Preserve local notifications (excluding dismissed ones)
+          prev.forEach(n => {
+            if (!dismissed.has(n.id)) map.set(n.id, n);
+          });
+          // Merge server notifications (excluding dismissed ones)
           response.notifications.forEach(s => {
-            map.set(s.id, {
-              id: s.id,
-              type: (['order', 'promo', 'system', 'delivery'].includes(s.type) ? s.type : 'system') as NotificationType,
-              title: s.title || 'Notification',
-              message: s.message,
-              timestamp: s.timestamp || new Date().toISOString(),
-              read: s.read,
-              actionUrl: s.actionUrl,
-            });
+            if (!dismissed.has(s.id)) {
+              map.set(s.id, {
+                id: s.id,
+                type: (['order', 'promo', 'system', 'delivery'].includes(s.type) ? s.type : 'system') as NotificationType,
+                title: s.title || 'Notification',
+                message: s.message,
+                timestamp: s.timestamp || new Date().toISOString(),
+                read: s.read,
+                actionUrl: s.actionUrl,
+              });
+            }
           });
           return Array.from(map.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         });
@@ -245,7 +299,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch {
       // Fallback silently if offline or API unavailable
     }
-  }, [user]);
+  }, [user, getDismissedIds]);
 
   useEffect(() => {
     if (user) {
@@ -335,19 +389,59 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user]);
 
   // Delete / Dismiss a single notification
-  const deleteNotification = useCallback((id: string) => {
+  const deleteNotification = useCallback(async (id: string) => {
+    recordDismissedId(id);
+    if (id.startsWith('seed-')) {
+      try {
+        localStorage.setItem(seedsDismissedKey, 'true');
+      } catch {
+        // Ignored
+      }
+    }
     setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
+
+    // If server notification, call DELETE API
+    if (user && !id.startsWith('seed-') && !id.startsWith('order-status-') && !id.startsWith('notif-')) {
+      try {
+        await api.delete(`/notifications?id=${encodeURIComponent(id)}`);
+      } catch {
+        // Handled silently
+      }
+    }
+  }, [user, recordDismissedId, seedsDismissedKey]);
 
   // Clear all read notifications
-  const clearAllRead = useCallback(() => {
+  const clearAllRead = useCallback(async () => {
+    notifications.filter(n => n.read).forEach(n => recordDismissedId(n.id));
     setNotifications(prev => prev.filter(n => !n.read));
-  }, []);
+
+    if (user) {
+      try {
+        await api.delete('/notifications?read=true');
+      } catch {
+        // Handled silently
+      }
+    }
+  }, [user, notifications, recordDismissedId]);
 
   // Clear all notifications
-  const clearAll = useCallback(() => {
+  const clearAll = useCallback(async () => {
+    notifications.forEach(n => recordDismissedId(n.id));
+    try {
+      localStorage.setItem(seedsDismissedKey, 'true');
+    } catch {
+      // Ignored
+    }
     setNotifications([]);
-  }, []);
+
+    if (user) {
+      try {
+        await api.delete('/notifications?all=true');
+      } catch {
+        // Handled silently
+      }
+    }
+  }, [user, notifications, recordDismissedId, seedsDismissedKey]);
 
   // Calculated unread count
   const unreadCount = useMemo(() => {
