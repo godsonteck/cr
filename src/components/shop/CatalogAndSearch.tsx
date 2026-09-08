@@ -115,6 +115,15 @@ export const ShopCatalogPage: React.FC = () => {
         <button type="submit" aria-label="Search" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]"><Search className="h-3.5 w-3.5" /></button>
       </form>
 
+      <section className="-mx-3 flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:px-0 lg:grid-cols-6" aria-label="Shop by category">
+        {categories.filter(category => category.isActive).map(category => (
+          <Link key={category.id} to={`/category/${category.slug}`} className={`flex min-w-20 shrink-0 snap-start items-center gap-2 rounded-xl border px-2 py-2 transition sm:min-w-0 ${selectedCategorySlug === category.slug ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--accent)]'}`}>
+            <img src={category.image} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" loading="lazy" />
+            <span className="line-clamp-2 text-[9px] font-bold uppercase leading-3 tracking-[0.04em] text-[var(--text-muted)]">{category.name}</span>
+          </Link>
+        ))}
+      </section>
+
       {/* Catalog Grid with Desktop Sidebar */}
       <div className="flex flex-col gap-8 lg:flex-row">
 

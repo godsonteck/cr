@@ -19,7 +19,6 @@ export const HomePage: React.FC = () => {
   const { products, storeSettings, flashDeals } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
-  const [catalogDepartment, setCatalogDepartment] = useState<'all' | 'beauty' | 'groceries'>('all');
   const homepageSections = storeSettings.homepageSections || {
     flashDeal: true,
     hero: true,
@@ -32,44 +31,22 @@ export const HomePage: React.FC = () => {
     .filter(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now())
     .slice(0, 1)[0];
 
-  const reservedProductIds = new Set<string>();
-  const reserveProducts = (candidates: typeof publishedProducts, limit = 8) => {
-    const selected = [] as typeof publishedProducts;
-    for (const product of candidates) {
-      if (reservedProductIds.has(product.id)) continue;
-      reservedProductIds.add(product.id);
-      selected.push(product);
-      if (selected.length === limit) break;
-    }
-    return selected;
-  };
-
   const flashDealProducts = activeFlashDeal?.productIds?.length
-    ? reserveProducts(activeFlashDeal.productIds.map(id => publishedProducts.find(product => product.id === id)).filter((product): product is typeof publishedProducts[number] => Boolean(product)).map(product => ({
+    ? activeFlashDeal.productIds.map(id => publishedProducts.find(product => product.id === id)).filter((product): product is typeof publishedProducts[number] => Boolean(product)).map(product => ({
         ...product,
         originalPrice: product.price,
         price: Math.max(0.01, product.price * (1 - activeFlashDeal.discountPercentage / 100)),
         discountBadge: `-${activeFlashDeal.discountPercentage}%`,
         badge: 'Sale' as const,
-      })) as typeof publishedProducts, 8)
+      })) as typeof publishedProducts
     : [];
 
+  const hotDealIds = new Set(flashDealProducts.map(product => product.id));
   const hotDeals = homepageSections.hotDeals
-    ? reserveProducts(publishedProducts.filter(p => p.badge === 'Sale' || (p.originalPrice && p.originalPrice > p.price)))
+    ? [...flashDealProducts, ...publishedProducts.filter(product => !hotDealIds.has(product.id) && (product.badge === 'Sale' || (product.originalPrice && product.originalPrice > product.price)))].slice(0, 12)
     : [];
-  const newArrivals = homepageSections.newArrivals
-    ? reserveProducts(publishedProducts.filter(p => p.badge === 'New In'))
-    : [];
-  const beautyProducts = homepageSections.beauty
-    ? reserveProducts(publishedProducts.filter(p => p.department === 'beauty'))
-    : [];
-  const groceryEssentials = homepageSections.groceryFeed
-    ? reserveProducts(publishedProducts.filter(product => product.department === 'groceries'))
-    : [];
-
   const fullCollection = useMemo(() => {
     const collection = publishedProducts
-      .filter(product => catalogDepartment === 'all' || product.department === catalogDepartment)
       .map((product, index) => ({ product, index }));
 
     return collection.sort((a, b) => {
@@ -79,8 +56,8 @@ export const HomePage: React.FC = () => {
       if (catalogSort === 'newest') return b.index - a.index;
       return a.index - b.index;
     }).map(item => item.product);
-  }, [publishedProducts, catalogDepartment, catalogSort]);
-  const displayedCollection = fullCollection.slice(0, 12);
+  }, [publishedProducts, catalogSort]);
+  const displayedCollection = fullCollection.filter(product => !hotDeals.some(hotDeal => hotDeal.id === product.id));
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -94,7 +71,7 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-[1280px] space-y-8 px-4 pb-14 sm:space-y-12 sm:px-6">
+      <main className="mx-auto max-w-[1280px] space-y-8 px-4 pb-24 sm:space-y-12 sm:px-6 sm:pb-14">
         {/* Flash Deal Banner */}
         {homepageSections.flashDeal && activeFlashDeal && (
           <section key={activeFlashDeal.id} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--accent)]/35 border-l-4 border-l-[var(--accent)] bg-[var(--bg-card-alt)] p-3 text-[var(--text-primary)] sm:p-4">
@@ -137,19 +114,7 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        {homepageSections.flashDeal && flashDealProducts.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="flex items-center gap-2"><Flame className="h-4 w-4 text-[var(--accent)]" /><h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{activeFlashDeal?.title || storeSettings.homepageFlashDealLabel || 'Flash deal picks'}</h3></div>
-              <Link to="/offers" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">Shop deal <ArrowRight className="inline h-3 w-3" /></Link>
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
-              {flashDealProducts.map(product => <ProductCard key={product.id} product={product} />)}
-            </div>
-          </section>
-        )}
-
-        {/* Hot Deals / Flash Sales Section */}
+        {/* Hot deals: horizontal on mobile and desktop so the row stays compact. */}
         {homepageSections.hotDeals && hotDeals.length > 0 && (
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2 px-1">
@@ -161,60 +126,9 @@ export const HomePage: React.FC = () => {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
+            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-4">
               {hotDeals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* New Arrivals Section */}
-        {homepageSections.newArrivals && newArrivals.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageNewArrivalsTitle || 'New arrivals'}</h3>
-              <Link to="/shop" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
-              {newArrivals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Beauty Section */}
-        {homepageSections.beauty && beautyProducts.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageBeautyTitle || 'Beauty'}</h3>
-              <Link to="/beauty" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
-              {beautyProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Groceries & Essentials Section */}
-        {homepageSections.groceryFeed && groceryEssentials.length > 0 && (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">{storeSettings.homepageGroceryTitle || 'Essentials'}</h3>
-              <Link to="/groceries" className="text-[10px] font-bold text-[var(--accent-strong)] hover:underline">
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
-              {groceryEssentials.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} className="w-[min(72vw,17rem)] shrink-0 snap-start sm:w-[15rem] lg:w-[16rem]" />
               ))}
             </div>
           </section>
@@ -223,11 +137,6 @@ export const HomePage: React.FC = () => {
         <section className="space-y-3 border-t border-[var(--border-color)] pt-6" aria-label="All products">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
-              <select aria-label="Filter collection by department" value={catalogDepartment} onChange={event => setCatalogDepartment(event.target.value as typeof catalogDepartment)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
-                <option value="all">All departments</option>
-                <option value="beauty">Beauty</option>
-                <option value="groceries">Groceries</option>
-              </select>
               <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
                 <option value="featured">Featured</option>
                 <option value="newest">Newest first</option>

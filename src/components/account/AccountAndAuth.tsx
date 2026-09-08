@@ -517,6 +517,14 @@ export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
+
+  useEffect(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    const accountTabs: AccountTab[] = ['overview', 'orders', 'notifications', 'addresses', 'wishlist', 'reviews', 'security', 'preferences'];
+    if (requestedTab && accountTabs.includes(requestedTab as AccountTab)) {
+      setActiveTab(requestedTab as AccountTab);
+    }
+  }, []);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [remoteOrders, setRemoteOrders] = useState<Order[]>([]);
   const [serverNotifications, setServerNotifications] = useState<AdminNotification[]>([]);

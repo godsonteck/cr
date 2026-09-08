@@ -357,6 +357,40 @@ export const AboutPage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── VISIT & CONTACT ──────────────────────────────────────────────────── */}
+      <section className="border-y border-[var(--border-color)] bg-[var(--bg-card)] py-14 sm:py-18">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Find your way around</span>
+            <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">Everything in one place.</h2>
+            <nav className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm font-semibold text-[var(--text-muted)]">
+              <Link to="/shop" className="transition hover:text-[var(--accent)]">Shop everything</Link>
+              <Link to="/beauty" className="transition hover:text-[var(--accent)]">Beauty</Link>
+              <Link to="/groceries" className="transition hover:text-[var(--accent)]">Daily essentials</Link>
+              <Link to="/support" className="transition hover:text-[var(--accent)]">Support</Link>
+              <Link to="/contact" className="transition hover:text-[var(--accent)]">Contact us</Link>
+            </nav>
+          </div>
+          <div>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C86D51]">Talk to the team</span>
+            <div className="mt-5 space-y-3 text-sm text-[var(--text-muted)]">
+              <a href={`tel:${storeSettings.storePhone}`} className="flex items-start gap-3 transition hover:text-[var(--accent)]">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51]" />
+                <span>{storeSettings.storePhone}</span>
+              </a>
+              <a href={`mailto:${storeSettings.storeEmail}`} className="flex items-start gap-3 transition hover:text-[var(--accent)]">
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51]" />
+                <span className="break-all">{storeSettings.storeEmail}</span>
+              </a>
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51]" />
+                <span>{storeSettings.storeAddress}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────────── */}
       <section className="bg-[var(--bg-soft)] py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

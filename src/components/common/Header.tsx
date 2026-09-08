@@ -4,14 +4,15 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
   ShoppingBag,
-  Heart,
+  Bell,
+  House,
+  Tag,
   Menu,
   X,
   Sun,
   Moon,
   UserRound,
 } from 'lucide-react';
-import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
@@ -19,15 +20,12 @@ import { useTheme } from '../../context/ThemeContext';
 import logoImg from '../../assets/logo.jpeg';
 
 interface HeaderProps {
-  onOpenCart: () => void;
-  onOpenWishlist: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) => {
+export const Header: React.FC<HeaderProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems } = useCart();
-  const { wishlistIds } = useWishlist();
   const { storeSettings } = useStore();
   const { isDarkMode, toggleTheme } = useTheme();
   const displayStoreName = storeSettings.storeName.replace(/\s+AND\s+/gi, ' & ');
@@ -125,29 +123,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
             </button>
 
             <button
-              onClick={onOpenWishlist}
+              onClick={() => navigate('/account?tab=notifications')}
               className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 hover:text-[#2385ad] dark:text-stone-200 dark:hover:bg-stone-800"
-              aria-label="Wishlist"
+              aria-label="Notifications"
             >
-              <Heart className="h-5 w-5" strokeWidth={1.8} />
-              {wishlistIds.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[9px] font-bold text-white">
-                  {wishlistIds.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={onOpenCart}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 hover:text-[#2385ad] dark:text-stone-200 dark:hover:bg-stone-800"
-              aria-label={`Cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}
-            >
-              <ShoppingBag className="h-5 w-5" strokeWidth={1.8} />
-              {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">
-                  {totalItems > 99 ? '99+' : totalItems}
-                </span>
-              )}
+              <Bell className="h-5 w-5" strokeWidth={1.8} />
             </button>
 
             {isAuthenticated ? (
@@ -193,6 +173,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenWishlist }) =>
       </div>
 
       </header>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-[var(--border-color)] bg-[var(--bg-card)]/95 px-2 shadow-[0_-8px_24px_rgba(29,23,22,0.08)] backdrop-blur md:hidden" aria-label="Mobile navigation">
+        <Link to="/" className={`flex min-w-14 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname === '/' ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`}>
+          <House className="h-5 w-5" />
+          Home
+        </Link>
+        <Link to="/shop" className={`flex min-w-14 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname.startsWith('/shop') ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`}>
+          <Search className="h-5 w-5" />
+          Shop
+        </Link>
+        <Link to="/offers" className={`flex min-w-14 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname === '/offers' ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`}>
+          <Tag className="h-5 w-5" />
+          Offers
+        </Link>
+        <button onClick={() => navigate('/cart')} className="relative flex min-w-14 flex-col items-center gap-1 text-[10px] font-semibold text-[var(--text-subtle)]" aria-label={`Cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}>
+          <ShoppingBag className="h-5 w-5" />
+          {totalItems > 0 && <span className="absolute left-8 top-[-3px] flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">{totalItems > 99 ? '99+' : totalItems}</span>}
+          Cart
+        </button>
+        <Link to={isAuthenticated ? '/account' : '/signin'} className={`flex min-w-14 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname.startsWith('/account') || location.pathname === '/signin' ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`}>
+          <UserRound className="h-5 w-5" />
+          Account
+        </Link>
+      </nav>
 
       {isMobileMenuOpen && createPortal(
         <div className="fixed inset-0 z-[100] bg-black/45 md:hidden" role="dialog" aria-modal="true" aria-label="Mobile navigation" onClick={() => setIsMobileMenuOpen(false)}>
