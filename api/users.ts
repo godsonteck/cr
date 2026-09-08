@@ -16,7 +16,7 @@ const userCreateSchema = z.object({
 const userProfileUpdateSchema = z.object({
   fullName: z.string().min(1).max(100).optional(),
   phone: z.string().max(50).optional(),
-  profileImage: z.string().max(2_100_000).refine(value => value.startsWith('data:image/'), 'Profile picture must be an image upload').nullable().optional(),
+  profileImage: z.string().max(7_000_000).refine(value => value.startsWith('data:image/') || value.startsWith('https://') || value.startsWith('http://'), 'Profile picture must be an image upload or URL').nullable().optional(),
   savedAddresses: z.array(z.object({
     id: z.string().optional(),
     fullName: z.string().min(1),

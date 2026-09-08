@@ -31,9 +31,15 @@ import {
   Printer,
   CreditCard,
   Check,
+  CheckCheck,
   Bell,
+  BellRing,
   Camera,
   ImagePlus,
+  Sliders,
+  Volume2,
+  Info,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -595,7 +601,31 @@ export const AccountPage: React.FC = () => {
     markAllAsRead: markAllCustomerNotificationsRead,
     deleteNotification: deleteCustomerNotification,
     clearAllRead: clearAllReadCustomerNotifications,
+    preferences: notificationPreferences,
+    updatePreference: updateNotificationPreference,
+    playNotificationSound,
+    requestBrowserPermission,
   } = useNotifications();
+
+  const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread' | 'order' | 'promo'>('all');
+  const [showNotificationPreferences, setShowNotificationPreferences] = useState(false);
+
+  const filteredCustomerNotifications = useMemo(() => {
+    switch (notificationFilter) {
+      case 'unread':
+        return customerNotifications.filter(n => !n.read);
+      case 'order':
+        return customerNotifications.filter(n => n.type === 'order' || n.type === 'delivery');
+      case 'promo':
+        return customerNotifications.filter(n => n.type === 'promo');
+      case 'all':
+      default:
+        return customerNotifications;
+    }
+  }, [customerNotifications, notificationFilter]);
+
+  const orderAlertsCount = useMemo(() => customerNotifications.filter(n => n.type === 'order' || n.type === 'delivery').length, [customerNotifications]);
+  const promoAlertsCount = useMemo(() => customerNotifications.filter(n => n.type === 'promo').length, [customerNotifications]);
 
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
 
@@ -612,12 +642,30 @@ export const AccountPage: React.FC = () => {
 
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
     fullName: user?.fullName || '',
     phone: user?.phone || '',
     profileImage: user?.profileImage || '',
+    skinType: user?.skinProfile?.skinType || 'normal',
+    concerns: (user?.skinProfile?.concerns || []) as string[],
   });
   const profileImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Customer VIP and Standing Status (derived to match Admin system metrics)
+  const customerStats = useMemo(() => {
+    const allUserOrders = (user?.orders || remoteOrders || []);
+    const totalSpent = allUserOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const count = allUserOrders.length;
+    let segment = 'Verified Customer';
+    if (totalSpent >= 500) segment = 'VIP Top Spender';
+    else if (count > 1) segment = 'Returning Customer';
+    return {
+      totalSpent,
+      ordersCount: count,
+      segment,
+    };
+  }, [user?.orders, remoteOrders]);
 
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -677,7 +725,13 @@ export const AccountPage: React.FC = () => {
   // Sync profile form when user updates
   useEffect(() => {
     if (user) {
-      setProfileForm({ fullName: user.fullName, phone: user.phone, profileImage: user.profileImage || '' });
+      setProfileForm({
+        fullName: user.fullName,
+        phone: user.phone,
+        profileImage: user.profileImage || '',
+        skinType: user.skinProfile?.skinType || 'normal',
+        concerns: user.skinProfile?.concerns || [],
+      });
     }
   }, [user]);
 
@@ -812,15 +866,26 @@ export const AccountPage: React.FC = () => {
     }
   };
 
-  // Update profile in live DB
+  // Update profile in live DB & sync with admin system
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingProfile(true);
     try {
-      await updateProfile(profileForm);
-      showAlert('Profile details updated', 'success');
+      await updateProfile({
+        fullName: profileForm.fullName.trim(),
+        phone: profileForm.phone.trim(),
+        profileImage: profileForm.profileImage,
+        skinProfile: {
+          skinType: profileForm.skinType as any,
+          concerns: profileForm.concerns,
+        },
+      });
+      showAlert('Profile details updated and synchronized with store system', 'success');
       setIsEditingProfile(false);
     } catch (error: any) {
       showAlert(error?.message || 'Failed to update profile', 'error');
+    } finally {
+      setIsSavingProfile(false);
     }
   };
 
@@ -1680,94 +1745,321 @@ export const AccountPage: React.FC = () => {
               </div>
             )}
 
+            {/* NOTIFICATIONS & ALERTS TAB */}
             {activeTab === 'notifications' && (
-              <div className="space-y-5">
-                <div className="flex items-end justify-between gap-4 border-b border-[#F0E4DC] pb-4 dark:border-[#2C2426]">
+              <div className="space-y-6">
+                {/* Header with Title, Unread Count & Actions */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border-color)] pb-4">
                   <div>
-                    <h2 className="text-xl font-black text-[#1C1817] dark:text-stone-100">Notifications</h2>
-                    <p className="mt-1 text-xs text-stone-500">Updates about your orders, promotions, and deliveries.</p>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-black text-[var(--text-primary)]">Notifications &amp; Alerts</h2>
+                      {unreadCustomerNotifications > 0 && (
+                        <span className="rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-extrabold text-white">
+                          {unreadCustomerNotifications} new
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">
+                      Real-time updates on your order dispatches, exclusive offers, and announcements.
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3">
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {unreadCustomerNotifications > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void markAllCustomerNotificationsRead()}
+                        className="rounded-xl text-xs font-bold gap-1.5"
+                      >
+                        <CheckCheck className="h-3.5 w-3.5 text-[var(--accent)]" />
+                        <span>Mark All Read</span>
+                      </Button>
+                    )}
+
                     {customerNotifications.some(n => n.read) && (
                       <button
                         type="button"
                         onClick={() => clearAllReadCustomerNotifications()}
-                        className="text-xs font-semibold text-stone-500 hover:text-rose-600 dark:text-stone-400 transition"
+                        className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[var(--text-subtle)] hover:text-rose-600 transition"
                       >
-                        Clear read
+                        Clear Read
                       </button>
                     )}
-                    {unreadCustomerNotifications > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => void markAllCustomerNotificationsRead()}
-                        className="text-xs font-bold text-[#C86D51] hover:underline"
-                      >
-                        Mark all as read
-                      </button>
-                    )}
+
+                    <Button
+                      variant={showNotificationPreferences ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => setShowNotificationPreferences(prev => !prev)}
+                      className="rounded-xl text-xs font-bold gap-1.5"
+                    >
+                      <Sliders className="h-3.5 w-3.5" />
+                      <span>Preferences</span>
+                    </Button>
                   </div>
                 </div>
 
-                {customerNotifications.length > 0 ? (
+                {/* Preferences Drawer */}
+                {showNotificationPreferences && (
+                  <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+                      <div>
+                        <h3 className="text-xs font-extrabold uppercase tracking-wide text-[var(--text-primary)]">
+                          Notification Preferences
+                        </h3>
+                        <p className="text-[11px] text-[var(--text-muted)]">Customize which alerts and sounds you want to receive.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowNotificationPreferences(false)}
+                        className="rounded-lg p-1 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
+                        aria-label="Close preferences"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                      {/* Order & Delivery */}
+                      <label className="flex items-center justify-between cursor-pointer rounded-xl bg-[var(--bg-card)] p-3 border border-[var(--border-color)]">
+                        <div className="flex items-center gap-2.5">
+                          <Package className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          <div>
+                            <p className="font-bold text-[var(--text-primary)]">Order &amp; Delivery Updates</p>
+                            <p className="text-[10px] text-[var(--text-subtle)]">Packaging, dispatch, and delivery progress.</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationPreferences.orderUpdates}
+                          onChange={e => updateNotificationPreference('orderUpdates', e.target.checked)}
+                          className="h-4 w-4 accent-[var(--accent)] rounded"
+                        />
+                      </label>
+
+                      {/* Promos */}
+                      <label className="flex items-center justify-between cursor-pointer rounded-xl bg-[var(--bg-card)] p-3 border border-[var(--border-color)]">
+                        <div className="flex items-center gap-2.5">
+                          <Sparkles className="h-4 w-4 text-rose-500" />
+                          <div>
+                            <p className="font-bold text-[var(--text-primary)]">Promos &amp; Flash Deals</p>
+                            <p className="text-[10px] text-[var(--text-subtle)]">Exclusive voucher codes and discount alerts.</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationPreferences.promoAlerts}
+                          onChange={e => updateNotificationPreference('promoAlerts', e.target.checked)}
+                          className="h-4 w-4 accent-[var(--accent)] rounded"
+                        />
+                      </label>
+
+                      {/* Sound */}
+                      <div className="flex items-center justify-between rounded-xl bg-[var(--bg-card)] p-3 border border-[var(--border-color)]">
+                        <div className="flex items-center gap-2.5">
+                          <Volume2 className="h-4 w-4 text-[var(--accent)]" />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-[var(--text-primary)]">Sound Alerts</p>
+                              <button
+                                type="button"
+                                onClick={() => playNotificationSound()}
+                                className="inline-flex items-center gap-1 rounded bg-[var(--accent)]/10 px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition"
+                              >
+                                Test chime
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-[var(--text-subtle)]">Pleasant dual-tone chime sound.</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationPreferences.soundEnabled}
+                          onChange={e => updateNotificationPreference('soundEnabled', e.target.checked)}
+                          className="h-4 w-4 accent-[var(--accent)] rounded"
+                        />
+                      </div>
+
+                      {/* Browser Push */}
+                      <div className="flex items-center justify-between rounded-xl bg-[var(--bg-card)] p-3 border border-[var(--border-color)]">
+                        <div className="flex items-center gap-2.5">
+                          <BellRing className="h-4 w-4 text-sky-500" />
+                          <div>
+                            <p className="font-bold text-[var(--text-primary)]">Browser Notifications</p>
+                            <p className="text-[10px] text-[var(--text-subtle)]">Get alerted even when this tab is in background.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void requestBrowserPermission()}
+                          className="rounded-lg bg-[var(--accent)] px-2.5 py-1 text-[11px] font-bold text-white hover:opacity-90 transition"
+                        >
+                          {notificationPreferences.browserNotifications ? 'Enabled' : 'Enable'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Filter Pills Bar */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {(
+                    [
+                      { id: 'all', label: 'All Alerts', count: customerNotifications.length },
+                      { id: 'unread', label: 'Unread', count: unreadCustomerNotifications },
+                      { id: 'order', label: 'Orders & Shipping', count: orderAlertsCount },
+                      { id: 'promo', label: 'Offers & Promos', count: promoAlertsCount },
+                    ] as const
+                  ).map(pill => (
+                    <button
+                      key={pill.id}
+                      type="button"
+                      onClick={() => setNotificationFilter(pill.id)}
+                      className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                        notificationFilter === pill.id
+                          ? 'bg-[var(--accent)] text-white shadow-xs'
+                          : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <span>{pill.label}</span>
+                      <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-black ${
+                        notificationFilter === pill.id
+                          ? 'bg-white/20 text-white'
+                          : 'bg-[var(--bg-soft)] text-[var(--text-subtle)]'
+                      }`}>
+                        {pill.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Notifications Cards Feed */}
+                {filteredCustomerNotifications.length > 0 ? (
                   <div className="space-y-3">
-                    {customerNotifications.map(notification => {
+                    {filteredCustomerNotifications.map(notification => {
                       const isUnread = !notification.read;
+
+                      const getCategoryConfig = () => {
+                        switch (notification.type) {
+                          case 'order':
+                            return {
+                              icon: <Package className="h-4 w-4" />,
+                              badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                              label: 'Order',
+                            };
+                          case 'delivery':
+                            return {
+                              icon: <Truck className="h-4 w-4" />,
+                              badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                              label: 'Delivery',
+                            };
+                          case 'promo':
+                            return {
+                              icon: <Sparkles className="h-4 w-4" />,
+                              badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
+                              label: 'Promo',
+                            };
+                          case 'system':
+                          default:
+                            return {
+                              icon: <Info className="h-4 w-4" />,
+                              badgeClass: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20',
+                              label: 'Store',
+                            };
+                        }
+                      };
+
+                      const category = getCategoryConfig();
+
                       return (
                         <div
                           key={notification.id}
-                          className={`group flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${isUnread ? 'border-[#C86D51]/40 bg-[#FCF4F0] dark:bg-[#2A2024]' : 'border-[#F0E4DC] bg-white dark:border-[#2C2426] dark:bg-[#1C1719]'}`}
+                          className={`group relative flex items-start gap-3.5 sm:gap-4 rounded-2xl border p-4 sm:p-5 transition-all shadow-xs ${
+                            isUnread
+                              ? 'border-l-4 border-l-[var(--accent)] border-[var(--border-color)] bg-[var(--accent)]/[0.03] hover:bg-[var(--accent)]/[0.06]'
+                              : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-soft)]/50'
+                          }`}
                         >
-                          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#C86D51]/10 text-[#C86D51]">
-                            <Bell className="h-4 w-4" />
-                          </span>
+                          {/* Category Icon Badge */}
+                          <div className="relative shrink-0 mt-0.5">
+                            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${category.badgeClass}`}>
+                              {category.icon}
+                            </span>
+                            {isUnread && (
+                              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[var(--accent)] ring-2 ring-[var(--bg-card)] shadow-xs" />
+                            )}
+                          </div>
+
+                          {/* Content Body */}
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="flex items-center gap-2 text-sm font-bold text-[#1C1817] dark:text-stone-100">
-                                {notification.title}
-                                {isUnread && <span className="h-1.5 w-1.5 rounded-full bg-[#C86D51]" />}
-                              </span>
-                              <span className="text-[10px] text-stone-400">
-                                {new Date(notification.timestamp).toLocaleString()}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
+                                  {category.label}
+                                </span>
+                                <h4 className={`text-sm ${isUnread ? 'font-black text-[var(--text-primary)]' : 'font-semibold text-[var(--text-muted)]'}`}>
+                                  {notification.title}
+                                </h4>
+                              </div>
+                              <span className="text-[11px] text-[var(--text-subtle)]">
+                                {new Date(notification.timestamp).toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
                               </span>
                             </div>
-                            <span className="mt-1 block text-xs text-stone-600 dark:text-stone-400">{notification.message}</span>
-                            <div className="mt-2 flex items-center gap-2">
+
+                            <p className="mt-1.5 text-xs sm:text-sm leading-relaxed text-[var(--text-muted)]">
+                              {notification.message}
+                            </p>
+
+                            {/* Action Buttons Row */}
+                            <div className="mt-3 flex items-center gap-2.5 flex-wrap">
                               {notification.orderNumber && (
                                 <button
                                   type="button"
                                   onClick={() => setActiveTab('orders')}
-                                  className="inline-flex items-center gap-1 rounded bg-[#C86D51]/10 px-2 py-0.5 text-[10px] font-bold text-[#C86D51] hover:underline"
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)]/10 px-3 py-1.5 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition"
                                 >
-                                  View Order #{notification.orderNumber}
+                                  <Package className="h-3.5 w-3.5" />
+                                  <span>View Order #{notification.orderNumber}</span>
                                 </button>
                               )}
+
                               {notification.actionUrl && (
                                 <Link
                                   to={notification.actionUrl}
-                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C86D51] hover:underline"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition"
                                 >
-                                  Explore <ChevronRight className="h-3 w-3" />
+                                  <span>Open Link</span>
+                                  <ChevronRight className="h-3.5 w-3.5" />
                                 </Link>
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100">
+
+                          {/* Quick Actions (Read/Delete) */}
+                          <div className="shrink-0 flex items-center gap-1 self-start opacity-70 group-hover:opacity-100 transition-opacity">
                             {isUnread && (
                               <button
                                 type="button"
                                 onClick={() => void markCustomerNotificationRead(notification.id)}
-                                className="rounded p-1.5 text-stone-400 hover:text-[#C86D51] transition"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-subtle)] hover:bg-[var(--accent)]/10 hover:text-[var(--accent)] transition"
                                 title="Mark as read"
+                                aria-label="Mark as read"
                               >
-                                <Check className="h-4 w-4" />
+                                <CheckCheck className="h-4 w-4" />
                               </button>
                             )}
+
                             <button
                               type="button"
                               onClick={() => deleteCustomerNotification(notification.id)}
-                              className="rounded p-1.5 text-stone-400 hover:text-rose-600 transition"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-subtle)] hover:bg-rose-500/10 hover:text-rose-600 transition"
                               title="Delete notification"
+                              aria-label="Delete notification"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -1777,10 +2069,29 @@ export const AccountPage: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-[#F0E4DC] bg-white p-10 text-center dark:border-[#2C2426] dark:bg-[#1C1719]">
-                    <Bell className="mx-auto h-7 w-7 text-stone-400" />
-                    <p className="mt-3 text-sm font-bold text-[#1C1817] dark:text-stone-100">No notifications yet</p>
-                    <p className="mt-1 text-xs text-stone-500">Order updates and promotions will appear here.</p>
+                  /* Empty State */
+                  <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-12 text-center shadow-xs">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--bg-soft)] text-[var(--text-subtle)] mb-3.5">
+                      <Bell className="h-6 w-6 opacity-40" />
+                    </div>
+                    <h3 className="text-base font-black text-[var(--text-primary)]">
+                      {notificationFilter === 'unread' ? 'No unread notifications' : 'No notifications in this category'}
+                    </h3>
+                    <p className="mt-1.5 text-xs text-[var(--text-muted)] max-w-sm mx-auto">
+                      {notificationFilter === 'unread'
+                        ? 'All caught up! Any new order updates or store offers will appear right here.'
+                        : 'Updates will appear as soon as your orders are placed or special deals go live.'}
+                    </p>
+                    {notificationFilter !== 'all' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setNotificationFilter('all')}
+                        className="mt-4 rounded-xl text-xs font-bold"
+                      >
+                        Show All Notifications
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -2094,105 +2405,234 @@ export const AccountPage: React.FC = () => {
               </div>
             )}
 
-            {/* PROFILE & SECURITY */}
+            {/* REDESIGNED PROFILE & SECURITY - SYNCHRONIZED WITH ADMIN */}
             {activeTab === 'security' && user && (
               <div className="space-y-6">
-                {/* Profile Information */}
-                <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-[#F0E4DC] dark:border-[#2C2426] pb-4">
-                    <div>
-                      <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">Personal Details</h3>
-                      <p className="text-xs text-stone-500">Your customer name, phone, and email.</p>
+                {/* VIP Standing & Live Store Synchronization Banner */}
+                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border-color)] pb-5">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-black text-[var(--accent)] border border-[var(--accent)]/20">
+                          {customerStats.segment}
+                        </span>
+                        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Admin &amp; Store Sync Active</span>
+                        </div>
+                      </div>
+                      <h2 className="text-xl font-black text-[var(--text-primary)] pt-1">Profile &amp; Customer Record</h2>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        Account ID: <span className="font-mono font-bold text-[var(--text-primary)]">CR-{user.id.slice(0, 8).toUpperCase()}</span> • Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '2024'}
+                      </p>
                     </div>
-                    {!isEditingProfile && (
+
+                    {!isEditingProfile ? (
                       <Button
-                        variant="outline"
+                        variant="primary"
                         size="sm"
                         onClick={() => setIsEditingProfile(true)}
-                        className="rounded-xl text-xs font-bold"
+                        className="rounded-xl text-xs font-bold gap-1.5 self-start sm:self-auto bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                       >
-                        <Edit3 className="mr-1.5 h-3.5 w-3.5 text-[#C86D51]" /> Edit Details
+                        <Edit3 className="h-3.5 w-3.5" />
+                        <span>Edit Details</span>
                       </Button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingProfile(false)}
+                        className="rounded-xl border border-[var(--border-color)] px-3 py-1.5 text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-soft)] self-start sm:self-auto"
+                      >
+                        Cancel Editing
+                      </button>
                     )}
                   </div>
 
+                  {/* 4-Stat Synchronized KPI Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 text-left">
+                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Completed Orders</span>
+                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
+                        {customerStats.ordersCount} {customerStats.ordersCount === 1 ? 'order' : 'orders'}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Lifetime Spent</span>
+                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--accent)]">
+                        GH₵{customerStats.totalSpent.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Saved Addresses</span>
+                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
+                        {user.savedAddresses?.length || 0} locations
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[var(--bg-soft)] p-3.5 border border-[var(--border-color)]/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Wishlist Saved</span>
+                      <p className="mt-1 text-base sm:text-lg font-black text-[var(--text-primary)]">
+                        {wishlistIds.length} items
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Information & Avatar Card */}
+                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
+                  <div className="border-b border-[var(--border-color)] pb-4">
+                    <h3 className="text-base font-black text-[var(--text-primary)]">Personal Identity</h3>
+                    <p className="text-xs text-[var(--text-muted)]">Your customer profile details are used for courier dispatch and store communication.</p>
+                  </div>
+
                   {!isEditingProfile ? (
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2 text-xs">
-                      <div className="rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-4">
-                        <p className="text-stone-500 font-semibold mb-1">Full Name</p>
-                        <p className="text-sm font-black text-[#1C1817] dark:text-stone-100">{user.fullName}</p>
+                    <div className="mt-5 space-y-5">
+                      {/* Avatar preview and name summary */}
+                      <div className="flex items-center gap-4">
+                        <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
+                          {user.profileImage ? (
+                            <img src={user.profileImage} alt={user.fullName} className="h-full w-full object-cover" />
+                          ) : (
+                            user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'
+                          )}
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <h4 className="text-base font-bold text-[var(--text-primary)] truncate">{user.fullName}</h4>
+                          <p className="text-xs text-[var(--text-muted)]">{user.email}</p>
+                          {user.phone ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)]">
+                              <Phone className="h-3.5 w-3.5" /> {user.phone}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-amber-600 dark:text-amber-400 italic">No phone number added yet</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-4">
-                        <p className="text-stone-500 font-semibold mb-1">Phone Number</p>
-                        <p className="text-sm font-black text-[#1C1817] dark:text-stone-100">
-                          {user.phone || 'Not provided'}
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-4 sm:col-span-2">
-                        <p className="text-stone-500 font-semibold mb-1">Email Address</p>
-                        <p className="text-sm font-black text-[#1C1817] dark:text-stone-100">{user.email}</p>
-                        <p className="text-[10px] text-stone-400 mt-1">
-                          Account email linked to your orders.
-                        </p>
+                      {/* Read-only Data Grid */}
+                      <div className="grid gap-3 sm:grid-cols-2 text-xs pt-2">
+                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Customer Full Name</span>
+                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.fullName}</p>
+                        </div>
+                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Contact Phone (Ghana)</span>
+                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.phone || 'None provided'}</p>
+                        </div>
+                        <div className="rounded-2xl bg-[var(--bg-soft)] p-4 border border-[var(--border-color)]/60 sm:col-span-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Registered Account Email</span>
+                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="h-3 w-3" /> Verified
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{user.email}</p>
+                          <p className="mt-1 text-[11px] text-[var(--text-subtle)]">Used for order invoices, tracking dispatch emails, and account recovery.</p>
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleSaveProfile} className="mt-4 space-y-4">
+                    /* Edit Profile Form */
+                    <form onSubmit={handleSaveProfile} className="mt-5 space-y-5">
+                      {/* Photo upload */}
                       <div>
-                        <p className="mb-1.5 text-xs font-bold text-[#1C1817] dark:text-stone-100">Profile picture</p>
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#C86D51] to-[#A94C63] text-2xl font-black text-white">
-                            {profileForm.profileImage ? <img src={profileForm.profileImage} alt="Profile preview" className="h-full w-full object-cover" /> : (profileForm.fullName ? profileForm.fullName.charAt(0).toUpperCase() : 'U')}
+                        <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Profile Picture</label>
+                        <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
+                          <div className="relative group flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
+                            {profileForm.profileImage ? (
+                              <img src={profileForm.profileImage} alt="Profile preview" className="h-full w-full object-cover" />
+                            ) : (
+                              profileForm.fullName ? profileForm.fullName.charAt(0).toUpperCase() : 'U'
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => profileImageInputRef.current?.click()}
+                              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer"
+                              title="Upload new image"
+                            >
+                              <Camera className="h-5 w-5" />
+                            </button>
                           </div>
-                          <div className="space-y-2">
-                            <input ref={profileImageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => handleProfileImageUpload(event.target.files?.[0])} className="block w-full max-w-xs text-xs text-stone-500 file:mr-2 file:rounded-lg file:border-0 file:bg-[#1C1817] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white" />
-                            <p className="text-[10px] text-stone-400">JPG, PNG, WEBP, or GIF up to 5MB.</p>
-                            {profileForm.profileImage && <button type="button" onClick={() => { setProfileForm(previous => ({ ...previous, profileImage: '' })); if (profileImageInputRef.current) profileImageInputRef.current.value = ''; }} className="text-xs font-semibold text-rose-600 hover:underline">Remove picture</button>}
+
+                          <div className="space-y-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => profileImageInputRef.current?.click()}
+                                className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition cursor-pointer"
+                              >
+                                Upload Photo
+                              </button>
+                              {profileForm.profileImage && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProfileForm(p => ({ ...p, profileImage: '' }));
+                                    if (profileImageInputRef.current) profileImageInputRef.current.value = '';
+                                  }}
+                                  className="text-xs font-semibold text-rose-500 hover:underline"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-[var(--text-subtle)]">Accepts JPG, PNG, WEBP, or GIF up to 5MB.</p>
+                            <input
+                              ref={profileImageInputRef}
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              onChange={e => handleProfileImageUpload(e.target.files?.[0])}
+                              className="hidden"
+                            />
                           </div>
                         </div>
                       </div>
-                      <div>
-                        <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={profileForm.fullName}
-                          onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                          className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
-                        />
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
+                            Full Legal / Delivery Name <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={profileForm.fullName}
+                            onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                            placeholder="Your full name"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
+                            Ghana Phone Number <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            value={profileForm.phone}
+                            onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                            placeholder="e.g. 0244123456 or +233..."
+                          />
+                          <span className="mt-1 block text-[10px] text-[var(--text-subtle)]">Required for Accra Express couriers &amp; WhatsApp dispatch alerts.</span>
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          value={profileForm.phone}
-                          onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                          className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
-                        />
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex items-center gap-3 pt-2">
                         <Button
                           type="submit"
                           variant="primary"
-                          size="sm"
-                          className="rounded-xl text-xs font-bold bg-[#C86D51] text-white hover:bg-[#8A3D52]"
+                          disabled={isSavingProfile}
+                          className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                         >
-                          Save Changes
+                          {isSavingProfile ? 'Saving & Syncing...' : 'Save & Sync Profile'}
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
-                          size="sm"
+                          disabled={isSavingProfile}
                           onClick={() => setIsEditingProfile(false)}
-                          className="rounded-xl text-xs"
+                          className="rounded-xl text-xs font-bold"
                         >
                           Cancel
                         </Button>
@@ -2201,23 +2641,106 @@ export const AccountPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Password Section */}
-                <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm">
-                  <div className="border-b border-[#F0E4DC] dark:border-[#2C2426] pb-4">
-                    <h3 className="text-base font-black text-[#1C1817] dark:text-stone-100">
-                      {user.hasPassword ? 'Change Password' : 'Set Account Password'}
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      {user.hasPassword
-                        ? 'Update your password.'
-                        : 'Set a password to sign in directly with email.'}
+                {/* Beauty & Skin Profile Personalization */}
+                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs space-y-4">
+                  <div className="border-b border-[var(--border-color)] pb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+                      <h3 className="text-base font-black text-[var(--text-primary)]">Skin Profile &amp; Preferences</h3>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">
+                      Helps our Routine Builder and beauty specialists recommend products matching your skin type.
                     </p>
                   </div>
 
-                  <form onSubmit={handlePasswordSubmit} className="mt-4 max-w-md space-y-4">
+                  <div className="space-y-4 pt-1">
+                    <div>
+                      <span className="text-xs font-bold text-[var(--text-primary)] block mb-2">Skin Type</span>
+                      <div className="flex flex-wrap gap-2">
+                        {(['normal', 'dry', 'oily', 'combination', 'sensitive'] as const).map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => {
+                              setProfileForm(p => ({ ...p, skinType: type }));
+                              void updateProfile({ skinProfile: { skinType: type, concerns: profileForm.concerns } });
+                              showAlert(`Skin type set to ${type}`, 'success');
+                            }}
+                            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold capitalize transition ${
+                              profileForm.skinType === type
+                                ? 'bg-[var(--accent)] text-white shadow-xs'
+                                : 'border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-xs font-bold text-[var(--text-primary)] block mb-2">Primary Skin Goals &amp; Concerns</span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          'Deep Hydration',
+                          'Dark Spots & Hyperpigmentation',
+                          'Acne & Blemishes',
+                          'Anti-Aging & Fine Lines',
+                          'Sun Protection & SPF',
+                          'Brightening & Glow',
+                          'Pore Tightening',
+                        ].map(concern => {
+                          const isSelected = profileForm.concerns.includes(concern);
+                          return (
+                            <button
+                              key={concern}
+                              type="button"
+                              onClick={() => {
+                                const nextConcerns = isSelected
+                                  ? profileForm.concerns.filter(c => c !== concern)
+                                  : [...profileForm.concerns, concern];
+                                setProfileForm(p => ({ ...p, concerns: nextConcerns }));
+                                void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
+                              }}
+                              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                                isSelected
+                                  ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
+                                  : 'border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                              }`}
+                            >
+                              {concern}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password & Authentication Security */}
+                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
+                        <h3 className="text-base font-black text-[var(--text-primary)]">Security &amp; Credentials</h3>
+                      </div>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">
+                        {user.hasPassword
+                          ? 'Your account is secured with a password.'
+                          : 'Signed in via Google OAuth. You can set a password for direct email sign-in.'}
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <Check className="h-3 w-3" /> Secure
+                    </span>
+                  </div>
+
+                  <form onSubmit={handlePasswordSubmit} className="mt-5 max-w-md space-y-4">
                     {user.hasPassword && (
                       <div>
-                        <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
+                        <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
                           Current Password
                         </label>
                         <div className="relative">
@@ -2225,13 +2748,14 @@ export const AccountPage: React.FC = () => {
                             type={showPasswordFields ? 'text' : 'password'}
                             required
                             value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                            onChange={e => setCurrentPassword(e.target.value)}
+                            className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                            placeholder="Enter current password"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPasswordFields(!showPasswordFields)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)]"
                           >
                             {showPasswordFields ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
@@ -2240,7 +2764,7 @@ export const AccountPage: React.FC = () => {
                     )}
 
                     <div>
-                      <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
+                      <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
                         New Password (min 8 characters)
                       </label>
                       <input
@@ -2248,13 +2772,14 @@ export const AccountPage: React.FC = () => {
                         required
                         minLength={8}
                         value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                        onChange={e => setNewPassword(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                        placeholder="Choose new password"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-[#1C1817] dark:text-stone-100 block mb-1.5">
+                      <label className="text-xs font-bold text-[var(--text-primary)] block mb-1.5">
                         Confirm New Password
                       </label>
                       <input
@@ -2262,8 +2787,9 @@ export const AccountPage: React.FC = () => {
                         required
                         minLength={8}
                         value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FAF3F0] dark:bg-[#241D20] p-3 text-xs text-[#1C1817] dark:text-stone-100 outline-none focus:border-[#C86D51]"
+                        onChange={e => setConfirmNewPassword(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                        placeholder="Confirm new password"
                       />
                     </div>
 
@@ -2271,29 +2797,53 @@ export const AccountPage: React.FC = () => {
                       type="submit"
                       variant="primary"
                       disabled={isChangingPassword}
-                      className="rounded-xl text-xs font-bold bg-[#1C1817] text-white hover:bg-[#2A1D20]"
+                      className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                     >
-                      {isChangingPassword ? 'Saving...' : user.hasPassword ? 'Update Password' : 'Set Password'}
+                      {isChangingPassword ? 'Saving Password...' : user.hasPassword ? 'Update Password' : 'Set Account Password'}
                     </Button>
                   </form>
                 </div>
 
-                {/* Danger Zone */}
-                <div className="rounded-3xl border border-red-200 dark:border-red-950 bg-red-50/40 dark:bg-red-950/20 p-6">
-                  <div className="flex items-center gap-3">
-                    <ShieldAlert className="h-5 w-5 text-red-600" />
-                    <h3 className="text-base font-black text-red-900 dark:text-red-300">Delete Account</h3>
+                {/* Direct Store Concierge Support Link */}
+                <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <h4 className="text-sm font-black text-[var(--text-primary)]">Direct Store Concierge &amp; WhatsApp Support</h4>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Have questions about your customer record, orders, or need urgent assistance from store management?
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-red-700 dark:text-red-400">
-                    Deactivating your account will remove your saved addresses and profile.
+                  {storeSettings.supportPhone && (
+                    <a
+                      href={`https://wa.me/${storeSettings.supportPhone.replace(/[^0-9]/g, '').startsWith('0') ? '233' + storeSettings.supportPhone.replace(/[^0-9]/g, '').slice(1) : storeSettings.supportPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-xs"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Chat on WhatsApp</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* Danger Zone */}
+                <div className="rounded-3xl border border-rose-200 dark:border-rose-950 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <ShieldAlert className="h-5 w-5 text-rose-600" />
+                    <h3 className="text-base font-black text-rose-900 dark:text-rose-300">Deactivate Account</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">
+                    Deactivating your account will disable your login, delete your saved delivery addresses, and archive your profile.
                   </p>
                   <Button
                     variant="danger"
                     size="sm"
                     onClick={() => setShowDeleteModal(true)}
-                    className="mt-4 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white"
+                    className="mt-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
                   >
-                    Delete Account
+                    Deactivate Account
                   </Button>
                 </div>
               </div>

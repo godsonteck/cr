@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { House, Settings, ShoppingBag, UserRound } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { HeaderNotifications } from './HeaderNotifications';
 import logoImg from '../../assets/logo.jpeg';
 
@@ -10,8 +11,14 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const { totalItems } = useCart();
   const { storeSettings } = useStore();
+  const { user, isAuthenticated } = useAuth();
+  const [profileImgError, setProfileImgError] = React.useState(false);
   const displayStoreName = storeSettings.storeName.replace(/\s+AND\s+/gi, ' & ');
   const [brandPrimary, brandSecondary] = displayStoreName.split(' & ');
+
+  React.useEffect(() => {
+    setProfileImgError(false);
+  }, [user?.profileImage]);
 
   return (
     <>
@@ -38,10 +45,41 @@ export const Header: React.FC = () => {
             </Link>
             <div className="flex shrink-0 items-center gap-2">
               <HeaderNotifications />
-              <Link to="/account" className="flex items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]" aria-label="Open account">
-                <UserRound className="h-4 w-4" />
-                <span className="hidden sm:inline">Account</span>
-              </Link>
+              {isAuthenticated && user ? (
+                <Link
+                  to="/account"
+                  className="group flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-0.5 pr-2.5 sm:pr-3 text-[11px] font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:shadow-xs focus:outline-hidden"
+                  aria-label={`View account for ${user.fullName || 'User'}`}
+                  title={user.fullName || 'My Account'}
+                >
+                  <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white shadow-xs ring-1.5 ring-[var(--accent)]/30 group-hover:ring-[var(--accent)] transition">
+                    {user.profileImage && !profileImgError ? (
+                      <img
+                        src={user.profileImage}
+                        alt={user.fullName || 'Profile'}
+                        className="h-full w-full object-cover"
+                        onError={() => setProfileImgError(true)}
+                      />
+                    ) : (
+                      <span className="font-bold text-[11px] sm:text-xs">
+                        {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="hidden sm:inline max-w-[90px] truncate font-medium text-[12px] group-hover:text-[var(--accent)] transition-colors">
+                    {user.fullName ? user.fullName.split(' ')[0] : 'Account'}
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  to="/account"
+                  className="flex items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  aria-label="Open account or sign in"
+                >
+                  <UserRound className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

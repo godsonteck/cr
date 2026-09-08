@@ -157,11 +157,22 @@ export const HeaderNotifications: React.FC = () => {
 
       {/* Popover Dropdown Window */}
       {isOpen && (
-        <div
-          role="dialog"
-          aria-label="Notification center"
-          className="absolute right-0 top-full z-50 mt-2.5 w-[calc(100vw-28px)] max-w-[390px] sm:w-[410px] rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] shadow-2xl backdrop-blur-lg animate-in fade-in zoom-in-95 duration-150 origin-top-right overflow-hidden"
-        >
+        <>
+          {/* Mobile backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs sm:hidden"
+            onClick={() => {
+              setIsOpen(false);
+              setShowSettings(false);
+            }}
+            aria-hidden="true"
+          />
+
+          <div
+            role="dialog"
+            aria-label="Notification center"
+            className="fixed inset-x-3.5 top-[60px] z-50 max-h-[84vh] sm:max-h-none sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-auto sm:w-[420px] rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 sm:origin-top-right overflow-hidden flex flex-col"
+          >
           {/* Top Header Bar */}
           <div className="flex items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-soft)]/50 px-4 py-3">
             <div className="flex items-center gap-2">
@@ -321,7 +332,7 @@ export const HeaderNotifications: React.FC = () => {
                   key={item.id}
                   className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer ${
                     !item.read
-                      ? 'bg-[var(--accent)]/[0.04] hover:bg-[var(--accent)]/[0.08]'
+                      ? 'bg-[var(--accent)]/[0.04] hover:bg-[var(--accent)]/[0.08] border-l-[3px] border-l-[var(--accent)] pl-3'
                       : 'hover:bg-[var(--bg-soft)]/60'
                   }`}
                   onClick={() => handleNotificationClick(item)}
@@ -444,7 +455,8 @@ export const HeaderNotifications: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </>
+    )}
+  </div>
+);
 };
