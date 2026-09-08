@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   User,
   Package,
@@ -585,15 +585,16 @@ export const AccountPage: React.FC = () => {
   const orderAlertsCount = useMemo(() => customerNotifications.filter(n => n.type === 'order' || n.type === 'delivery').length, [customerNotifications]);
   const promoAlertsCount = useMemo(() => customerNotifications.filter(n => n.type === 'promo').length, [customerNotifications]);
 
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
 
   useEffect(() => {
-    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    const requestedTab = new URLSearchParams(location.search).get('tab');
     const accountTabs: AccountTab[] = ['overview', 'orders', 'notifications', 'addresses', 'wishlist', 'reviews', 'security', 'preferences'];
     if (requestedTab && accountTabs.includes(requestedTab as AccountTab)) {
       setActiveTab(requestedTab as AccountTab);
     }
-  }, []);
+  }, [location.search]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [remoteOrders, setRemoteOrders] = useState<Order[]>([]);
 
@@ -612,8 +613,8 @@ export const AccountPage: React.FC = () => {
 
   // Customer VIP and Standing Status (derived to match Admin system metrics)
   const customerStats = useMemo(() => {
-    const allUserOrders = (user?.orders || remoteOrders || []);
-    const totalSpent = allUserOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const allUserOrders = Array.isArray(user?.orders) ? user.orders : (Array.isArray(remoteOrders) ? remoteOrders : []);
+    const totalSpent = allUserOrders.reduce((sum, o) => sum + (Number(o?.total) || 0), 0);
     const count = allUserOrders.length;
     let segment = 'Verified Customer';
     if (totalSpent >= 500) segment = 'VIP Top Spender';
@@ -682,11 +683,11 @@ export const AccountPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       setProfileForm({
-        fullName: user.fullName,
-        phone: user.phone,
+        fullName: user.fullName || '',
+        phone: user.phone || '',
         profileImage: user.profileImage || '',
-        skinType: user.skinProfile?.skinType || 'Normal',
-        concerns: user.skinProfile?.concerns || [],
+        skinType: (user.skinProfile?.skinType || 'Normal') as any,
+        concerns: Array.isArray(user.skinProfile?.concerns) ? user.skinProfile.concerns : [],
       });
     }
   }, [user]);
@@ -2407,7 +2408,7 @@ export const AccountPage: React.FC = () => {
                         <p className="text-xs text-[var(--text-muted)] truncate">{user.email}</p>
                         <div className="flex items-center gap-2 text-[11px] text-[var(--text-subtle)] flex-wrap pt-0.5">
                           <span className="font-mono font-bold text-[var(--text-primary)]">
-                            ID: CR-{user.id.slice(0, 8).toUpperCase()}
+                            ID: CR-{String(user.id || '').slice(0, 8).toUpperCase() || 'CLIENT'}
                           </span>
                           <span>•</span>
                           <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
@@ -2707,7 +2708,7 @@ export const AccountPage: React.FC = () => {
                           <div className="min-w-0">
                             <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Skin Profile &amp; Routine Needs</p>
                             <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">
-                              {profileForm.skinType} skin • {profileForm.concerns.length} concern{profileForm.concerns.length === 1 ? '' : 's'} selected
+                              {profileForm.skinType || 'Normal'} skin • {(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length} concern{(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length === 1 ? '' : 's'} selected
                             </p>
                           </div>
                         </div>
@@ -2758,15 +2759,16 @@ export const AccountPage: React.FC = () => {
                                 'Brightening & Glow',
                                 'Pore Tightening',
                               ].map(concern => {
-                                const isSelected = profileForm.concerns.includes(concern);
+                                const currentConcerns = Array.isArray(profileForm.concerns) ? profileForm.concerns : [];
+                                const isSelected = currentConcerns.includes(concern);
                                 return (
                                   <button
                                     key={concern}
                                     type="button"
                                     onClick={() => {
                                       const nextConcerns = isSelected
-                                        ? profileForm.concerns.filter(c => c !== concern)
-                                        : [...profileForm.concerns, concern];
+                                        ? currentConcerns.filter(c => c !== concern)
+                                        : [...currentConcerns, concern];
                                       setProfileForm(p => ({ ...p, concerns: nextConcerns }));
                                       void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
                                     }}
@@ -2997,13 +2999,14 @@ export const AccountPage: React.FC = () => {
                   </div>
 
                   <div className="divide-y divide-[var(--border-color)]">
-                    {(storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone) && (() => {
-                      const activeSupportPhone = storeSettings.whatsappNumber || storeSettings.storePhone || storeSettings.supportPhone || '';
+                    {(storeSettings?.whatsappNumber || storeSettings?.storePhone || storeSettings?.supportPhone) && (() => {
+                      const activeSupportPhone = String(storeSettings?.whatsappNumber || storeSettings?.storePhone || storeSettings?.supportPhone || '');
                       const rawNumber = activeSupportPhone.replace(/[^0-9]/g, '');
                       const formattedWa = rawNumber.startsWith('0') ? '233' + rawNumber.slice(1) : rawNumber;
+                      const custId = String(user?.id || '').slice(0, 8).toUpperCase() || 'CLIENT';
                       return (
                         <a
-                          href={`https://wa.me/${formattedWa}?text=${encodeURIComponent(`Hello ${storeSettings.storeName}, I am ${user.fullName} (Customer ID: CR-${user.id.slice(0, 8).toUpperCase()}). I need assistance.`)}`}
+                          href={`https://wa.me/${formattedWa}?text=${encodeURIComponent(`Hello ${String(storeSettings?.storeName || 'Store')}, I am ${user?.fullName || 'Customer'} (Customer ID: CR-${custId}). I need assistance.`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-emerald-500/5 transition cursor-pointer"

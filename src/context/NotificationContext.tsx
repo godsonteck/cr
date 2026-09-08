@@ -192,7 +192,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.filter((n: AppNotification) => !dismissed.has(n.id));
+          const filtered = parsed.filter((n: AppNotification) => !dismissed.has(n.id));
+          // Guests must NEVER see order or delivery notifications
+          if (!user) {
+            return filtered.filter((n: AppNotification) => n.type !== 'order' && n.type !== 'delivery');
+          }
+          return filtered;
         }
       }
 
@@ -220,7 +225,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Sync with store orders: automatically create/update notifications for customer orders
   useEffect(() => {
-    if (!preferences.orderUpdates || !orders || orders.length === 0) return;
+    // Only logged-in customers should ever receive alerts for their own orders
+    if (!user || !preferences.orderUpdates || !orders || orders.length === 0) {
+      if (!user) {
+        setNotifications(prev => {
+          const cleaned = prev.filter(n => n.type !== 'order' && n.type !== 'delivery');
+          return cleaned.length !== prev.length ? cleaned : prev;
+        });
+      }
+      return;
+    }
+
+    const userEmail = (user.email || '').trim().toLowerCase();
+    const userId = String(user.id || '');
+
+    // Only process orders that belong to this customer
+    const userOrders = orders.filter(order => {
+      const orderEmail = String(order?.shippingAddress?.email || '').trim().toLowerCase();
+      const orderUserId = String((order as any)?.userId || '');
+      return (userEmail && orderEmail === userEmail) || (userId && orderUserId === userId);
+    });
+
+    if (userOrders.length === 0) return;
 
     const dismissed = getDismissedIds();
 
@@ -228,7 +254,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       let changed = false;
       const updated = [...prev];
 
-      orders.forEach(order => {
+      userOrders.forEach(order => {
         const orderStatus = String(order?.status || 'Pending');
         const orderNum = String(order?.orderNumber || '');
         const orderNotificationId = `order-status-${order?.id || 'id'}-${orderStatus}`;
