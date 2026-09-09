@@ -72,10 +72,7 @@ function AppLayout() {
   );
 
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const activeAdminName = adminSession.isLoggedIn
-    ? adminSession.adminName.trim() || 'Administrator'
-    : 'Admin sign in';
-  const adminPageTitle = `${activeAdminName} | Admin Portal`;
+  const adminPageTitle = `${storeSettings.storeName} | Admin Portal`;
 
   // The admin area renders outside the storefront SEO component. Set the browser
   // title directly as well so the tab never falls back to the URL while loading.
