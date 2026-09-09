@@ -72,6 +72,13 @@ function AppLayout() {
   );
 
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const adminPageTitle = `${storeSettings.storeName} Admin Portal`;
+
+  // The admin area renders outside the storefront SEO component. Set the browser
+  // title directly as well so the tab never falls back to the URL while loading.
+  React.useEffect(() => {
+    if (isAdminRoute) document.title = adminPageTitle;
+  }, [adminPageTitle, isAdminRoute]);
 
   if (isAdminRoute) {
     return (
@@ -80,7 +87,7 @@ function AppLayout() {
           <html lang="en" />
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>{storeSettings.storeName} • Operations Command Center</title>
+          <title>{adminPageTitle}</title>
         </Helmet>
         <ErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>
