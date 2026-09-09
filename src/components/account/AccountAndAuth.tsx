@@ -1172,46 +1172,26 @@ export const AccountPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Compact account navigation that wraps instead of forcing horizontal scrolling. */}
-        <div className="lg:hidden sticky top-14 sm:top-16 z-30 -mx-3 px-3 py-2 mb-4 bg-[var(--bg-main)]/95 backdrop-blur-md border-y border-[var(--border-color)]">
-          <div className="flex flex-wrap items-center gap-1.5 py-0.5">
-            {[
-              { id: 'overview' as const, label: 'Overview', icon: Sparkles },
-              { id: 'orders' as const, label: 'Orders', icon: Package, count: allOrders.length },
-              { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, count: wishlistIds.length },
-              { id: 'addresses' as const, label: 'Addresses', icon: MapPin, count: user?.savedAddresses?.length || 0 },
-              { id: 'notifications' as const, label: 'Alerts', icon: Bell, count: unreadCustomerNotifications },
-              { id: 'reviews' as const, label: 'Reviews', icon: Star, count: itemsToReview.length },
-              { id: 'security' as const, label: 'Profile', icon: User },
-              { id: 'preferences' as const, label: 'Settings', icon: Settings },
-            ].map(({ id, label, icon: Icon, count }) => {
-              const isActive = activeTab === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setActiveTab(id)}
-                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-all duration-200 sm:flex-none sm:px-3.5 ${
-                    isActive
-                      ? 'bg-[var(--accent)] text-white shadow-sm scale-[1.02]'
-                      : 'bg-[var(--bg-card)] text-[var(--text-subtle)] border border-[var(--border-color)] hover:text-[var(--text-primary)]'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span>{label}</span>
-                  {count !== undefined && count > 0 && (
-                    <span
-                      className={`rounded-full px-1.5 py-0.2 text-[9px] font-extrabold ${
-                        isActive ? 'bg-white/25 text-white' : 'bg-[var(--bg-soft)] text-[var(--accent)]'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        {/* Mobile navigation: one calm control keeps the account page readable. */}
+        <div className="lg:hidden sticky top-14 sm:top-16 z-30 -mx-3 mb-4 border-y border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur-md">
+          <label className="flex items-center gap-3">
+            <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account</span>
+            <select
+              value={activeTab}
+              onChange={(event) => setActiveTab(event.target.value as AccountTab)}
+              className="min-h-10 min-w-0 flex-1 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 text-xs font-bold text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+              aria-label="Choose account section"
+            >
+              <option value="overview">Overview</option>
+              <option value="orders">Orders &amp; Tracking ({allOrders.length})</option>
+              <option value="notifications">Notifications ({unreadCustomerNotifications})</option>
+              <option value="addresses">Saved Addresses ({user?.savedAddresses?.length || 0})</option>
+              <option value="wishlist">Saved Wishlist ({wishlistIds.length})</option>
+              <option value="reviews">Product Reviews ({itemsToReview.length})</option>
+              <option value="security">Profile &amp; Password</option>
+              <option value="preferences">Preferences</option>
+            </select>
+          </label>
         </div>
 
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
@@ -2370,7 +2350,7 @@ export const AccountPage: React.FC = () => {
             {activeTab === 'security' && user && (
               <div className="space-y-4 sm:space-y-6">
                 {/* 1. JUMIA-STYLE PROFILE HEADER BANNER */}
-                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)] p-4 sm:p-6 shadow-xs">
+                <div className="relative hidden overflow-hidden rounded-2xl border border-[var(--border-color)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)] p-4 shadow-xs sm:block sm:rounded-3xl sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 sm:gap-4">
                       {/* Avatar with Camera Trigger */}
