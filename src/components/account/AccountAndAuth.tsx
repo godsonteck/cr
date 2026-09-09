@@ -1047,19 +1047,19 @@ export const AccountPage: React.FC = () => {
     <div className="account-page min-h-[calc(100vh-4.5rem)] overflow-x-hidden bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
       <div className="mx-auto w-full max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         {/* Mobile-First Profile Header Card */}
-        <div className="relative mb-4 overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:mb-6 sm:rounded-3xl sm:p-7">
-          <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-6">
+        <div className="relative mb-4 border-b border-[var(--border-color)] pb-4 sm:mb-6 sm:pb-6">
+          <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-5">
             {/* Top row: Avatar + Identity + Quick Actions */}
             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 {/* Avatar Frame */}
                 <div className="relative shrink-0">
-                  <div className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] p-0.5 shadow-md shadow-[var(--accent)]/20 ring-2 ring-[var(--accent)]/25">
+                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[var(--accent)] text-white sm:h-14 sm:w-14">
                     {user?.profileImage ? (
                       <img
                         src={user.profileImage}
                         alt={`${user.fullName}'s profile`}
-                        className="h-full w-full rounded-[14px] object-cover"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       <span className="font-serif text-xl sm:text-3xl font-bold text-white tracking-wide">
@@ -1070,7 +1070,7 @@ export const AccountPage: React.FC = () => {
                   {/* Verified Badge */}
                   <div 
                     title="Verified Customer"
-                    className="absolute -bottom-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-[var(--text-primary)] text-amber-400 ring-2 ring-[var(--bg-card)] shadow-xs"
+                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--text-primary)] text-amber-400 ring-2 ring-[var(--bg-main)]"
                   >
                     <Sparkles className="h-3 w-3 fill-amber-400" />
                   </div>
@@ -1104,14 +1104,14 @@ export const AccountPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('security')}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-subtle)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-subtle)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]"
                   title="Edit Profile"
                   aria-label="Edit Profile"
                 >
                   <Edit3 className="h-4 w-4" />
                 </button>
                 <Link to="/shop" className="hidden sm:inline-flex">
-                  <button className="flex items-center gap-1.5 rounded-xl bg-[var(--text-primary)] px-3.5 py-2 text-xs font-bold text-[var(--bg-card)] hover:bg-[var(--accent)] transition">
+                  <button className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition">
                     <ShoppingBag className="h-3.5 w-3.5 text-[var(--accent)]" />
                     <span>Shop</span>
                   </button>
@@ -1119,7 +1119,7 @@ export const AccountPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => { logout(); navigate('/'); }}
-                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/60 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-100/80 dark:border-rose-950 dark:bg-rose-950/20 dark:text-rose-400 sm:flex-none"
+                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 sm:flex-none"
                   title="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -1140,13 +1140,13 @@ export const AccountPage: React.FC = () => {
                   key={label}
                   type="button"
                   onClick={() => setActiveTab(id)}
-                  className={`group flex flex-col items-center justify-center rounded-xl border p-2 sm:p-3 text-center transition-all ${
+                    className={`group flex flex-col items-center justify-center border-l border-[var(--border-color)] p-2 text-center transition-all first:border-l-0 sm:p-3 ${
                     activeTab === id && (label !== 'In Transit' || activeOrders.length > 0)
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)] shadow-xs'
-                      : 'border-[var(--border-color)] bg-[var(--bg-card)]/80 hover:border-[var(--accent)]/40 text-[var(--text-primary)]'
+                      ? 'text-[var(--accent)]'
+                      : 'text-[var(--text-primary)] hover:text-[var(--accent)]'
                   }`}
                 >
-                  <div className="relative mb-1 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-[var(--bg-soft)] text-[var(--accent)] group-hover:scale-105 transition-transform">
+                  <div className="relative mb-1 flex h-6 w-6 items-center justify-center text-[var(--accent)]">
                     <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {isPing && (
                       <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
@@ -1169,12 +1169,12 @@ export const AccountPage: React.FC = () => {
 
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
         <div className="grid min-w-0 gap-4 lg:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <aside className="order-1 h-fit space-y-2 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 shadow-xs lg:rounded-3xl lg:p-3">
-            <div className="flex items-center justify-between px-2 py-2 lg:px-3">
-              <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account menu</p><p className="mt-1 text-[11px] text-[var(--text-muted)]">Manage your CR experience</p></div>
-              <Settings className="h-4 w-4 text-[var(--accent)]" />
+          <aside className="order-1 h-fit border-b border-[var(--border-color)] pb-3 lg:border-b-0 lg:pb-0">
+            <div className="flex items-center justify-between px-1 py-2 lg:px-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account</p>
+              <Settings className="h-4 w-4 text-[var(--text-subtle)]" />
             </div>
-            <nav className="grid grid-cols-2 gap-1 lg:block lg:space-y-1">
+            <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block lg:space-y-1">
               {[
                 { id: 'overview' as const, label: 'Overview', icon: Sparkles },
                 { id: 'orders' as const, label: 'Orders & Tracking', icon: Package, count: allOrders.length },
@@ -1191,9 +1191,9 @@ export const AccountPage: React.FC = () => {
                     key={id}
                     type="button"
                     onClick={() => setActiveTab(id)}
-                    className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[11px] font-bold transition lg:rounded-2xl lg:px-4 lg:py-3 lg:text-xs ${
+                    className={`flex min-h-10 w-full items-center justify-between border-b border-[var(--border-color)] px-1 py-2.5 text-left text-[11px] font-bold transition lg:rounded-lg lg:border-b-0 lg:px-3 lg:py-2.5 lg:text-xs ${
                       isActive
-                        ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
+                        ? 'text-[var(--accent)]'
                         : 'text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -1203,9 +1203,9 @@ export const AccountPage: React.FC = () => {
                     </span>
                     {count !== undefined && count > 0 && (
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${
                           isActive
-                            ? 'bg-white/20 text-white'
+                            ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                             : 'bg-[var(--bg-soft)] text-[var(--text-primary)]'
                         }`}
                       >
