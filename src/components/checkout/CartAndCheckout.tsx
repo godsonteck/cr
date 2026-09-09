@@ -15,6 +15,8 @@ import {
   Star,
   MessageCircle,
   Lock,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -698,6 +700,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const { storeSettings } = useStore();
   const [order, setOrder] = useState<Order | null>((location.state as { order?: Order })?.order || null);
   const [loading, setLoading] = useState(!order && Boolean(orderId));
+  const [pickupDetailsCopied, setPickupDetailsCopied] = useState(false);
 
   useEffect(() => {
     if (!order && orderId) {
@@ -714,6 +717,29 @@ export const OrderConfirmationPage: React.FC = () => {
         .finally(() => setLoading(false));
     }
   }, [order, orderId]);
+
+  const sharePickupDetails = async () => {
+    if (!order || order.deliveryMethod !== 'store-pickup') return;
+    const pickupDetails = [
+      `Pickup order: ${order.orderNumber}`,
+      `Name: ${order.shippingAddress.fullName}`,
+      `Phone: ${order.shippingAddress.phone}`,
+      `Location: ${storeSettings.storeAddress}`,
+      'Please show this order number and the phone number at pickup.',
+    ].join('\n');
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Pickup ${order.orderNumber}`, text: pickupDetails });
+      } else {
+        await navigator.clipboard.writeText(pickupDetails);
+        setPickupDetailsCopied(true);
+        window.setTimeout(() => setPickupDetailsCopied(false), 2500);
+      }
+    } catch {
+      // Sharing can be cancelled by the user; no error message is needed.
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)]">
@@ -737,6 +763,17 @@ export const OrderConfirmationPage: React.FC = () => {
               ? 'Your payment was confirmed. We are preparing your items now!'
               : 'Thank you for your order! We are reviewing and processing your order.'}
           </p>
+          {order?.deliveryMethod === 'store-pickup' && order.orderNumber && (
+            <div className="mx-auto max-w-sm rounded-2xl border border-[#C86D51]/30 bg-[#C86D51]/10 p-4 text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#C86D51]">Pickup reference</p>
+              <p className="mt-1 font-mono text-xl font-black tracking-wide text-[var(--text-primary)]">{order.orderNumber}</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">Show this order number and the phone number used at checkout when collecting your order.</p>
+              <button type="button" onClick={() => void sharePickupDetails()} className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg bg-[var(--text-primary)] px-3 text-xs font-bold text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
+                {pickupDetailsCopied ? <Copy className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                {pickupDetailsCopied ? 'Pickup details copied' : 'Share pickup details'}
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
