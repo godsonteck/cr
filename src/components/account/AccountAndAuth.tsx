@@ -1047,12 +1047,7 @@ export const AccountPage: React.FC = () => {
     <div className="account-page min-h-[calc(100vh-4.5rem)] overflow-x-hidden bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
       <div className="mx-auto w-full max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         {/* Mobile-First Profile Header Card */}
-        <div className="relative mb-4 sm:mb-6 overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)]/50 p-4 sm:p-7 shadow-xs">
-          {/* Ambient accent glows */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-[var(--accent)]/10 blur-3xl" />
-          <div className="pointer-events-none absolute -left-16 -bottom-16 h-52 w-52 rounded-full bg-[var(--accent-strong)]/5 blur-2xl" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)]/50 to-transparent" />
-
+        <div className="relative mb-4 overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:mb-6 sm:rounded-3xl sm:p-7">
           <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-6">
             {/* Top row: Avatar + Identity + Quick Actions */}
             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1172,32 +1167,14 @@ export const AccountPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile navigation: one calm control keeps the account page readable. */}
-        <div className="lg:hidden sticky top-14 sm:top-16 z-30 -mx-3 mb-4 border-y border-[var(--border-color)] bg-[var(--bg-main)]/95 px-3 py-2 backdrop-blur-md">
-          <label className="flex items-center gap-3">
-            <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account</span>
-            <select
-              value={activeTab}
-              onChange={(event) => setActiveTab(event.target.value as AccountTab)}
-              className="min-h-10 min-w-0 flex-1 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 text-xs font-bold text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-              aria-label="Choose account section"
-            >
-              <option value="overview">Overview</option>
-              <option value="orders">Orders &amp; Tracking ({allOrders.length})</option>
-              <option value="notifications">Notifications ({unreadCustomerNotifications})</option>
-              <option value="addresses">Saved Addresses ({user?.savedAddresses?.length || 0})</option>
-              <option value="wishlist">Saved Wishlist ({wishlistIds.length})</option>
-              <option value="reviews">Product Reviews ({itemsToReview.length})</option>
-              <option value="security">Profile &amp; Password</option>
-              <option value="preferences">Preferences</option>
-            </select>
-          </label>
-        </div>
-
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
-        <div className="grid min-w-0 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <aside className="hidden lg:block h-fit space-y-2 rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-xs">
-            <nav className="space-y-1">
+        <div className="grid min-w-0 gap-4 lg:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+          <aside className="order-1 h-fit space-y-2 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 shadow-xs lg:rounded-3xl lg:p-3">
+            <div className="flex items-center justify-between px-2 py-2 lg:px-3">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account menu</p><p className="mt-1 text-[11px] text-[var(--text-muted)]">Manage your CR experience</p></div>
+              <Settings className="h-4 w-4 text-[var(--accent)]" />
+            </div>
+            <nav className="grid grid-cols-2 gap-1 lg:block lg:space-y-1">
               {[
                 { id: 'overview' as const, label: 'Overview', icon: Sparkles },
                 { id: 'orders' as const, label: 'Orders & Tracking', icon: Package, count: allOrders.length },
@@ -1214,7 +1191,7 @@ export const AccountPage: React.FC = () => {
                     key={id}
                     type="button"
                     onClick={() => setActiveTab(id)}
-                    className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-xs font-bold transition ${
+                    className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[11px] font-bold transition lg:rounded-2xl lg:px-4 lg:py-3 lg:text-xs ${
                       isActive
                         ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
                         : 'text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
@@ -1240,7 +1217,7 @@ export const AccountPage: React.FC = () => {
               })}
             </nav>
 
-            <div className="border-t border-[var(--border-color)] pt-3">
+            <div className="col-span-2 border-t border-[var(--border-color)] pt-2 lg:col-span-1 lg:pt-3">
               <Link
                 to="/support"
                 className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)] transition"
@@ -1250,7 +1227,7 @@ export const AccountPage: React.FC = () => {
             </div>
           </aside>
 
-          <main className="min-w-0 max-w-full space-y-6 overflow-hidden">
+          <main className="order-2 min-w-0 max-w-full space-y-4 overflow-hidden sm:space-y-6">
             {/* OVERVIEW */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
@@ -2414,8 +2391,8 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. JUMIA 4-TILE QUICK ACCESS MATRIX */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                {/* Quick links are already available in the responsive account sidebar. */}
+                <div className="hidden grid-cols-2 gap-2.5 sm:grid sm:grid-cols-4 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('orders')}
@@ -2879,8 +2856,8 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 4. JUMIA GROUPED LIST SECTION: MY ORDERS & REVIEWS */}
-                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                {/* Shopping links remain available in the sidebar on mobile. */}
+                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       My Shopping &amp; Orders
@@ -2947,8 +2924,7 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 5. JUMIA GROUPED LIST SECTION: SETTINGS & PREFERENCES */}
-                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       Settings &amp; Preferences
@@ -2977,8 +2953,7 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 6. JUMIA GROUPED LIST SECTION: HELP & SUPPORT */}
-                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
+                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       Reach Out &amp; Support
