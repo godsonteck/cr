@@ -262,7 +262,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, subtotal, discount, promoCode, clearCart } = useCart();
   const { user, addOrder, saveAddress, isAuthenticated } = useAuth();
-  const { storeSettings, addOrder: addStoreOrder } = useStore();
+  const { storeSettings, addOrder: addStoreOrder, fetchProducts } = useStore();
   const { showAlert } = useAlert();
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -322,6 +322,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         sessionStorage.removeItem('paystack_pending_order');
         await addStoreOrder(createdOrder);
         addOrder(createdOrder);
+        await fetchProducts();
         if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
         await clearCart();
         window.history.replaceState({}, '', '/checkout');

@@ -329,11 +329,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         for (const [productId, quantity] of quantities) {
           const product = productMap.get(productId);
           if (!product) continue;
-          const nextStock = product.stockCount - quantity;
-          await tx
+          const updatedProducts = await tx
             .update(products)
-            .set({ stockCount: nextStock, inStock: nextStock > 0, updatedAt: new Date() })
-            .where(eq(products.id, productId));
+            .set({
+              stockCount: sql`${products.stockCount} - ${quantity}`,
+              inStock: sql`(${products.stockCount} - ${quantity}) > 0`,
+              updatedAt: new Date(),
+            })
+            .where(and(
+              eq(products.id, productId),
+              eq(products.inStock, true),
+              sql`${products.stockCount} >= ${quantity}`,
+            ))
+            .returning({ id: products.id });
+
+          if (updatedProducts.length === 0) {
+            throw new Error(`Insufficient stock for ${product.name}. Please refresh your cart and try again.`);
+          }
         }
 
         await tx.insert(notifications).values([
