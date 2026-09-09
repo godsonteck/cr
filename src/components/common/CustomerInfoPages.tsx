@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ChevronRight, MessageCircle, ShieldCheck, Star } from 'lucide-react';
+import { CheckCircle2, MessageCircle, ShieldCheck, Star, ThumbsUp } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { getWhatsAppUrl } from '../../lib/whatsapp';
+import { api } from '../../lib/api';
 
 const PageShell: React.FC<{ eyebrow: string; title: string; intro: string; children: React.ReactNode }> = ({ eyebrow, title, intro, children }) => (
   <div className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -24,49 +24,68 @@ const InfoSection: React.FC<{ title: string; children: React.ReactNode }> = ({ t
 
 export const FeedbackPage: React.FC = () => {
   const { storeSettings } = useStore();
-  const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState('');
-  const [sent, setSent] = useState(false);
+  const [reviews, setReviews] = useState<Array<{
+    id: string;
+    rating: number;
+    title?: string | null;
+    comment: string;
+    authorName: string;
+    verifiedPurchase: boolean;
+    helpfulCount: number;
+    date: string;
+    productName?: string | null;
+    productImage?: string | null;
+    productBrand?: string | null;
+  }>>([]);
+  const [stats, setStats] = useState({ averageRating: 0, totalReviews: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const submitFeedback = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!rating || !message.trim()) return;
-    const text = `Hello ${storeSettings.storeName} team, I would like to share feedback.\n\nRating: ${rating}/5\nFeedback: ${message.trim()}`;
-    window.open(getWhatsAppUrl(storeSettings.whatsappNumber, text), '_blank', 'noopener,noreferrer');
-    setSent(true);
-  };
+  useEffect(() => {
+    let active = true;
+    const loadReviews = async () => {
+      try {
+        const response = await api.get<{ reviews: typeof reviews; stats: typeof stats }>('/reviews?public=true');
+        if (active) {
+          setReviews(response.reviews || []);
+          setStats(response.stats || { averageRating: 0, totalReviews: 0 });
+        }
+      } catch {
+        if (active) setReviews([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void loadReviews();
+    return () => { active = false; };
+  }, []);
 
   return (
     <PageShell
-      eyebrow="Your voice matters"
-      title="Tell us how we are doing."
-      intro="A short note helps us improve the products, delivery, and service we offer every day."
+      eyebrow="Customer feedback"
+      title="What customers are saying."
+      intro={`Real words from people who have ordered from ${storeSettings.storeName}. Product feedback, delivery experiences, and small reasons to come back.`}
     >
-      {sent ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900/50 dark:bg-emerald-950/20">
-          <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" />
-          <h2 className="mt-3 font-serif text-2xl text-[var(--text-primary)]">Thank you for sharing.</h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">Your feedback window has opened in WhatsApp so our team can respond directly.</p>
-          <button type="button" onClick={() => { setSent(false); setRating(0); setMessage(''); }} className="mt-5 text-xs font-bold text-[var(--accent)] hover:underline">Send another note</button>
+      <div className="flex flex-col gap-4 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Overall customer rating</p><div className="mt-2 flex items-center gap-3"><span className="font-serif text-4xl text-[var(--text-primary)]">{stats.averageRating ? stats.averageRating.toFixed(1) : '--'}</span><div><div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(value => <Star key={value} className={`h-4 w-4 ${value <= Math.round(stats.averageRating) ? 'fill-amber-400 text-amber-400' : 'text-[var(--border-color)]'}`} />)}</div><p className="mt-1 text-xs text-[var(--text-muted)]">{stats.totalReviews} published {stats.totalReviews === 1 ? 'review' : 'reviews'}</p></div></div></div>
+        <Link to="/shop" className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[var(--text-primary)] px-4 text-xs font-bold text-[var(--bg-card)] transition hover:bg-[var(--accent)]">Shop customer favourites</Link>
+      </div>
+
+      {loading ? (
+        <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-8 text-center text-sm text-[var(--text-muted)]">Loading customer feedback...</div>
+      ) : reviews.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {reviews.map((review) => (
+            <article key={review.id} className="flex flex-col rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-3"><div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(value => <Star key={value} className={`h-4 w-4 ${value <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-[var(--border-color)]'}`} />)}</div><time className="text-[10px] text-[var(--text-subtle)]">{new Date(review.date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</time></div>
+              {review.title && <h2 className="mt-4 font-serif text-xl text-[var(--text-primary)]">{review.title}</h2>}
+              <p className="mt-3 flex-1 text-sm leading-7 text-[var(--text-muted)]">“{review.comment}”</p>
+              <div className="mt-6 flex items-center justify-between gap-3 border-t border-[var(--border-color)] pt-4"><div><p className="text-xs font-bold text-[var(--text-primary)]">{review.authorName || 'CR customer'}</p>{review.verifiedPurchase && <p className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"><CheckCircle2 className="h-3 w-3" /> Verified purchase</p>}</div>{review.productName && <div className="flex max-w-[48%] items-center gap-2 text-right">{review.productImage && <img src={review.productImage} alt="" className="h-8 w-8 rounded-lg object-cover" />}<span className="line-clamp-2 text-[10px] font-semibold text-[var(--text-subtle)]">{review.productName}</span></div>}</div>
+              {review.helpfulCount > 0 && <p className="mt-3 inline-flex items-center gap-1 text-[10px] text-[var(--text-subtle)]"><ThumbsUp className="h-3 w-3" /> {review.helpfulCount} found this helpful</p>}
+            </article>
+          ))}
         </div>
       ) : (
-        <form onSubmit={submitFeedback} className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 sm:p-7">
-          <fieldset>
-            <legend className="text-sm font-bold text-[var(--text-primary)]">How was your experience?</legend>
-            <div className="mt-3 flex gap-2" aria-label="Rating out of five">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button key={value} type="button" onClick={() => setRating(value)} aria-label={`${value} star${value === 1 ? '' : 's'}`} className="rounded-lg p-1 transition hover:bg-[var(--bg-soft)]">
-                  <Star className={`h-7 w-7 ${value <= rating ? 'fill-amber-400 text-amber-400' : 'text-[var(--border-color)]'}`} />
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <label className="mt-6 block text-sm font-bold text-[var(--text-primary)]" htmlFor="feedback-message">Your feedback</label>
-          <textarea id="feedback-message" required value={message} onChange={(event) => setMessage(event.target.value)} rows={6} placeholder="What worked well? What could be better?" className="mt-2 w-full resize-y rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3.5 py-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
-          <button type="submit" disabled={!rating || !message.trim()} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--text-primary)] px-5 text-sm font-bold text-[var(--bg-card)] transition hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-45">
-            <MessageCircle className="h-4 w-4" /> Share feedback
-          </button>
-        </form>
+        <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-8 text-center"><MessageCircle className="mx-auto h-7 w-7 text-[var(--accent)]" /><h2 className="mt-3 font-serif text-2xl text-[var(--text-primary)]">The first customer stories are on their way.</h2><p className="mt-2 text-sm text-[var(--text-muted)]">Browse the shop and discover what people will be talking about next.</p></div>
       )}
     </PageShell>
   );

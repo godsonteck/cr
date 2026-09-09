@@ -29,7 +29,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/support': { title: 'Customer support | CR COSMETICS AND ESSENTIALS', description: 'Get help with delivery, payments, returns, product questions, and order updates.' },
   '/faq': { title: 'Frequently asked questions | CR COSMETICS AND ESSENTIALS', description: 'Find answers about delivery, payments, returns, tracking, and product authenticity.' },
   '/contact': { title: 'Contact us | CR COSMETICS AND ESSENTIALS', description: 'Contact the CR COSMETICS AND ESSENTIALS team by phone, email, or WhatsApp.' },
-  '/feedback': { title: 'Customer feedback | CR COSMETICS AND ESSENTIALS', description: 'Share feedback about your CR COSMETICS AND ESSENTIALS shopping and delivery experience.' },
+  '/feedback': { title: 'Customer feedback | CR COSMETICS AND ESSENTIALS', description: 'Read customer feedback about CR COSMETICS AND ESSENTIALS products, delivery, and service.' },
   '/terms': { title: 'Terms of Service | CR COSMETICS AND ESSENTIALS', description: 'Read the terms for using the CR COSMETICS AND ESSENTIALS store and placing orders.' },
   '/privacy': { title: 'Privacy Policy | CR COSMETICS AND ESSENTIALS', description: 'Learn how CR COSMETICS AND ESSENTIALS uses and protects customer information.' },
   '/delivery-returns': { title: 'Delivery and returns | CR COSMETICS AND ESSENTIALS', description: 'Review delivery timing, returns, exchanges, and damaged order support.' },

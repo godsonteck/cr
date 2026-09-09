@@ -91,6 +91,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      if (query.public === 'true') {
+        const results = await db
+          .select({
+            id: reviews.id,
+            productId: reviews.productId,
+            rating: reviews.rating,
+            title: reviews.title,
+            comment: reviews.comment,
+            skinType: reviews.skinType,
+            images: reviews.images,
+            authorName: reviews.authorName,
+            verifiedPurchase: reviews.verifiedPurchase,
+            helpfulCount: reviews.helpfulCount,
+            adminReply: reviews.adminReply,
+            date: reviews.createdAt,
+            productName: products.name,
+            productImage: products.image,
+            productBrand: products.brand,
+          })
+          .from(reviews)
+          .leftJoin(products, eq(reviews.productId, products.id))
+          .where(eq(reviews.isApproved, true))
+          .orderBy(desc(reviews.createdAt));
+
+        const totalReviews = results.length;
+        const averageRating = totalReviews > 0
+          ? Number((results.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
+          : 0;
+
+        return res.status(200).json({ reviews: results, stats: { averageRating, totalReviews } });
+      }
+
       if (query.admin === 'true') {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
