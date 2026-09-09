@@ -368,7 +368,8 @@ export const AdminPortal: React.FC = () => {
                 <p className="font-bold text-stone-900 dark:text-stone-50 text-sm leading-tight line-clamp-2">
                   {store.storeSettings.storeName}
                 </p>
-                <p className="text-xs font-medium text-stone-500 dark:text-stone-500 uppercase tracking-wider truncate">Admin panel</p>
+                <p className="mt-1 truncate text-xs font-bold text-stone-700 dark:text-stone-200">{store.adminSession.adminName}</p>
+                <p className="truncate text-[10px] font-medium uppercase tracking-wider text-stone-500 dark:text-stone-500">{store.adminSession.adminRole}</p>
               </div>
             )}
           </div>
