@@ -19,6 +19,7 @@ import {
   BellRing
 } from 'lucide-react';
 import { useNotifications, AppNotification, NotificationFilter } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 // Helper for formatting friendly relative timestamps
 function formatRelativeTime(isoString: string): string {
@@ -43,6 +44,7 @@ function formatRelativeTime(isoString: string): string {
 
 export const HeaderNotifications: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const {
     notifications,
     unreadCount,
@@ -59,6 +61,8 @@ export const HeaderNotifications: React.FC = () => {
     playNotificationSound,
     requestBrowserPermission,
   } = useNotifications();
+
+  if (!isAuthenticated) return null;
 
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -172,24 +176,19 @@ export const HeaderNotifications: React.FC = () => {
           <div
             role="dialog"
             aria-label="Notification center"
-            className="fixed inset-x-3.5 top-[60px] z-50 max-h-[84vh] sm:max-h-none sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-auto sm:w-[420px] rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 sm:origin-top-right overflow-hidden flex flex-col"
+            className="fixed inset-x-3 top-[60px] z-50 flex max-h-[84vh] w-auto flex-col overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] shadow-xl animate-in fade-in zoom-in-95 duration-150 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:max-h-none sm:w-[400px] sm:origin-top-right"
           >
           {/* Top Header Bar */}
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-soft)]/50 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
-                <BellRing className="h-4 w-4" />
-              </span>
               <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-primary)]">
+                <h3 className="text-sm font-black text-[var(--text-primary)]">
                   Notifications
                 </h3>
+                <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]">
+                  {unreadCount > 0 ? `${unreadCount} unread update${unreadCount === 1 ? '' : 's'}` : 'You are all caught up'}
+                </p>
               </div>
-              {unreadCount > 0 && (
-                <span className="rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-extrabold text-white">
-                  {unreadCount} new
-                </span>
-              )}
             </div>
 
             {/* Quick action buttons */}
@@ -198,7 +197,7 @@ export const HeaderNotifications: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => void markAllAsRead()}
-                  className="flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
+                  className="flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--bg-soft)]"
                   title="Mark all as read"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
@@ -211,8 +210,8 @@ export const HeaderNotifications: React.FC = () => {
                 onClick={() => setShowSettings(prev => !prev)}
                 className={`flex h-7 w-7 items-center justify-center rounded-lg transition ${
                   showSettings
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'text-[var(--text-subtle)] hover:bg-[var(--bg-card)] hover:text-[var(--text-primary)]'
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                    : 'text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                 }`}
                 title="Notification preferences"
                 aria-label="Notification settings"
@@ -232,18 +231,18 @@ export const HeaderNotifications: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Settings Drawer (When Sliders clicked) */}
+          {/* Notification preferences */}
           {showSettings && (
-            <div className="border-b border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 space-y-3 animate-in slide-in-from-top-2 duration-150">
+            <div className="space-y-3 border-b border-[var(--border-color)] bg-[var(--bg-soft)]/45 p-4 animate-in slide-in-from-top-2 duration-150">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--text-subtle)]">
+                <span className="text-[11px] font-bold text-[var(--text-primary)]">
                   Notification Preferences
                 </span>
-                <span className="text-[10px] text-[var(--text-subtle)]">Saved automatically</span>
+                  <span className="text-[10px] text-[var(--text-subtle)]">Saved automatically</span>
               </div>
 
               <div className="space-y-2 text-xs">
-                <label className="flex items-center justify-between cursor-pointer rounded-lg bg-[var(--bg-card)] p-2 border border-[var(--border-color)]">
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
                   <span className="font-semibold text-[var(--text-primary)]">Order &amp; Delivery updates</span>
                   <input
                     type="checkbox"
@@ -253,7 +252,7 @@ export const HeaderNotifications: React.FC = () => {
                   />
                 </label>
 
-                <label className="flex items-center justify-between cursor-pointer rounded-lg bg-[var(--bg-card)] p-2 border border-[var(--border-color)]">
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
                   <span className="font-semibold text-[var(--text-primary)]">Promos &amp; Flash deals</span>
                   <input
                     type="checkbox"
@@ -263,7 +262,7 @@ export const HeaderNotifications: React.FC = () => {
                   />
                 </label>
 
-                <div className="flex items-center justify-between rounded-lg bg-[var(--bg-card)] p-2 border border-[var(--border-color)]">
+                <div className="flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-[var(--text-primary)]">Sound alerts</span>
                     <button
@@ -283,7 +282,7 @@ export const HeaderNotifications: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between rounded-lg bg-[var(--bg-card)] p-2 border border-[var(--border-color)]">
+                <div className="flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
                   <span className="font-semibold text-[var(--text-primary)]">Browser push alerts</span>
                   <button
                     type="button"
@@ -298,7 +297,7 @@ export const HeaderNotifications: React.FC = () => {
           )}
 
           {/* Filter Chips Bar */}
-          <div className="flex items-center gap-1.5 border-b border-[var(--border-color)] px-3 py-2 text-[11px] overflow-x-auto no-scrollbar">
+          <div className="grid grid-cols-2 gap-1.5 border-b border-[var(--border-color)] px-3 py-2.5 text-[11px] sm:grid-cols-4">
             {(
               [
                 { id: 'all', label: 'All', count: notifications.length },
@@ -311,14 +310,14 @@ export const HeaderNotifications: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id as NotificationFilter)}
-                className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-bold transition ${
+                className={`flex items-center justify-center gap-1 rounded-lg px-2 py-2 font-bold transition ${
                   activeFilter === tab.id
-                    ? 'bg-[var(--accent)] text-white shadow-xs'
+                    ? 'bg-[var(--accent)] text-white'
                     : 'bg-[var(--bg-soft)] text-[var(--text-subtle)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`text-[10px] px-1 rounded-full ${activeFilter === tab.id ? 'bg-white/20 text-white' : 'bg-[var(--bg-card)] text-[var(--text-subtle)]'}`}>
+                <span className={`text-[10px] px-1 rounded ${activeFilter === tab.id ? 'bg-white/20 text-white' : 'bg-[var(--bg-card)] text-[var(--text-subtle)]'}`}>
                   {tab.count}
                 </span>
               </button>
@@ -326,21 +325,21 @@ export const HeaderNotifications: React.FC = () => {
           </div>
 
           {/* Notification List Container */}
-          <div className="max-h-[340px] sm:max-h-[380px] overflow-y-auto divide-y divide-[var(--border-color)]">
+          <div className="max-h-[340px] divide-y divide-[var(--border-color)] overflow-y-auto sm:max-h-[380px]">
             {filteredNotifications.length > 0 ? (
               filteredNotifications.map(item => (
                 <div
                   key={item.id}
                   className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer ${
                     !item.read
-                      ? 'bg-[var(--accent)]/[0.04] hover:bg-[var(--accent)]/[0.08] border-l-[3px] border-l-[var(--accent)] pl-3'
-                      : 'hover:bg-[var(--bg-soft)]/60'
+                      ? 'bg-[var(--accent)]/[0.045] hover:bg-[var(--accent)]/[0.08]'
+                        : 'hover:bg-[var(--bg-soft)]/60'
                   }`}
                   onClick={() => handleNotificationClick(item)}
                 >
                   {/* Icon Column */}
                   <div className="relative mt-0.5 shrink-0">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--bg-soft)] border border-[var(--border-color)]">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-soft)] text-[var(--text-subtle)]">
                       {getNotificationIcon(item.type)}
                     </span>
                     {!item.read && (
@@ -351,7 +350,7 @@ export const HeaderNotifications: React.FC = () => {
                   {/* Body Content */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
-                      <h4 className={`text-xs ${!item.read ? 'font-bold text-[var(--text-primary)]' : 'font-semibold text-[var(--text-muted)]'}`}>
+                      <h4 className={`text-xs leading-snug ${!item.read ? 'font-bold text-[var(--text-primary)]' : 'font-semibold text-[var(--text-muted)]'}`}>
                         {item.title}
                       </h4>
                       <span className="shrink-0 text-[10px] text-[var(--text-subtle)]">
@@ -366,7 +365,7 @@ export const HeaderNotifications: React.FC = () => {
                     {/* Quick action tags & pills */}
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
                       {item.orderNumber && (
-                        <span className="inline-flex items-center gap-1 rounded bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-extrabold text-[var(--accent)] border border-[var(--border-color)]">
+                        <span className="inline-flex items-center gap-1 rounded bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
                           <Package className="h-2.5 w-2.5" />
                           #{item.orderNumber}
                         </span>
@@ -429,7 +428,7 @@ export const HeaderNotifications: React.FC = () => {
           </div>
 
           {/* Footer Bar */}
-          <div className="flex items-center justify-between border-t border-[var(--border-color)] bg-[var(--bg-soft)]/50 px-4 py-2.5 text-xs">
+          <div className="flex items-center justify-between gap-3 border-t border-[var(--border-color)] px-4 py-3 text-xs">
             <div className="flex items-center gap-3">
               {readCount > 0 && (
                 <button

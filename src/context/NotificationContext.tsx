@@ -178,6 +178,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Notifications State
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    if (!user) return [];
+
     try {
       const dismissed = (() => {
         try {
@@ -201,18 +203,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
 
-      // If user is authenticated or seeds have been dismissed, don't generate starter seeds
-      const seedsDismissed = localStorage.getItem(`cr_seeds_dismissed_${user?.id || 'guest'}`) === 'true';
-      if (user || seedsDismissed) {
-        return [];
-      }
+      return [];
     } catch {
       // Fallback
     }
-    return getSeedNotifications();
+    return [];
   });
 
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all');
+
+  // A signed-out browser must never retain the previous customer's notification feed.
+  useEffect(() => {
+    if (!user) setNotifications([]);
+  }, [user?.id]);
 
   // Save to localStorage whenever notifications change
   useEffect(() => {
@@ -355,6 +358,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Add new notification programmatically
   const addNotification = useCallback((item: Omit<AppNotification, 'id' | 'timestamp' | 'read'> & Partial<Pick<AppNotification, 'id' | 'timestamp' | 'read'>>) => {
+    if (!user) return;
+
     // Respect user preferences
     if (item.type === 'order' && !preferences.orderUpdates) return;
     if (item.type === 'promo' && !preferences.promoAlerts) return;
@@ -387,7 +392,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Ignored
       }
     }
-  }, [preferences]);
+  }, [preferences, user]);
 
   // Mark single as read
   const markAsRead = useCallback(async (id: string) => {

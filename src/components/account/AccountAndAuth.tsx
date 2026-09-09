@@ -1044,8 +1044,8 @@ export const AccountPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+    <div className="account-page min-h-[calc(100vh-4.5rem)] overflow-x-hidden bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
+      <div className="mx-auto w-full max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         {/* Mobile-First Profile Header Card */}
         <div className="relative mb-4 sm:mb-6 overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)]/50 p-4 sm:p-7 shadow-xs">
           {/* Ambient accent glows */}
@@ -1053,10 +1053,10 @@ export const AccountPage: React.FC = () => {
           <div className="pointer-events-none absolute -left-16 -bottom-16 h-52 w-52 rounded-full bg-[var(--accent-strong)]/5 blur-2xl" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)]/50 to-transparent" />
 
-          <div className="relative z-10 flex flex-col gap-4 sm:gap-6">
+          <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-6">
             {/* Top row: Avatar + Identity + Quick Actions */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 {/* Avatar Frame */}
                 <div className="relative shrink-0">
                   <div className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] p-0.5 shadow-md shadow-[var(--accent)]/20 ring-2 ring-[var(--accent)]/25">
@@ -1105,11 +1105,11 @@ export const AccountPage: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveTab('security')}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-subtle)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-subtle)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   title="Edit Profile"
                   aria-label="Edit Profile"
                 >
@@ -1124,7 +1124,7 @@ export const AccountPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => { logout(); navigate('/'); }}
-                  className="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-950 bg-rose-50/60 dark:bg-rose-950/20 px-2.5 sm:px-3 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100/80 transition"
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/60 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-100/80 dark:border-rose-950 dark:bg-rose-950/20 dark:text-rose-400 sm:flex-none"
                   title="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -1134,7 +1134,7 @@ export const AccountPage: React.FC = () => {
             </div>
 
             {/* KPI Chips Grid (Touch-friendly 4-stat row) */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 border-t border-[var(--border-color)]/70 pt-3 sm:pt-4">
+            <div className="grid grid-cols-2 gap-2 border-t border-[var(--border-color)]/70 pt-3 sm:grid-cols-4 sm:gap-3 sm:pt-4">
               {[
                 { id: 'orders' as const, label: 'Orders', count: allOrders.length, icon: Package },
                 { id: 'orders' as const, label: 'In Transit', count: activeOrders.length, icon: Truck, isPing: activeOrders.length > 0 },
@@ -1172,9 +1172,9 @@ export const AccountPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Sticky Horizontal Mobile Tab Bar (< lg) */}
+        {/* Compact account navigation that wraps instead of forcing horizontal scrolling. */}
         <div className="lg:hidden sticky top-14 sm:top-16 z-30 -mx-3 px-3 py-2 mb-4 bg-[var(--bg-main)]/95 backdrop-blur-md border-y border-[var(--border-color)]">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex flex-wrap items-center gap-1.5 py-0.5">
             {[
               { id: 'overview' as const, label: 'Overview', icon: Sparkles },
               { id: 'orders' as const, label: 'Orders', icon: Package, count: allOrders.length },
@@ -1191,7 +1191,7 @@ export const AccountPage: React.FC = () => {
                   key={id}
                   type="button"
                   onClick={() => setActiveTab(id)}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-all duration-200 sm:flex-none sm:px-3.5 ${
                     isActive
                       ? 'bg-[var(--accent)] text-white shadow-sm scale-[1.02]'
                       : 'bg-[var(--bg-card)] text-[var(--text-subtle)] border border-[var(--border-color)] hover:text-[var(--text-primary)]'
@@ -1215,7 +1215,7 @@ export const AccountPage: React.FC = () => {
         </div>
 
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           <aside className="hidden lg:block h-fit space-y-2 rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-xs">
             <nav className="space-y-1">
               {[
@@ -1270,7 +1270,7 @@ export const AccountPage: React.FC = () => {
             </div>
           </aside>
 
-          <main className="min-w-0 space-y-6">
+          <main className="min-w-0 max-w-full space-y-6 overflow-hidden">
             {/* OVERVIEW */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
@@ -1863,7 +1863,7 @@ export const AccountPage: React.FC = () => {
                 )}
 
                 {/* Filter Pills Bar */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex flex-wrap items-center gap-2 pb-1">
                   {(
                     [
                       { id: 'all', label: 'All Alerts', count: customerNotifications.length },
@@ -1876,7 +1876,7 @@ export const AccountPage: React.FC = () => {
                       key={pill.id}
                       type="button"
                       onClick={() => setNotificationFilter(pill.id)}
-                      className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                      className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition sm:flex-none sm:rounded-full sm:px-3.5 sm:py-1.5 sm:text-xs ${
                         notificationFilter === pill.id
                           ? 'bg-[var(--accent)] text-white shadow-xs'
                           : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text-primary)]'
@@ -2722,10 +2722,17 @@ export const AccountPage: React.FC = () => {
 
                       {/* Expandable Skin Profile Selector */}
                       {jumiaExpandedSection === 'skin' && (
-                        <div className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 space-y-4 animate-in fade-in duration-200">
+                        <div className="account-detail-panel border-t border-[var(--border-color)] p-4 sm:p-6 space-y-5 animate-in fade-in duration-200">
                           <div>
-                            <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Your Skin Type</label>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                              <div>
+                                <label className="block text-sm font-black text-[var(--text-primary)]">Your skin profile</label>
+                                <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">Help us tailor routines and product recommendations to your needs.</p>
+                              </div>
+                              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                            </div>
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Skin type</p>
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                               {(['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive'] as const).map(type => (
                                 <button
                                   key={type}
@@ -2735,10 +2742,10 @@ export const AccountPage: React.FC = () => {
                                     void updateProfile({ skinProfile: { skinType: type, concerns: profileForm.concerns } });
                                     showAlert(`Skin type set to ${type}`, 'success');
                                   }}
-                                  className={`rounded-xl px-3 py-1.5 text-xs font-bold capitalize transition ${
+                                  className={`min-h-10 rounded-xl border px-2 py-2 text-xs font-bold capitalize transition ${
                                     profileForm.skinType === type
-                                      ? 'bg-[var(--accent)] text-white shadow-xs'
-                                      : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white shadow-xs'
+                                      : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
                                   }`}
                                 >
                                   {type}
@@ -2748,8 +2755,8 @@ export const AccountPage: React.FC = () => {
                           </div>
 
                           <div>
-                            <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">Skin Concerns &amp; Routine Goals</label>
-                            <div className="flex flex-wrap gap-2">
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Concerns and routine goals</p>
+                            <div className="grid gap-2 sm:grid-cols-2">
                               {[
                                 'Deep Hydration',
                                 'Dark Spots & Hyperpigmentation',
@@ -2772,10 +2779,10 @@ export const AccountPage: React.FC = () => {
                                       setProfileForm(p => ({ ...p, concerns: nextConcerns }));
                                       void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
                                     }}
-                                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                                    className={`min-h-10 rounded-xl border px-3 py-2 text-left text-xs font-bold transition ${
                                       isSelected
-                                        ? 'bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
-                                        : 'border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
+                                        ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
+                                        : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
                                     }`}
                                   >
                                     {concern}

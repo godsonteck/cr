@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "CR COSMETICS AND ESSENTIALS CR COSMETICS & ESSENTIALS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "CR COSMETICS AND ESSENTIALS" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: CR COSMETICS
+          - generic [ref=e11]: "& ESSENTIALS"
+      - generic [ref=e12]:
+        - button "2 unread notifications" [ref=e14]:
+          - generic [ref=e18]: "2"
+        - link "Open account or sign in" [ref=e19] [cursor=pointer]:
+          - /url: /account
+          - generic [ref=e23]: Sign In
+  - navigation "Primary navigation" [ref=e24]:
+    - link "Home" [ref=e25] [cursor=pointer]:
+      - /url: /
+    - link "Products" [ref=e29] [cursor=pointer]:
+      - /url: /shop
+    - link "Cart" [ref=e33] [cursor=pointer]:
+      - /url: /cart
+    - link "Settings" [ref=e38] [cursor=pointer]:
+      - /url: /settings
+  - main [ref=e42]
+  - contentinfo [ref=e81]:
+    - generic [ref=e82]:
+      - link "CR COSMETICS AND ESSENTIALS CR COSMETICS AND ESSENTIALS" [ref=e83] [cursor=pointer]:
+        - /url: /
+        - img "CR COSMETICS AND ESSENTIALS" [ref=e84]
+        - generic [ref=e85]: CR COSMETICS AND ESSENTIALS
+      - paragraph [ref=e86]: Beauty, care, and everyday essentials chosen for real routines.
+      - link "Chat with CR COSMETICS AND ESSENTIALS on WhatsApp" [ref=e87] [cursor=pointer]:
+        - /url: https://wa.me/233592153306
+        - text: Chat with us
+      - generic [ref=e90]: © 2026 CR COSMETICS AND ESSENTIALS

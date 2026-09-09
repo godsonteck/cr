@@ -231,6 +231,15 @@
     background: linear-gradient(180deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0) 100%);
   }
 
+  .account-page,
+  .account-page * {
+    min-width: 0;
+  }
+
+  .account-detail-panel {
+    background: color-mix(in srgb, var(--bg-soft) 42%, transparent);
+  }
+
   html.dark .detailed-shell {
     background: linear-gradient(180deg, rgba(29,23,21,0.3) 0%, rgba(29,23,21,0) 100%);
   }
