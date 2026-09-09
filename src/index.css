@@ -283,6 +283,17 @@ html.dark .checkout-page .checkout-summary-item {
   border-color: var(--border-color) !important;
 }
 
+html.dark .checkout-page .bg-white,
+html.dark .checkout-page .bg-\[\#fffdfb\],
+html.dark .checkout-page .bg-\[\#fffaf9\] {
+  background-color: var(--bg-card) !important;
+}
+
+html.dark .checkout-page .text-stone-500,
+html.dark .checkout-page .text-stone-600 {
+  color: var(--text-muted) !important;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

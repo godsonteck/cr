@@ -629,7 +629,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       {deliveryNotes && <p>Instructions: {deliveryNotes}</p>}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-[var(--border-color)] bg-white p-4">
+                  <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4">
                     <div className="flex items-center justify-between text-sm font-black text-[var(--text-primary)]"><span>Order total</span><span className="text-[#FF6B00]">GHS {orderTotal.toFixed(2)}</span></div>
                     <p className="mt-1 text-xs text-[var(--text-muted)]">{cartItems.length} item{cartItems.length === 1 ? '' : 's'} · Delivery: {deliveryFee === 0 ? 'Free' : `GHS ${deliveryFee.toFixed(2)}`}</p>
                   </div>
@@ -652,7 +652,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
               <div className="p-4 space-y-3 max-h-56 overflow-y-auto">
                 {cartItems.map(item => (
-                  <div key={`${item.product.id}-${item.selectedOption || ''}`} className="checkout-summary-item flex gap-3 rounded-2xl border border-[#f0e4e8] bg-[#fffaf9] p-2">
+                  <div key={`${item.product.id}-${item.selectedOption || ''}`} className="checkout-summary-item flex gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-2">
                     <div className="relative shrink-0">
                       <img src={item.product.image} alt="" className="w-14 h-14 rounded-xl object-cover" />
                       <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#ff7a00] text-white text-[10px] font-black rounded-full flex items-center justify-center">{item.quantity}</span>
