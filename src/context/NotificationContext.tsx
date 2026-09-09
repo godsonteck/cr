@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from './AuthContext';
 import { useStore } from './StoreContext';
@@ -211,11 +211,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all');
+  const knownNotificationIdsRef = useRef<Set<string> | null>(null);
 
   // A signed-out browser must never retain the previous customer's notification feed.
   useEffect(() => {
     if (!user) setNotifications([]);
   }, [user?.id]);
+
+  // Play one in-app chime when a new unread notification arrives from any source.
+  useEffect(() => {
+    if (!user) {
+      knownNotificationIdsRef.current = null;
+      return;
+    }
+
+    const currentIds = new Set(notifications.map(notification => notification.id));
+    const previousIds = knownNotificationIdsRef.current;
+    knownNotificationIdsRef.current = currentIds;
+
+    if (previousIds && notifications.some(notification => !previousIds.has(notification.id) && !notification.read)) {
+      playNotificationChime();
+    }
+  }, [notifications, user?.id]);
 
   // Save to localStorage whenever notifications change
   useEffect(() => {
@@ -377,10 +394,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     setNotifications(prev => [newNotification, ...prev]);
-
-    if (preferences.soundEnabled) {
-      playNotificationChime();
-    }
 
     if (preferences.browserNotifications && 'Notification' in window && Notification.permission === 'granted') {
       try {

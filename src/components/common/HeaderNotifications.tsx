@@ -11,7 +11,6 @@ import {
   Tag, 
   Sparkles, 
   Info, 
-  Volume2, 
   VolumeX, 
   ExternalLink,
   ChevronRight,
@@ -58,11 +57,22 @@ export const HeaderNotifications: React.FC = () => {
     clearAll,
     preferences,
     updatePreference,
-    playNotificationSound,
     requestBrowserPermission,
   } = useNotifications();
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate('/signin')}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        aria-label="Sign in to view notifications"
+        title="Sign in to view notifications"
+      >
+        <Bell className="h-4 w-4" />
+      </button>
+    );
+  }
 
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -261,26 +271,6 @@ export const HeaderNotifications: React.FC = () => {
                     className="h-4 w-4 accent-[var(--accent)] rounded"
                   />
                 </label>
-
-                <div className="flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[var(--text-primary)]">Sound alerts</span>
-                    <button
-                      type="button"
-                      onClick={() => playNotificationSound()}
-                      className="inline-flex items-center gap-1 rounded bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)] hover:bg-[var(--accent)]/15"
-                      title="Test chime sound"
-                    >
-                      <Volume2 className="h-3 w-3" /> Test
-                    </button>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={preferences.soundEnabled}
-                    onChange={(e) => updatePreference('soundEnabled', e.target.checked)}
-                    className="h-4 w-4 accent-[var(--accent)] rounded"
-                  />
-                </div>
 
                 <div className="flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5">
                   <span className="font-semibold text-[var(--text-primary)]">Browser push alerts</span>

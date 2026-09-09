@@ -38,7 +38,7 @@ export function AdminLayout({
                 src={store.storeSettings.storeLogo || new URL('../../assets/logo.jpeg', import.meta.url).toString()}
                 onError={(event) => { (event.currentTarget as HTMLImageElement).src = new URL('../../assets/logo.jpeg', import.meta.url).toString(); }}
                 alt={store.storeSettings.storeName}
-                className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-sm border border-stone-700"
+                className="w-10 h-10 rounded-full object-contain bg-white p-0.5 shadow-sm border border-stone-700"
               />
               <div>
                 <div className="flex items-center gap-2">

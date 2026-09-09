@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Sun,
   Moon,
-  Volume2,
   Bell,
   Sparkles,
   MapPin,
@@ -36,7 +35,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
   const {
     preferences,
     updatePreference,
-    playNotificationSound,
   } = useNotifications();
 
   // Safe phone number for WhatsApp concierge
@@ -182,40 +180,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
               </label>
             </div>
 
-            {/* Sound Chime */}
-            <div className="flex items-center justify-between p-4 sm:p-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-                  <Volume2 className="h-4 w-4" />
-                </span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Sound Effects</p>
-                    <button
-                      type="button"
-                      onClick={() => playNotificationSound()}
-                      className="rounded-md bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition cursor-pointer"
-                      title="Play sample sound"
-                    >
-                      Test
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-[var(--text-muted)]">Play chime on new store notifications</p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.soundEnabled}
-                  onChange={(e) => {
-                    updatePreference('soundEnabled', e.target.checked);
-                    if (e.target.checked) playNotificationSound();
-                  }}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-[var(--border-color)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
-              </label>
-            </div>
           </div>
         </div>
 

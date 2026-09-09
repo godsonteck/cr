@@ -1033,9 +1033,9 @@ export function AdminSettingsScreen() {
           <div className="flex items-start gap-6">
             {/* Logo Preview */}
             <div className="flex-shrink-0">
-              <div className="w-24 h-24 rounded-xl border-2 border-dashed border-stone-300 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] flex items-center justify-center overflow-hidden">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-stone-300 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] flex items-center justify-center overflow-hidden">
                 {logoPreview ? (
-                  <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain p-2" />
+                  <img src={logoPreview} alt="Logo preview" className="w-full h-full rounded-full object-contain p-2" />
                 ) : (
                   <div className="text-center">
                     <div className="text-2xl">📸</div>

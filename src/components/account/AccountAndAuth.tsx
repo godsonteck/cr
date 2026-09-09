@@ -119,7 +119,7 @@ const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode
               src={storeSettings.storeLogo || logoImg}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoImg; }}
               alt={storeSettings.storeName}
-              className="h-11 w-11 rounded-xl border border-[var(--border-color)] bg-white p-1 object-contain"
+              className="h-11 w-11 rounded-full border border-[var(--border-color)] bg-white p-1 object-contain"
             />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
               {mode === 'signin' ? 'Welcome back' : 'Join the store'}
@@ -3117,7 +3117,7 @@ export const AccountPage: React.FC = () => {
             <div className="sm:hidden mx-auto -mt-2 mb-2 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700" />
             <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
               <div className="flex items-center gap-3">
-                <img src={logoImg} alt="CR" className="h-10 w-10 rounded-xl object-contain border border-[var(--border-color)] p-1 bg-white" />
+                <img src={logoImg} alt="CR" className="h-10 w-10 rounded-full object-contain border border-[var(--border-color)] p-1 bg-white" />
                 <div>
                   <h3 className="text-base font-black text-[var(--text-primary)]">{storeSettings.storeName}</h3>
                   <p className="text-[10px] text-[var(--text-subtle)]">Customer Order Receipt</p>

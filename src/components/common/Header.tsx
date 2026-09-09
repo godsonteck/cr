@@ -29,7 +29,7 @@ export const Header: React.FC = () => {
               <img
                 src={storeSettings.storeLogo || logoImg}
                 alt={storeSettings.storeName}
-                className="h-8 w-8 shrink-0 rounded-md object-contain"
+                className="h-8 w-8 shrink-0 rounded-full object-contain"
                 onError={(event) => { event.currentTarget.src = logoImg; }}
               />
               <span className="flex min-w-0 flex-col leading-none">

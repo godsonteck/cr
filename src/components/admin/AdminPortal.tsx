@@ -359,7 +359,7 @@ export const AdminPortal: React.FC = () => {
               <img
                 src={store.storeSettings.storeLogo || logoImg}
                 alt={store.storeSettings.storeName}
-                className="w-8 h-8 rounded object-cover"
+                className="w-8 h-8 rounded-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
               />
             </div>

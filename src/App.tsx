@@ -23,9 +23,13 @@ const AccountPage = lazy(() => import('./components/account/AccountAndAuth').the
 const SettingsPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SettingsPage })));
 const SignInPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignInPage })));
 const SignUpPage = lazy(() => import('./components/account/AccountAndAuth').then(module => ({ default: module.SignUpPage })));
-const AboutPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.AboutPage })));
+const AboutPage = lazy(() => import('./components/common/AboutPage').then(module => ({ default: module.AboutPage })));
 const ContactPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.ContactPage })));
 const SupportPage = lazy(() => import('./components/common/SupportPages').then(module => ({ default: module.SupportPage })));
+const FeedbackPage = lazy(() => import('./components/common/CustomerInfoPages').then(module => ({ default: module.FeedbackPage })));
+const TermsPage = lazy(() => import('./components/common/CustomerInfoPages').then(module => ({ default: module.TermsPage })));
+const PrivacyPage = lazy(() => import('./components/common/CustomerInfoPages').then(module => ({ default: module.PrivacyPage })));
+const DeliveryReturnsPage = lazy(() => import('./components/common/CustomerInfoPages').then(module => ({ default: module.DeliveryReturnsPage })));
 const FullCartPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.FullCartPage })));
 const MultiStepCheckoutPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.MultiStepCheckoutPage })));
 const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.OrderConfirmationPage })));
@@ -137,7 +141,12 @@ function AppLayout() {
 
                 <Route path="/about" element={pageVisibility.about ? <AboutPage /> : renderUnavailable('About page is currently offline')} />
                 <Route path="/support" element={pageVisibility.support ? <SupportPage /> : renderUnavailable('Support page is currently offline')} />
+                <Route path="/faq" element={pageVisibility.support ? <SupportPage /> : renderUnavailable('FAQ page is currently offline')} />
                 <Route path="/contact" element={pageVisibility.contact ? <ContactPage /> : renderUnavailable('Contact page is currently offline')} />
+                <Route path="/feedback" element={<FeedbackPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/delivery-returns" element={<DeliveryReturnsPage />} />
                 <Route path="/offers" element={pageVisibility.offers ? <ShopCatalogPage /> : renderUnavailable('Offers are currently closed')} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
