@@ -14,7 +14,6 @@ import {
   Tag,
   Star,
   MessageCircle,
-  CreditCard,
   Lock,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -266,7 +265,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const { storeSettings, addOrder: addStoreOrder } = useStore();
   const { showAlert } = useAlert();
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -415,17 +414,14 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <span className={step >= 1 ? 'text-[#ff7a00] font-bold' : ''}>Delivery</span>
             <ChevronRight className="h-3 w-3" />
             <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Confirm</span>
-            <ChevronRight className="h-3 w-3" />
-            <span className={step >= 3 ? 'text-[#ff7a00] font-bold' : ''}>Payment</span>
           </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:flex">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
             {[
               { num: 1, label: 'Delivery Details', icon: MapPin },
               { num: 2, label: 'Confirm Details', icon: CheckCircle2 },
-              { num: 3, label: 'Payment', icon: CreditCard },
               ].map(({ num, label, icon: Icon }) => (
-              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2 | 3) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
+              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black ${step === num ? 'bg-white/20' : num < step ? 'bg-white/25' : 'bg-[#ebdfe5]'}`}>{num}</span>
                 <Icon className="h-3.5 w-3.5" />
                 <span className="hidden sm:block">{label}</span>
@@ -621,76 +617,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   </div>
                   <div className="flex gap-3">
                     <button type="button" onClick={() => setStep(1)} className="px-5 h-12 rounded-xl border-2 border-[var(--border-color)] text-xs font-black text-[var(--text-primary)] hover:border-[#FF6B00] transition">Back</button>
-                    <button type="button" onClick={() => setStep(3)} className="flex-1 h-12 rounded-xl bg-[#FF6B00] text-sm font-black text-white transition hover:bg-[#E55A00]">Confirm and continue to payment</button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Paystack payment */}
-            {step === 3 && (
-              <div>
-                <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-4 flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-[#FF6B00]" />
-                  <div>
-                    <h2 className="text-sm font-black text-[var(--text-primary)]">Complete payment</h2>
-                    <p className="text-xs text-[var(--text-muted)]">Pay securely with card, Mobile Money, or bank transfer.</p>
-                  </div>
-                </div>
-
-                <div className="p-5 space-y-5">
-                  {/* Delivery Summary */}
-                  <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-wide">Delivering to</p>
-                      <button onClick={() => setStep(1)} className="text-xs font-bold text-[#FF6B00] hover:text-[#E55A00]">Edit</button>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold text-[var(--text-primary)]">{fullName}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{deliveryMethod === 'store-pickup' ? `Pickup at ${storeSettings.storeAddress}` : `${area}, ${city}`}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{phone}</p>
-                    </div>
-                  </div>
-
-                  {/* Paystack payment block */}
-                  <div className="rounded-2xl border-2 border-[#FF6B00]/30 bg-[#FF6B00]/5 p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-[#FF6B00] rounded-xl flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-[var(--text-primary)]">Paystack secure checkout</p>
-                        <p className="text-xs text-[var(--text-muted)]">Card, Mobile Money &amp; bank transfer</p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 mb-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-[var(--text-muted)]">Amount to pay</span>
-                        <span className="text-2xl font-black text-[#FF6B00]">GHS {orderTotal.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setStep(2)}
-                        className="px-5 h-12 rounded-xl border-2 border-[var(--border-color)] text-xs font-black text-[var(--text-primary)] hover:border-[#FF6B00] transition"
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={() => void startPaystackCheckout()}
-                        disabled={isProcessing}
-                        className="flex-1 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/25"
-                      >
-                        {isProcessing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Processing...</> : <><Lock className="h-4 w-4" /> Pay securely</>}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-[var(--text-subtle)] justify-center">
-                    <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span>Your payment is encrypted and secured by Paystack. We never store card details.</span>
+                    <button type="button" disabled={isProcessing} onClick={() => void startPaystackCheckout()} className="flex-1 h-12 rounded-xl bg-[#FF6B00] text-sm font-black text-white transition hover:bg-[#E55A00] disabled:opacity-70">{isProcessing ? 'Opening payment…' : 'Confirm and pay securely'}</button>
                   </div>
                 </div>
               </div>
