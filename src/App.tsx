@@ -38,7 +38,7 @@ const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCh
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 function AppLayout() {
-  const { storeSettings } = useStore();
+  const { storeSettings, adminSession } = useStore();
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
 
@@ -72,7 +72,10 @@ function AppLayout() {
   );
 
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const adminPageTitle = `${storeSettings.storeName} Admin Portal`;
+  const activeAdminName = adminSession.isLoggedIn
+    ? adminSession.adminName.trim() || 'Administrator'
+    : 'Admin sign in';
+  const adminPageTitle = `${activeAdminName} | Admin Portal`;
 
   // The admin area renders outside the storefront SEO component. Set the browser
   // title directly as well so the tab never falls back to the URL while loading.
