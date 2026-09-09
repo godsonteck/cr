@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, MessageCircle, ShieldCheck, Star, ThumbsUp } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
@@ -40,24 +40,42 @@ export const FeedbackPage: React.FC = () => {
   const [stats, setStats] = useState({ averageRating: 0, totalReviews: 0 });
   const [loading, setLoading] = useState(true);
 
+  const loadReviews = useCallback(async (isActive: () => boolean = () => true) => {
+    try {
+      const response = await api.get<{ reviews: typeof reviews; stats: typeof stats }>('/reviews?public=true');
+      if (isActive()) {
+        setReviews(response.reviews || []);
+        setStats(response.stats || { averageRating: 0, totalReviews: 0 });
+      }
+    } catch {
+      if (isActive()) setReviews([]);
+    } finally {
+      if (isActive()) setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-    const loadReviews = async () => {
-      try {
-        const response = await api.get<{ reviews: typeof reviews; stats: typeof stats }>('/reviews?public=true');
-        if (active) {
-          setReviews(response.reviews || []);
-          setStats(response.stats || { averageRating: 0, totalReviews: 0 });
-        }
-      } catch {
-        if (active) setReviews([]);
-      } finally {
-        if (active) setLoading(false);
-      }
+    void loadReviews(() => active);
+
+    const refreshTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void loadReviews(() => active);
+    }, 15000);
+
+    let reviewChannel: BroadcastChannel | null = null;
+    try {
+      reviewChannel = new BroadcastChannel('cr_reviews_channel');
+      reviewChannel.onmessage = () => void loadReviews(() => active);
+    } catch {
+      reviewChannel = null;
+    }
+
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+      reviewChannel?.close();
     };
-    void loadReviews();
-    return () => { active = false; };
-  }, []);
+  }, [loadReviews]);
 
   return (
     <PageShell
