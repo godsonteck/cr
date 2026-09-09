@@ -266,7 +266,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const { storeSettings, addOrder: addStoreOrder } = useStore();
   const { showAlert } = useAlert();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -355,6 +355,10 @@ export const MultiStepCheckoutPage: React.FC = () => {
   }
 
   const configuredDeliveryFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
+  const baseDeliveryFee = deliveryMethod === 'store-pickup' ? 0 : configuredDeliveryFee ?? storeSettings.standardShippingFee ?? 0;
+  const isFreeDelivery = subtotal >= (storeSettings.freeDeliveryThreshold || 300);
+  const deliveryFee = isFreeDelivery ? 0 : baseDeliveryFee;
+  const orderTotal = Math.max(0, subtotal - discount + deliveryFee);
 
   const startPaystackCheckout = async () => {
     if (!fullName || !phone || (deliveryMethod !== 'store-pickup' && !area)) {
@@ -367,15 +371,11 @@ export const MultiStepCheckoutPage: React.FC = () => {
     try {
       const customerToken = localStorage.getItem('auth_token');
       if (!customerToken) throw new ApiError(401, 'Authentication required');
-      const rawLocationFee = storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee;
-      const baseDeliveryFee = deliveryMethod === 'store-pickup' ? 0 : rawLocationFee ?? storeSettings.standardShippingFee ?? 0;
-      const isFreeDelivery = subtotal >= (storeSettings.freeDeliveryThreshold || 300);
-      const deliveryFee = isFreeDelivery ? 0 : baseDeliveryFee;
       const orderPayload: Order = {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
         items: [...cartItems], subtotal, shippingFee: deliveryFee, discount,
-        total: Math.max(0, subtotal - discount + deliveryFee),
+        total: orderTotal,
         paymentMethod: 'paystack', paymentStatus: 'pending', paymentReference: '',
         deliveryMethod,
         shippingAddress: { fullName, phone, email: email || undefined, city: deliveryMethod === 'store-pickup' ? 'Accra' : city, region, area: deliveryMethod === 'store-pickup' ? 'Store pickup' : area, deliveryNotes: deliveryNotes || undefined },
@@ -414,15 +414,18 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <ChevronRight className="h-3 w-3" />
             <span className={step >= 1 ? 'text-[#ff7a00] font-bold' : ''}>Delivery</span>
             <ChevronRight className="h-3 w-3" />
-            <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Order</span>
+            <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Confirm</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className={step >= 3 ? 'text-[#ff7a00] font-bold' : ''}>Payment</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <div className="grid grid-cols-3 gap-2 sm:flex">
             {[
               { num: 1, label: 'Delivery Details', icon: MapPin },
-              { num: 2, label: 'Order', icon: MessageCircle },
+              { num: 2, label: 'Confirm Details', icon: CheckCircle2 },
+              { num: 3, label: 'Payment', icon: CreditCard },
               ].map(({ num, label, icon: Icon }) => (
-              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
+              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2 | 3) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black ${step === num ? 'bg-white/20' : num < step ? 'bg-white/25' : 'bg-[#ebdfe5]'}`}>{num}</span>
                 <Icon className="h-3.5 w-3.5" />
                 <span className="hidden sm:block">{label}</span>
@@ -583,14 +586,49 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     onClick={() => setStep(2)}
                     className="w-full sm:w-auto px-8 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/20"
                   >
-                    Continue to Order <ArrowRight className="h-4 w-4" />
+                    Review details <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Paystack payment */}
+            {/* Step 2: confirmation */}
             {step === 2 && (
+              <div>
+                <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-4 flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-[#FF6B00]" />
+                  <div>
+                    <h2 className="text-sm font-black text-[var(--text-primary)]">Confirm your details</h2>
+                    <p className="text-xs text-[var(--text-muted)]">Please check your delivery information and order once before payment.</p>
+                  </div>
+                </div>
+                <div className="p-5 space-y-5">
+                  <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-black uppercase tracking-wide text-[var(--text-primary)]">Delivery details</p>
+                      <button type="button" onClick={() => setStep(1)} className="text-xs font-bold text-[#FF6B00] hover:text-[#E55A00]">Edit</button>
+                    </div>
+                    <div className="mt-3 space-y-1 text-xs text-[var(--text-muted)]">
+                      <p className="text-sm font-bold text-[var(--text-primary)]">{fullName}</p>
+                      <p>{phone}{email ? ` · ${email}` : ''}</p>
+                      <p>{deliveryMethod === 'store-pickup' ? `Store pickup · ${storeSettings.storeAddress}` : `${area}, ${city}, ${region}`}</p>
+                      {deliveryNotes && <p>Instructions: {deliveryNotes}</p>}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border-color)] bg-white p-4">
+                    <div className="flex items-center justify-between text-sm font-black text-[var(--text-primary)]"><span>Order total</span><span className="text-[#FF6B00]">GHS {orderTotal.toFixed(2)}</span></div>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">{cartItems.length} item{cartItems.length === 1 ? '' : 's'} · Delivery: {deliveryFee === 0 ? 'Free' : `GHS ${deliveryFee.toFixed(2)}`}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => setStep(1)} className="px-5 h-12 rounded-xl border-2 border-[var(--border-color)] text-xs font-black text-[var(--text-primary)] hover:border-[#FF6B00] transition">Back</button>
+                    <button type="button" onClick={() => setStep(3)} className="flex-1 h-12 rounded-xl bg-[#FF6B00] text-sm font-black text-white transition hover:bg-[#E55A00]">Confirm and continue to payment</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Paystack payment */}
+            {step === 3 && (
               <div>
                 <div className="bg-[var(--bg-soft)] border-b border-[var(--border-color)] px-5 py-4 flex items-center gap-3">
                   <CreditCard className="h-5 w-5 text-[#FF6B00]" />
@@ -629,13 +667,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
                     <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 mb-4">
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-[var(--text-muted)]">Amount to pay</span>
-                        <span className="text-2xl font-black text-[#FF6B00]">GHS {Math.max(0, subtotal - discount + (deliveryMethod === 'store-pickup' ? 0 : storeSettings.deliveryPrices?.find(price => price.region === region && price.town === city)?.fee ?? storeSettings.standardShippingFee)).toFixed(2)}</span>
+                        <span className="text-2xl font-black text-[#FF6B00]">GHS {orderTotal.toFixed(2)}</span>
                       </div>
                     </div>
 
                     <div className="flex gap-3">
                       <button
-                        onClick={() => setStep(1)}
+                        onClick={() => setStep(2)}
                         className="px-5 h-12 rounded-xl border-2 border-[var(--border-color)] text-xs font-black text-[var(--text-primary)] hover:border-[#FF6B00] transition"
                       >
                         Back
@@ -690,7 +728,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-xs text-[var(--text-muted)]">
                   <span>Delivery</span>
-                  <span className="text-[#FF6B00] font-bold">{deliveryMethod === 'store-pickup' ? 'Free' : configuredDeliveryFee == null ? 'Confirm on WhatsApp' : `GHS ${configuredDeliveryFee.toFixed(2)}`}</span>
+                  <span className="text-[#FF6B00] font-bold">{deliveryFee === 0 ? 'Free' : `GHS ${deliveryFee.toFixed(2)}`}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-xs text-emerald-600">
@@ -699,8 +737,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   </div>
                 )}
                 <div className="flex justify-between items-center border-t border-[#ebdfe5] pt-3">
-                  <span className="text-sm font-black text-[var(--text-primary)]">Items total</span>
-                  <span className="text-xl font-black text-[#ff7a00]">GHS {Math.max(0, subtotal - discount).toFixed(2)}</span>
+                  <span className="text-sm font-black text-[var(--text-primary)]">Total</span>
+                  <span className="text-xl font-black text-[#ff7a00]">GHS {orderTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>

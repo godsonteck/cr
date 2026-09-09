@@ -47,7 +47,7 @@ interface StoreContextType {
   loadingOrders: boolean;
   fetchOrders: (params?: { userId?: string; status?: Order['status'] }) => Promise<void>;
   addOrder: (order: Order) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string, adminNote?: string) => Promise<void>;
   updatePaymentStatus: (orderId: string, paymentStatus: 'paid' | 'pending') => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   clearAllOrders: () => Promise<void>;
@@ -859,7 +859,7 @@ const addOrder = async (order: Order) => {
     });
   };
 
-  const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string) => {
+  const updateOrderStatus = async (orderId: string, status: Order['status'], riderInfo?: Partial<RiderTrackingInfo>, estimatedDeliveryTime?: string, adminNote?: string) => {
     const previousOrder = orders.find(order => order.id === orderId);
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
@@ -874,7 +874,8 @@ const addOrder = async (order: Order) => {
     }));
 
     try {
-      await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { status, riderInfo, estimatedDeliveryTime });
+      const updatedOrder = await api.patch<Order>(`/orders?id=${encodeURIComponent(orderId)}`, { status, riderInfo, estimatedDeliveryTime, adminNote: adminNote?.trim() || undefined });
+      setOrders(prev => prev.map(order => order.id === orderId ? updatedOrder : order));
     } catch (e: any) {
       if (previousOrder) setOrders(prev => prev.map(order => order.id === orderId ? previousOrder : order));
       setError(e.message || "Operation failed");

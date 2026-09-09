@@ -60,6 +60,7 @@ const orderCreateSchema = z.object({
 
 const orderUpdateSchema = z.object({
   status: z.enum(['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered']).optional(),
+  adminNote: z.string().trim().max(1000).optional(),
   estimatedDeliveryTime: z.string().max(100).optional().nullable(),
   paymentStatus: z.enum(['paid', 'pending']).optional(),
   riderInfo: z.object({
@@ -397,12 +398,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? { ...((existingOrder.riderInfo as Record<string, any>) || {}), ...(parsed.data.riderInfo || {}) }
         : existingOrder.riderInfo;
 
+      const { adminNote, ...orderChanges } = parsed.data;
       const updateData: any = {
-        ...parsed.data,
+        ...orderChanges,
         updatedAt: new Date(),
       };
       if (parsed.data.riderInfo !== undefined) {
         updateData.riderInfo = mergedRiderInfo;
+      }
+      const statusChanged = Boolean(parsed.data.status && parsed.data.status !== existingOrder.status);
+      if (parsed.data.status && (statusChanged || adminNote)) {
+        updateData.adminNotes = [
+          ...((existingOrder.adminNotes as Array<Record<string, string>>) || []),
+          {
+            note: adminNote || '',
+            status: parsed.data.status,
+            createdAt: new Date().toISOString(),
+            adminName: auth.adminName || auth.name || undefined,
+          },
+        ];
       }
 
       const [updated] = await db

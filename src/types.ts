@@ -295,6 +295,12 @@ export interface Order {
   paymentReference?: string;
   paymentSenderPhone?: string;
   riderInfo?: RiderTrackingInfo;
+  adminNotes?: Array<{
+    note: string;
+    status: OrderStatus;
+    createdAt: string;
+    adminName?: string;
+  }>;
 }
 
 export interface SkinProfile {

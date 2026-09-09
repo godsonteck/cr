@@ -197,6 +197,12 @@ export const orders = pgTable('orders', {
     estimatedArrival?: string;
     stageIndex?: number;
   }>(),
+  adminNotes: jsonb('admin_notes').$type<Array<{
+    note: string;
+    status: string;
+    createdAt: string;
+    adminName?: string;
+  }>>().notNull().default([]),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({

@@ -108,6 +108,7 @@ async function runMigration() {
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_reference" varchar(100)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_sender_phone" varchar(50)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "order_source" varchar(20) NOT NULL DEFAULT 'website'`,
+    `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "admin_notes" jsonb NOT NULL DEFAULT '[]'::jsonb`,
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profile_image" text`,
   ];
 

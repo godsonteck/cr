@@ -14,6 +14,7 @@ import {
   Send,
   AlertCircle,
   PackageCheck,
+  FileText,
   Trash2,
   Printer
 } from 'lucide-react';
@@ -24,7 +25,7 @@ interface OrderDetailDrawerProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any, estimatedDeliveryTime?: string) => void;
+  onUpdateStatus: (orderId: string, status: OrderStatus, riderInfo?: any, estimatedDeliveryTime?: string, adminNote?: string) => Promise<void>;
   onUpdatePayment: (orderId: string, paymentStatus: 'paid' | 'pending') => void;
   onDeleteOrder?: (orderId: string) => void;
   onPrintReceipt?: (order: Order) => void;
@@ -47,12 +48,14 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   const [isSavingRider, setIsSavingRider] = useState(false);
   const [riderSavedNotice, setRiderSavedNotice] = useState(false);
   const [isMovingStep, setIsMovingStep] = useState(false);
+  const [statusNote, setStatusNote] = useState('');
 
   React.useEffect(() => {
     setRiderName(order?.riderInfo?.riderName || '');
     setRiderPhone(order?.riderInfo?.riderPhone || '');
     setRiderLocation(order?.riderInfo?.riderLocation || '');
     setEstimatedDeliveryTime(order?.estimatedDeliveryTime || '');
+    setStatusNote('');
   }, [order]);
 
   if (!isOpen || !order) return null;
@@ -69,6 +72,16 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
   ];
 
   const currentStageIdx = stages.findIndex(s => s.label === order.status);
+
+  const updateStatus = async (status: OrderStatus) => {
+    setIsMovingStep(true);
+    try {
+      await onUpdateStatus(order.id, status, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime, statusNote);
+      setStatusNote('');
+    } finally {
+      setIsMovingStep(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/50 backdrop-blur-xs flex justify-end font-sans animate-fadeIn">
@@ -143,7 +156,8 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                   <button
                     key={stage.label}
                     type="button"
-                    onClick={() => onUpdateStatus(order.id, stage.label, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime)}
+                    disabled={isMovingStep}
+                    onClick={() => void updateStatus(stage.label)}
                     className={`flex-1 min-w-[90px] p-2 rounded-xl text-center border transition-all cursor-pointer ${
                       isCurrent 
                         ? 'border-stone-900 bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' 
@@ -156,6 +170,21 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                   </button>
                 );
               })}
+            </div>
+            <div>
+              <label htmlFor="order-status-note" className="flex items-center gap-1.5 text-[11px] font-semibold text-stone-600">
+                <FileText className="h-3.5 w-3.5" /> Internal note for this status update (optional)
+              </label>
+              <textarea
+                id="order-status-note"
+                value={statusNote}
+                onChange={event => setStatusNote(event.target.value)}
+                maxLength={1000}
+                rows={2}
+                placeholder="e.g. Packaging checked; customer requested a call before delivery."
+                className="mt-1.5 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
+              />
+              <p className="mt-1 text-[10px] text-stone-500">Visible to admins only; it is saved when you move the order to a status.</p>
             </div>
           </div>
 
@@ -347,6 +376,21 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
             </div>
           </div>
 
+          {order.adminNotes && order.adminNotes.length > 0 && (
+            <section className="rounded-2xl border border-stone-200 bg-white p-4">
+              <h4 className="flex items-center gap-1.5 text-xs font-bold text-stone-900"><FileText className="h-4 w-4 text-[#C89B3C]" /> Delivery activity</h4>
+              <div className="mt-3 space-y-3">
+                {[...order.adminNotes].reverse().map((entry, index) => (
+                  <div key={`${entry.createdAt}-${index}`} className="border-l-2 border-stone-200 pl-3">
+                    <p className="text-xs font-semibold text-stone-800">Moved to {entry.status}</p>
+                    {entry.note && <p className="mt-1 text-xs text-stone-700">{entry.note}</p>}
+                    <p className="mt-1 text-[10px] text-stone-500">{new Date(entry.createdAt).toLocaleString()}{entry.adminName ? ` · ${entry.adminName}` : ''}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Payment Status & Method */}
           <div className="p-4 rounded-2xl border border-stone-200 bg-white flex items-center justify-between">
             <div className="space-y-0.5">
@@ -393,11 +437,10 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                   };
                   const next = nextStageMap[order.status];
                   if (!next) return;
-                  setIsMovingStep(true);
                   try {
-                    await onUpdateStatus(order.id, next, { riderName, riderPhone, riderLocation }, estimatedDeliveryTime);
-                  } finally {
-                    setIsMovingStep(false);
+                    await updateStatus(next);
+                  } catch {
+                    // The store context exposes the failed update to the admin portal.
                   }
                 }}
                 className="px-4 py-2 bg-[#1E1719] hover:bg-[#33282C] disabled:opacity-60 text-[#FAF6F0] rounded-xl font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
