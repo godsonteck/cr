@@ -414,7 +414,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
 
   return (
     <div className="checkout-page min-h-screen bg-[#f5f1ee]">
-      <div className="max-w-6xl mx-auto px-3 py-5 sm:px-4 sm:py-6">
+      <div className="max-w-6xl mx-auto px-3 py-5 pb-24 sm:px-4 sm:py-6 sm:pb-8">
         <div className="checkout-header mb-5 rounded-[24px] border border-[#ebdfe5] bg-[#fffdfb] px-4 py-4 shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
           <div className="flex items-center gap-2 text-xs text-[var(--text-subtle)] mb-3">
             <Link to="/cart" className="hover:text-[#ff7a00] transition flex items-center gap-1"><ShoppingCart className="h-3 w-3" /> Cart</Link>
@@ -429,7 +429,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
               { num: 1, label: 'Delivery Details', icon: MapPin },
               { num: 2, label: 'Confirm Details', icon: CheckCircle2 },
               ].map(({ num, label, icon: Icon }) => (
-              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed'}`}>
+              <button key={num} onClick={() => num < step ? setStep(num as 1 | 2) : undefined} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-xs font-bold transition sm:gap-2.5 sm:px-4 sm:text-sm ${step === num ? 'bg-[#111111] text-white shadow-lg shadow-black/10' : num < step ? 'bg-[#dff7ea] text-[#1e7a49] cursor-pointer' : 'bg-[#f5eef1] text-[var(--text-muted)] cursor-not-allowed dark:bg-[var(--bg-soft)] dark:text-[var(--text-subtle)]'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black ${step === num ? 'bg-white/20' : num < step ? 'bg-white/25' : 'bg-[#ebdfe5]'}`}>{num}</span>
                 <Icon className="h-3.5 w-3.5" />
                 <span className="hidden sm:block">{label}</span>
