@@ -280,6 +280,11 @@ export const MultiStepCheckoutPage: React.FC = () => {
   const hasHandledReturn = useRef(false);
 
   useEffect(() => {
+    if (user && !fullName && !phone) {
+      setFullName(user.fullName || '');
+      setPhone(user.phone || '');
+      setEmail(user.email || '');
+    }
     if (user?.savedAddresses && user.savedAddresses.length > 0 && !area) {
       const defaultAddr = user.savedAddresses.find(a => a.isDefault) || user.savedAddresses[0];
       if (defaultAddr) {
@@ -476,7 +481,17 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   {deliveryMethod === 'store-pickup' && (
                     <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-4">
                       <p className="text-xs font-bold text-[var(--text-primary)]">Pickup details</p>
-                      <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Bring your order number and phone used at checkout. Pickup is free.</p>
+                      <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Pickup is free. Enter the name and phone number the collector will use to identify this order.</p>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Pickup name <span className="text-red-500">*</span></label>
+                          <input type="text" required value={fullName} onChange={event => setFullName(event.target.value)} className={inputCls} placeholder="Name for pickup" />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Pickup phone <span className="text-red-500">*</span></label>
+                          <input type="tel" required value={phone} onChange={event => setPhone(event.target.value)} className={inputCls} placeholder="Phone used at pickup" />
+                        </div>
+                      </div>
                     </div>
                   )}
 
