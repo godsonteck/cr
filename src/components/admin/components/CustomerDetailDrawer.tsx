@@ -19,9 +19,10 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   onSaveCustomerNotes,
 }) => {
   const { storeSettings } = useStore();
+  const [notes, setNotes] = useState(customer?.notes || '');
+
   if (!isOpen || !customer) return null;
 
-  const [notes, setNotes] = useState(customer.notes || '');
   const customerOrders = orders.filter(
     o =>
       o.shippingAddress.fullName.toLowerCase() === customer.fullName.toLowerCase() ||
