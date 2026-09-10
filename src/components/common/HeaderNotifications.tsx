@@ -60,6 +60,10 @@ export const HeaderNotifications: React.FC = () => {
     requestBrowserPermission,
   } = useNotifications();
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (!isAuthenticated) {
     return (
       <button
@@ -73,10 +77,6 @@ export const HeaderNotifications: React.FC = () => {
       </button>
     );
   }
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {

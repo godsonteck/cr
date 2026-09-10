@@ -15,12 +15,12 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
   product,
   onSaveAdjustment,
 }) => {
-  if (!isOpen || !product) return null;
-
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'subtract' | 'set'>('add');
   const [quantityInput, setQuantityInput] = useState<number>(10);
   const [reason, setReason] = useState<InventoryMovement['reason']>('Stock received');
   const [notes, setNotes] = useState('');
+
+  if (!isOpen || !product) return null;
 
   const currentStock = product.stockCount || 0;
 
