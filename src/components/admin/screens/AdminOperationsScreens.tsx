@@ -347,11 +347,14 @@ export function AdminCustomersScreen() {
       }
     });
 
-    // 2. Try fetching registered users from API
+    // 2. Try fetching registered users from API (skip silently if session is missing/expired)
     try {
       const adminToken = localStorage.getItem('admin_auth_token');
       if (!adminToken) {
-        throw new Error('Admin session is missing. Please sign in again.');
+        // Token missing or expired — guest customer data from orders is still shown
+        setCustomers(Array.from(customerMap.values()).sort((a, b) => b.totalSpent - a.totalSpent));
+        setLoading(false);
+        return;
       }
       const apiUsers = await api.get<any[]>('/users?admin=true', adminToken);
       if (Array.isArray(apiUsers)) {
