@@ -336,6 +336,11 @@ export const MultiStepCheckoutPage: React.FC = () => {
         navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
       } catch (error) {
         console.error('Paystack return error:', error);
+        if (error instanceof ApiError && error.status === 401) {
+          hasHandledReturn.current = false;
+          showAlert('Your session expired after payment. Please sign in again and we will finish your order.', 'error', { persistent: true });
+          return;
+        }
         const message = error instanceof ApiError ? error.message : 'Payment was returned, but it could not be verified. Please contact support.';
         showAlert(message, 'error', { persistent: true });
       } finally {

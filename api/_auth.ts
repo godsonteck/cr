@@ -21,7 +21,7 @@ export type AuthSession = {
   exp?: number;
 };
 
-export function signToken(payload: Record<string, unknown>, expiresIn: SignOptions['expiresIn'] = '24h') {
+export function signToken(payload: Record<string, unknown>, expiresIn: SignOptions['expiresIn'] = '7d') {
   if (!jwtSecret) {
     throw new Error('JWT_SECRET is missing');
   }
