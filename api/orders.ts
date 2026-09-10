@@ -12,25 +12,25 @@ const orderCreateSchema = z.object({
   items: z.array(z.object({
     product: z.object({
       id: z.string(),
-      name: z.string(),
-      brand: z.string(),
-      price: z.number(),
-      originalPrice: z.number().nullable().optional(),
-      image: z.string(),
-      unit: z.string(),
-      category: z.string(),
-      inStock: z.boolean(),
-      stockCount: z.number(),
+      name: z.string().nullable().optional(),
+      brand: z.string().nullable().optional(),
+      price: z.coerce.number().nullable().optional(),
+      originalPrice: z.coerce.number().nullable().optional(),
+      image: z.string().nullable().optional(),
+      unit: z.string().nullable().optional(),
+      category: z.string().nullable().optional(),
+      inStock: z.boolean().nullable().optional(),
+      stockCount: z.coerce.number().nullable().optional(),
     }),
     quantity: z.number().int().positive(),
     selectedOption: z.string().optional(),
     selectedVariant: z.object({
       id: z.string(),
-      name: z.string(),
-      price: z.number(),
-      originalPrice: z.number().nullable().optional(),
-      inStock: z.boolean(),
-    }).optional(),
+      name: z.string().nullable().optional(),
+      price: z.coerce.number().nullable().optional(),
+      originalPrice: z.coerce.number().nullable().optional(),
+      inStock: z.boolean().nullable().optional(),
+    }).nullable().optional(),
   })).min(1),
   subtotal: z.number().positive(),
   shippingFee: z.number().min(0),
@@ -79,6 +79,10 @@ function generateOrderNumber(): string {
   const day = date.getDate().toString().padStart(2, '0');
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `CR-${year}${month}${day}-${random}`;
+}
+
+function describeValidationError(error: z.ZodError) {
+  return error.issues.map(issue => `${issue.path.join('.') || 'order'}: ${issue.message}`).join('; ');
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -150,7 +154,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const parsed = orderCreateSchema.safeParse(body);
       if (!parsed.success) {
-        return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
+        const validationMessage = describeValidationError(parsed.error);
+        console.warn('Invalid order data:', validationMessage);
+        return res.status(400).json({ error: `Invalid order data: ${validationMessage}`, details: parsed.error.flatten() });
       }
       if (isWhatsAppOrder && parsed.data.paymentMethod !== 'cash-on-delivery') {
         return res.status(400).json({ error: 'WhatsApp orders must be confirmed with the store before payment.' });
@@ -398,7 +404,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const parsed = orderUpdateSchema.safeParse(body);
       if (!parsed.success) {
-        return res.status(400).json({ error: 'Invalid order data', details: parsed.error.flatten() });
+        const validationMessage = describeValidationError(parsed.error);
+        console.warn('Invalid order data:', validationMessage);
+        return res.status(400).json({ error: `Invalid order data: ${validationMessage}`, details: parsed.error.flatten() });
       }
 
       const [existingOrder] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
