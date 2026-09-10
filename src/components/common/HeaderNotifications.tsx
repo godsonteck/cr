@@ -64,20 +64,6 @@ export const HeaderNotifications: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  if (!isAuthenticated) {
-    return (
-      <button
-        type="button"
-        onClick={() => navigate('/signin')}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
-        aria-label="Sign in to view notifications"
-        title="Sign in to view notifications"
-      >
-        <Bell className="h-4 w-4" />
-      </button>
-    );
-  }
-
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -106,6 +92,20 @@ export const HeaderNotifications: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
+
+  if (!isAuthenticated) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate('/signin')}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        aria-label="Sign in to view notifications"
+        title="Sign in to view notifications"
+      >
+        <Bell className="h-4 w-4" />
+      </button>
+    );
+  }
 
   const handleNotificationClick = (notification: AppNotification) => {
     if (!notification.read) {
