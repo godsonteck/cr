@@ -69,6 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
 
+        // Older production databases may not have this optional admin field yet.
+        await ensureAdminNotesColumn();
+
         // Fetch all registered customers with aggregate order stats
         const allUsers = await db.select({
           id: users.id,
