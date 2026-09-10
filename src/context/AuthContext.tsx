@@ -77,6 +77,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, [fetchUser]);
 
+  useEffect(() => {
+    const handleExpiredSession = (event: Event) => {
+      const tokenKey = (event as CustomEvent<{ tokenKey?: string }>).detail?.tokenKey;
+      if (tokenKey !== 'auth_token') return;
+      setUser(null);
+    };
+
+    window.addEventListener('cr-auth-expired', handleExpiredSession);
+    return () => window.removeEventListener('cr-auth-expired', handleExpiredSession);
+  }, []);
+
   const login = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
     try {

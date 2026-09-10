@@ -80,7 +80,11 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
 
     return payload;
   } catch (error) {
-    console.error('Token validation failed:', error);
+    if (error instanceof jwt.TokenExpiredError) {
+      console.warn('Expired authentication token rejected');
+    } else {
+      console.error('Token validation failed:', error);
+    }
     res.status(401).json({ error: 'Invalid or expired session' });
     return null;
   }
