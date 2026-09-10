@@ -141,6 +141,31 @@ export const brands = pgTable('brands', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  fullName: varchar('full_name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 50 }).notNull(),
+  profileImage: text('profile_image'),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  savedAddresses: jsonb('saved_addresses').$type<Array<{
+    fullName: string;
+    phone: string;
+    email?: string;
+    city: string;
+    area: string;
+    landmarkOrGps?: string;
+  }>>().default([]),
+  savedItemIds: jsonb('saved_item_ids').$type<string[]>().default([]),
+  isActive: boolean('is_active').notNull().default(true),
+  /** Admin-written notes about this customer. Auto-migrated on first use. */
+  adminNotes: text('admin_notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  emailIdx: uniqueIndex('users_email_idx').on(table.email),
+}));
+
 export const orders = pgTable('orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   orderNumber: varchar('order_number', { length: 50 }).notNull().unique(),
@@ -210,29 +235,6 @@ export const orders = pgTable('orders', {
   statusIdx: index('orders_status_idx').on(table.status),
   createdAtIdx: index('orders_created_at_idx').on(table.createdAt),
   orderNumberIdx: uniqueIndex('orders_order_number_idx').on(table.orderNumber),
-}));
-
-export const users = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  fullName: varchar('full_name', { length: 100 }).notNull(),
-  phone: varchar('phone', { length: 50 }).notNull(),
-  profileImage: text('profile_image'),
-  passwordHash: varchar('password_hash', { length: 255 }),
-  savedAddresses: jsonb('saved_addresses').$type<Array<{
-    fullName: string;
-    phone: string;
-    email?: string;
-    city: string;
-    area: string;
-    landmarkOrGps?: string;
-  }>>().default([]),
-  savedItemIds: jsonb('saved_item_ids').$type<string[]>().default([]),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-  emailIdx: uniqueIndex('users_email_idx').on(table.email),
 }));
 
 export const reviews = pgTable('reviews', {

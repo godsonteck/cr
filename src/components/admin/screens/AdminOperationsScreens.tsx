@@ -8,8 +8,10 @@ import {
   ExternalLink,
   Eye,
   Mail,
+  MapPin,
   Package,
   Plus,
+  Phone,
   Save,
   Settings2,
   ShieldCheck,
@@ -287,9 +289,588 @@ export function AdminInventoryScreen({ onAddProduct }: { onAddProduct?: () => vo
   );
 }
 
-// ─── Customers Screen (Resilient Multi-tier Data Provider) ───────────────────
+// ─── Customers Screen ─────────────────────────────────────────────────────────
+
+interface LiveCustomer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  profileImage?: string | null;
+  isActive: boolean;
+  adminNotes?: string | null;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderDate?: string;
+  segment: 'High Value' | 'Returning' | 'New';
+  savedAddresses?: Array<{ fullName: string; phone: string; city: string; area: string; landmarkOrGps?: string }>;
+  createdAt: string;
+}
+
+interface GuestCustomer {
+  key: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderDate: string;
+  addresses: Array<{ city: string; area: string }>;
+}
 
 export function AdminCustomersScreen() {
+  const store = useStore();
+  const { showAlert } = useAlert();
+  const [query, setQuery] = useState('');
+  const [customers, setCustomers] = useState<LiveCustomer[]>([]);
+  const [guestCustomers, setGuestCustomers] = useState<GuestCustomer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCustomer, setSelectedCustomer] = useState<LiveCustomer | null>(null);
+  const [selectedCustomerOrders, setSelectedCustomerOrders] = useState<Order[]>([]);
+  const [loadingCustomerOrders, setLoadingCustomerOrders] = useState(false);
+  const [savingNotes, setSavingNotes] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const fetchCustomers = useCallback(async () => {
+    setLoading(true);
+    const adminToken = localStorage.getItem('admin_auth_token');
+    if (!adminToken) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const data = await api.get<LiveCustomer[]>('/users?admin=true', adminToken);
+      if (Array.isArray(data)) {
+        setCustomers(data);
+      }
+    } catch (err: any) {
+      showAlert(err?.message || 'Could not load customers.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Build guest customer list — orders with no userId not matched to a registered user
+  const buildGuestCustomers = useCallback((registeredIds: Set<string>) => {
+    const guestMap = new Map<string, GuestCustomer>();
+    (store.orders || []).forEach(order => {
+      if (order.userId && registeredIds.has(order.userId)) return;
+      const email = order.shippingAddress?.email?.trim().toLowerCase() || '';
+      const phone = order.shippingAddress?.phone?.trim() || '';
+      const name = order.shippingAddress?.fullName?.trim() || 'Guest Customer';
+      const key = email || phone || name;
+      if (!key) return;
+      const total = Number(order.total) || 0;
+      const existing = guestMap.get(key);
+      if (!existing) {
+        guestMap.set(key, {
+          key,
+          fullName: name,
+          email: email || '',
+          phone: phone || '',
+          ordersCount: 1,
+          totalSpent: total,
+          lastOrderDate: order.createdAt,
+          addresses: order.shippingAddress ? [{ city: order.shippingAddress.city, area: order.shippingAddress.area }] : [],
+        });
+      } else {
+        existing.ordersCount += 1;
+        existing.totalSpent += total;
+        if (order.createdAt > existing.lastOrderDate) existing.lastOrderDate = order.createdAt;
+      }
+    });
+    setGuestCustomers(Array.from(guestMap.values()).sort((a, b) => b.totalSpent - a.totalSpent));
+  }, [store.orders]);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
+  useEffect(() => {
+    const ids = new Set(customers.map(c => c.id));
+    buildGuestCustomers(ids);
+  }, [customers, buildGuestCustomers]);
+
+  useEffect(() => {
+    if (!selectedCustomer) {
+      setSelectedCustomerOrders([]);
+      return;
+    }
+
+    const loadCustomerOrders = async () => {
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) return;
+      setLoadingCustomerOrders(true);
+      try {
+        const data = await api.get<{ orders: Order[] }>(`/orders?userId=${encodeURIComponent(selectedCustomer.id)}`, adminToken);
+        setSelectedCustomerOrders(Array.isArray(data.orders) ? data.orders : []);
+      } catch (err: any) {
+        setSelectedCustomerOrders([]);
+        showAlert(err?.message || 'Could not load this customer\'s order history.', 'error');
+      } finally {
+        setLoadingCustomerOrders(false);
+      }
+    };
+
+    void loadCustomerOrders();
+  }, [selectedCustomer, showAlert]);
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return customers.filter(c =>
+      c.fullName.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      (c.phone || '').includes(q)
+    );
+  }, [customers, query]);
+
+  const filteredGuests = useMemo(() => {
+    const q = query.toLowerCase();
+    if (!q) return guestCustomers;
+    return guestCustomers.filter(g =>
+      g.fullName.toLowerCase().includes(q) ||
+      g.email.toLowerCase().includes(q) ||
+      g.phone.includes(q)
+    );
+  }, [guestCustomers, query]);
+
+  const activeCount = customers.filter(c => c.isActive).length;
+  const repeatCount = customers.filter(c => c.ordersCount > 1).length;
+
+  const toggleStatus = async (customer: LiveCustomer) => {
+    const adminToken = localStorage.getItem('admin_auth_token');
+    if (!adminToken) { showAlert('Admin session expired. Please sign in again.', 'error'); return; }
+    setTogglingId(customer.id);
+    const nextActive = !customer.isActive;
+    // Optimistic update
+    setCustomers(prev => prev.map(c => c.id === customer.id ? { ...c, isActive: nextActive } : c));
+    try {
+      await api.patch(`/users/${customer.id}`, { isActive: nextActive }, adminToken);
+      showAlert(`${customer.fullName} is now ${nextActive ? 'active' : 'blocked'}.`, 'success');
+    } catch (err: any) {
+      // Revert on failure
+      setCustomers(prev => prev.map(c => c.id === customer.id ? { ...c, isActive: !nextActive } : c));
+      showAlert(err?.message || 'Could not update customer status.', 'error');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleSaveNotes = async (customerId: string, notes: string) => {
+    const adminToken = localStorage.getItem('admin_auth_token');
+    if (!adminToken) { showAlert('Admin session expired. Please sign in again.', 'error'); return; }
+    setSavingNotes(customerId);
+    try {
+      await api.patch(`/users/${customerId}`, { adminNotes: notes }, adminToken);
+      setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, adminNotes: notes } : c));
+      if (selectedCustomer?.id === customerId) setSelectedCustomer(prev => prev ? { ...prev, adminNotes: notes } : null);
+      showAlert('Notes saved to database.', 'success');
+    } catch (err: any) {
+      showAlert(err?.message || 'Could not save notes.', 'error');
+    } finally {
+      setSavingNotes(null);
+    }
+  };
+
+  const segmentBadge = (c: LiveCustomer) => {
+    const label = c.segment === 'High Value' ? 'Top Spender' : c.segment;
+    return (
+      <span className="rounded-full bg-[#F2E3D7]/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">
+        {label}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <ScreenHeader
+        eyebrow="Store"
+        title="Customers"
+        description="View customers and their order history."
+        action={
+          <button className={mutedButton} onClick={() => void fetchCustomers()}>
+            <ExternalLink className="h-4 w-4" />
+            Refresh
+          </button>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label="Total customers" value={customers.length} detail="Registered accounts" icon={Users} />
+        <Stat label="Active accounts" value={activeCount} detail="Currently allowed to shop" icon={ShieldCheck} />
+        <Stat label="Repeat buyers" value={repeatCount} detail="Customers with 2+ orders" icon={ShoppingBag} />
+      </div>
+
+      <input
+        className={inputClass}
+        placeholder="Search by name, email, or phone number..."
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+
+      {loading ? (
+        <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-10 text-center text-sm text-stone-500 dark:text-stone-400">
+          Loading customer records…
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* ── Registered Customers ── */}
+          <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+            <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
+              Registered accounts ({filtered.length})
+            </div>
+            <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
+              {filtered.map(customer => {
+                const phoneClean = String(customer.phone || '').replace(/[^0-9]/g, '');
+                const hasWhatsApp = phoneClean.length >= 7;
+                const waUrl = hasWhatsApp
+                  ? `https://wa.me/${phoneClean.startsWith('0') ? '233' + phoneClean.slice(1) : phoneClean}?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${store.storeSettings.storeName}.`)}`
+                  : '';
+
+                return (
+                  <div key={customer.id} className="grid gap-4 p-5 transition-colors hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 lg:grid-cols-[minmax(240px,1.4fr)_130px_110px_auto] lg:items-center">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#F2E3D7] font-bold text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">
+                        {customer.profileImage
+                          ? <img src={customer.profileImage} alt="" className="h-full w-full object-cover" />
+                          : customer.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
+                          {segmentBadge(customer)}
+                        </div>
+                        <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400">{customer.email || 'No email'}</p>
+                        <p className="mt-0.5 text-[11px] text-stone-400 dark:text-stone-600">
+                          Joined {new Date(customer.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="lg:text-right">
+                      <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{money(customer.totalSpent)}</p>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                        {customer.ordersCount} {customer.ordersCount === 1 ? 'order' : 'orders'}
+                      </p>
+                    </div>
+
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${customer.isActive
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
+                      : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400'
+                    }`}>
+                      {customer.isActive ? 'Active' : 'Blocked'}
+                    </span>
+
+                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                      <button className={mutedButton} onClick={() => setSelectedCustomer(customer)}>
+                        <Eye className="h-4 w-4" /> Details
+                      </button>
+                      {hasWhatsApp && (
+                        <a className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                          href={waUrl} target="_blank" rel="noopener noreferrer">
+                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                        </a>
+                      )}
+                      <button
+                        className={mutedButton}
+                        disabled={togglingId === customer.id}
+                        onClick={() => void toggleStatus(customer)}
+                      >
+                        {togglingId === customer.id ? '…' : customer.isActive ? 'Block' : 'Activate'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {filtered.length === 0 && (
+                <p className="p-8 text-center text-sm text-stone-500 dark:text-stone-400">
+                  {query ? 'No registered customers match this search.' : 'No registered customers yet.'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* ── Guest / Unregistered Customers ── */}
+          {filteredGuests.length > 0 && (
+            <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+              <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
+                Guest / unregistered customers ({filteredGuests.length})
+              </div>
+              <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
+                {filteredGuests.map(g => {
+                  const phoneClean = String(g.phone || '').replace(/[^0-9]/g, '');
+                  const hasWhatsApp = phoneClean.length >= 7;
+                  const waUrl = hasWhatsApp
+                    ? `https://wa.me/${phoneClean.startsWith('0') ? '233' + phoneClean.slice(1) : phoneClean}?text=${encodeURIComponent(`Hello ${g.fullName}, this is ${store.storeSettings.storeName}.`)}`
+                    : '';
+
+                  return (
+                    <div key={g.key} className="grid gap-4 p-5 transition-colors hover:bg-stone-50/60 dark:hover:bg-[#2a2024]/40 lg:grid-cols-[minmax(240px,1.4fr)_130px_auto_auto] lg:items-center">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-stone-100 font-bold text-stone-500 dark:bg-[#2a2024] dark:text-stone-400">
+                          {g.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate font-bold text-stone-900 dark:text-stone-100">{g.fullName}</p>
+                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:bg-[#2e2428] dark:text-stone-400">Guest</span>
+                          </div>
+                          <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400">{g.email || g.phone || '—'}</p>
+                          <p className="mt-0.5 text-[11px] text-stone-400 dark:text-stone-600">Last order: {new Date(g.lastOrderDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      <div className="lg:text-right">
+                        <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{money(g.totalSpent)}</p>
+                        <p className="text-xs text-stone-500 dark:text-stone-400">{g.ordersCount} {g.ordersCount === 1 ? 'order' : 'orders'}</p>
+                      </div>
+
+                      <span className="rounded-full px-3 py-1 text-xs font-bold bg-stone-100 text-stone-500 dark:bg-[#2e2428] dark:text-stone-400">
+                        No account
+                      </span>
+
+                      <div className="flex flex-wrap gap-2 lg:justify-end">
+                        {hasWhatsApp && (
+                          <a className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            href={waUrl} target="_blank" rel="noopener noreferrer">
+                            <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Customer Detail Drawer */}
+      <LiveCustomerDetailDrawer
+        customer={selectedCustomer}
+        orders={selectedCustomerOrders}
+        loadingOrders={loadingCustomerOrders}
+        onClose={() => setSelectedCustomer(null)}
+        onSaveNotes={handleSaveNotes}
+        savingNotes={savingNotes}
+        onToggleStatus={toggleStatus}
+        togglingId={togglingId}
+        storeName={store.storeSettings.storeName}
+      />
+    </div>
+  );
+}
+
+// ─── Live Customer Detail Drawer ──────────────────────────────────────────────
+
+function LiveCustomerDetailDrawer({
+  customer,
+  orders,
+  loadingOrders,
+  onClose,
+  onSaveNotes,
+  savingNotes,
+  onToggleStatus,
+  togglingId,
+  storeName,
+}: {
+  customer: LiveCustomer | null;
+  orders: Order[];
+  loadingOrders: boolean;
+  onClose: () => void;
+  onSaveNotes: (id: string, notes: string) => Promise<void>;
+  savingNotes: string | null;
+  onToggleStatus: (c: LiveCustomer) => Promise<void>;
+  togglingId: string | null;
+  storeName?: string;
+}) {
+  const [notes, setNotes] = useState('');
+
+  // Reset notes whenever the selected customer changes
+  useEffect(() => {
+    setNotes(customer?.adminNotes || '');
+  }, [customer?.id, customer?.adminNotes]);
+
+  if (!customer) return null;
+
+  const customerOrders = orders.filter(
+    o =>
+      o.userId === customer.id ||
+      o.shippingAddress?.email?.toLowerCase() === customer.email.toLowerCase() ||
+      o.shippingAddress?.phone === customer.phone
+  );
+
+  const phoneClean = String(customer.phone || '').replace(/[^0-9]/g, '');
+  const hasWhatsApp = phoneClean.length >= 7;
+  const waUrl = hasWhatsApp
+    ? `https://wa.me/${phoneClean.startsWith('0') ? '233' + phoneClean.slice(1) : phoneClean}?text=${encodeURIComponent(`Hello ${customer.fullName}, this is ${storeName}.`)}`
+    : '';
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end overflow-hidden bg-black/60 backdrop-blur-xs font-sans animate-fadeIn" onClick={onClose}>
+      <div
+        className="flex h-full w-full max-w-lg flex-col border-l border-stone-200 bg-white shadow-2xl dark:border-[#2e2428] dark:bg-[#1a1316]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50/80 p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-[#F2E3D7] font-bold font-serif text-lg text-[#8A5738] dark:border-[#3d2a22] dark:bg-[#3d2a22] dark:text-[#E8B792]">
+              {customer.profileImage
+                ? <img src={customer.profileImage} alt="" className="h-full w-full object-cover" />
+                : customer.fullName.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="text-base font-bold leading-tight text-stone-900 dark:text-stone-100">{customer.fullName}</h3>
+              <span className="mt-0.5 inline-block rounded-full bg-[#F2E3D7]/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">
+                {customer.segment === 'High Value' ? 'Top Spender' : customer.segment}
+              </span>
+            </div>
+          </div>
+          <button onClick={onClose} className="rounded-full p-2 text-stone-400 transition-colors hover:bg-stone-200/50 hover:text-stone-700 dark:hover:bg-[#2a2024] dark:hover:text-stone-200">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 space-y-5 overflow-y-auto p-6 text-xs text-stone-800 dark:text-stone-200">
+          {/* Metrics */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1 rounded-2xl border border-stone-200 bg-stone-50 p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+              <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400">Total Spent</span>
+              <p className="font-serif text-xl font-bold text-stone-900 dark:text-stone-100">GHS {Number(customer.totalSpent || 0).toFixed(2)}</p>
+            </div>
+            <div className="space-y-1 rounded-2xl border border-stone-200 bg-stone-50 p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+              <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400">Orders</span>
+              <p className="font-serif text-xl font-bold text-stone-900 dark:text-stone-100">{customer.ordersCount}</p>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-stone-900 dark:text-stone-100">Contact Details</h4>
+              {hasWhatsApp && (
+                <a href={waUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                </a>
+              )}
+            </div>
+            <div className="space-y-2 text-stone-600 dark:text-stone-300">
+              <p className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-stone-400" />
+                {customer.phone
+                  ? <a href={`tel:${customer.phone}`} className="font-bold text-stone-900 hover:underline dark:text-stone-100">{customer.phone}</a>
+                  : <span className="text-stone-400">No phone</span>}
+              </p>
+              {customer.email && (
+                <p className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-stone-400" />
+                  <a href={`mailto:${customer.email}`} className="hover:underline">{customer.email}</a>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Account status */}
+          <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <div>
+              <h4 className="font-bold text-stone-900 dark:text-stone-100">Account Status</h4>
+              <p className={`mt-1 text-xs font-semibold ${customer.isActive ? 'text-emerald-600' : 'text-red-500'}`}>
+                {customer.isActive ? 'Active — can browse and order' : 'Blocked — cannot place orders'}
+              </p>
+            </div>
+            <button
+              className={`${mutedButton} ${!customer.isActive ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400' : ''}`}
+              disabled={togglingId === customer.id}
+              onClick={() => void onToggleStatus(customer)}
+            >
+              {togglingId === customer.id ? '…' : customer.isActive ? 'Block' : 'Activate'}
+            </button>
+          </div>
+
+          {/* Admin Notes */}
+          <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <h4 className="font-bold text-stone-900 dark:text-stone-100">Admin Notes</h4>
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="e.g. Regular customer, prefers morning deliveries…"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-900 placeholder:text-stone-400 outline-none focus:ring-2 focus:ring-[#1E1719] dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100 dark:placeholder:text-stone-600 dark:focus:ring-stone-600"
+            />
+            <button
+              type="button"
+              disabled={savingNotes === customer.id}
+              onClick={() => void onSaveNotes(customer.id, notes)}
+              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#1E1719] px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-[#33282C] disabled:opacity-60"
+            >
+              <Save className="h-3.5 w-3.5" />
+              {savingNotes === customer.id ? 'Saving…' : 'Save Notes'}
+            </button>
+          </div>
+
+          {/* Saved Addresses */}
+          {customer.savedAddresses && customer.savedAddresses.length > 0 && (
+            <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+              <h4 className="flex items-center gap-1.5 font-bold text-stone-900 dark:text-stone-100">
+                <MapPin className="h-4 w-4 text-[#B27A52]" /> Saved Addresses
+              </h4>
+              {customer.savedAddresses.map((addr, i) => (
+                <div key={i} className="space-y-1 rounded-xl bg-stone-50 p-3 dark:bg-[#2a2024]">
+                  <p className="font-bold text-stone-800 dark:text-stone-200">{addr.area ? `${addr.area}, ` : ''}{addr.city}</p>
+                  {addr.landmarkOrGps && <p className="text-[11px] text-stone-500 dark:text-stone-400">GPS: <span className="font-mono">{addr.landmarkOrGps}</span></p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Order History */}
+          <div className="space-y-3">
+            <h4 className="flex items-center gap-1.5 font-bold text-stone-900 dark:text-stone-100">
+              <ShoppingBag className="h-4 w-4 text-[#B27A52]" /> Order History ({customerOrders.length})
+            </h4>
+            {loadingOrders ? (
+              <p className="text-xs italic text-stone-400 dark:text-stone-500">Loading live order history…</p>
+            ) : customerOrders.length === 0 ? (
+              <p className="text-xs italic text-stone-400 dark:text-stone-500">No orders found for this customer.</p>
+            ) : (
+              <div className="space-y-2">
+                {customerOrders.map(o => (
+                  <div key={o.id} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 p-3 dark:border-[#2e2428] dark:bg-[#201b1a]">
+                    <div>
+                      <p className="font-mono font-bold text-stone-900 dark:text-stone-100">{o.orderNumber}</p>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                        {new Date(o.createdAt).toLocaleDateString()} · {o.items.length} item{o.items.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-stone-900 dark:text-stone-100">GHS {Number(o.total).toFixed(2)}</p>
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                        {o.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end border-t border-stone-200 bg-stone-50 p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <button onClick={onClose} className="rounded-xl border border-stone-300 px-4 py-2 font-bold text-stone-700 transition-colors hover:bg-stone-100 dark:border-[#2e2428] dark:text-stone-300 dark:hover:bg-[#2a2024]">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LegacyAdminCustomersScreen() {
   const store = useStore();
   const { showAlert } = useAlert();
   const [query, setQuery] = useState('');

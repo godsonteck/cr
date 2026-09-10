@@ -277,6 +277,7 @@ export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out fo
 
 export interface Order {
   id: string;
+  userId?: string | null;
   orderNumber: string;
   createdAt: string;
   items: CartItem[];

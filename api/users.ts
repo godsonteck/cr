@@ -6,6 +6,15 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { requireAdmin, requireAuth, signToken } from './_auth.js';
 
+// Ensure the admin_notes column exists on the users table (zero-downtime migration)
+async function ensureAdminNotesColumn() {
+  try {
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_notes text`);
+  } catch {
+    // Column already exists or DB doesn't support IF NOT EXISTS — ignore
+  }
+}
+
 const userCreateSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(1).max(100),
@@ -32,6 +41,8 @@ const userProfileUpdateSchema = z.object({
   })).optional(),
   savedItemIds: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
+  /** Admin-only: notes about this customer stored in the DB */
+  adminNotes: z.string().max(2000).nullable().optional(),
 });
 
 const changePasswordSchema = z.object({
@@ -68,6 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           savedAddresses: users.savedAddresses,
           savedItemIds: users.savedItemIds,
           isActive: users.isActive,
+          adminNotes: users.adminNotes,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
         }).from(users).orderBy(desc(users.createdAt));
@@ -195,6 +207,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (parsed.data.fullName !== undefined) updates.fullName = parsed.data.fullName.trim();
       if (parsed.data.phone !== undefined) updates.phone = parsed.data.phone.trim();
       if (parsed.data.profileImage !== undefined) updates.profileImage = parsed.data.profileImage;
+      if (parsed.data.adminNotes !== undefined) {
+        if (auth.role !== 'admin') {
+          return res.status(403).json({ error: 'Only admins can update customer notes' });
+        }
+        // Ensure column exists before writing (no-op if already there)
+        await ensureAdminNotesColumn();
+        updates.adminNotes = parsed.data.adminNotes;
+      }
       if (parsed.data.savedAddresses !== undefined) {
         const addresses = parsed.data.savedAddresses.map(address => ({ ...address }));
         if (addresses.length > 0 && !addresses.some(address => address.isDefault)) {
