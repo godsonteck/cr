@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, Check, EyeOff, Layers, Save, Trash2, TrendingUp, Plus } from 'lucide-react';
+import { BarChart3, Check, EyeOff, Layers, Save, Trash2, TrendingUp, Plus, Calendar, ArrowDown, ArrowUp, ArrowUpDown, RotateCcw } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { CategoryConfig, CategoryType, DepartmentType } from '../../../types';
+import { DATE_PRESETS, DateFilterPreset, isWithinDateRange } from '../../../utils/dateFilters';
 
 const inputClass = 'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719]';
 
@@ -169,24 +170,193 @@ export const AdminCategoriesScreen: React.FC = () => {
 
 export const AdminAnalyticsScreen: React.FC = () => {
   const { orders, products } = useStore();
-  const revenue = orders.reduce((total, order) => total + Number(order.total || 0), 0);
-  const averageOrder = orders.length ? revenue / orders.length : 0;
+  const [dateFilter, setDateFilter] = useState<DateFilterPreset>('all');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+  const [sortOrder, setSortOrder] = useState<'date-desc' | 'date-asc'>('date-desc');
+
+  const filteredOrders = useMemo(() => {
+    if (dateFilter === 'all') return orders || [];
+    return (orders || []).filter(order => isWithinDateRange(order.createdAt, dateFilter, customStart, customEnd));
+  }, [orders, dateFilter, customStart, customEnd]);
+
+  const revenue = filteredOrders.reduce((total, order) => total + Number(order.total || 0), 0);
+  const averageOrder = filteredOrders.length ? revenue / filteredOrders.length : 0;
+
   const productSales = useMemo(() => {
     const totals = new Map<string, number>();
-    orders.forEach(order => order.items.forEach(item => totals.set(item.product.id, (totals.get(item.product.id) || 0) + item.quantity)));
+    filteredOrders.forEach(order => order.items.forEach(item => totals.set(item.product.id, (totals.get(item.product.id) || 0) + item.quantity)));
     return products.map(product => ({ product, quantity: totals.get(product.id) || 0 })).filter(row => row.quantity > 0).sort((a, b) => b.quantity - a.quantity).slice(0, 8);
-  }, [orders, products]);
+  }, [filteredOrders, products]);
   const maxQuantity = productSales[0]?.quantity || 1;
+
+  // Daily revenue breakdown
+  const dailySales = useMemo(() => {
+    const map = new Map<string, { date: string; timestamp: number; orders: number; revenue: number }>();
+    filteredOrders.forEach(order => {
+      const d = new Date(order.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const existing = map.get(key) || { date: key, timestamp: new Date(key).getTime(), orders: 0, revenue: 0 };
+      existing.orders += 1;
+      existing.revenue += Number(order.total || 0);
+      map.set(key, existing);
+    });
+    const list = Array.from(map.values());
+    if (sortOrder === 'date-asc') {
+      list.sort((a, b) => a.timestamp - b.timestamp);
+    } else {
+      list.sort((a, b) => b.timestamp - a.timestamp);
+    }
+    return list;
+  }, [filteredOrders, sortOrder]);
 
   return (
     <div className="space-y-6">
-      <header className="border-b border-stone-200 pb-6 dark:border-[#2e2428]"><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Reports</p><h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">Sales analytics</h1><p className="mt-2 text-sm text-stone-500 dark:text-stone-400">Live performance from orders and catalog activity.</p></header>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Revenue" value={`GHS ${revenue.toFixed(2)}`} icon={TrendingUp} /><Metric label="Orders" value={orders.length} icon={BarChart3} /><Metric label="Average order" value={`GHS ${averageOrder.toFixed(2)}`} icon={TrendingUp} /><Metric label="Catalog items" value={products.length} icon={Layers} /></div>
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]"><h2 className="font-bold text-stone-900 dark:text-stone-100">Top products by units sold</h2><div className="mt-5 space-y-4">{productSales.map(({ product, quantity }) => <div key={product.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-semibold">{product.name}</span><span className="font-bold">{quantity}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100"><div className="h-full rounded-full bg-[#B27A52]" style={{ width: `${(quantity / maxQuantity) * 100}%` }} /></div></div></div>)}{productSales.length === 0 && <p className="py-8 text-center text-sm text-stone-500">Sales data will appear after the first order.</p>}</div></section>
+      <header className="border-b border-stone-200 pb-6 dark:border-[#2e2428]">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Reports</p>
+        <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">Sales Analytics &amp; Reports</h1>
+        <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">Track and sort revenue, volume, and top-selling items across any date range.</p>
+      </header>
+
+      {/* Date Range Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
+        <div className="flex flex-wrap items-center gap-2">
+          <Calendar className="h-4 w-4 text-[#B27A52]" />
+          <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Period:</span>
+          <select
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value as DateFilterPreset)}
+            className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100 cursor-pointer"
+          >
+            {DATE_PRESETS.map(p => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
+
+          {dateFilter === 'custom' && (
+            <div className="flex items-center gap-2 text-xs">
+              <input
+                type="date"
+                value={customStart}
+                onChange={e => setCustomStart(e.target.value)}
+                className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1.5 text-xs text-stone-900 dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100"
+              />
+              <span className="text-stone-400">to</span>
+              <input
+                type="date"
+                value={customEnd}
+                onChange={e => setCustomEnd(e.target.value)}
+                className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1.5 text-xs text-stone-900 dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100"
+              />
+            </div>
+          )}
+
+          {dateFilter !== 'all' && (
+            <button
+              onClick={() => { setDateFilter('all'); setCustomStart(''); setCustomEnd(''); }}
+              className="flex items-center gap-1 rounded-xl border border-stone-200 px-2.5 py-1.5 text-[11px] font-semibold text-stone-500 hover:bg-stone-50 dark:border-[#2e2428] dark:text-stone-400 dark:hover:bg-[#2a2024] cursor-pointer"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </button>
+          )}
+        </div>
+
+        <span className="text-xs text-stone-500 dark:text-stone-400">
+          Showing data for <strong className="text-stone-800 dark:text-stone-200">{filteredOrders.length}</strong> orders
+        </span>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label={dateFilter !== 'all' ? `Revenue (${DATE_PRESETS.find(p => p.id === dateFilter)?.label})` : 'Total Revenue'} value={`GHS ${revenue.toFixed(2)}`} icon={TrendingUp} />
+        <Metric label="Orders" value={filteredOrders.length} icon={BarChart3} />
+        <Metric label="Average order" value={`GHS ${averageOrder.toFixed(2)}`} icon={TrendingUp} />
+        <Metric label="Catalog items" value={products.length} icon={Layers} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Top products */}
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <h2 className="font-bold text-stone-900 dark:text-stone-100">Top products by units sold</h2>
+          <div className="mt-5 space-y-4">
+            {productSales.map(({ product, quantity }) => (
+              <div key={product.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div className="min-w-0">
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="truncate font-semibold">{product.name}</span>
+                    <span className="font-bold">{quantity} sold</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-[#2a2024]">
+                    <div className="h-full rounded-full bg-[#B27A52]" style={{ width: `${(quantity / maxQuantity) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {productSales.length === 0 && (
+              <p className="py-8 text-center text-sm text-stone-500">No product sales in the selected date range.</p>
+            )}
+          </div>
+        </section>
+
+        {/* Daily sales timeline sorted by date */}
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-stone-900 dark:text-stone-100">Daily Sales Timeline</h2>
+            <button
+              onClick={() => setSortOrder(s => s === 'date-desc' ? 'date-asc' : 'date-desc')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B27A52] hover:underline cursor-pointer"
+            >
+              <span>{sortOrder === 'date-desc' ? 'Newest first' : 'Oldest first'}</span>
+              {sortOrder === 'date-desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-stone-100 text-stone-500 dark:border-[#2e2428]">
+                <tr>
+                  <th className="py-2.5 text-left font-bold uppercase">Date</th>
+                  <th className="py-2.5 text-left font-bold uppercase">Orders</th>
+                  <th className="py-2.5 text-right font-bold uppercase">Revenue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100 dark:divide-[#2e2428]">
+                {dailySales.length > 0 ? (
+                  dailySales.map(d => (
+                    <tr key={d.date} className="hover:bg-stone-50 dark:hover:bg-[#1a1316]">
+                      <td className="py-2.5 font-semibold text-stone-800 dark:text-stone-200">
+                        {new Date(d.date).toLocaleDateString('en-GH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-2.5 text-stone-600 dark:text-stone-400">
+                        {d.orders} order{d.orders !== 1 ? 's' : ''}
+                      </td>
+                      <td className="py-2.5 text-right font-bold text-stone-900 dark:text-stone-100">
+                        GHS {d.revenue.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-stone-400 italic">
+                      No sales data in this date range.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
-  return <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><Icon className="h-5 w-5 text-[#B27A52]" /><p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p><p className="mt-1 text-xs text-stone-500">{label}</p></div>;
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+      <Icon className="h-5 w-5 text-[#B27A52]" />
+      <p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p>
+      <p className="mt-1 text-xs text-stone-500">{label}</p>
+    </div>
+  );
 }
