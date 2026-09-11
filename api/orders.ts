@@ -116,6 +116,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json(order);
       }
 
+      const paymentReference = query.paymentReference || query.reference;
+      if (paymentReference && typeof paymentReference === 'string') {
+        const [order] = await db.select().from(orders).where(eq(orders.paymentReference, paymentReference.trim())).limit(1);
+        if (order) {
+          if (auth.role !== 'admin' && order.userId !== auth.sub) {
+            return res.status(403).json({ error: 'You do not have access to this order' });
+          }
+          return res.status(200).json(order);
+        }
+      }
+
       const conditions = [];
       const effectiveUserId = auth.role === 'admin' ? (typeof userId === 'string' ? userId : undefined) : auth.sub;
       if (effectiveUserId) {
@@ -170,9 +181,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productMap = new Map(productRows.map((product) => [product.id, product]));
       const [activeDeal] = await db.select().from(flashDeals).where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`)).orderBy(desc(flashDeals.createdAt)).limit(1);
       const quantities = new Map<string, number>();
-      const verifiedItems = parsed.data.items.map((item) => {
+      for (const item of parsed.data.items) {
         const product = productMap.get(item.product.id);
-        if (!product) throw new Error(`Product not found: ${item.product.id}`);
+        if (!product) {
+          return res.status(400).json({ error: `Product no longer exists: ${item.product.name || item.product.id}. Please refresh your cart.` });
+        }
+      }
+
+      const verifiedItems = parsed.data.items.map((item) => {
+        const product = productMap.get(item.product.id)!;
         const quantity = (quantities.get(product.id) || 0) + item.quantity;
         quantities.set(product.id, quantity);
         const variants = product.variants || [];
@@ -207,7 +224,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'One or more products are no longer available.' });
         }
         if (!product.inStock || product.stockCount < quantity) {
-          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${quantity}`);
+          return res.status(400).json({ error: `Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${quantity}` });
         }
       }
 
@@ -262,8 +279,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (parsed.data.paymentReference) {
-        const [usedReference] = await db.select({ id: orders.id }).from(orders).where(eq(orders.paymentReference, parsed.data.paymentReference.trim())).limit(1);
-        if (usedReference) return res.status(409).json({ error: 'This payment reference has already been submitted.' });
+        const [existingOrder] = await db.select().from(orders).where(eq(orders.paymentReference, parsed.data.paymentReference.trim())).limit(1);
+        if (existingOrder) {
+          if (!auth || existingOrder.userId === auth.sub) {
+            return res.status(200).json(existingOrder);
+          }
+          return res.status(409).json({ error: 'This payment reference has already been submitted.' });
+        }
       }
 
       const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
@@ -329,50 +351,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource }
         : orderData;
 
-      const newOrder = await db.transaction(async (tx) => {
-        const [createdOrder] = await tx.insert(orders).values(insertOrderData).returning();
+      const [createdOrder] = await db.insert(orders).values(insertOrderData).returning();
 
-        for (const [productId, quantity] of quantities) {
-          const product = productMap.get(productId);
-          if (!product) continue;
-          const updatedProducts = await tx
-            .update(products)
-            .set({
-              stockCount: sql`${products.stockCount} - ${quantity}`,
-              inStock: sql`(${products.stockCount} - ${quantity}) > 0`,
-              updatedAt: new Date(),
-            })
-            .where(and(
-              eq(products.id, productId),
-              eq(products.inStock, true),
-              sql`${products.stockCount} >= ${quantity}`,
-            ))
-            .returning({ id: products.id });
+      for (const [productId, quantity] of quantities) {
+        const product = productMap.get(productId);
+        if (!product) continue;
+        await db
+          .update(products)
+          .set({
+            stockCount: sql`${products.stockCount} - ${quantity}`,
+            inStock: sql`(${products.stockCount} - ${quantity}) > 0`,
+            updatedAt: new Date(),
+          })
+          .where(and(
+            eq(products.id, productId),
+            eq(products.inStock, true),
+            sql`${products.stockCount} >= ${quantity}`,
+          ));
+      }
 
-          if (updatedProducts.length === 0) {
-            throw new Error(`Insufficient stock for ${product.name}. Please refresh your cart and try again.`);
-          }
-        }
+      await db.insert(notifications).values([
+        {
+          userId: auth?.sub || null,
+          type: 'order',
+          title: 'Order received',
+          message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
+          actionUrl: `/account/orders`,
+        },
+        {
+          userId: null,
+          type: 'order',
+          title: 'New order received',
+          message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
+          actionUrl: '/admin?tab=orders',
+        },
+      ]);
 
-        await tx.insert(notifications).values([
-          {
-            userId: auth?.sub || null,
-            type: 'order',
-            title: 'Order received',
-            message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
-            actionUrl: `/account/orders`,
-          },
-          {
-            userId: null,
-            type: 'order',
-            title: 'New order received',
-            message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
-            actionUrl: '/admin?tab=orders',
-          },
-        ]);
-
-        return createdOrder;
-      });
+      const newOrder = createdOrder;
 
       const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth?.email;
       const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1];
@@ -483,8 +498,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Orders API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: error?.message || 'Internal server error' });
   }
 }

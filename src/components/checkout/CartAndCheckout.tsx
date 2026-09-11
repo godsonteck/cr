@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   ShoppingCart,
@@ -17,6 +17,7 @@ import {
   Lock,
   Share2,
   Copy,
+  Loader2,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -300,58 +301,97 @@ export const MultiStepCheckoutPage: React.FC = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const returnedReference = params.get('reference') || params.get('trxref');
-    const returnedStatus = (params.get('status') || '').toLowerCase();
-    const pendingOrder = sessionStorage.getItem('paystack_pending_order');
-    if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !pendingOrder || !isAuthenticated) return;
-    if (hasHandledReturn.current) return;
-    hasHandledReturn.current = true;
+  const searchParams = new URLSearchParams(window.location.search);
+  const returnedReference = searchParams.get('reference') || searchParams.get('trxref');
+  const returnedStatus = (searchParams.get('status') || '').toLowerCase();
+  const isPaystackCallback = Boolean(returnedReference);
 
-    const completeReturnedOrder = async () => {
-      setIsProcessing(true);
+  const [returnError, setReturnError] = useState<string | null>(null);
+  const [isVerifyingReturn, setIsVerifyingReturn] = useState(
+    isPaystackCallback && (!returnedStatus || ['success', 'successful', 'completed'].includes(returnedStatus))
+  );
+
+  const completeReturnedOrder = useCallback(async () => {
+    if (!returnedReference || !isAuthenticated) return;
+    setIsVerifyingReturn(true);
+    setReturnError(null);
+
+    try {
+      const customerToken = localStorage.getItem('auth_token');
+      if (!customerToken) throw new ApiError(401, 'Authentication required');
+
+      // 1. Check if the order was already created in the database (idempotent recovery)
       try {
-        const orderPayload = JSON.parse(pendingOrder) as Order;
-        const customerToken = localStorage.getItem('auth_token');
-        if (!customerToken) throw new ApiError(401, 'Authentication required');
-        const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
-          reference: returnedReference,
-          amount: Math.round(orderPayload.total * 100),
-        }, customerToken);
-        if (!verification.verified) throw new Error('Paystack payment could not be verified');
-        const createdOrder = await api.post<Order>('/orders', {
-          ...orderPayload,
-          paymentMethod: 'paystack',
-          paymentStatus: 'paid',
-          paymentReference: verification.reference,
-        }, customerToken);
-        sessionStorage.removeItem('paystack_pending_order');
-        await addStoreOrder(createdOrder);
-        addOrder(createdOrder);
-        await fetchProducts();
-        if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
-        await clearCart();
-        window.history.replaceState({}, '', '/checkout');
-        navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
-      } catch (error) {
-        console.error('Paystack return error:', error);
-        if (error instanceof ApiError && error.status === 401) {
-          hasHandledReturn.current = false;
-          showAlert('Your session expired after payment. Please sign in again and we will finish your order.', 'error', { persistent: true });
+        const existing = await api.get<Order>(`/orders?paymentReference=${encodeURIComponent(returnedReference)}`, customerToken);
+        if (existing?.id) {
+          sessionStorage.removeItem('paystack_pending_order');
+          await addStoreOrder(existing);
+          addOrder(existing);
+          await fetchProducts();
+          if (existing.shippingAddress) await saveAddress(existing.shippingAddress);
+          await clearCart();
+          window.history.replaceState({}, '', '/checkout');
+          navigate(`/order-confirmation/${existing.id}`, { state: { order: existing }, replace: true });
           return;
         }
-        const message = error instanceof ApiError ? error.message : 'Payment was returned, but it could not be verified. Please contact support.';
-        showAlert(message, 'error', { persistent: true });
-      } finally {
-        setIsProcessing(false);
+      } catch {
+        // Not yet created, continue with verification
       }
-    };
-    void completeReturnedOrder();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
 
-  if (cartItems.length === 0) return <Navigate to="/cart" replace />;
+      const pendingOrder = sessionStorage.getItem('paystack_pending_order');
+      if (!pendingOrder) {
+        throw new Error(`Payment return received for reference ${returnedReference}, but pending order details were not found in this session. If your account was charged, your order may already be saved under your account.`);
+      }
+
+      const orderPayload = JSON.parse(pendingOrder) as Order;
+
+      // 2. Verify payment with server-side Paystack verification
+      const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
+        reference: returnedReference,
+        amount: Math.round(orderPayload.total * 100),
+      }, customerToken);
+      if (!verification.verified) throw new Error('Paystack payment could not be verified');
+
+      // 3. Create or receive the confirmed order
+      const createdOrder = await api.post<Order>('/orders', {
+        ...orderPayload,
+        paymentMethod: 'paystack',
+        paymentStatus: 'paid',
+        paymentReference: verification.reference,
+      }, customerToken);
+
+      sessionStorage.removeItem('paystack_pending_order');
+      await addStoreOrder(createdOrder);
+      addOrder(createdOrder);
+      await fetchProducts();
+      if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
+      await clearCart();
+      window.history.replaceState({}, '', '/checkout');
+      navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
+    } catch (error: any) {
+      console.error('Paystack return error:', error);
+      hasHandledReturn.current = false;
+      if (error instanceof ApiError && error.status === 401) {
+        showAlert('Your session expired after payment. Please sign in again and we will finish your order.', 'error', { persistent: true });
+        return;
+      }
+      const message = error instanceof ApiError ? error.message : (error?.message || 'Payment was returned, but it could not be verified. Please contact support.');
+      setReturnError(message);
+      showAlert(message, 'error', { persistent: true });
+    } finally {
+      setIsVerifyingReturn(false);
+      setIsProcessing(false);
+    }
+  }, [returnedReference, isAuthenticated, addStoreOrder, addOrder, fetchProducts, saveAddress, clearCart, navigate, showAlert]);
+
+  useEffect(() => {
+    if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !isAuthenticated) return;
+    if (hasHandledReturn.current) return;
+    hasHandledReturn.current = true;
+    void completeReturnedOrder();
+  }, [returnedReference, returnedStatus, isAuthenticated, completeReturnedOrder]);
+
+  if (cartItems.length === 0 && !isPaystackCallback) return <Navigate to="/cart" replace />;
 
   if (!isAuthenticated) {
     return (
@@ -361,6 +401,22 @@ export const MultiStepCheckoutPage: React.FC = () => {
           <h2 className="text-xl font-black text-[var(--text-primary)]">Sign in required</h2>
           <p className="text-sm text-[var(--text-muted)]">Please sign in before paying securely with Paystack.</p>
           <Link to="/signin" className="inline-flex rounded-xl bg-[#FF6B00] px-6 py-2.5 text-sm font-black text-white hover:bg-[#E55A00]">Sign in</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isVerifyingReturn) {
+    return (
+      <div className="checkout-page min-h-screen bg-[#f5f1ee] flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-5 rounded-2xl border border-[#ebdfe5] bg-[#fffdfb] p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FF6B00]/10 text-[#FF6B00]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+          <h2 className="text-xl font-black text-[var(--text-primary)]">Confirming Your Order</h2>
+          <p className="text-sm text-[var(--text-muted)]">
+            We are confirming your Paystack payment and securing your order details. Please do not close or refresh this page…
+          </p>
         </div>
       </div>
     );
@@ -442,6 +498,32 @@ export const MultiStepCheckoutPage: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {returnError && isPaystackCallback && (
+          <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Payment Confirmation Notice</p>
+                <p className="mt-1 text-xs opacity-90">{returnError}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void completeReturnedOrder()}
+                  className="cursor-pointer rounded-xl bg-[#FF6B00] px-4 py-2 text-xs font-black text-white hover:bg-[#E55A00] transition"
+                >
+                  Retry Confirmation
+                </button>
+                <Link
+                  to="/account/orders"
+                  className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+                >
+                  View Orders
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="checkout-panel rounded-[28px] border border-[#ebdfe5] bg-[#fffdfb] overflow-hidden shadow-[0_16px_32px_rgba(24,20,22,0.04)]">
