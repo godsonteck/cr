@@ -146,7 +146,6 @@ export const HomePage: React.FC = () => {
               </select>
             </div>
           </div>
-          <p className="text-[11px] font-semibold text-[var(--text-subtle)]">Showing {displayedCollection.length} of {fullCollection.length} products</p>
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
             {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
           </div>

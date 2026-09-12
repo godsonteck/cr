@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Product, CategoryConfig, CategoryType, DepartmentType, ProductOption, ProductVariant } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
-import { Layers, Image as ImageIcon, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 
 interface ProductModalProps { isOpen: boolean; onClose: () => void; productToEdit?: Product | null; }
 type VariantDraft = ProductVariant & { optionValues: Record<string, string> };
@@ -28,6 +28,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const [categoryLabel, setCategoryLabel] = useState(''); const [price, setPrice] = useState(0); const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(); const [originalPrice, setOriginalPrice] = useState<number | undefined>();
   const [catalogOpen, setCatalogOpen] = useState(false); const [newBrandName, setNewBrandName] = useState(''); const [newCategoryId, setNewCategoryId] = useState(''); const [newCategoryName, setNewCategoryName] = useState(''); const [newCategoryImage, setNewCategoryImage] = useState('');
   const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [description, setDescription] = useState(''); const [highlights, setHighlights] = useState<string[]>([]); const [badge, setBadge] = useState<Product['badge']>(); const [inStock, setInStock] = useState(true); const [isPublished, setIsPublished] = useState(true); const [stockCount, setStockCount] = useState(0);
   const [options, setOptions] = useState<ProductOption[]>([]); const [variants, setVariants] = useState<VariantDraft[]>([]); const [origin, setOrigin] = useState(''); const [howToUse, setHowToUse] = useState(''); const [ingredients, setIngredients] = useState(''); const [benefits, setBenefits] = useState(''); const [isSaving, setIsSaving] = useState(false);
 
@@ -49,7 +50,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       const result = String(event.target?.result || '');
       const preview = new Image();
       preview.onload = () => {
-        const max = 960;
+        const max = 840;
         const scale = Math.min(1, max / Math.max(preview.width, preview.height));
         const canvas = document.createElement('canvas');
         canvas.width = Math.round(preview.width * scale);
@@ -57,7 +58,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(preview, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
+          resolve(canvas.toDataURL('image/jpeg', 0.78));
         } else {
           resolve(result);
         }
@@ -68,8 +69,53 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-  const processFiles = async (files: FileList | File[]) => { const valid = Array.from(files).filter(file => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024); if (!valid.length) { showToast('Please choose a JPG, PNG, WEBP, or GIF image under 10MB.'); return; } try { const images = await Promise.all(valid.map(readImage)); setUploadedImages(previous => [...previous, ...images]); setImage(previous => previous || images[0]); showToast('Photo added'); } catch { showToast('Could not read that photo. Please try again.'); } };
-  const removeImage = (index: number) => setUploadedImages(previous => { const next = previous.filter((_, itemIndex) => itemIndex !== index); if (image === previous[index]) setImage(next[0] || ''); return next; });
+
+  const processFiles = async (files: FileList | File[]) => {
+    const valid = Array.from(files).filter(file => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024);
+    if (!valid.length) {
+      showToast('Please choose JPG, PNG, WEBP, or GIF images under 10MB.');
+      return;
+    }
+    setIsProcessingPhotos(true);
+    try {
+      const images = await Promise.all(valid.map(readImage));
+      setUploadedImages(previous => {
+        const next = Array.from(new Set([...previous, ...images]));
+        return next;
+      });
+      setImage(previous => previous || images[0]);
+      showToast(valid.length === 1 ? '1 photo added' : `${valid.length} photos added successfully`);
+    } catch {
+      showToast('Could not read photos. Please try again.');
+    } finally {
+      setIsProcessingPhotos(false);
+    }
+  };
+
+  const addImageUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:image/')) {
+      showToast('Please enter a valid image URL starting with http:// or https://');
+      return;
+    }
+    setUploadedImages(previous => Array.from(new Set([...previous, url])));
+    setImage(previous => previous || url);
+    setImageUrlInput('');
+    setShowUrlInput(false);
+    showToast('Photo added from URL');
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(previous => {
+      const next = previous.filter((_, itemIndex) => itemIndex !== index);
+      if (image === previous[index]) {
+        setImage(next[0] || '');
+      }
+      return next;
+    });
+    showToast('Photo removed');
+  };
   const addOption = () => setOptions(previous => [...previous, { name: '', values: [] }]);
   const addPresetOption = (optionName: string, values: string[]) => { if (!options.some(option => option.name.toLowerCase() === optionName.toLowerCase())) setOptions(previous => [...previous, { name: optionName, values }]); };
   const unusedCategoryIds = categoriesByDepartment[department].filter(item => !storeCategories.some(existing => existing.id === item.value));
@@ -130,6 +176,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (options.length && !variants.length) { showToast('Click "Create combinations" to generate your variations'); return; }
 
     const primaryImage = image || uploadedImages[0];
+    const finalImages = uploadedImages.length
+      ? [primaryImage, ...uploadedImages.filter(img => img !== primaryImage)]
+      : [primaryImage];
     const cleanOptions = options.filter(option => option.name.trim() && option.values.length);
     const finalBrand = brand === '__NEW__' ? newBrandInput.trim() : brand;
     const payload = {
@@ -144,7 +193,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       discountBadge: discountBadge.trim() || undefined,
       unit: unit.trim() || 'Standard Pack',
       image: primaryImage,
-      images: uploadedImages.length ? uploadedImages : [primaryImage],
+      images: finalImages,
       description: description.trim(),
       highlights: highlights.length ? highlights : ['Original and authentic', 'Quality inspected'],
       badge: badge || undefined,
@@ -194,139 +243,254 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1e1719]/65 p-3 font-sans backdrop-blur-sm sm:p-6"><div className="mx-auto flex min-h-full max-w-4xl items-center justify-center"><div className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-2xl bg-[#fffdfb] shadow-2xl" onClick={event => event.stopPropagation()}>
       <header className="flex items-start justify-between border-b border-stone-200 px-5 py-5 sm:px-7"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#B27A52]">Products</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-[#1E1719]">{productToEdit ? 'Edit product' : 'Add a product'}</h2><p className="mt-1 text-sm text-stone-500">Add the details customers need to buy this item.</p></div><button type="button" onClick={onClose} disabled={isSaving} aria-label="Close" className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-900"><X className="h-5 w-5" /></button></header>
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto px-5 py-6 text-sm sm:px-7">
-        <section className="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <div>
-            <p className="font-bold text-stone-900">Product photos <span className="text-rose-600">*</span></p>
-            <p className="mt-1 text-xs text-stone-500">Upload one or more photos. Click any photo below to set as the cover.</p>
-            <div
-              onDragOver={event => { event.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={event => { event.preventDefault(); setIsDragging(false); void processFiles(event.dataTransfer.files); }}
-              onClick={() => fileInputRef.current?.click()}
-              className={`mt-3 flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed p-3 transition ${isDragging ? 'border-[#B27A52] bg-[#fbf3ec]' : 'border-stone-300 bg-stone-50 hover:border-stone-400'}`}
-            >
-              <input ref={fileInputRef} type="file" accept="image/*" multiple className="sr-only" onChange={event => { if (event.target.files) void processFiles(event.target.files); }} />
-              {image ? (
-                <div className="relative h-full w-full overflow-hidden rounded-lg">
-                  <img src={image} alt="Main product preview" className="h-full w-full object-cover" />
-                  <span className="absolute bottom-2 left-2 rounded-md bg-stone-900/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-xs">
-                    Main Cover
-                  </span>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <Upload className="mx-auto h-7 w-7 text-[#B27A52]" />
-                  <p className="mt-2 text-xs font-bold text-stone-700">Choose photos</p>
-                  <p className="mt-1 text-[11px] text-stone-400">JPG, PNG, WEBP, or GIF</p>
-                </div>
-              )}
+        {/* 1. Basic Product Info */}
+        <section className="space-y-4">
+          <label className="block font-bold text-stone-800">
+            Product name <span className="text-rose-600">*</span>
+            <input required value={name} onChange={event => setName(event.target.value)} placeholder="Example: Hydrating Face Cream" className={`${fieldClass} text-base`} />
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="font-bold text-stone-800">
+                Brand
+                <select value={brand} onChange={event => setBrand(event.target.value)} className={`${fieldClass} font-normal`}>
+                  {brands.map(value => <option key={value} value={value}>{value}</option>)}
+                  <option value="__NEW__">Add a new brand</option>
+                </select>
+              </label>
+              <div className="mt-2 flex gap-2">
+                <input value={newBrandName} onChange={event => setNewBrandName(event.target.value)} placeholder="New brand name" className={`${fieldClass} mt-0 font-normal`} />
+                <button type="button" onClick={() => void createBrand()} className="shrink-0 rounded-lg bg-stone-900 px-3 text-xs font-bold text-white">Add</button>
+              </div>
+              <button type="button" onClick={() => void removeSelectedBrand()} className="mt-1 text-xs text-rose-600 hover:underline">Delete selected brand</button>
             </div>
 
-            {uploadedImages.length > 0 && (
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[11px] font-bold text-stone-700">All photos ({uploadedImages.length})</span>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B27A52] hover:underline"
-                  >
-                    <Plus className="h-3 w-3" /> Add more
-                  </button>
+            <label className="font-bold text-stone-800">
+              Pack size / Default unit
+              <input value={unit} onChange={event => setUnit(event.target.value)} placeholder="Example: 30ml, 500g, 1 piece" className={`${fieldClass} font-normal`} />
+            </label>
+          </div>
+
+          <div>
+            <p className="font-bold text-stone-800">Where should it appear?</p>
+            <div className="mt-1.5 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => { setDepartment('beauty'); setCategory('skincare'); }} className={`rounded-lg border px-3 py-2.5 text-left font-semibold ${department === 'beauty' ? 'border-[#B27A52] bg-[#fbf3ec] text-[#6B3B2E]' : 'border-stone-300 bg-white text-stone-600'}`}>Beauty</button>
+              <button type="button" onClick={() => { setDepartment('groceries'); setCategory('rice-grains'); }} className={`rounded-lg border px-3 py-2.5 text-left font-semibold ${department === 'groceries' ? 'border-[#B27A52] bg-[#fbf3ec] text-[#6B3B2E]' : 'border-stone-300 bg-white text-stone-600'}`}>Groceries</button>
+            </div>
+            <button type="button" onClick={() => setCatalogOpen(!catalogOpen)} className="mt-2 text-xs font-bold text-[#8A3D52] hover:underline">{catalogOpen ? 'Hide' : 'Manage'} categories</button>
+            {catalogOpen && (
+              <div className="mt-3 space-y-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <select value={newCategoryId} onChange={event => setNewCategoryId(event.target.value)} className="rounded-lg border border-stone-300 bg-white px-2 py-2 text-xs">
+                    <option value="">Choose a category to add</option>
+                    {unusedCategoryIds.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                  <input value={newCategoryName} onChange={event => setNewCategoryName(event.target.value)} placeholder="Category name" className="rounded-lg border border-stone-300 px-2 py-2 text-xs" />
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {uploadedImages.map((url, index) => (
-                    <div
-                      key={index}
-                      onClick={() => setImage(url)}
-                      title={image === url ? 'Current main photo' : 'Click to set as main photo'}
-                      className={`group relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 transition-all ${
-                        image === url ? 'border-[#B27A52] ring-2 ring-[#B27A52]/20' : 'border-stone-200 hover:border-stone-400'
-                      }`}
-                    >
-                      <img src={url} alt={`Product photo ${index + 1}`} className="h-full w-full object-cover" />
-                      {image === url && (
-                        <span className="absolute inset-x-0 bottom-0 bg-[#B27A52] py-0.5 text-center text-[8px] font-bold text-white uppercase">
-                          Cover
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); removeImage(index); }}
-                        aria-label={`Remove photo ${index + 1}`}
-                        className="absolute right-0.5 top-0.5 rounded bg-white/90 p-1 text-rose-600 opacity-0 group-hover:opacity-100 transition shadow-xs"
-                      >
-                        <Trash2 className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-stone-300 text-stone-400 hover:border-[#B27A52] hover:text-[#B27A52] transition"
-                    title="Upload more photos"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                <div className="flex gap-2">
+                  <input type="file" accept="image/*" onChange={event => { const file = event.target.files?.[0]; if (file) void readCategoryImage(file).then(setNewCategoryImage); }} className="min-w-0 flex-1 text-xs" />
+                  <button type="button" onClick={() => void createCategory()} className="rounded-lg bg-stone-900 px-3 py-2 text-xs font-bold text-white">Create</button>
                 </div>
+                {newCategoryImage && <img src={newCategoryImage} alt="New category preview" className="h-14 w-14 rounded object-cover" />}
+                <button type="button" onClick={() => void removeSelectedCategory()} className="text-xs text-rose-600 hover:underline">Delete selected category</button>
               </div>
             )}
           </div>
+        </section>
 
-          <div className="space-y-4">
-            <label className="block font-bold text-stone-800">
-              Product name <span className="text-rose-600">*</span>
-              <input required value={name} onChange={event => setName(event.target.value)} placeholder="Example: Hydrating Face Cream" className={`${fieldClass} text-base`} />
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-bold text-stone-800">
-                  Brand
-                  <select value={brand} onChange={event => setBrand(event.target.value)} className={`${fieldClass} font-normal`}>
-                    {brands.map(value => <option key={value} value={value}>{value}</option>)}
-                    <option value="__NEW__">Add a new brand</option>
-                  </select>
-                </label>
-                <div className="mt-2 flex gap-2">
-                  <input value={newBrandName} onChange={event => setNewBrandName(event.target.value)} placeholder="New brand name" className={`${fieldClass} mt-0 font-normal`} />
-                  <button type="button" onClick={() => void createBrand()} className="shrink-0 rounded-lg bg-stone-900 px-3 text-xs font-bold text-white">Add</button>
-                </div>
-                <button type="button" onClick={() => void removeSelectedBrand()} className="mt-1 text-xs text-rose-600 hover:underline">Delete selected brand</button>
+        {/* 2. Product Photos & Multi-Image Gallery */}
+        <section className="border-t border-stone-200 pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-[#B27A52]" />
+                <h3 className="text-lg font-bold text-stone-900">
+                  Product Photos & Media <span className="text-rose-600">*</span>
+                </h3>
+                {uploadedImages.length > 0 && (
+                  <span className="rounded-full bg-[#fbf3ec] px-2.5 py-0.5 text-xs font-bold text-[#B27A52] border border-[#B27A52]/30">
+                    {uploadedImages.length} {uploadedImages.length === 1 ? 'photo' : 'photos'} added
+                  </span>
+                )}
               </div>
-
-              <label className="font-bold text-stone-800">
-                Pack size / Default unit
-                <input value={unit} onChange={event => setUnit(event.target.value)} placeholder="Example: 30ml, 500g, 1 piece" className={`${fieldClass} font-normal`} />
-              </label>
+              <p className="mt-1 text-xs text-stone-500">
+                Upload multiple photos to show front, back, texture, packaging, or sizes. Click any photo to make it the main cover.
+              </p>
             </div>
 
-            <div>
-              <p className="font-bold text-stone-800">Where should it appear?</p>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => { setDepartment('beauty'); setCategory('skincare'); }} className={`rounded-lg border px-3 py-2.5 text-left font-semibold ${department === 'beauty' ? 'border-[#B27A52] bg-[#fbf3ec] text-[#6B3B2E]' : 'border-stone-300 bg-white text-stone-600'}`}>Beauty</button>
-                <button type="button" onClick={() => { setDepartment('groceries'); setCategory('rice-grains'); }} className={`rounded-lg border px-3 py-2.5 text-left font-semibold ${department === 'groceries' ? 'border-[#B27A52] bg-[#fbf3ec] text-[#6B3B2E]' : 'border-stone-300 bg-white text-stone-600'}`}>Groceries</button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingPhotos}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#1E1719] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#33282C] transition shadow-xs"
+              >
+                <Plus className="h-4 w-4" /> Add Photos
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowUrlInput(!showUrlInput)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+              >
+                <LinkIcon className="h-3.5 w-3.5" /> Paste Image Link
+              </button>
+            </div>
+          </div>
+
+          {/* Hidden File Input with multiple enabled */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            multiple
+            className="sr-only"
+            onChange={event => {
+              if (event.target.files && event.target.files.length > 0) {
+                void processFiles(event.target.files);
+                event.target.value = ''; // Always clear so subsequent selections work flawlessly
+              }
+            }}
+          />
+
+          {/* Optional URL Input Bar */}
+          {showUrlInput && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <input
+                type="url"
+                value={imageUrlInput}
+                onChange={e => setImageUrlInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addImageUrl(); } }}
+                placeholder="Paste direct image link (https://...)"
+                className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-medium focus:border-[#B27A52] outline-none"
+              />
+              <button
+                type="button"
+                onClick={addImageUrl}
+                className="rounded-lg bg-stone-900 px-4 py-2 text-xs font-bold text-white hover:bg-stone-800"
+              >
+                Add Link
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowUrlInput(false); setImageUrlInput(''); }}
+                className="rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Dropzone area if no photos uploaded yet */}
+          {uploadedImages.length === 0 ? (
+            <div
+              onDragOver={event => { event.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={event => {
+                event.preventDefault();
+                setIsDragging(false);
+                if (event.dataTransfer.files) void processFiles(event.dataTransfer.files);
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition ${
+                isDragging ? 'border-[#B27A52] bg-[#fbf3ec]' : 'border-stone-300 bg-stone-50/70 hover:border-[#B27A52] hover:bg-stone-50'
+              }`}
+            >
+              <div className="rounded-full bg-stone-100 p-3 shadow-xs">
+                <Upload className="h-7 w-7 text-[#B27A52]" />
               </div>
-              <button type="button" onClick={() => setCatalogOpen(!catalogOpen)} className="mt-2 text-xs font-bold text-[#8A3D52] hover:underline">{catalogOpen ? 'Hide' : 'Manage'} categories</button>
-              {catalogOpen && (
-                <div className="mt-3 space-y-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <select value={newCategoryId} onChange={event => setNewCategoryId(event.target.value)} className="rounded-lg border border-stone-300 bg-white px-2 py-2 text-xs">
-                      <option value="">Choose a category to add</option>
-                      {unusedCategoryIds.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
-                    </select>
-                    <input value={newCategoryName} onChange={event => setNewCategoryName(event.target.value)} placeholder="Category name" className="rounded-lg border border-stone-300 px-2 py-2 text-xs" />
-                  </div>
-                  <div className="flex gap-2">
-                    <input type="file" accept="image/*" onChange={event => { const file = event.target.files?.[0]; if (file) void readCategoryImage(file).then(setNewCategoryImage); }} className="min-w-0 flex-1 text-xs" />
-                    <button type="button" onClick={() => void createCategory()} className="rounded-lg bg-stone-900 px-3 py-2 text-xs font-bold text-white">Create</button>
-                  </div>
-                  {newCategoryImage && <img src={newCategoryImage} alt="New category preview" className="h-14 w-14 rounded object-cover" />}
-                  <button type="button" onClick={() => void removeSelectedCategory()} className="text-xs text-rose-600 hover:underline">Delete selected category</button>
+              <p className="mt-3 text-sm font-bold text-stone-800">
+                Click here or drag & drop multiple product photos
+              </p>
+              <p className="mt-1 text-xs text-stone-500">
+                You can select multiple photos at once. Supported formats: JPG, PNG, WEBP, GIF (up to 10MB each)
+              </p>
+              <button
+                type="button"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#1E1719] px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                <Plus className="h-4 w-4" /> Browse Photos
+              </button>
+            </div>
+          ) : (
+            /* Uploaded Photo Cards Grid */
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {uploadedImages.map((url, index) => {
+                  const isMain = (image === url) || (!image && index === 0);
+                  return (
+                    <div
+                      key={index}
+                      className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-white transition-all shadow-xs ${
+                        isMain
+                          ? 'border-[#B27A52] ring-2 ring-[#B27A52]/25'
+                          : 'border-stone-200 hover:border-stone-400'
+                      }`}
+                    >
+                      {/* Image Preview */}
+                      <div className="relative aspect-square w-full bg-stone-100 overflow-hidden">
+                        <img src={url} alt={`Product photo ${index + 1}`} className="h-full w-full object-cover" />
+
+                        {/* Main Cover Ribbon */}
+                        {isMain && (
+                          <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-[#B27A52] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
+                            <Check className="h-3 w-3" /> Main Cover
+                          </div>
+                        )}
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); removeImage(index); }}
+                          title="Remove this photo"
+                          className="absolute top-2 right-2 rounded-lg bg-white/90 p-1.5 text-rose-600 shadow-sm opacity-90 hover:bg-rose-50 hover:opacity-100 transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Card Footer Actions */}
+                      <div className="flex items-center justify-between p-2 text-xs bg-stone-50 border-t border-stone-100">
+                        <span className="text-[10px] font-bold text-stone-400">Photo {index + 1}</span>
+                        {!isMain ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImage(url);
+                              showToast('Set as main cover photo');
+                            }}
+                            className="text-[11px] font-bold text-[#B27A52] hover:underline"
+                          >
+                            Set as Main
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-bold text-emerald-700">Primary</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Card to add more photos */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isProcessingPhotos}
+                  className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-50/50 p-4 text-stone-500 hover:border-[#B27A52] hover:bg-[#fbf3ec]/40 hover:text-[#B27A52] transition"
+                >
+                  <Plus className="h-6 w-6" />
+                  <span className="mt-2 text-xs font-bold">Add More Photos</span>
+                  <span className="mt-0.5 text-[10px] text-stone-400">Select multiple</span>
+                </button>
+              </div>
+
+              {isProcessingPhotos && (
+                <div className="rounded-lg bg-amber-50 p-2 text-center text-xs font-semibold text-amber-800">
+                  Processing and optimizing photos...
                 </div>
               )}
             </div>
-          </div>
+          )}
         </section>
 
         <section className="border-t border-stone-200 pt-6">

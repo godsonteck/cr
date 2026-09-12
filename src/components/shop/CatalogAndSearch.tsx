@@ -242,9 +242,7 @@ export const ShopCatalogPage: React.FC = () => {
                 <Filter className="w-3.5 h-3.5" />
                 <span>Filters</span>
               </button>
-              <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400 sm:text-xs">
-                <strong className="text-[#1C1817] dark:text-stone-100">{filteredProducts.length}</strong> products
-              </span>
+
             </div>
 
             {/* Sort Dropdown */}
@@ -401,9 +399,7 @@ export const SearchResultsPage: React.FC = () => {
         <h1 className="text-xl sm:text-2xl font-extrabold text-[#1C1817] dark:text-stone-100 uppercase">
           Search Results for &ldquo;<span className="text-[#C86D51]">{query}</span>&rdquo;
         </h1>
-        <p className="text-xs text-stone-500 mt-1">
-          Found <strong>{matchedProducts.length}</strong> matching products.
-        </p>
+
       </div>
 
       {matchedProducts.length > 0 ? (

@@ -1,9 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
 import { categories, products, reviews } from '../src/db/schema.js';
-import { eq, and, or, ilike, desc, asc, sql, inArray, avg, count } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, asc, sql, inArray, avg, count, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
 
 const categoryEnum = [
   'all', 'skincare', 'makeup', 'fragrances', 'body-care', 'beauty-tools',
@@ -25,6 +33,32 @@ const productQuerySchema = z.object({
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
 });
 
+/** Strip stockCount & options from each variant (not stored in the DB variants column)
+ *  and coerce image null → undefined to match the DB jsonb column type. */
+const variantItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.union([z.number(), z.string()]).transform(v => Number(v) || 0),
+  originalPrice: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
+    v == null ? undefined : Number(v)
+  ),
+  image: z.string().optional().nullable().transform(v => v ?? undefined),
+  inStock: z.boolean().default(true),
+  // accepted from the UI but stripped before writing to DB
+  stockCount: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
+    v == null ? 0 : Number(v)
+  ),
+  options: z.record(z.string()).optional().nullable(),
+}).transform(({ stockCount: _sc, options: _opt, ...v }) => v);
+
+/** Transform details sub-fields: null → undefined to match DB jsonb type */
+const detailsSchema = z.object({
+  howToUse: z.string().optional().nullable().transform(v => v ?? undefined),
+  ingredients: z.string().optional().nullable().transform(v => v ?? undefined),
+  benefits: z.string().optional().nullable().transform(v => v ?? undefined),
+  nutritionalInfo: z.string().optional().nullable().transform(v => v ?? undefined),
+}).optional().nullable();
+
 const productCreateSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1).max(255),
@@ -33,11 +67,15 @@ const productCreateSchema = z.object({
   category: z.enum(categoryEnum),
   categoryLabel: z.string().min(1).max(100),
   price: z.union([z.string(), z.number()]).transform(v => String(v)),
-  deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : Number(v)),
-  originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : String(v)),
-  discountBadge: z.string().max(50).optional().nullable(),
+  deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(Number(v))
+  ),
+  originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(v)
+  ),
+  discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100),
-  image: z.string().min(1).max(2_100_000), // ~1.5 MB base64 cap
+  image: z.string().min(1).max(2_100_000),
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
   highlights: z.array(z.string()).default([]),
@@ -55,22 +93,8 @@ const productCreateSchema = z.object({
   packSize: z.string().max(50).optional().nullable(),
   storageInfo: z.string().optional().nullable(),
   shelfLife: z.string().max(50).optional().nullable(),
-  variants: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.number(),
-    originalPrice: z.number().optional(),
-    image: z.string().optional().nullable(),
-    inStock: z.boolean(),
-    options: z.record(z.string()).optional(),
-    stockCount: z.number().int().min(0).optional(),
-  })).default([]),
-  details: z.object({
-    howToUse: z.string().optional(),
-    ingredients: z.string().optional(),
-    benefits: z.string().optional(),
-    nutritionalInfo: z.string().optional(),
-  }).optional(),
+  variants: z.array(variantItemSchema).default([]),
+  details: detailsSchema,
 });
 
 const productUpdateSchema = z.object({
@@ -79,9 +103,15 @@ const productUpdateSchema = z.object({
   department: z.enum(['beauty', 'groceries']).optional(),
   category: z.enum(categoryEnum).optional(),
   categoryLabel: z.string().min(1).max(100).optional(),
-  price: z.union([z.string(), z.number()]).optional().transform(v => v == null ? undefined : String(v)),
-  deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : Number(v)),
-  originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : String(v)),
+  price: z.union([z.string(), z.number()]).optional().transform(v =>
+    v == null ? undefined : String(v)
+  ),
+  deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(Number(v))
+  ),
+  originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(v)
+  ),
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100).optional(),
   image: z.string().min(1).optional(),
@@ -91,33 +121,21 @@ const productUpdateSchema = z.object({
   badge: z.string().max(50).optional().nullable(),
   inStock: z.boolean().optional(),
   isPublished: z.boolean().optional(),
-  stockCount: z.number().int().min(0).optional(),
+  stockCount: z.coerce.number().int().min(0).optional(),
   options: z.array(z.object({ name: z.string().min(1), values: z.array(z.string().min(1)).min(1) })).optional(),
-  rating: z.union([z.string(), z.number()]).optional().transform(v => v == null ? undefined : String(v)),
+  rating: z.union([z.string(), z.number()]).optional().transform(v =>
+    v == null ? undefined : String(v)
+  ),
   reviewCount: z.number().int().min(0).optional(),
   origin: z.string().max(100).optional().nullable(),
   routineStep: z.enum(['cleanse', 'treat', 'hydrate', 'protect']).optional().nullable(),
-  skinType: z.array(z.string()).default([]).optional(),
-  skinConcern: z.array(z.string()).default([]).optional(),
+  skinType: z.array(z.string()).optional(),
+  skinConcern: z.array(z.string()).optional(),
   packSize: z.string().max(50).optional().nullable(),
   storageInfo: z.string().optional().nullable(),
   shelfLife: z.string().max(50).optional().nullable(),
-  variants: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.number(),
-    originalPrice: z.number().optional(),
-    image: z.string().optional().nullable(),
-    inStock: z.boolean(),
-    options: z.record(z.string()).optional(),
-    stockCount: z.number().int().min(0).optional(),
-  })).default([]).optional(),
-  details: z.object({
-    howToUse: z.string().optional(),
-    ingredients: z.string().optional(),
-    benefits: z.string().optional(),
-    nutritionalInfo: z.string().optional(),
-  }).optional().nullable(),
+  variants: z.array(variantItemSchema).optional(),
+  details: detailsSchema,
 }).partial();
 
 const sitemapBaseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cosmeticse.vercel.app');
@@ -132,7 +150,7 @@ async function attachLiveReviewStats<T extends { id: string; rating: string; rev
       reviewCount: count(),
     })
     .from(reviews)
-    .where(and(eq(reviews.isApproved, true), inArray(reviews.productId, productRows.map(product => product.id))))
+    .where(and(eq(reviews.isApproved, true), inArray(reviews.productId, productRows.map(p => p.id))))
     .groupBy(reviews.productId);
 
   const statsByProduct = new Map(stats.map(stat => [stat.productId, stat]));
@@ -162,8 +180,8 @@ async function sendSitemap(res: VercelResponse) {
     ['/about', 'monthly', 0.5], ['/contact', 'monthly', 0.5], ['/support', 'monthly', 0.5],
     ['/offers', 'daily', 0.7],
   ].map(([url, changefreq, priority]) => ({ url, lastmod: sitemapDate(new Date()), changefreq, priority }));
-  const productRoutes = allProducts.map(product => ({ url: `/product/${product.id}`, lastmod: sitemapDate(product.updatedAt), changefreq: 'weekly', priority: 0.8 }));
-  const categoryRoutes = allCategories.map(category => ({ url: `/category/${category.id}`, lastmod: sitemapDate(category.updatedAt), changefreq: 'weekly', priority: 0.7 }));
+  const productRoutes = allProducts.map(p => ({ url: `/product/${p.id}`, lastmod: sitemapDate(p.updatedAt), changefreq: 'weekly', priority: 0.8 }));
+  const categoryRoutes = allCategories.map(c => ({ url: `/category/${c.id}`, lastmod: sitemapDate(c.updatedAt), changefreq: 'weekly', priority: 0.7 }));
   const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -181,17 +199,12 @@ ${routes.map(route => `  <url>
 
 function applySort(query: any, sort: string) {
   switch (sort) {
-    case 'price-asc':
-      return query.orderBy(asc(products.price));
-    case 'price-desc':
-      return query.orderBy(desc(products.price));
-    case 'rating':
-      return query.orderBy(desc(products.rating));
-    case 'popular':
-      return query.orderBy(desc(products.reviewCount));
+    case 'price-asc':  return query.orderBy(asc(products.price));
+    case 'price-desc': return query.orderBy(desc(products.price));
+    case 'rating':     return query.orderBy(desc(products.rating));
+    case 'popular':    return query.orderBy(desc(products.reviewCount));
     case 'newest':
-    default:
-      return query.orderBy(desc(products.createdAt));
+    default:           return query.orderBy(desc(products.createdAt));
   }
 }
 
@@ -203,16 +216,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
+    // ── GET ──────────────────────────────────────────────────────────────────
     if (method === 'GET') {
       if (query.sitemap === '1') {
         return sendSitemap(res);
       }
 
       if (query.id && typeof query.id === 'string') {
-        const [product] = await db.select().from(products).where(and(eq(products.id, query.id), eq(products.isPublished, true))).limit(1);
-        if (!product) {
-          return res.status(404).json({ error: 'Product not found' });
-        }
+        const [product] = await db
+          .select()
+          .from(products)
+          .where(and(eq(products.id, query.id), eq(products.isPublished, true)))
+          .limit(1);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
         const [liveProduct] = await attachLiveReviewStats([product]);
         return res.status(200).json(liveProduct);
       }
@@ -229,7 +245,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!auth) return;
       }
 
-      const conditions = [];
+      // Build WHERE conditions with explicit type so push() is always valid
+      const conditions: SQL<unknown>[] = [];
 
       if (!includeUnpublished && published !== undefined) {
         conditions.push(eq(products.isPublished, published));
@@ -248,14 +265,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ilike(products.name, `%${search}%`),
           ilike(products.description, `%${search}%`),
           ilike(products.brand, `%${search}%`)
-        ));
+        ) as SQL<unknown>);
       }
       if (featured) {
         conditions.push(or(
           eq(products.badge, 'Bestseller'),
           eq(products.badge, 'New In'),
           eq(products.badge, 'CR Exclusive')
-        ));
+        ) as SQL<unknown>);
       }
 
       const baseQuery = db.select().from(products);
@@ -270,7 +287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? db.select({ count: sql<number>`count(*)` }).from(products).where(and(...conditions))
         : db.select({ count: sql<number>`count(*)` }).from(products);
       const totalResult = await totalQuery;
-      const total = totalResult[0]?.count ?? 0;
+      const total = Number(totalResult[0]?.count ?? 0);
 
       return res.status(200).json({
         products: liveResults,
@@ -278,6 +295,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // ── POST ─────────────────────────────────────────────────────────────────
     if (method === 'POST') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
@@ -288,22 +306,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid product data', details: parsed.error.flatten() });
       }
 
+      const { id: rawId, deliveryPrice, ...rest } = parsed.data;
       const productData = {
-        ...parsed.data,
-        id: parsed.data.id || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        deliveryPrice: parsed.data.deliveryPrice == null ? null : parsed.data.deliveryPrice.toString(),
+        ...rest,
+        id: rawId || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        // deliveryPrice is already a string | null from the Zod transform
+        deliveryPrice: deliveryPrice ?? null,
       };
 
-      const [newProduct] = await db.insert(products).values(productData).returning();
+      const [newProduct] = await db.insert(products).values(productData as any).returning();
       return res.status(201).json(newProduct);
     }
 
+    // ── PATCH ─────────────────────────────────────────────────────────────────
     if (method === 'PATCH') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
 
       const parsed = productUpdateSchema.safeParse(body);
       if (!parsed.success) {
+        console.error('Product update validation failed:', JSON.stringify(parsed.error.flatten()));
         return res.status(400).json({ error: 'Invalid product data', details: parsed.error.flatten() });
       }
 
@@ -312,24 +334,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Product ID is required' });
       }
 
+      const { deliveryPrice, ...rest } = parsed.data;
       const updateData = {
-        ...parsed.data,
-        deliveryPrice: parsed.data.deliveryPrice == null ? parsed.data.deliveryPrice : parsed.data.deliveryPrice.toString(),
+        ...rest,
+        // deliveryPrice is already string | null from the Zod transform;
+        // only include it if the field was actually sent in the request body
+        ...(deliveryPrice !== undefined ? { deliveryPrice: deliveryPrice ?? null } : {}),
         updatedAt: new Date(),
       };
 
       const [updated] = await db
         .update(products)
-        .set(updateData)
+        .set(updateData as any)
         .where(eq(products.id, id))
         .returning();
 
-      if (!updated) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
+      if (!updated) return res.status(404).json({ error: 'Product not found' });
       return res.status(200).json(updated);
     }
 
+    // ── DELETE ────────────────────────────────────────────────────────────────
     if (method === 'DELETE') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
@@ -340,9 +364,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const [deleted] = await db.delete(products).where(eq(products.id, id)).returning({ id: products.id });
-      if (!deleted) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
+      if (!deleted) return res.status(404).json({ error: 'Product not found' });
       return res.status(200).json({ success: true, id: deleted.id });
     }
 
