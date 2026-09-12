@@ -15,6 +15,7 @@ if (!connectionString) {
 const client = postgres(connectionString || 'postgres://user:pass@localhost:5432/db', {
   ssl: 'require',
   max: 1, // serverless-friendly: keep connection pool minimal
+  prepare: false, // required for Supabase transaction pooler (PgBouncer)
 });
 
 export const db = drizzle(client);
