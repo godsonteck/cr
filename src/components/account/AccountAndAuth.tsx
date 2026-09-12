@@ -841,7 +841,7 @@ export const AccountPage: React.FC = () => {
           concerns: profileForm.concerns,
         },
       });
-      showAlert('Profile details updated and synchronized with store system', 'success');
+      showAlert('Profile details updated successfully', 'success');
       setIsEditingProfile(false);
     } catch (error: any) {
       showAlert(error?.message || 'Failed to update profile', 'error');
@@ -2570,7 +2570,7 @@ export const AccountPage: React.FC = () => {
                                 disabled={isSavingProfile}
                                 className="rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
                               >
-                                {isSavingProfile ? 'Saving & Syncing...' : 'Save & Sync with Admin'}
+                                {isSavingProfile ? 'Saving...' : 'Save Changes'}
                               </Button>
                               <Button
                                 type="button"
