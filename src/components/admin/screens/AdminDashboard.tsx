@@ -123,10 +123,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      await store.fetchProducts({ includeUnpublished: true });
-      await store.fetchOrders();
-      setLastRefresh(new Date());
-      showAlert('Dashboard refreshed successfully', 'success');
+      const [productsResult, ordersResult] = await Promise.allSettled([
+        store.fetchProducts({ includeUnpublished: true }),
+        store.fetchOrders(),
+      ]);
+
+      const authFailed = [productsResult, ordersResult].some(
+        r => r.status === 'rejected' && (r.reason?.status === 401 || r.reason?.status === 403)
+      );
+
+      // Auth errors are handled by the api client (token removal + cr-auth-expired event)
+      // so we don't show an additional error toast for those
+      if (authFailed) {
+        return;
+      }
+
+      const anyFailed = [productsResult, ordersResult].some(r => r.status === 'rejected');
+      if (anyFailed) {
+        showAlert('Some data could not be refreshed. Please try again.', 'error');
+      } else {
+        setLastRefresh(new Date());
+        showAlert('Dashboard refreshed successfully', 'success');
+      }
     } catch {
       showAlert('Failed to refresh dashboard', 'error');
     } finally {

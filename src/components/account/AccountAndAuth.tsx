@@ -41,6 +41,8 @@ import {
   Volume2,
   Info,
   MessageCircle,
+  Clock,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -50,10 +52,18 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAlert } from '../../context/AlertContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { Button, Badge } from '../common/UIPrimitives';
-import { ShippingAddress, Order, Product, AdminNotification } from '../../types';
+import { ShippingAddress, Order, OrderStatus, Product, AdminNotification } from '../../types';
 import logoImg from '../../assets/logo.jpeg';
 import { api } from '../../lib/api';
 import { SettingsView } from './SettingsView';
+import {
+  ORDER_STAGES,
+  STATUS_INDEX,
+  STATUS_MESSAGE,
+  OrderProgressTracker,
+  DeliveryTimeline,
+  OrderStatusHero,
+} from './OrderTrackingComponents';
 
 // ============================================================================
 // Google Sign-In Button Component
@@ -1233,102 +1243,11 @@ export const AccountPage: React.FC = () => {
               <div className="space-y-6">
                 {/* Active in-transit Order */}
                 {activeOrders.length > 0 && (
-                  <div className="overflow-hidden rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-3 w-3 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C86D51] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-[#C86D51]"></span>
-                        </span>
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C86D51]">
-                          Live Order in Progress
-                        </p>
-                      </div>
-                      <Badge variant="terracotta">{activeOrders[0].status}</Badge>
-                    </div>
-
-                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="text-lg font-black text-[#1C1817] dark:text-stone-100">
-                          Order #{activeOrders[0].orderNumber}
-                        </h3>
-                        <p className="text-xs text-stone-500">
-                          Delivery ETA: <strong className="text-stone-800 dark:text-stone-200">{activeOrders[0].estimatedDeliveryTime || 'Scheduled'}</strong>
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setViewingInvoiceOrder(activeOrders[0])}
-                          className="flex-1 sm:flex-initial rounded-xl text-xs font-bold justify-center"
-                        >
-                          <Printer className="mr-1 h-3.5 w-3.5" /> Digital Receipt
-                        </Button>
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => setActiveTab('orders')}
-                          className="flex-1 sm:flex-initial rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:opacity-90 justify-center"
-                        >
-                          View Details <ChevronRight className="ml-1 h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Progress timeline */}
-                    <div className="mt-5 border-t border-[var(--border-color)] pt-4">
-                      <div className="grid grid-cols-5 gap-0.5 sm:gap-1 text-center text-[9px] sm:text-[10px] font-bold">
-                        {['Confirmed', 'Processing', 'Packing', 'On the Way', 'Delivered'].map((step, idx) => {
-                          const stageMap: Record<string, number> = {
-                            'Confirmed': 0,
-                            'Processing': 1,
-                            'Packing Order': 2,
-                            'Out for Delivery': 3,
-                            'Delivered': 4,
-                          };
-                          const currentStage = stageMap[activeOrders[0].status] ?? 0;
-                          const isDone = idx <= currentStage;
-                          const isCurrent = idx === currentStage;
-                          return (
-                            <div key={step} className={isCurrent ? 'text-[var(--accent)] font-black' : isDone ? 'text-[var(--text-primary)]' : 'text-[var(--text-subtle)]/40'}>
-                              <span className={`mx-auto mb-1.5 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[var(--accent)] ring-4 ring-[var(--accent)]/25' : isDone ? 'bg-[var(--accent)]' : 'bg-stone-200 dark:bg-stone-700'}`} />
-                              <span className="line-clamp-1 sm:line-clamp-2 leading-tight">{step}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Courier Contact Card (Only when assigned in database) */}
-                    {activeOrders[0].riderInfo?.riderName && (
-                      <div className="mt-4 flex items-center justify-between rounded-2xl border border-[#F0E4DC] bg-stone-50 dark:bg-[#241D20] p-3 text-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#C86D51]">
-                            <Truck className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-[#1C1817] dark:text-stone-100">
-                              Courier: {activeOrders[0].riderInfo.riderName}
-                            </p>
-                            {activeOrders[0].riderInfo.estimatedArrival && (
-                              <p className="text-[10px] text-stone-500">
-                                ETA: {activeOrders[0].riderInfo.estimatedArrival}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        {activeOrders[0].riderInfo.riderPhone && (
-                          <a
-                            href={`tel:${activeOrders[0].riderInfo.riderPhone}`}
-                            className="flex items-center gap-1 rounded-xl bg-[#C86D51] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#8A3D52] transition"
-                          >
-                            <Phone className="h-3.5 w-3.5" /> Call Rider
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <OrderStatusHero
+                    order={activeOrders[0]}
+                    onViewDetails={() => setActiveTab('orders')}
+                    onReceipt={() => setViewingInvoiceOrder(activeOrders[0])}
+                  />
                 )}
 
                 {/* Live Promo Codes Strip (Direct from database) */}
@@ -1496,13 +1415,15 @@ export const AccountPage: React.FC = () => {
                 <div className="space-y-4">
                   {filteredOrders.length > 0 ? (
                     filteredOrders.map((ord) => (
-                      <div
+                      <article
                         key={ord.id}
-                        className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-6 shadow-sm space-y-4"
+                        className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] overflow-hidden shadow-sm"
+                        aria-label={`Order ${ord.orderNumber}`}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F0E4DC] dark:border-[#2C2426] pb-4">
+                        {/* ── Order header ── */}
+                        <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4 border-b border-[#F0E4DC] dark:border-[#2C2426]">
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-base font-black text-[#1C1817] dark:text-stone-100">
                                 Order #{ord.orderNumber}
                               </span>
@@ -1517,128 +1438,168 @@ export const AccountPage: React.FC = () => {
                               >
                                 {ord.status}
                               </Badge>
+                              {ord.paymentStatus === 'paid' && (
+                                <Badge variant="botanical" size="sm">Paid</Badge>
+                              )}
                             </div>
                             <p className="text-xs text-stone-400 mt-0.5">
-                              Placed on {ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                              Placed {ord.createdAt
+                                ? new Date(ord.createdAt).toLocaleDateString('en-GH', { day: 'numeric', month: 'long', year: 'numeric' })
+                                : 'recently'}
                             </p>
                           </div>
-
                           <div className="text-right">
-                            <p className="text-xs text-stone-500 font-medium">Total</p>
-                            <p className="text-lg font-black text-[#1C1817] dark:text-stone-100">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Total</p>
+                            <p className="text-xl font-black text-[#1C1817] dark:text-stone-100">
                               GHS {Number(ord.total).toFixed(2)}
                             </p>
                           </div>
                         </div>
 
-                        {/* Order Stepper */}
-                        <div className="rounded-2xl bg-[#FCF9F7] dark:bg-[#241D20] p-4">
-                          <div className="mb-2 flex items-center justify-between">
-                            <p className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500">
-                              Status
-                            </p>
-                            {ord.estimatedDeliveryTime && (
-                              <span className="text-[11px] font-bold text-[#C86D51]">
-                                Est. Delivery: {ord.estimatedDeliveryTime}
-                              </span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
-                            {['Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'].map((stage, idx) => {
-                              const stageMap: Record<string, number> = {
-                                'Confirmed': 0,
-                                'Processing': 1,
-                                'Packing Order': 2,
-                                'Out for Delivery': 3,
-                                'Delivered': 4,
-                              };
-                              const currentStage = stageMap[ord.status] ?? 0;
-                              const isDone = idx <= currentStage;
-                              const isCurrent = idx === currentStage;
-                              return (
-                                <div key={stage} className={isCurrent ? 'text-[#C86D51] font-black' : isDone ? 'text-stone-700 dark:text-stone-200' : 'text-stone-300 dark:text-stone-600'}>
-                                  <span className={`mx-auto mb-1 block h-2.5 w-2.5 rounded-full ${isCurrent ? 'bg-[#C86D51] ring-4 ring-[#C86D51]/25' : isDone ? 'bg-[#C86D51]' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                                  <span className="line-clamp-2 leading-tight">{stage}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {(ord.riderInfo?.riderName || ord.riderInfo?.riderPhone || ord.riderInfo?.riderLocation) && (
-                            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white dark:bg-[#1C1719] border border-[#F0E4DC] dark:border-[#2C2426] p-3 text-xs text-stone-700 dark:text-stone-300">
-                              <div className="flex items-center gap-2">
-                                <Truck className="h-4 w-4 text-[#C86D51]" />
-                                <span>
-                                  <strong>Courier:</strong> {ord.riderInfo?.riderName || 'Assigned Driver'}
-                                  {ord.riderInfo?.riderLocation ? ` • Near ${ord.riderInfo.riderLocation}` : ''}
-                                  {ord.riderInfo?.estimatedArrival ? ` • ETA ${ord.riderInfo.estimatedArrival}` : ''}
-                                </span>
-                              </div>
-                              {ord.riderInfo?.riderPhone && (
-                                <a
-                                  href={`tel:${ord.riderInfo.riderPhone}`}
-                                  className="inline-flex items-center gap-1 rounded-lg bg-[#FAF3F0] dark:bg-[#2A2024] px-2.5 py-1 text-xs font-bold text-[#C86D51] hover:underline"
-                                >
-                                  <Phone className="h-3 w-3" /> Call Rider ({ord.riderInfo.riderPhone})
-                                </a>
-                              )}
+                        {/* ── Status message ── */}
+                        <div className="px-5 pt-4">
+                          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--text-subtle)] mb-1">Status</p>
+                          <p className="text-sm font-bold text-[var(--text-primary)]">{STATUS_MESSAGE[ord.status]}</p>
+                          {ord.estimatedDeliveryTime && (
+                            <div className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[var(--bg-soft)] px-2.5 py-1">
+                              <Clock className="h-3 w-3 text-[#C86D51]" aria-hidden="true" />
+                              <span className="text-[11px] font-bold text-[#C86D51]">Est. {ord.estimatedDeliveryTime}</span>
                             </div>
                           )}
                         </div>
 
-                        {/* Items List */}
-                        <div className="space-y-3 pt-2">
-                          {ord.items && ord.items.map((item, i) => (
-                            <div key={i} className="flex items-center gap-3">
-                              <img
-                                src={item.product?.image || logoImg}
-                                onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoImg; }}
-                                alt={item.product?.name || 'Product'}
-                                className="h-12 w-12 rounded-xl object-cover border border-[#F0E4DC] dark:border-[#2C2426]"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="truncate text-xs font-bold text-[#1C1817] dark:text-stone-100">
-                                  {item.product?.name}
-                                </p>
-                                <p className="text-[11px] text-stone-500">
-                                  Qty: {item.quantity} {item.selectedOption ? `• ${item.selectedOption}` : ''} {item.selectedVariant ? `• ${item.selectedVariant.name}` : ''}
-                                </p>
-                              </div>
-                              <p className="text-xs font-bold text-[#1C1817] dark:text-stone-100">
-                                GHS {(Number(item.selectedVariant?.price || item.product?.price || 0) * item.quantity).toFixed(2)}
-                              </p>
-                            </div>
-                          ))}
+                        {/* ── Progress tracker ── */}
+                        <div className="px-5 pt-4">
+                          <OrderProgressTracker status={ord.status} />
                         </div>
 
-                        <div className="flex flex-col gap-3 border-t border-[#F0E4DC] dark:border-[#2C2426] pt-3 sm:flex-row sm:items-center sm:justify-between text-xs text-stone-500">
-                          <div>
-                            <p className="font-semibold text-stone-700 dark:text-stone-300">
-                              Destination: {ord.shippingAddress?.fullName} • {ord.shippingAddress?.area}, {ord.shippingAddress?.city}
-                            </p>
-                            {ord.shippingAddress?.phone && (
-                              <p className="text-[11px] text-stone-400">Phone: {ord.shippingAddress.phone}</p>
+                        {/* ── Rider info ── */}
+                        {(ord.riderInfo?.riderName || ord.riderInfo?.riderPhone || ord.riderInfo?.riderLocation) && (
+                          <div className="mx-5 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[var(--bg-soft)] p-3 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-white dark:bg-[#1C1719] text-[#C86D51]">
+                                <Truck className="h-3.5 w-3.5" aria-hidden="true" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-[var(--text-primary)]">
+                                  {ord.riderInfo?.riderName || 'Assigned Courier'}
+                                </p>
+                                {ord.riderInfo?.riderLocation && (
+                                  <p className="text-[10px] text-[var(--text-subtle)]">
+                                    Near {ord.riderInfo.riderLocation}
+                                    {ord.riderInfo.estimatedArrival ? ` · ETA ${ord.riderInfo.estimatedArrival}` : ''}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            {ord.riderInfo?.riderPhone && (
+                              <a
+                                href={`tel:${ord.riderInfo.riderPhone}`}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-[#C86D51] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#8A3D52] transition"
+                                aria-label={`Call rider ${ord.riderInfo.riderPhone}`}
+                              >
+                                <Phone className="h-3 w-3" aria-hidden="true" /> Call Rider
+                              </a>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setViewingInvoiceOrder(ord)}
-                              className="rounded-xl text-xs font-bold"
-                            >
-                              <Printer className="mr-1.5 h-3.5 w-3.5" /> Receipt
-                            </Button>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleReorder(ord)}
-                              className="rounded-xl text-xs font-bold bg-[#1C1817] text-white hover:bg-[#2A1D20]"
-                            >
-                              <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Re-order
-                            </Button>
+                        )}
+
+                        {/* ── Delivery Updates timeline ── */}
+                        <div className="mx-5 mt-5 rounded-2xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[#FCF9F7] dark:bg-[#241D20] p-4">
+                          <DeliveryTimeline order={ord} />
+                        </div>
+
+                        {/* ── Items ── */}
+                        <div className="px-5 pt-5">
+                          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--text-subtle)] mb-3">Your Order</p>
+                          <div className="space-y-3">
+                            {ord.items && ord.items.map((item, i) => (
+                              <div key={i} className="flex items-center gap-3">
+                                <img
+                                  src={item.product?.image || logoImg}
+                                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoImg; }}
+                                  alt={item.product?.name || 'Product'}
+                                  className="h-13 w-13 rounded-xl object-cover border border-[#F0E4DC] dark:border-[#2C2426] shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-[#1C1817] dark:text-stone-100 leading-snug">
+                                    {item.product?.name}
+                                  </p>
+                                  <p className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                                    Qty {item.quantity}
+                                    {item.selectedVariant ? ` · ${item.selectedVariant.name}` : ''}
+                                    {item.selectedOption && !item.selectedVariant ? ` · ${item.selectedOption}` : ''}
+                                  </p>
+                                </div>
+                                <p className="text-sm font-black text-[#1C1817] dark:text-stone-100 shrink-0">
+                                  GHS {(Number(item.selectedVariant?.price || item.product?.price || 0) * item.quantity).toFixed(2)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Total line */}
+                          <div className="mt-4 flex justify-between items-center border-t border-[#F0E4DC] dark:border-[#2C2426] pt-3">
+                            <span className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-subtle)]">Total</span>
+                            <span className="text-base font-black text-[#1C1817] dark:text-stone-100">
+                              GHS {Number(ord.total).toFixed(2)}
+                            </span>
                           </div>
                         </div>
-                      </div>
+
+                        {/* ── Destination ── */}
+                        <div className="mx-5 mt-4 rounded-2xl border border-[#F0E4DC] dark:border-[#2C2426] bg-[var(--bg-soft)] p-4">
+                          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--text-subtle)] mb-2">Delivering To</p>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-3.5 w-3.5 text-[#C86D51] mt-0.5 shrink-0" aria-hidden="true" />
+                            <div>
+                              <p className="text-sm font-bold text-[var(--text-primary)]">
+                                {ord.shippingAddress?.fullName}
+                              </p>
+                              <p className="text-xs text-[var(--text-subtle)] mt-0.5">
+                                {ord.shippingAddress?.area}{ord.shippingAddress?.city ? `, ${ord.shippingAddress.city}` : ''}
+                                {ord.shippingAddress?.region ? `, ${ord.shippingAddress.region}` : ''}
+                              </p>
+                              {ord.shippingAddress?.landmarkOrGps && (
+                                <p className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                                  {ord.shippingAddress.landmarkOrGps}
+                                </p>
+                              )}
+                              {ord.shippingAddress?.phone && (
+                                <a
+                                  href={`tel:${ord.shippingAddress.phone}`}
+                                  className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[#C86D51] hover:underline"
+                                >
+                                  <Phone className="h-3 w-3" aria-hidden="true" />
+                                  {ord.shippingAddress.phone}
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ── Actions ── */}
+                        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#F0E4DC] dark:border-[#2C2426] mt-5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setViewingInvoiceOrder(ord)}
+                            className="rounded-xl text-xs font-bold"
+                            aria-label={`View receipt for order ${ord.orderNumber}`}
+                          >
+                            <Printer className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" /> Receipt
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleReorder(ord)}
+                            className="rounded-xl text-xs font-bold bg-[#1C1817] dark:bg-[var(--accent)] text-white hover:opacity-90"
+                            aria-label={`Re-order items from order ${ord.orderNumber}`}
+                          >
+                            <RotateCcw className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" /> Re-order
+                          </Button>
+                        </div>
+                      </article>
                     ))
                   ) : (
                     <div className="rounded-3xl border border-[#F0E4DC] dark:border-[#2C2426] bg-white dark:bg-[#1C1719] p-12 text-center">

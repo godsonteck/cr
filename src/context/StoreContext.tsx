@@ -552,6 +552,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const shouldIncludeUnpublished = params?.includeUnpublished
         || (params?.published === undefined && Boolean(localStorage.getItem('admin_auth_token')));
       if (shouldIncludeUnpublished) query.set('includeUnpublished', 'true');
+      query.set('limit', '500');
       const data = await api.get<{ products: Product[] }>(`/products?${query}`);
       if (data && Array.isArray(data.products)) {
         setProducts(data.products.map(normalizeProduct));
@@ -719,38 +720,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Product Actions
   const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
     const newId = 'prod-' + Date.now();
-    const newProduct: Product = {
-      ...productData,
-      id: newId,
-      rating: productData.rating || 5.0,
-      reviewCount: productData.reviewCount || 0,
-      isPublished: productData.isPublished !== false,
-      inStock: productData.inStock !== false && (productData.stockCount || 0) > 0,
-      stockCount: productData.stockCount || 10,
-    };
-
     try {
       const apiResult = await api.post<Product>('/products', { ...productData, id: newId });
-      setProducts(prev => [apiResult, ...prev]);
-      await fetchProducts({ includeUnpublished: true });
-      return apiResult;
-    } catch (e: any) {
-      setError('Failed to add product to server. Changes saved locally only.');
-      setProducts(prev => [newProduct, ...prev]);
+      const normalized = normalizeProduct(apiResult);
+      setProducts(prev => [normalized, ...prev.filter(p => p.id !== normalized.id)]);
       if (productData.brand && !brands.includes(productData.brand)) {
         setBrands(prev => [...prev, productData.brand]);
       }
-      return newProduct;
+      await fetchProducts({ includeUnpublished: true });
+      return normalized;
+    } catch (e: any) {
+      const errorMsg = e?.data?.error || e?.message || 'Failed to add product to server.';
+      setError(errorMsg);
+      console.error('Failed to add product to server:', e);
+      throw e;
     }
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     try {
-      await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates);
+      const updated = await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates);
+      const normalized = normalizeProduct(updated);
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, ...normalized } : p));
       await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
-      setError('Failed to update product on server.');
+      const errorMsg = e?.data?.error || e?.message || 'Failed to update product on server.';
+      setError(errorMsg);
+      console.error('Failed to update product on server:', e);
+      throw e;
     }
   };
 
@@ -760,7 +757,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await api.delete(`/products?id=${encodeURIComponent(id)}`);
       await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
-      setError('Failed to delete product from server.');
+      const errorMsg = e?.data?.error || e?.message || 'Failed to delete product from server.';
+      setError(errorMsg);
+      console.error('Failed to delete product from server:', e);
+      throw e;
     }
   };
 

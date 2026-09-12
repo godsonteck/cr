@@ -45,8 +45,28 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
 
   const readImage = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = event => { const result = String(event.target?.result || ''); const preview = new Image(); preview.onload = () => { const max = 1200; const scale = Math.min(1, max / Math.max(preview.width, preview.height)); const canvas = document.createElement('canvas'); canvas.width = Math.round(preview.width * scale); canvas.height = Math.round(preview.height * scale); canvas.getContext('2d')?.drawImage(preview, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', 0.88)); }; preview.onerror = () => resolve(result); preview.src = result; };
-    reader.onerror = reject; reader.readAsDataURL(file);
+    reader.onload = event => {
+      const result = String(event.target?.result || '');
+      const preview = new Image();
+      preview.onload = () => {
+        const max = 960;
+        const scale = Math.min(1, max / Math.max(preview.width, preview.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(preview.width * scale);
+        canvas.height = Math.round(preview.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(preview, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        } else {
+          resolve(result);
+        }
+      };
+      preview.onerror = () => resolve(result);
+      preview.src = result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
   const processFiles = async (files: FileList | File[]) => { const valid = Array.from(files).filter(file => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024); if (!valid.length) { showToast('Please choose a JPG, PNG, WEBP, or GIF image under 10MB.'); return; } try { const images = await Promise.all(valid.map(readImage)); setUploadedImages(previous => [...previous, ...images]); setImage(previous => previous || images[0]); showToast('Photo added'); } catch { showToast('Could not read that photo. Please try again.'); } };
   const removeImage = (index: number) => setUploadedImages(previous => { const next = previous.filter((_, itemIndex) => itemIndex !== index); if (image === previous[index]) setImage(next[0] || ''); return next; });
@@ -69,7 +89,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     event.preventDefault(); if (!name.trim()) { showToast('Enter a product name'); return; } if (!image && !uploadedImages.length) { showToast('Upload at least one product photo'); return; } if (price <= 0) { showToast('Enter a selling price'); return; } if (options.some(option => !option.name.trim() || !option.values.length)) { showToast('Complete or remove each product option'); return; } if (options.length && !variants.length) { showToast('Add the product combinations or remove the options'); return; }
     const primaryImage = image || uploadedImages[0]; const cleanOptions = options.filter(option => option.name.trim() && option.values.length); const finalBrand = brand === '__NEW__' ? newBrandInput.trim() : brand;
     const payload = { name: name.trim(), brand: finalBrand || 'Unbranded', department, category, categoryLabel: categoryLabel.trim() || 'Retail Item', price, ...(deliveryPrice === undefined ? {} : { deliveryPrice }), originalPrice: originalPrice || undefined, discountBadge: discountBadge.trim() || undefined, unit: unit.trim() || 'Standard Pack', image: primaryImage, images: uploadedImages.length ? uploadedImages : [primaryImage], description: description.trim(), highlights: highlights.length ? highlights : ['Original and authentic', 'Quality inspected'], badge: badge || undefined, inStock, isPublished, stockCount, options: cleanOptions, variants: variants.map(({ optionValues, ...variant }) => ({ ...variant, name: Object.values(optionValues).filter(Boolean).join(' / ') || variant.name, options: optionValues })), origin: origin.trim(), rating: productToEdit?.rating || 5, reviewCount: productToEdit?.reviewCount || 0, details: { howToUse: howToUse.trim(), ingredients: ingredients.trim(), benefits: benefits.trim() } };
-    setIsSaving(true); try { if (productToEdit) { await updateProduct(productToEdit.id, payload); showToast(`Updated ${name}`); } else { await addProduct(payload); showToast(`Added ${name}`); } onClose(); } catch { showToast('Could not save the product. Please try again.'); } finally { setIsSaving(false); }
+    setIsSaving(true);
+    try {
+      if (productToEdit) {
+        await updateProduct(productToEdit.id, payload);
+        showToast(`Updated ${name}`);
+      } else {
+        await addProduct(payload);
+        showToast(`Added ${name}`);
+      }
+      onClose();
+    } catch (err: any) {
+      const errMsg = err?.data?.error || err?.message || 'Could not save the product. Please check the details and try again.';
+      showToast(errMsg);
+    } finally {
+      setIsSaving(false);
+    }
   };
   const categories = storeCategories.filter(item => item.department === department).length
     ? storeCategories.filter(item => item.department === department).map(item => ({ value: item.id, label: item.name }))

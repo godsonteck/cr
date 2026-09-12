@@ -20,7 +20,7 @@ const productQuerySchema = z.object({
   published: z.coerce.boolean().optional().default(true),
   featured: z.coerce.boolean().optional(),
   includeUnpublished: z.coerce.boolean().optional().default(false),
-  limit: z.coerce.number().min(1).max(100).optional().default(50),
+  limit: z.coerce.number().min(1).max(500).optional().default(100),
   offset: z.coerce.number().min(0).optional().default(0),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
 });
@@ -35,7 +35,7 @@ const productCreateSchema = z.object({
   price: z.union([z.string(), z.number()]).transform(v => String(v)),
   deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : Number(v)),
   originalPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v => v == null ? null : String(v)),
-  discountBadge: z.string().max(20).optional().nullable(),
+  discountBadge: z.string().max(50).optional().nullable(),
   unit: z.string().min(1).max(100),
   image: z.string().min(1).max(2_100_000), // ~1.5 MB base64 cap
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
@@ -48,13 +48,13 @@ const productCreateSchema = z.object({
   options: z.array(z.object({ name: z.string().min(1), values: z.array(z.string().min(1)).min(1) })).default([]),
   rating: z.union([z.string(), z.number()]).default('5.0').transform(v => String(v)),
   reviewCount: z.number().int().min(0).default(0),
-  origin: z.string().max(100).optional(),
-  routineStep: z.enum(['cleanse', 'treat', 'hydrate', 'protect']).optional(),
+  origin: z.string().max(100).optional().nullable(),
+  routineStep: z.enum(['cleanse', 'treat', 'hydrate', 'protect']).optional().nullable(),
   skinType: z.array(z.string()).default([]),
   skinConcern: z.array(z.string()).default([]),
-  packSize: z.string().max(50).optional(),
-  storageInfo: z.string().optional(),
-  shelfLife: z.string().max(50).optional(),
+  packSize: z.string().max(50).optional().nullable(),
+  storageInfo: z.string().optional().nullable(),
+  shelfLife: z.string().max(50).optional().nullable(),
   variants: z.array(z.object({
     id: z.string(),
     name: z.string(),
@@ -282,6 +282,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const parsed = productCreateSchema.safeParse(body);
       if (!parsed.success) {
+        console.error('Product validation failed:', JSON.stringify(parsed.error.flatten()));
         return res.status(400).json({ error: 'Invalid product data', details: parsed.error.flatten() });
       }
 
