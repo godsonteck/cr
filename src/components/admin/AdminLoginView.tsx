@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
+import { useTheme } from '../../context/ThemeContext';
 import { 
   ShieldCheck, 
   Lock, 
   ArrowLeft,
   ArrowRight, 
-  User, 
-  Shield, 
   Eye, 
   EyeOff,
-  Mail
+  Mail,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../../assets/logo.jpeg';
@@ -22,6 +23,7 @@ interface AdminLoginProps {
 export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
   const { loginAdmin, storeSettings } = useStore();
   const { showToast } = useToast();
+  const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
 
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -72,41 +74,57 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-stone-900 flex flex-col justify-between selection:bg-[#1E1719] selection:text-[#FAF6F0] relative font-sans">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col justify-between selection:bg-[#C89B3C] selection:text-white relative font-sans transition-colors duration-200">
       
       {/* Top Bar */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <Link 
           to="/" 
-          className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 hover:text-stone-900 transition-colors group"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           <span>Back to Online Shop</span>
         </Link>
-        <div className="flex items-center gap-2 text-xs text-stone-500">
-          <ShieldCheck className="w-4 h-4 text-[#2E4A38]" />
-          <span className="text-[11px] font-medium">Secure Store Login</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors shadow-xs cursor-pointer"
+            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+          >
+            {isDark ? <Sun className="w-3.5 h-3.5 text-[#E0B554]" /> : <Moon className="w-3.5 h-3.5 text-stone-600" />}
+            <span className="hidden sm:inline capitalize">{theme} Mode</span>
+          </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-muted)] text-[11px] font-medium shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">Secure Store Login</span>
+          </div>
         </div>
       </header>
 
       {/* Main Login Card */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md bg-white border border-[#E8E2D8] rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_-15px_rgba(40,30,20,0.08)] space-y-7">
+        <div className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl p-8 sm:p-10 shadow-[var(--shadow-card)] space-y-7 transition-colors duration-200">
           
           {/* Brand Header */}
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center p-1 rounded-2xl bg-white border border-[#E8E2D8] shadow-sm mb-1">
-              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt={storeSettings.storeName} className="w-16 h-16 rounded-full object-contain" />
+            <div className="inline-flex items-center justify-center p-1 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm mb-1">
+              <img 
+                src={storeSettings.storeLogo || logoImg} 
+                onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} 
+                alt={storeSettings.storeName} 
+                className="w-16 h-16 rounded-full object-contain" 
+              />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#C89B3C]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#B88728] dark:text-[#E0B554]">
                 {storeSettings.storeName}
               </p>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 tracking-tight mt-1">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--text-primary)] tracking-tight mt-1">
                 Admin login
               </h1>
             </div>
-            <p className="text-xs text-stone-500 max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
               Sign in to manage your store.
             </p>
           </div>
@@ -116,11 +134,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
             
             {/* Email / Username */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+              <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
                 Email or Username
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
@@ -131,18 +149,18 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
                     if (error) setError(null);
                   }}
                   placeholder="admin@crcosmetics.com"
-                  className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#E2DBD0] rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:border-[#1E1719] focus:ring-1 focus:ring-[#1E1719] transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl text-xs sm:text-sm font-semibold text-[var(--text-primary)] placeholder-[var(--text-subtle)] focus:bg-[var(--bg-card)] focus:outline-none focus:border-[#C89B3C] focus:ring-2 focus:ring-[#C89B3C]/20 transition-all"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+              <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -152,12 +170,12 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
                     if (error) setError(null);
                   }}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-11 py-3 bg-[#FAF8F5] border border-[#E2DBD0] rounded-xl text-sm font-mono tracking-wider text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:border-[#1E1719] focus:ring-1 focus:ring-[#1E1719] transition-all"
+                  className="w-full pl-10 pr-11 py-3 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl text-sm font-mono tracking-wider text-[var(--text-primary)] placeholder-[var(--text-subtle)] focus:bg-[var(--bg-card)] focus:outline-none focus:border-[#C89B3C] focus:ring-2 focus:ring-[#C89B3C]/20 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors p-1"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)] transition-colors p-1"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -166,7 +184,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
 
             {/* Error banner */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-semibold flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -176,7 +194,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50 mt-2"
+              className="w-full py-3.5 bg-[#1E1719] hover:bg-[#33282C] dark:bg-[#C89B3C] dark:hover:bg-[#D4A745] text-[#FAF6F0] dark:text-[#1E1719] text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50 mt-2"
             >
               {isLoading ? (
                 <span>Signing In...</span>
@@ -191,8 +209,8 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           </form>
 
           {/* Footer Security Note */}
-          <div className="pt-4 border-t border-stone-100 text-center">
-            <p className="text-[11px] text-stone-400">
+          <div className="pt-4 border-t border-[var(--border-color)] text-center">
+            <p className="text-[11px] text-[var(--text-subtle)]">
               {storeSettings.storeName} • Accra, Ghana
             </p>
           </div>
@@ -201,7 +219,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
       </main>
 
       {/* Page Footer */}
-      <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-stone-500">
+      <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-[var(--text-subtle)]">
         © {new Date().getFullYear()} {storeSettings.storeName}. All rights reserved.
       </footer>
     </div>
