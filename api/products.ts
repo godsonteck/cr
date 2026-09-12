@@ -64,7 +64,7 @@ const productCreateSchema = z.object({
   name: z.string().min(1).max(255),
   brand: z.string().min(1).max(100),
   department: z.enum(['beauty', 'groceries']),
-  category: z.enum(categoryEnum),
+  category: z.string().min(1),
   categoryLabel: z.string().min(1).max(100),
   price: z.union([z.string(), z.number()]).transform(v => String(v)),
   deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
@@ -101,7 +101,7 @@ const productUpdateSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   brand: z.string().min(1).max(100).optional(),
   department: z.enum(['beauty', 'groceries']).optional(),
-  category: z.enum(categoryEnum).optional(),
+  category: z.string().min(1).optional(),
   categoryLabel: z.string().min(1).max(100).optional(),
   price: z.union([z.string(), z.number()]).optional().transform(v =>
     v == null ? undefined : String(v)

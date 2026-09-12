@@ -45,11 +45,25 @@ async function request<T>(
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    cache: options.method === 'GET' ? 'no-store' : options.cache,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000); // 30 second timeout
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      cache: options.method === 'GET' ? 'no-store' : options.cache,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err?.name === 'AbortError') {
+      throw new ApiError(408, 'Request timed out. Please check your connection and try again.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const data = await response.json().catch(() => ({}));
 
