@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -36,7 +36,7 @@ const PLACEHOLDER_REVIEWS = [
 
 async function run() {
   if (!connectionString) throw new Error('No database connection string');
-  const sql = neon(connectionString);
+  const sql = postgres(connectionString, { ssl: 'require' });
 
   let removed = 0;
   for (const [productId, authorName, title] of PLACEHOLDER_REVIEWS) {

@@ -1,16 +1,21 @@
 import * as dotenv from 'dotenv';
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
+const rawConnectionString = process.env.DATABASE_URL;
+const connectionString = rawConnectionString ? rawConnectionString.replace(/^\uFEFF/, '').trim() : undefined;
 
 if (!connectionString) {
-  console.warn('⚠️ DATABASE_URL is not set in environment variables; database queries will fail until it is configured.');
+  console.warn('⚠️  DATABASE_URL is not set — database queries will fail until it is configured.');
 }
 
-const sql = neon(connectionString || 'postgres://user:pass@localhost:5432/db');
-export const db = drizzle(sql);
+const client = postgres(connectionString || 'postgres://user:pass@localhost:5432/db', {
+  ssl: 'require',
+  max: 1,
+});
+
+export const db = drizzle(client);
 export default db;
