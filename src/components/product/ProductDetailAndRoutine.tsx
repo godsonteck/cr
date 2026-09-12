@@ -269,7 +269,30 @@ export const ProductDetailPage: React.FC = () => {
     return photos;
   }, [reviewsList]);
 
-  const galleryImages = product?.images?.length ? product.images : [product?.image].filter(Boolean) as string[];
+  const galleryImages = useMemo(() => {
+    if (!product) return [];
+    const all = [
+      ...(product.images || []),
+      product.image,
+      ...(product.variants?.map(v => v.image).filter(Boolean) as string[] || [])
+    ].filter(Boolean) as string[];
+    return Array.from(new Set(all));
+  }, [product]);
+
+  useEffect(() => {
+    if (product?.variants && product.variants.length > 0) {
+      const first = product.variants[0];
+      setSelectedVariant(first);
+      if (first.image) {
+        setSelectedImage(first.image);
+      }
+    } else {
+      setSelectedVariant(undefined);
+      if (product?.image) {
+        setSelectedImage(product.image);
+      }
+    }
+  }, [product?.id]);
 
   if (!product) {
     return (
@@ -521,19 +544,25 @@ export const ProductDetailPage: React.FC = () => {
                           <button
                             key={v.id}
                             type="button"
-                            onClick={() => setSelectedVariant(v)}
-                            className={`flex items-center gap-2 rounded-lg border-2 p-1 text-xs transition-all ${
+                            onClick={() => {
+                              setSelectedVariant(v);
+                              if (v.image) setSelectedImage(v.image);
+                            }}
+                            className={`flex items-center gap-2 rounded-lg border-2 p-1.5 text-xs transition-all ${
                               isSelected
-                                ? 'border-black bg-stone-50 font-bold dark:border-white dark:bg-slate-800'
+                                ? 'border-black bg-stone-50 font-bold dark:border-white dark:bg-slate-800 shadow-xs'
                                 : 'border-gray-200 hover:border-gray-400 dark:border-slate-700'
                             }`}
                           >
                             <img
-                              src={product.image}
+                              src={v.image || product.image}
                               alt={v.name}
                               className="h-8 w-8 rounded-sm object-cover"
                             />
-                            <span className="pr-1.5 text-[11px]">{v.name}</span>
+                            <span className="pr-1 text-[11px] font-medium">
+                              {v.name}
+                              {v.price && v.price !== product.price ? ` · GH₵${Number(v.price).toFixed(2)}` : ''}
+                            </span>
                           </button>
                         );
                       })

@@ -188,6 +188,7 @@ export interface ProductVariant {
   options?: Record<string, string>;
   price: number;
   originalPrice?: number;
+  image?: string;
   inStock: boolean;
   stockCount?: number;
 }

@@ -104,6 +104,7 @@ export const products = pgTable('products', {
     name: string;
     price: number;
     originalPrice?: number;
+    image?: string;
     inStock: boolean;
   }>>().default([]),
   details: jsonb('details').$type<{
