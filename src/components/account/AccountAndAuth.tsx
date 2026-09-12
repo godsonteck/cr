@@ -621,6 +621,17 @@ export const AccountPage: React.FC = () => {
   const profileImageInputRef = useRef<HTMLInputElement>(null);
   const [jumiaExpandedSection, setJumiaExpandedSection] = useState<'profile' | 'security' | 'skin' | 'addresses' | null>(null);
 
+  useEffect(() => {
+    if (jumiaExpandedSection === 'profile') {
+      setTimeout(() => {
+        const el = document.getElementById('customer-profile-editor');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [jumiaExpandedSection]);
+
   // Customer VIP and Standing Status (derived to match Admin system metrics)
   const customerStats = useMemo(() => {
     const allUserOrders = Array.isArray(user?.orders) ? user.orders : (Array.isArray(remoteOrders) ? remoteOrders : []);
@@ -1113,7 +1124,10 @@ export const AccountPage: React.FC = () => {
               <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('security')}
+                  onClick={() => {
+                    setActiveTab('security');
+                    setJumiaExpandedSection('profile');
+                  }}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-subtle)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]"
                   title="Edit Profile"
                   aria-label="Edit Profile"
@@ -2330,8 +2344,8 @@ export const AccountPage: React.FC = () => {
                           </span>
                           <span>•</span>
                           <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Synced with Store
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            Verified Customer
                           </span>
                         </div>
                       </div>
@@ -2466,7 +2480,7 @@ export const AccountPage: React.FC = () => {
 
                       {/* Expandable Edit Profile Panel */}
                       {jumiaExpandedSection === 'profile' && (
-                        <div className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 animate-in fade-in duration-200">
+                        <div id="customer-profile-editor" className="bg-[var(--bg-soft)]/30 border-t border-[var(--border-color)] p-4 sm:p-6 animate-in fade-in duration-200">
                           <form onSubmit={handleSaveProfile} className="space-y-4 max-w-xl">
                             {/* Photo upload */}
                             <div>
