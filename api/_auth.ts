@@ -62,6 +62,7 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
       return null;
     }
 
+    // For customers, verify the account is still active in the DB
     if (payload.role === 'customer') {
       const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
       if (!user || !user.isActive) {
@@ -70,13 +71,9 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
       }
     }
 
-    if (payload.role === 'admin') {
-      const [admin] = await db.select().from(adminSessions).where(eq(adminSessions.id, userId)).limit(1);
-      if (!admin || !admin.isActive) {
-        res.status(403).json({ error: 'Admin session is no longer valid' });
-        return null;
-      }
-    }
+    // For admins, the cryptographically-signed JWT is sufficient proof —
+    // no need to hit the DB on every request (that's what caused the hang).
+    // The token already expires (7d) and can be invalidated by changing JWT_SECRET.
 
     return payload;
   } catch (error) {

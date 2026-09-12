@@ -14,8 +14,10 @@ if (!connectionString) {
 
 const client = postgres(connectionString || 'postgres://user:pass@localhost:5432/db', {
   ssl: 'require',
-  max: 1, // serverless-friendly: keep connection pool minimal
-  prepare: false, // required for Supabase transaction pooler (PgBouncer)
+  max: 3,                // allow a small pool for concurrent queries in one invocation
+  prepare: false,        // required for Supabase transaction pooler (PgBouncer)
+  connect_timeout: 10,   // fail fast if DB is unreachable (seconds)
+  idle_timeout: 20,      // release idle connections quickly in serverless
 });
 
 export const db = drizzle(client);
