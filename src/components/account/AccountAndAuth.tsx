@@ -2275,7 +2275,7 @@ export const AccountPage: React.FC = () => {
             {activeTab === 'security' && user && (
               <div className="space-y-4 sm:space-y-6">
                 {/* Profile workspace */}
-                <div className="hidden relative overflow-hidden rounded-[1.5rem] border border-[var(--accent)]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.07)] sm:rounded-[2rem] sm:p-6">
+                <div className="relative overflow-hidden rounded-[1.5rem] border border-[var(--accent)]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.07)] sm:rounded-[2rem] sm:p-6">
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[var(--accent-strong)] via-[#55383A] to-[var(--accent)]" />
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 sm:gap-4">
@@ -2325,7 +2325,7 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {/* Quick links are already available in the responsive account sidebar. */}
-                <div className="hidden grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('orders')}
@@ -2403,11 +2403,10 @@ export const AccountPage: React.FC = () => {
 
                 {/* Account details */}
                 <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
-                  <div className="border-b border-[var(--border-color)] px-4 py-4 sm:px-5">
+                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
-                      Profile and security
+                      My Account Details
                     </h3>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">Update your details, delivery preferences, and password in one place.</p>
                   </div>
 
                   <div className="divide-y divide-[var(--border-color)]">
