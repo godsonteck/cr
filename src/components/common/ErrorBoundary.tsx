@@ -26,12 +26,15 @@ class ErrorBoundary extends Component<Props, State> {
       error.message?.includes('Importing a module script failed') ||
       error.name === 'ChunkLoadError';
     if (isChunkError) {
-      const reloaded = sessionStorage.getItem('chunk_reload_attempted');
+      let reloaded: string | null = null;
+      try { reloaded = sessionStorage.getItem('chunk_reload_attempted'); } catch {}
       if (!reloaded) {
-        sessionStorage.setItem('chunk_reload_attempted', '1');
-        window.location.reload();
+        try { sessionStorage.setItem('chunk_reload_attempted', '1'); } catch {}
+        const url = new URL(window.location.href);
+        url.searchParams.set('_reload', String(Date.now()));
+        window.location.replace(url.toString());
       } else {
-        sessionStorage.removeItem('chunk_reload_attempted');
+        try { sessionStorage.removeItem('chunk_reload_attempted'); } catch {}
       }
     }
   }

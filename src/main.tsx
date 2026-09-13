@@ -13,39 +13,45 @@ import { ToastProvider } from './context/ToastContext';
 import { AlertProvider } from './context/AlertContext';
 import { ReviewsProvider } from './context/ReviewsContext';
 import { NotificationProvider } from './context/NotificationContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import './index.css';
 
 // Auto-reload when Vite can't fetch a chunk (happens after a new deployment
 // invalidates the old hashed filenames that the browser has cached).
 window.addEventListener('vite:preloadError', () => {
-  window.location.reload();
+  const url = new URL(window.location.href);
+  // Force a fresh HTML document after a deployment changes hashed JS files.
+  url.searchParams.set('_reload', String(Date.now()));
+  window.location.replace(url.toString());
 });
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HelmetProvider>
-      <BrowserRouter>
-        <ThemeProvider>
-          <StoreProvider>
-            <AuthProvider>
-              <WishlistProvider>
-                <CartProvider>
-                  <ToastProvider>
-                    <AlertProvider>
-                      <ReviewsProvider>
-                        <NotificationProvider>
-                          <App />
-                        </NotificationProvider>
-                      </ReviewsProvider>
-                    </AlertProvider>
-                  </ToastProvider>
-                </CartProvider>
-              </WishlistProvider>
-            </AuthProvider>
-          </StoreProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <BrowserRouter>
+          <ThemeProvider>
+            <StoreProvider>
+              <AuthProvider>
+                <WishlistProvider>
+                  <CartProvider>
+                    <ToastProvider>
+                      <AlertProvider>
+                        <ReviewsProvider>
+                          <NotificationProvider>
+                            <App />
+                          </NotificationProvider>
+                        </ReviewsProvider>
+                      </AlertProvider>
+                    </ToastProvider>
+                  </CartProvider>
+                </WishlistProvider>
+              </AuthProvider>
+            </StoreProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </HelmetProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
