@@ -712,7 +712,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let cancelled = false;
     void api.get<{ role: 'customer' | 'admin'; email: string; adminName?: string; adminRole?: string }>('/auth?action=session', adminToken)
       .then(session => {
-        if (cancelled || session.role !== 'admin') throw new Error('Administrator session required');
+        // Do not let an older validation request overwrite a newer login.
+        if (cancelled || localStorage.getItem('admin_auth_token') !== adminToken) return;
+        if (session.role !== 'admin') throw new Error('Administrator session required');
         const restored: AdminSession = {
           isLoggedIn: true,
           adminName: session.adminName || 'Store Administrator',
@@ -723,7 +725,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setAdminSession(restored);
       })
       .catch(() => {
-        if (cancelled) return;
+        // The user may have successfully signed in while this older request
+        // was in flight. Only clear the exact token that was validated.
+        if (cancelled || localStorage.getItem('admin_auth_token') !== adminToken) return;
         localStorage.removeItem('admin_auth_token');
         localStorage.removeItem('admin_session');
         setAdminSession({ isLoggedIn: false, adminName: 'Store Administrator', adminRole: 'Super Admin', email: 'admin@crcosmetics.com' });
@@ -1342,7 +1346,6 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
 
