@@ -9,7 +9,6 @@ import {
   Edit3,
   Plus,
   Trash2,
-  CheckCircle2,
   ChevronRight,
   ChevronDown,
   ShoppingBag,
@@ -632,21 +631,6 @@ export const AccountPage: React.FC = () => {
     }
   }, [jumiaExpandedSection]);
 
-  // Customer VIP and Standing Status (derived to match Admin system metrics)
-  const customerStats = useMemo(() => {
-    const allUserOrders = Array.isArray(user?.orders) ? user.orders : (Array.isArray(remoteOrders) ? remoteOrders : []);
-    const totalSpent = allUserOrders.reduce((sum, o) => sum + (Number(o?.total) || 0), 0);
-    const count = allUserOrders.length;
-    let segment = 'Verified Customer';
-    if (totalSpent >= 500) segment = 'VIP Top Spender';
-    else if (count > 1) segment = 'Returning Customer';
-    return {
-      totalSpent,
-      ordersCount: count,
-      segment,
-    };
-  }, [user?.orders, remoteOrders]);
-
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -1067,15 +1051,16 @@ export const AccountPage: React.FC = () => {
   return (
     <div className="account-page min-h-[calc(100vh-4.5rem)] overflow-x-hidden bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
       <div className="mx-auto w-full max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
-        {/* Mobile-First Profile Header Card */}
-        <div className="relative mb-4 border-b border-[var(--border-color)] pb-4 sm:mb-6 sm:pb-6">
+        {/* Customer identity and quick destinations */}
+        <section className="relative mb-4 overflow-hidden rounded-[1.5rem] border border-[#C86D51]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.08)] sm:mb-6 sm:rounded-[2rem] sm:p-6">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#2A1D20] via-[#55383A] to-[#C86D51] sm:h-28" />
           <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-5">
             {/* Top row: Avatar + Identity + Quick Actions */}
             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 {/* Avatar Frame */}
                 <div className="relative shrink-0">
-                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[var(--accent)] text-white sm:h-14 sm:w-14">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border-2 border-white bg-[var(--accent)] text-white shadow-lg sm:h-16 sm:w-16">
                     {user?.profileImage ? (
                       <img
                         src={user.profileImage}
@@ -1083,37 +1068,25 @@ export const AccountPage: React.FC = () => {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="font-serif text-xl sm:text-3xl font-bold text-white tracking-wide">
+                      <span className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-wide">
                         {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                       </span>
                     )}
-                  </div>
-                  {/* Verified Badge */}
-                  <div 
-                    title="Verified Customer"
-                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--text-primary)] text-amber-400 ring-2 ring-[var(--bg-main)]"
-                  >
-                    <Sparkles className="h-3 w-3 fill-amber-400" />
                   </div>
                 </div>
 
                 {/* Name, Status & Contact */}
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="truncate font-serif text-base sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                      {user?.fullName || 'My Account'}
-                    </h1>
-                    <span className="hidden xs:inline-flex items-center gap-1 rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                      <CheckCircle2 className="h-2.5 w-2.5" />
-                      Verified
-                    </span>
-                  </div>
+                  <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white/85">My account</p>
+                  <h1 className="truncate font-serif text-xl font-bold tracking-tight text-white sm:text-2xl">
+                    {user?.fullName || 'My Account'}
+                  </h1>
 
-                  <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+                  <p className="mt-0.5 truncate text-xs text-white/80">
                     {user?.email}
                   </p>
                   {user?.phone && (
-                    <p className="truncate text-[11px] text-[var(--text-subtle)]">
+                    <p className="truncate text-[11px] text-white/70">
                       {user.phone}
                     </p>
                   )}
@@ -1128,32 +1101,32 @@ export const AccountPage: React.FC = () => {
                     setActiveTab('security');
                     setJumiaExpandedSection('profile');
                   }}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-subtle)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
                   title="Edit Profile"
                   aria-label="Edit Profile"
                 >
                   <Edit3 className="h-4 w-4" />
                 </button>
-                <Link to="/shop" className="hidden sm:inline-flex">
-                  <button className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition">
-                    <ShoppingBag className="h-3.5 w-3.5 text-[var(--accent)]" />
+                <Link to="/shop" className="inline-flex">
+                  <button className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/20">
+                    <ShoppingBag className="h-3.5 w-3.5" />
                     <span>Shop</span>
                   </button>
                 </Link>
                 <button
                   type="button"
                   onClick={() => { logout(); navigate('/'); }}
-                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 sm:flex-none"
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-3 text-xs font-bold text-[#7E2331] shadow-sm transition hover:bg-rose-50 sm:flex-none"
                   title="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  <span className="hidden md:inline">Sign out</span>
+                  <span>Sign out</span>
                 </button>
               </div>
             </div>
 
-            {/* KPI Chips Grid (Touch-friendly 4-stat row) */}
-            <div className="grid grid-cols-2 gap-2 border-t border-[var(--border-color)]/70 pt-3 sm:grid-cols-4 sm:gap-3 sm:pt-4">
+            {/* Touch-friendly account shortcuts */}
+            <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4 sm:gap-3">
               {[
                 { id: 'orders' as const, label: 'Orders', count: allOrders.length, icon: Package },
                 { id: 'orders' as const, label: 'In Transit', count: activeOrders.length, icon: Truck, isPing: activeOrders.length > 0 },
@@ -1164,10 +1137,10 @@ export const AccountPage: React.FC = () => {
                   key={label}
                   type="button"
                   onClick={() => setActiveTab(id)}
-                    className={`group flex flex-col items-center justify-center border-l border-[var(--border-color)] p-2 text-center transition-all first:border-l-0 sm:p-3 ${
+                    className={`group flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all sm:p-3 ${
                     activeTab === id && (label !== 'In Transit' || activeOrders.length > 0)
-                      ? 'text-[var(--accent)]'
-                      : 'text-[var(--text-primary)] hover:text-[var(--accent)]'
+                      ? 'border-[var(--accent)]/35 bg-[var(--accent)]/10 text-[var(--accent)]'
+                      : 'border-[var(--border-color)] bg-[var(--bg-soft)]/50 text-[var(--text-primary)] hover:border-[var(--accent)]/35 hover:text-[var(--accent)]'
                   }`}
                 >
                   <div className="relative mb-1 flex h-6 w-6 items-center justify-center text-[var(--accent)]">
@@ -1189,7 +1162,7 @@ export const AccountPage: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
         <div className="grid min-w-0 gap-4 lg:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -2298,16 +2271,17 @@ export const AccountPage: React.FC = () => {
               </div>
             )}
 
-            {/* PROFILE — JUMIA-STYLE CLEAN LIST & TILE LAYOUT */}
+            {/* Profile */}
             {activeTab === 'security' && user && (
               <div className="space-y-4 sm:space-y-6">
-                {/* 1. JUMIA-STYLE PROFILE HEADER BANNER */}
-                <div className="relative hidden overflow-hidden rounded-2xl border border-[var(--border-color)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-card)] to-[var(--bg-soft)] p-4 shadow-xs sm:block sm:rounded-3xl sm:p-6">
+                {/* Profile workspace */}
+                <div className="relative overflow-hidden rounded-[1.5rem] border border-[var(--accent)]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.07)] sm:rounded-[2rem] sm:p-6">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[var(--accent-strong)] via-[#55383A] to-[var(--accent)]" />
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 sm:gap-4">
                       {/* Avatar with Camera Trigger */}
                       <div className="relative group shrink-0">
-                        <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-xl sm:text-2xl shadow-md ring-2 ring-[var(--accent)]/30">
+                        <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white bg-[var(--accent)] text-white font-serif font-bold text-xl sm:text-2xl shadow-lg">
                           {user.profileImage ? (
                             <img src={user.profileImage} alt={user.fullName} className="h-full w-full object-cover" />
                           ) : (
@@ -2327,27 +2301,11 @@ export const AccountPage: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Welcome & Info */}
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="text-base sm:text-xl font-black text-[var(--text-primary)] truncate">
-                            Hello, {user.fullName || 'Shopper'}
-                          </h2>
-                          <span className="rounded-full bg-[var(--accent)]/10 px-2.5 py-0.5 text-[10px] font-black text-[var(--accent)] border border-[var(--accent)]/20">
-                            {customerStats.segment}
-                          </span>
-                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/80">Profile &amp; security</p>
+                        <h2 className="text-lg sm:text-xl font-black text-white truncate">{user.fullName || 'Your profile'}</h2>
                         <p className="text-xs text-[var(--text-muted)] truncate">{user.email}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-[var(--text-subtle)] flex-wrap pt-0.5">
-                          <span className="font-mono font-bold text-[var(--text-primary)]">
-                            ID: CR-{String(user.id || '').slice(0, 8).toUpperCase() || 'CLIENT'}
-                          </span>
-                          <span>•</span>
-                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            Verified Customer
-                          </span>
-                        </div>
+                        <p className="text-[11px] text-[var(--text-subtle)]">Keep your contact details and sign-in method current.</p>
                       </div>
                     </div>
 
@@ -2360,14 +2318,14 @@ export const AccountPage: React.FC = () => {
                         className="rounded-xl text-xs font-bold gap-1.5"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
-                        <span>{jumiaExpandedSection === 'profile' ? 'Close Editor' : 'Edit Profile'}</span>
+                        <span>{jumiaExpandedSection === 'profile' ? 'Close editor' : 'Edit profile'}</span>
                       </Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick links are already available in the responsive account sidebar. */}
-                <div className="hidden grid-cols-2 gap-2.5 sm:grid sm:grid-cols-4 sm:gap-3">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('orders')}
@@ -2443,7 +2401,7 @@ export const AccountPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* 3. JUMIA GROUPED LIST SECTION: MY ACCOUNT */}
+                {/* Account details */}
                 <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
@@ -2464,14 +2422,14 @@ export const AccountPage: React.FC = () => {
                             <User className="h-4 w-4" />
                           </span>
                           <div className="min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Personal Details</p>
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Personal information</p>
                             <p className="text-[11px] text-[var(--text-muted)] truncate">
                               {user.fullName || 'Add name'} • {user.phone || 'No phone added'}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-[var(--text-subtle)]">
-                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                          <span className="text-[11px] font-semibold text-[var(--accent)]">
                             {jumiaExpandedSection === 'profile' ? 'Hide' : 'Edit'}
                           </span>
                           {jumiaExpandedSection === 'profile' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -2567,13 +2525,10 @@ export const AccountPage: React.FC = () => {
 
                             <div>
                               <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
-                                Account Email (Verified)
+                                Account email
                               </label>
-                              <div className="flex items-center justify-between rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)]/50 p-2.5 text-xs text-[var(--text-muted)]">
+                              <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)]/50 p-2.5 text-xs text-[var(--text-muted)]">
                                 <span>{user.email}</span>
-                                <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
-                                  <CheckCircle2 className="h-3 w-3" /> Verified
-                                </span>
                               </div>
                             </div>
 
@@ -2621,7 +2576,7 @@ export const AccountPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 text-[var(--text-subtle)]">
-                        <span className="text-[11px] font-semibold text-[var(--accent)] hidden sm:inline">Manage</span>
+                        <span className="text-[11px] font-semibold text-[var(--accent)]">Manage</span>
                         <ChevronRight className="h-4 w-4" />
                       </div>
                     </button>
@@ -2638,14 +2593,14 @@ export const AccountPage: React.FC = () => {
                             <Sparkles className="h-4 w-4" />
                           </span>
                           <div className="min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Skin Profile &amp; Routine Needs</p>
+                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Skin preferences</p>
                             <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">
                               {profileForm.skinType || 'Normal'} skin • {(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length} concern{(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length === 1 ? '' : 's'} selected
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-[var(--text-subtle)]">
-                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                          <span className="text-[11px] font-semibold text-[var(--accent)]">
                             {jumiaExpandedSection === 'skin' ? 'Hide' : 'Update'}
                           </span>
                           {jumiaExpandedSection === 'skin' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -2741,12 +2696,12 @@ export const AccountPage: React.FC = () => {
                           <div className="min-w-0">
                             <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Login &amp; Password</p>
                             <p className="text-[11px] text-[var(--text-muted)] truncate">
-                              {user.hasPassword ? 'Password protected • Tap to update' : 'OAuth account • Set a password'}
+                              {user.hasPassword ? 'Change your password' : 'Set a password for this account'}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-[var(--text-subtle)]">
-                          <span className="text-[11px] font-semibold hidden sm:inline text-[var(--accent)]">
+                          <span className="text-[11px] font-semibold text-[var(--accent)]">
                             {jumiaExpandedSection === 'security' ? 'Hide' : 'Change'}
                           </span>
                           {jumiaExpandedSection === 'security' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -2832,7 +2787,7 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {/* Shopping links remain available in the sidebar on mobile. */}
-                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
+                <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       My Shopping &amp; Orders
@@ -2899,7 +2854,7 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
+                <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       Settings &amp; Preferences
@@ -2928,7 +2883,7 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:block sm:rounded-3xl">
+                <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs sm:rounded-3xl">
                   <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
                       Reach Out &amp; Support
@@ -2984,7 +2939,7 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 7. JUMIA GROUPED LIST SECTION: ACCOUNT ACTIONS */}
+                {/* Account actions */}
                 <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
                   <div className="divide-y divide-[var(--border-color)]">
                     <button
