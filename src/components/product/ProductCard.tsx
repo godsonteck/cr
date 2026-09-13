@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
-import { Heart, Minus, Plus, ShoppingCart, Star } from 'lucide-react';
+import { Heart, Minus, Plus, ShoppingCart } from 'lucide-react';
 
 const getResponsiveImageSet = (image: string) => {
   if (!image.includes('images.unsplash.com')) return undefined;
@@ -116,27 +116,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
       </div>
 
-      <div className="mt-2.5 flex flex-1 flex-col justify-between gap-1.5 px-0.5 text-left">
-        <div className="flex min-h-4 items-center justify-between gap-1.5 flex-wrap">
-          {product.brand && (
-            <span className="max-w-[140px] break-words text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-              {product.brand}
-            </span>
-          )}
-          {product.reviewCount && product.reviewCount > 0 ? (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-500">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span>{Number(product.rating || 5).toFixed(1)}</span>
-              <span className="text-stone-400 text-[9px] font-normal">({product.reviewCount})</span>
-            </span>
-          ) : null}
-        </div>
-
-        <h3 className="min-h-9 break-words text-[13px] font-semibold leading-5 text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
+      <div className="mt-2.5 flex flex-1 flex-col gap-2 px-0.5 text-left">
+        <h3 className="line-clamp-2 h-10 break-words text-[13px] font-semibold leading-5 text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
           {product.name}
         </h3>
 
-        <div className="pt-2 border-t border-[var(--border-color)]/50">
+        <div>
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-baseline gap-1.5 flex-wrap">
@@ -147,19 +132,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   <span className="text-[10px] text-[var(--text-subtle)] line-through">
                     GH₵{originalPrice.toFixed(2)}
                   </span>
-                )}
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-[var(--text-subtle)]">
-                {product.unit && (
-                  <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-subtle)]">
-                    {product.unit}
-                  </span>
-                )}
-                {product.unit && <span className="inline-block h-1 w-1 rounded-full bg-[var(--border-color)]" />}
-                {product.inStock && product.stockCount > 0 ? (
-                  <span className="text-emerald-600 font-semibold text-[9px]">In stock</span>
-                ) : (
-                  <span className="text-rose-500 font-semibold text-[9px]">Out of stock</span>
                 )}
               </div>
             </div>
