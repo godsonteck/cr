@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { House, Settings, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react';
+import { House, LogOut, Settings, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
@@ -11,14 +11,20 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const { totalItems } = useCart();
   const { storeSettings } = useStore();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [profileImgError, setProfileImgError] = React.useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const displayStoreName = String(storeSettings?.storeName || 'CR COSMETICS').replace(/\s+AND\s+/gi, ' & ');
   const [brandPrimary, brandSecondary] = displayStoreName.split(' & ');
 
   React.useEffect(() => {
     setProfileImgError(false);
   }, [user?.profileImage]);
+
+  const handleLogout = async () => {
+    await logout();
+    setProfileMenuOpen(false);
+  };
 
   return (
     <>
@@ -44,12 +50,21 @@ export const Header: React.FC = () => {
               </span>
             </Link>
             <div className="flex shrink-0 items-center gap-2">
+              <Link to="/shop" className="hidden lg:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]">
+                <ShoppingBag className="h-4 w-4" /> Products
+              </Link>
+              <Link to="/cart" className="relative hidden lg:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]" aria-label={`Cart ${totalItems > 0 ? `(${totalItems} items)` : ''}`}>
+                <ShoppingCart className="h-4 w-4" /> Cart
+                {totalItems > 0 && <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">{totalItems > 99 ? '99+' : totalItems}</span>}
+              </Link>
               <HeaderNotifications />
               {isAuthenticated && user ? (
-                <Link
-                  to="/account"
+                <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileMenuOpen(open => !open)}
                   className="group flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-0.5 pr-2.5 sm:pr-3 text-[11px] font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:shadow-xs focus:outline-hidden"
-                  aria-label={`View account for ${user.fullName || 'User'}`}
+                  aria-label={`Open account menu for ${user.fullName || 'User'}`}
                   title={user.fullName || 'My Account'}
                 >
                   <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white shadow-xs ring-1.5 ring-[var(--accent)]/30 group-hover:ring-[var(--accent)] transition">
@@ -69,7 +84,15 @@ export const Header: React.FC = () => {
                   <span className="hidden sm:inline max-w-[90px] truncate font-medium text-[12px] group-hover:text-[var(--accent)] transition-colors">
                     {user.fullName ? user.fullName.split(' ')[0] : 'Account'}
                   </span>
-                </Link>
+                </button>
+                {profileMenuOpen && (
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-44 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-1.5 shadow-lg">
+                    <Link to="/account" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-soft)]"><UserRound className="h-4 w-4" /> Profile</Link>
+                    <Link to="/settings" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-soft)]"><Settings className="h-4 w-4" /> Settings</Link>
+                    <button type="button" onClick={() => void handleLogout()} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"><LogOut className="h-4 w-4" /> Logout</button>
+                  </div>
+                )}
+                </div>
               ) : (
                 <Link
                   to="/account"
@@ -85,7 +108,7 @@ export const Header: React.FC = () => {
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-[var(--border-color)] bg-[var(--bg-card)]/95 px-2 shadow-[0_-8px_24px_rgba(29,23,22,0.08)] backdrop-blur" aria-label="Primary navigation">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-[var(--border-color)] bg-[var(--bg-card)]/95 px-2 shadow-[0_-8px_24px_rgba(29,23,22,0.08)] backdrop-blur lg:hidden" aria-label="Primary navigation">
         <Link to="/" className={`flex min-w-16 flex-col items-center gap-1 text-[10px] font-semibold ${location.pathname === '/' ? 'text-[var(--accent)]' : 'text-[var(--text-subtle)]'}`}>
           <House className="h-5 w-5" />
           Home

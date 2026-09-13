@@ -68,15 +68,26 @@ async function request<T>(
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    if (response.status === 401 && typeof window !== 'undefined') {
+    if ((response.status === 401 || response.status === 403) && typeof window !== 'undefined') {
       const adminToken = localStorage.getItem('admin_auth_token');
       const tokenKey = token && adminToken === token ? 'admin_auth_token' : 'auth_token';
-      localStorage.removeItem(tokenKey);
-      if (tokenKey === 'auth_token') {
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('cr_user_profile');
+      // A rejected admin token must not leave the administration UI looking
+      // authenticated. Customer 403s intentionally retain their session.
+      const shouldInvalidate = response.status === 401 || tokenKey === 'admin_auth_token';
+      if (shouldInvalidate) {
+        localStorage.removeItem(tokenKey);
       }
-      window.dispatchEvent(new CustomEvent('cr-auth-expired', { detail: { tokenKey } }));
+      if (tokenKey === 'auth_token') {
+        if (response.status === 401) {
+          localStorage.removeItem('user_id');
+          localStorage.removeItem('cr_user_profile');
+        }
+      } else if (shouldInvalidate) {
+        localStorage.removeItem('admin_session');
+      }
+      if (shouldInvalidate) {
+        window.dispatchEvent(new CustomEvent('cr-auth-expired', { detail: { tokenKey } }));
+      }
     }
     throw new ApiError(response.status, data.error || 'Request failed', data);
   }

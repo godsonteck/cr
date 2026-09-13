@@ -113,8 +113,8 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
     try {
       await store.deleteProduct(productId);
       showAlert('Product deleted successfully', 'success');
-    } catch {
-      showAlert('Failed to delete product', 'error');
+    } catch (error: any) {
+      showAlert(error?.message || 'Failed to delete product', 'error');
     } finally {
       setLoading(false);
       setConfirmDeleteId(null);

@@ -115,122 +115,25 @@ export const ShopCatalogPage: React.FC = () => {
         <button type="submit" aria-label="Search" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]"><Search className="h-3.5 w-3.5" /></button>
       </form>
 
-      <section className="-mx-3 flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:px-0 lg:grid-cols-6" aria-label="Shop by category">
-        {categories.filter(category => category.isActive).map(category => (
-          <Link key={category.id} to={`/category/${category.slug}`} className={`flex min-w-20 shrink-0 snap-start items-center gap-2 rounded-xl border px-2 py-2 transition sm:min-w-0 ${selectedCategorySlug === category.slug ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--accent)]'}`}>
-            <img src={category.image} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" loading="lazy" />
-            <span className="line-clamp-2 text-[9px] font-bold uppercase leading-3 tracking-[0.04em] text-[var(--text-muted)]">{category.name}</span>
-          </Link>
-        ))}
+      {/* Top filter bar keeps the catalog width available for product images. */}
+      <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-sm" aria-label="Catalog filters">
+        <div className="hidden lg:flex flex-wrap items-center gap-2">
+          <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wide text-[var(--text-primary)]"><SlidersHorizontal className="h-4 w-4 text-[var(--accent)]" /> Filters</span>
+          <select value={selectedDepartment || ''} onChange={event => updateFilter('dept', event.target.value || null)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+            <option value="">All departments</option><option value="beauty">Beauty &amp; Skincare</option><option value="groceries">Groceries &amp; Essentials</option>
+          </select>
+          <select value={selectedCategorySlug} onChange={event => navigate(event.target.value ? `/shop?category=${encodeURIComponent(event.target.value)}` : '/shop')} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]" aria-label="Filter by category">
+            <option value="">All categories</option>{categories.filter(category => category.isActive).map(category => <option key={category.id} value={category.slug}>{category.name}</option>)}
+          </select>
+          <select value={selectedBrand} onChange={event => updateFilter('brand', event.target.value)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]"><>{brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}</></select>
+          <select value={selectedSort} onChange={event => updateFilter('sort', event.target.value)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]"><option value="featured">Featured</option><option value="best-sellers">Best Sellers</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option></select>
+          <label className="flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-[var(--text-muted)]"><input type="checkbox" checked={onlyInStock} onChange={event => updateFilter('instock', event.target.checked ? 'true' : null)} className="rounded accent-[var(--accent)]" /> In stock</label>
+          {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && <button onClick={clearAllFilters} className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-[var(--accent)] hover:underline"><RotateCcw className="h-3.5 w-3.5" /> Reset</button>}
+        </div>
       </section>
 
-      {/* Catalog Grid with Desktop Sidebar */}
-      <div className="flex flex-col gap-8 lg:flex-row">
-
-        {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block w-60 space-y-6 shrink-0 border-r border-[#E8E2DA] dark:border-[#2A2725] pr-6">
-          <div className="flex items-center justify-between pb-3 border-b border-[#E8E2DA] dark:border-[#2A2725]">
-            <span className="text-xs font-extrabold uppercase text-[#1C1817] dark:text-stone-100 flex items-center gap-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-[#C86D51]" />
-              Narrow it down
-            </span>
-            {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
-              <button
-                onClick={clearAllFilters}
-                className="text-[11px] text-[#C86D51] hover:underline font-bold flex items-center gap-1"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset
-              </button>
-            )}
-          </div>
-
-          {/* Department Filter */}
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Department</h4>
-            <div className="space-y-1">
-              <button
-                onClick={() => updateFilter('dept', null)}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  !selectedDepartment
-                    ? 'bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 font-bold shadow-xs'
-                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                All Departments
-              </button>
-              <button
-                onClick={() => updateFilter('dept', 'beauty')}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  selectedDepartment === 'beauty'
-                    ? 'bg-[#181214] text-white dark:bg-[#4a85f6] dark:text-slate-950 font-bold shadow-xs'
-                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Beauty &amp; Skincare
-              </button>
-              <button
-                onClick={() => updateFilter('dept', 'groceries')}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  selectedDepartment === 'groceries'
-                    ? 'bg-[#2e4c36] text-white dark:bg-[#52ba74] dark:text-slate-950 font-bold shadow-xs'
-                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Groceries &amp; Essentials
-              </button>
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Category</h4>
-            <select
-              value={selectedCategorySlug}
-              onChange={(event) => {
-                const nextCategory = event.target.value;
-                navigate(nextCategory ? `/shop?category=${encodeURIComponent(nextCategory)}` : '/shop');
-              }}
-              className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 text-xs font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-              aria-label="Filter by category"
-            >
-              <option value="">All Categories</option>
-              {categories.filter(category => category.isActive).map(category => (
-                <option key={category.id} value={category.slug}>{category.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Brand Filter */}
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Brand</h4>
-            <select
-              value={selectedBrand}
-              onChange={(e) => updateFilter('brand', e.target.value)}
-              className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] text-xs font-semibold p-2.5 rounded-xl border border-[var(--border-color)] outline-none focus:border-[var(--accent)]"
-            >
-              {brands.map((brand) => (
-                <option key={brand} value={brand}>{brand}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Stock Filter */}
-          <div className="pt-3 border-t border-[#E8E2DA] dark:border-[#2A2725]">
-            <label className="flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={onlyInStock}
-                onChange={(e) => updateFilter('instock', e.target.checked ? 'true' : null)}
-                className="rounded accent-[#C86D51]"
-              />
-              In-Stock Only
-            </label>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 space-y-4">
+      <div className="space-y-4">
+        <main className="space-y-4">
 
           {/* Toolbar (Mobile Filter toggle + Count + Sort) */}
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 sm:gap-4">
@@ -321,7 +224,7 @@ export const ShopCatalogPage: React.FC = () => {
 
           {/* Product Grid */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

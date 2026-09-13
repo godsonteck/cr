@@ -86,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       aria-label={`View ${product.name}`}
       className={`group relative flex min-w-0 cursor-pointer flex-col justify-between overflow-hidden bg-transparent pb-2 text-[var(--text-primary)] ${className}`}
     >
-      <div className={`relative w-full overflow-hidden rounded-2xl bg-[var(--bg-soft)] ${effectiveMode === 'beauty' ? 'aspect-[4/5]' : 'aspect-square'}`}>
+      <div className={`relative w-full overflow-hidden rounded-2xl bg-[var(--bg-soft)] ${effectiveMode === 'beauty' ? 'aspect-[4/5] lg:aspect-[5/4]' : 'aspect-square lg:aspect-[5/4]'}`}>
         <img
           src={product.image}
           srcSet={getResponsiveImageSet(product.image)}

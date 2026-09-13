@@ -112,7 +112,7 @@ function AppLayout() {
       <SEO />
 
       <ErrorBoundary>
-        <div className="min-h-screen flex flex-col bg-[var(--bg-main)] pb-16 text-[var(--text-primary)] font-sans selection:bg-[#C86D51] selection:text-white transition-colors">
+        <div className="min-h-screen flex flex-col bg-[var(--bg-main)] pb-16 lg:pb-0 text-[var(--text-primary)] font-sans selection:bg-[#C86D51] selection:text-white transition-colors">
           <Header />
 
           <main className="flex-1">

@@ -111,6 +111,7 @@ async function runMigration() {
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "admin_notes" jsonb NOT NULL DEFAULT '[]'::jsonb`,
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profile_image" text`,
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "admin_notes" text`,
+    `ALTER TABLE "reviews" ADD COLUMN IF NOT EXISTS "images" jsonb DEFAULT '[]'::jsonb`,
   ];
 
   for (const columnSql of compatibilityColumns) {

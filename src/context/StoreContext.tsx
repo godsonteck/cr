@@ -733,6 +733,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
+    const handleExpiredAdminSession = (event: Event) => {
+      const tokenKey = (event as CustomEvent<{ tokenKey?: string }>).detail?.tokenKey;
+      if (tokenKey !== 'admin_auth_token') return;
+      setAdminSession({ isLoggedIn: false, adminName: 'Store Administrator', adminRole: 'Super Admin', email: 'admin@crcosmetics.com' });
+    };
+    window.addEventListener('cr-auth-expired', handleExpiredAdminSession);
+    return () => window.removeEventListener('cr-auth-expired', handleExpiredAdminSession);
+  }, []);
+
+  useEffect(() => {
     const refreshVisibleCatalog = () => {
       if (document.visibilityState === 'visible') {
         void fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) });
@@ -786,11 +796,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deleteProduct = async (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
     try {
       const adminToken = localStorage.getItem('admin_auth_token');
       if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
       await api.delete(`/products?id=${encodeURIComponent(id)}`, adminToken);
+      setProducts(prev => prev.filter(p => p.id !== id));
       await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
       const errorMsg = e?.data?.error || e?.message || 'Failed to delete product from server.';
@@ -1332,7 +1342,6 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
 
