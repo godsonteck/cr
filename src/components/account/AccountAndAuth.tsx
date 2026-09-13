@@ -614,11 +614,9 @@ export const AccountPage: React.FC = () => {
     fullName: user?.fullName || '',
     phone: user?.phone || '',
     profileImage: user?.profileImage || '',
-    skinType: (user?.skinProfile?.skinType || 'Normal') as 'Dry' | 'Oily' | 'Combination' | 'Sensitive' | 'Normal',
-    concerns: (user?.skinProfile?.concerns || []) as string[],
   });
   const profileImageInputRef = useRef<HTMLInputElement>(null);
-  const [jumiaExpandedSection, setJumiaExpandedSection] = useState<'profile' | 'security' | 'skin' | 'addresses' | null>(null);
+  const [jumiaExpandedSection, setJumiaExpandedSection] = useState<'profile' | 'security' | 'addresses' | null>(null);
 
   useEffect(() => {
     if (jumiaExpandedSection === 'profile') {
@@ -691,8 +689,6 @@ export const AccountPage: React.FC = () => {
         fullName: user.fullName || '',
         phone: user.phone || '',
         profileImage: user.profileImage || '',
-        skinType: (user.skinProfile?.skinType || 'Normal') as any,
-        concerns: Array.isArray(user.skinProfile?.concerns) ? user.skinProfile.concerns : [],
       });
     }
   }, [user]);
@@ -831,10 +827,6 @@ export const AccountPage: React.FC = () => {
         fullName: profileForm.fullName.trim(),
         phone: profileForm.phone.trim(),
         profileImage: profileForm.profileImage,
-        skinProfile: {
-          skinType: profileForm.skinType as any,
-          concerns: profileForm.concerns,
-        },
       });
       showAlert('Profile details updated successfully', 'success');
       setIsEditingProfile(false);
@@ -2581,108 +2573,7 @@ export const AccountPage: React.FC = () => {
                       </div>
                     </button>
 
-                    {/* Row 3: Skin Profile & Routine Preferences */}
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setJumiaExpandedSection(prev => prev === 'skin' ? null : 'skin')}
-                        className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 text-left hover:bg-[var(--bg-soft)]/40 transition cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                            <Sparkles className="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Skin preferences</p>
-                            <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">
-                              {profileForm.skinType || 'Normal'} skin • {(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length} concern{(Array.isArray(profileForm.concerns) ? profileForm.concerns : []).length === 1 ? '' : 's'} selected
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-[var(--text-subtle)]">
-                          <span className="text-[11px] font-semibold text-[var(--accent)]">
-                            {jumiaExpandedSection === 'skin' ? 'Hide' : 'Update'}
-                          </span>
-                          {jumiaExpandedSection === 'skin' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </div>
-                      </button>
-
-                      {/* Expandable Skin Profile Selector */}
-                      {jumiaExpandedSection === 'skin' && (
-                        <div className="account-detail-panel border-t border-[var(--border-color)] p-4 sm:p-6 space-y-5 animate-in fade-in duration-200">
-                          <div>
-                            <div className="mb-3 flex items-start justify-between gap-3">
-                              <div>
-                                <label className="block text-sm font-black text-[var(--text-primary)]">Your skin profile</label>
-                                <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">Help us tailor routines and product recommendations to your needs.</p>
-                              </div>
-                              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
-                            </div>
-                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Skin type</p>
-                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                              {(['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive'] as const).map(type => (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={() => {
-                                    setProfileForm(p => ({ ...p, skinType: type }));
-                                    void updateProfile({ skinProfile: { skinType: type, concerns: profileForm.concerns } });
-                                    showAlert(`Skin type set to ${type}`, 'success');
-                                  }}
-                                  className={`min-h-10 rounded-xl border px-2 py-2 text-xs font-bold capitalize transition ${
-                                    profileForm.skinType === type
-                                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white shadow-xs'
-                                      : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
-                                  }`}
-                                >
-                                  {type}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Concerns and routine goals</p>
-                            <div className="grid gap-2 sm:grid-cols-2">
-                              {[
-                                'Deep Hydration',
-                                'Dark Spots & Hyperpigmentation',
-                                'Acne & Blemishes',
-                                'Anti-Aging & Fine Lines',
-                                'Sun Protection & SPF',
-                                'Brightening & Glow',
-                                'Pore Tightening',
-                              ].map(concern => {
-                                const currentConcerns = Array.isArray(profileForm.concerns) ? profileForm.concerns : [];
-                                const isSelected = currentConcerns.includes(concern);
-                                return (
-                                  <button
-                                    key={concern}
-                                    type="button"
-                                    onClick={() => {
-                                      const nextConcerns = isSelected
-                                        ? currentConcerns.filter(c => c !== concern)
-                                        : [...currentConcerns, concern];
-                                      setProfileForm(p => ({ ...p, concerns: nextConcerns }));
-                                      void updateProfile({ skinProfile: { skinType: profileForm.skinType as any, concerns: nextConcerns } });
-                                    }}
-                                    className={`min-h-10 rounded-xl border px-3 py-2 text-left text-xs font-bold transition ${
-                                      isSelected
-                                        ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-card)] shadow-xs'
-                                        : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent)]'
-                                    }`}
-                                  >
-                                    {concern}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Row 4: Password & Security */}
+                    {/* Password & Security */}
                     <div>
                       <button
                         type="button"
