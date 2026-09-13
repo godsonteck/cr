@@ -181,21 +181,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productMap = new Map(productRows.map((product) => [product.id, product]));
       const [activeDeal] = await db.select().from(flashDeals).where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`)).orderBy(desc(flashDeals.createdAt)).limit(1);
       const quantities = new Map<string, number>();
+      const variantQuantities = new Map<string, number>();
       for (const item of parsed.data.items) {
         const product = productMap.get(item.product.id);
         if (!product) {
           return res.status(400).json({ error: `Product no longer exists: ${item.product.name || item.product.id}. Please refresh your cart.` });
         }
+        if (!product.isPublished) {
+          return res.status(400).json({ error: `${product.name} is no longer available. Please refresh your cart.` });
+        }
+        const variants = product.variants || [];
+        if (variants.length > 0 && !item.selectedVariant?.id) {
+          return res.status(400).json({ error: `Choose a variation for ${product.name}.` });
+        }
+        if (item.selectedVariant?.id && !variants.some(variant => variant.id === item.selectedVariant?.id)) {
+          return res.status(400).json({ error: `That variation for ${product.name} is no longer available. Please refresh your cart.` });
+        }
       }
 
       const verifiedItems = parsed.data.items.map((item) => {
         const product = productMap.get(item.product.id)!;
-        const quantity = (quantities.get(product.id) || 0) + item.quantity;
-        quantities.set(product.id, quantity);
         const variants = product.variants || [];
         const selectedVariant = item.selectedVariant?.id
           ? variants.find(variant => variant.id === item.selectedVariant?.id)
           : undefined;
+        const stockKey = selectedVariant ? `${product.id}:${selectedVariant.id}` : product.id;
+        const quantity = (selectedVariant ? variantQuantities : quantities).get(stockKey) || 0;
+        (selectedVariant ? variantQuantities : quantities).set(stockKey, quantity + item.quantity);
         const basePrice = Number(selectedVariant?.price ?? product.price);
         const price = activeDeal?.productIds?.includes(product.id)
           ? Math.max(0.01, basePrice * (1 - activeDeal.discountPercentage / 100))
@@ -225,6 +237,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         if (!product.inStock || product.stockCount < quantity) {
           return res.status(400).json({ error: `Insufficient stock for ${product.name}. Available: ${product.stockCount}, requested: ${quantity}` });
+        }
+      }
+      for (const [stockKey, quantity] of variantQuantities) {
+        const [productId, variantId] = stockKey.split(':');
+        const variant = productMap.get(productId)?.variants?.find(item => item.id === variantId);
+        if (!variant || !variant.inStock || (variant.stockCount ?? 0) < quantity) {
+          return res.status(400).json({ error: `That variation is no longer available in the requested quantity.` });
         }
       }
 
@@ -368,6 +387,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(products.inStock, true),
             sql`${products.stockCount} >= ${quantity}`,
           ));
+      }
+      for (const [stockKey, quantity] of variantQuantities) {
+        const [productId, variantId] = stockKey.split(':');
+        const product = productMap.get(productId);
+        if (!product) continue;
+        const nextVariants = (product.variants || []).map(variant => variant.id !== variantId ? variant : {
+          ...variant,
+          stockCount: Math.max(0, (variant.stockCount ?? 0) - quantity),
+          inStock: (variant.stockCount ?? 0) - quantity > 0,
+        });
+        await db.update(products).set({ variants: nextVariants, updatedAt: new Date() }).where(eq(products.id, productId));
       }
 
       await db.insert(notifications).values([

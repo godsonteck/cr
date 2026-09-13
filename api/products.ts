@@ -33,8 +33,7 @@ const productQuerySchema = z.object({
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
 });
 
-/** Strip stockCount & options from each variant (not stored in the DB variants column)
- *  and coerce image null → undefined to match the DB jsonb column type. */
+/** A variation is a sellable SKU: preserve its option combination and inventory. */
 const variantItemSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -44,12 +43,12 @@ const variantItemSchema = z.object({
   ),
   image: z.string().optional().nullable().transform(v => v ?? undefined),
   inStock: z.boolean().default(true),
-  // accepted from the UI but stripped before writing to DB
+  // Each variation owns its inventory and option combination.
   stockCount: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
     v == null ? 0 : Number(v)
   ),
   options: z.record(z.string()).optional().nullable(),
-}).transform(({ stockCount: _sc, options: _opt, ...v }) => v);
+});
 
 /** Transform details sub-fields: null → undefined to match DB jsonb type */
 const detailsSchema = z.object({

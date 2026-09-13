@@ -280,18 +280,10 @@ export const ProductDetailPage: React.FC = () => {
   }, [product]);
 
   useEffect(() => {
-    if (product?.variants && product.variants.length > 0) {
-      const first = product.variants[0];
-      setSelectedVariant(first);
-      if (first.image) {
-        setSelectedImage(first.image);
-      }
-    } else {
-      setSelectedVariant(undefined);
-      if (product?.image) {
-        setSelectedImage(product.image);
-      }
-    }
+    // A sellable variation is always explicitly chosen, never guessed.
+    setSelectedVariant(undefined);
+    setSelectedOptionValues({});
+    if (product?.image) setSelectedImage(product.image);
   }, [product?.id]);
 
   if (!product) {
@@ -325,13 +317,15 @@ export const ProductDetailPage: React.FC = () => {
   const displayOriginalPrice = activeFlashDeal ? baseDisplayPrice : product.originalPrice;
   const discountPct = displayOriginalPrice ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) : (activeFlashDeal ? activeFlashDeal.discountPercentage : 0);
   const allOptionsSelected = !hasOptions || product.options!.every(option => Boolean(selectedOptionValues[option.name]));
-  const canPurchase = hasOptions
-    ? allOptionsSelected && Boolean(activeVariant?.inStock)
-    : Boolean(activeVariant?.inStock ?? product.inStock);
+  const requiresVariation = Boolean(product.variants?.length);
+  const canPurchase = requiresVariation
+    ? Boolean(activeVariant?.inStock && (activeVariant.stockCount ?? 0) > 0)
+    : hasOptions ? allOptionsSelected : Boolean(product.inStock && product.stockCount > 0);
   const availableStock = activeVariant?.stockCount ?? product.stockCount ?? 0;
   const relatedProducts = publishedProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 6);
 
   const handleAddToCart = () => {
+    if (!canPurchase) return;
     addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, activeVariant);
   };
 
@@ -529,14 +523,14 @@ export const ProductDetailPage: React.FC = () => {
                 {/* Color / Variant Selection */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
-                    <span>Selected option:</span>
+                    <span>{requiresVariation ? 'Choose a variation:' : 'Selected option:'}</span>
                     <span className="font-semibold text-stone-600 dark:text-stone-400">
-                      {activeVariant?.name || Object.values(selectedOptionValues)[0] || 'Default'}
+                      {activeVariant?.name || (requiresVariation ? 'Select one' : Object.values(selectedOptionValues)[0] || 'Default')}
                     </span>
                   </div>
 
                   {/* Swatch options as clickable image/pill tiles */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {product.variants && product.variants.length > 0 ? (
                       product.variants.map((v) => {
                         const isSelected = activeVariant?.id === v.id;
@@ -548,7 +542,7 @@ export const ProductDetailPage: React.FC = () => {
                               setSelectedVariant(v);
                               if (v.image) setSelectedImage(v.image);
                             }}
-                            className={`flex items-center gap-2 rounded-lg border-2 p-1.5 text-xs transition-all ${
+                            className={`flex w-full items-center gap-2 rounded-xl border-2 p-2 text-left text-xs transition-all ${
                               isSelected
                                 ? 'border-black bg-stone-50 font-bold dark:border-white dark:bg-slate-800 shadow-xs'
                                 : 'border-gray-200 hover:border-gray-400 dark:border-slate-700'
@@ -559,10 +553,7 @@ export const ProductDetailPage: React.FC = () => {
                               alt={v.name}
                               className="h-8 w-8 rounded-sm object-cover"
                             />
-                            <span className="pr-1 text-[11px] font-medium">
-                              {v.name}
-                              {v.price && v.price !== product.price ? ` · GH₵${Number(v.price).toFixed(2)}` : ''}
-                            </span>
+                            <span className="min-w-0 flex-1 pr-1 text-[11px] font-medium"><span className="block truncate">{v.name}</span><span className="block text-[10px] text-stone-500">GH₵{Number(v.price).toFixed(2)} · {(v.stockCount ?? 0) > 0 ? `${v.stockCount} available` : 'Out of stock'}</span></span>
                           </button>
                         );
                       })

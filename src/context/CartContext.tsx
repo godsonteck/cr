@@ -8,8 +8,8 @@ interface CartContextType {
   cartItems: CartItem[];
   loading: boolean;
   addToCart: (product: Product, quantity?: number, selectedOption?: string, selectedVariant?: ProductVariant) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  removeFromCart: (productId: string, variantId?: string) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => Promise<void>;
   clearCart: () => Promise<void>;
   totalItemsCount: number;
   totalItems: number;
@@ -140,15 +140,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [saveCart]);
 
   const addToCart = async (product: Product, quantity = 1, selectedOption?: string, selectedVariant?: ProductVariant) => {
-    if (!product.inStock || product.stockCount <= 0) return;
+    const availableStock = selectedVariant?.stockCount ?? product.stockCount;
+    if (!(selectedVariant?.inStock ?? product.inStock) || availableStock <= 0) return;
     setCart(prev => {
-      const existingIndex = prev.findIndex(item => item.product.id === product.id && item.selectedOption === selectedOption);
+      const existingIndex = prev.findIndex(item => item.product.id === product.id && item.selectedVariant?.id === selectedVariant?.id);
       if (existingIndex > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity = Math.min(product.stockCount, updated[existingIndex].quantity + quantity);
+        updated[existingIndex].quantity = Math.min(availableStock, updated[existingIndex].quantity + quantity);
         return updated;
       }
-      return [...prev, { product: selectedVariant ? { ...product, price: selectedVariant.price, originalPrice: selectedVariant.originalPrice, inStock: selectedVariant.inStock } : product, quantity: Math.min(product.stockCount, quantity), selectedOption, selectedVariant }];
+      return [...prev, { product: selectedVariant ? { ...product, price: selectedVariant.price, originalPrice: selectedVariant.originalPrice, inStock: selectedVariant.inStock, stockCount: availableStock } : product, quantity: Math.min(availableStock, quantity), selectedOption, selectedVariant }];
     });
     setIsCartOpen(true);
   };
@@ -171,17 +172,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsCartOpen(true);
   };
 
-  const removeFromCart = async (productId: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+  const removeFromCart = async (productId: string, variantId?: string) => {
+    setCart(prev => prev.filter(item => item.product.id !== productId || item.selectedVariant?.id !== variantId));
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number, variantId?: string) => {
     if (quantity <= 0) {
-      await removeFromCart(productId);
+      await removeFromCart(productId, variantId);
       return;
     }
     setCart(prev =>
-      prev.map(item => (item.product.id === productId ? { ...item, quantity: Math.min(item.product.stockCount, quantity) } : item))
+      prev.map(item => (item.product.id === productId && item.selectedVariant?.id === variantId ? { ...item, quantity: Math.min(item.selectedVariant?.stockCount ?? item.product.stockCount, quantity) } : item))
     );
   };
 

@@ -62,7 +62,7 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
         {/* Items */}
         <div className="flex-1 overflow-y-auto py-3 px-4 space-y-3">
           {cartItems.length > 0 ? cartItems.map((item) => (
-            <div key={item.product.id} className="flex gap-3 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)]">
+            <div key={`${item.product.id}:${item.selectedVariant?.id || 'base'}`} className="flex gap-3 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)]">
               <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-[10px] font-bold uppercase text-[var(--text-subtle)]">{item.product.brand}</p>
@@ -70,11 +70,11 @@ export const CartDrawerComponent: React.FC<{ isOpen: boolean; onClose: () => voi
                 <p className="text-sm font-black text-[#FF6B00]">GHS {item.product.price.toFixed(2)}</p>
                 <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center border border-[var(--border-color)] rounded-lg overflow-hidden bg-[var(--bg-soft)]">
-                    <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-7 h-7 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition text-sm flex items-center justify-center">−</button>
+                    <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.id)} className="w-7 h-7 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition text-sm flex items-center justify-center">−</button>
                     <span className="w-8 text-center text-xs font-black text-[var(--text-primary)]">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-7 h-7 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition text-sm flex items-center justify-center">+</button>
+                    <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.id)} className="w-7 h-7 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition text-sm flex items-center justify-center">+</button>
                   </div>
-                  <button onClick={() => removeFromCart(item.product.id)} className="text-[var(--text-subtle)] hover:text-red-500 p-1 transition">
+                  <button onClick={() => removeFromCart(item.product.id, item.selectedVariant?.id)} className="text-[var(--text-subtle)] hover:text-red-500 p-1 transition">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -160,7 +160,7 @@ export const FullCartPage: React.FC = () => {
           {/* Items */}
           <div className="space-y-3">
             {cartItems.map((item) => (
-              <div key={item.product.id} className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] p-3 flex gap-3 sm:p-4 sm:gap-4">
+              <div key={`${item.product.id}:${item.selectedVariant?.id || 'base'}`} className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] p-3 flex gap-3 sm:p-4 sm:gap-4">
                 <Link to={`/product/${item.product.id}`}>
                   <img src={item.product.image} alt={item.product.name} className="h-20 w-20 object-cover rounded-xl shrink-0 hover:opacity-90 transition sm:h-24 sm:w-24" />
                 </Link>
@@ -179,11 +179,11 @@ export const FullCartPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center border-2 border-[var(--border-color)] rounded-lg overflow-hidden">
-                        <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-8 h-8 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition flex items-center justify-center">−</button>
+                        <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.id)} className="w-8 h-8 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition flex items-center justify-center">−</button>
                         <span className="w-9 text-center text-xs font-black border-x-2 border-[var(--border-color)] h-8 flex items-center justify-center text-[var(--text-primary)]">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-8 h-8 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition flex items-center justify-center">+</button>
+                        <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.id)} className="w-8 h-8 font-bold text-[var(--text-primary)] hover:bg-[var(--bg-soft)] transition flex items-center justify-center">+</button>
                       </div>
-                      <button onClick={() => removeFromCart(item.product.id)} className="text-[var(--text-subtle)] hover:text-red-500 p-1.5 transition rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20">
+                      <button onClick={() => removeFromCart(item.product.id, item.selectedVariant?.id)} className="text-[var(--text-subtle)] hover:text-red-500 p-1.5 transition rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

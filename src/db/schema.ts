@@ -102,10 +102,12 @@ export const products = pgTable('products', {
   variants: jsonb('variants').$type<Array<{
     id: string;
     name: string;
+    options?: Record<string, string>;
     price: number;
     originalPrice?: number;
     image?: string;
     inStock: boolean;
+    stockCount?: number;
   }>>().default([]),
   details: jsonb('details').$type<{
     howToUse?: string;

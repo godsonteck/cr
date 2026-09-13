@@ -140,16 +140,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       (result, option) => result.flatMap(existing => option.values.map(value => ({ ...existing, [option.name]: value }))),
       [{}]
     );
-    setVariants(combinations.map((optionValues, index) => ({
-      id: `variant-${Date.now()}-${index}`,
-      name: Object.values(optionValues).join(' / '),
-      price,
-      inStock: true,
-      stockCount: stockCount || 0,
-      image: uploadedImages[index] || uploadedImages[0] || image || '',
-      optionValues,
-    })));
-    showToast(`Generated ${combinations.length} variations`);
+    if (variants.length && !window.confirm('Regenerating updates the list of combinations. Matching variations keep their price, stock, and photo; variations that no longer match will be removed. Continue?')) return;
+    const optionKey = (values: Record<string, string>) => Object.entries(values).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}:${value}`).join('|');
+    const existingByOption = new Map(variants.map(variant => [optionKey(variant.optionValues || {}), variant]));
+    setVariants(combinations.map((optionValues, index) => {
+      const existing = existingByOption.get(optionKey(optionValues));
+      if (existing) return { ...existing, optionValues };
+      return {
+        id: `variant-${Date.now()}-${index}`,
+        name: Object.values(optionValues).join(' / '),
+        price,
+        inStock: stockCount > 0,
+        stockCount: Math.max(0, stockCount || 0),
+        image: uploadedImages[index] || uploadedImages[0] || image || '',
+        optionValues,
+      };
+    }));
+    showToast(`${combinations.length} variations ready. Review each price, stock, and photo before saving.`);
   };
 
   const addManualVariant = () => {
@@ -201,15 +208,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       isPublished,
       stockCount,
       options: cleanOptions,
-      variants: variants.map(({ optionValues, ...variant }) => ({
-        ...variant,
-        name: variant.name.trim() || Object.values(optionValues).filter(Boolean).join(' / ') || 'Variation',
-        options: optionValues,
-        price: Number(variant.price) || price,
-        stockCount: Number(variant.stockCount) ?? stockCount,
-        inStock: (Number(variant.stockCount) ?? stockCount) > 0,
-        image: variant.image || primaryImage,
-      })),
+      variants: variants.map(({ optionValues, ...variant }) => {
+        const suppliedStock = Number(variant.stockCount);
+        const normalizedStock = Number.isFinite(suppliedStock) ? Math.max(0, Math.floor(suppliedStock)) : Math.max(0, stockCount);
+        return {
+          ...variant,
+          name: variant.name.trim() || Object.values(optionValues).filter(Boolean).join(' / ') || 'Variation',
+          options: optionValues,
+          price: Number(variant.price) || price,
+          stockCount: normalizedStock,
+          inStock: normalizedStock > 0,
+          image: variant.image || primaryImage,
+        };
+      }),
       origin: origin.trim(),
       rating: productToEdit?.rating || 5,
       reviewCount: productToEdit?.reviewCount || 0,
@@ -535,7 +546,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                 <h3 className="text-lg font-bold text-stone-900">Product Variations & Photos</h3>
               </div>
               <p className="mt-1 text-xs text-stone-500">
-                Add different options (e.g. 30ml vs 100ml, Colors, Weights) with their own prices and photos.
+                Use this only when customers choose between sellable options. Each variation has its own price, stock, and photo; the base stock is not used for variation orders.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -608,7 +619,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                     Configured Variations ({variants.length})
                   </p>
                   <p className="text-[11px] text-stone-500">
-                    Customize the photo, price, and stock for each item.
+                    Check each row before saving: photo, customer label, price, then stock.
                   </p>
                 </div>
 
