@@ -427,7 +427,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [adminSession, setAdminSession] = useState<AdminSession>(() => {
     try {
       const saved = localStorage.getItem('admin_session');
-      if (saved) {
+      // A customer token must never resurrect a saved administrator UI state.
+      if (saved && localStorage.getItem('admin_auth_token')) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.isLoggedIn) return parsed;
       }
@@ -687,15 +688,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Initial load
   useEffect(() => {
-    try {
-      const savedSession = localStorage.getItem('admin_session');
-      const token = localStorage.getItem('admin_auth_token') || localStorage.getItem('auth_token');
-      if (savedSession && token) {
-        const parsed = JSON.parse(savedSession);
-        setAdminSession({ ...parsed, isLoggedIn: true });
-      }
-    } catch (e: any) { setError(e.message || "Operation failed"); }
-
     const hasAdminSession = Boolean(localStorage.getItem('admin_auth_token'));
     const startupRequests: Array<Promise<unknown>> = [
       fetchProducts({ includeUnpublished: hasAdminSession }),
@@ -706,6 +698,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (hasAdminSession) startupRequests.push(fetchBrands());
     void Promise.allSettled(startupRequests);
   }, [fetchProducts, fetchBrands, fetchCategories, fetchSettings, fetchFlashDeals]);
+
+  // localStorage is only a cache. Verify the saved token before restoring an
+  // admin session so an old UI marker or a customer login cannot impersonate
+  // an administrator after a refresh.
+  useEffect(() => {
+    const adminToken = localStorage.getItem('admin_auth_token');
+    if (!adminToken) {
+      localStorage.removeItem('admin_session');
+      return;
+    }
+
+    let cancelled = false;
+    void api.get<{ role: 'customer' | 'admin'; email: string; adminName?: string; adminRole?: string }>('/auth?action=session', adminToken)
+      .then(session => {
+        if (cancelled || session.role !== 'admin') throw new Error('Administrator session required');
+        const restored: AdminSession = {
+          isLoggedIn: true,
+          adminName: session.adminName || 'Store Administrator',
+          adminRole: (session.adminRole || 'Super Admin') as AdminSession['adminRole'],
+          email: session.email,
+        };
+        localStorage.setItem('admin_session', JSON.stringify(restored));
+        setAdminSession(restored);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        localStorage.removeItem('admin_auth_token');
+        localStorage.removeItem('admin_session');
+        setAdminSession({ isLoggedIn: false, adminName: 'Store Administrator', adminRole: 'Super Admin', email: 'admin@crcosmetics.com' });
+      });
+
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const refreshVisibleCatalog = () => {
@@ -726,7 +751,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
     const newId = 'prod-' + Date.now();
     try {
-      const apiResult = await api.post<Product>('/products', { ...productData, id: newId });
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
+      const apiResult = await api.post<Product>('/products', { ...productData, id: newId }, adminToken);
       const normalized = normalizeProduct(apiResult);
       setProducts(prev => [normalized, ...prev.filter(p => p.id !== normalized.id)]);
       if (productData.brand && !brands.includes(productData.brand)) {
@@ -744,7 +771,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     try {
-      const updated = await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates);
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
+      const updated = await api.patch<Product>(`/products?id=${encodeURIComponent(id)}`, updates, adminToken);
       const normalized = normalizeProduct(updated);
       setProducts(prev => prev.map(p => p.id === id ? { ...p, ...normalized } : p));
       await fetchProducts({ includeUnpublished: true });
@@ -759,7 +788,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteProduct = async (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     try {
-      await api.delete(`/products?id=${encodeURIComponent(id)}`);
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
+      await api.delete(`/products?id=${encodeURIComponent(id)}`, adminToken);
       await fetchProducts({ includeUnpublished: true });
     } catch (e: any) {
       const errorMsg = e?.data?.error || e?.message || 'Failed to delete product from server.';
@@ -1301,7 +1332,6 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
 

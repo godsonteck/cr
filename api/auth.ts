@@ -40,6 +40,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
 
   try {
+    // Used by the browser to restore a persisted session.  Never infer an
+    // administrator session from localStorage alone: a customer JWT is valid
+    // authentication, but it must not unlock catalog administration.
+    if (method === 'GET' && query.action === 'session') {
+      const auth = await requireAuth(req, res);
+      if (!auth) return;
+
+      return res.status(200).json({
+        authenticated: true,
+        role: auth.role,
+        email: auth.email,
+        adminName: auth.adminName,
+        adminRole: auth.adminRole,
+      });
+    }
+
     if (method === 'POST') {
       // Rate-limit all login attempts: 10 per 15 minutes per IP
       const clientIp = getClientIp(req.headers as Record<string, string | string[] | undefined>);
