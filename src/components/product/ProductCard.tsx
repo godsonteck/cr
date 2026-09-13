@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       role="link"
       tabIndex={0}
       aria-label={`View ${product.name}`}
-      className={`group relative flex min-w-0 cursor-pointer flex-col justify-between overflow-hidden bg-transparent pb-2 text-[var(--text-primary)] ${className}`}
+      className={`group relative flex min-w-0 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 pb-3 text-[var(--text-primary)] shadow-[var(--shadow-soft)] transition-shadow hover:shadow-md ${className}`}
     >
       <div className={`relative w-full overflow-hidden rounded-2xl bg-[var(--bg-soft)] ${effectiveMode === 'beauty' ? 'aspect-[4/5] lg:aspect-[5/4]' : 'aspect-square lg:aspect-[5/4]'}`}>
         <img
@@ -116,7 +116,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
       </div>
 
-      <div className="mt-3 flex flex-1 flex-col justify-between gap-1.5 px-0.5 text-left">
+      <div className="mt-2.5 flex flex-1 flex-col justify-between gap-1.5 px-0.5 text-left">
         <div className="flex min-h-4 items-center justify-between gap-1.5 flex-wrap">
           {product.brand && (
             <span className="max-w-[140px] break-words text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
