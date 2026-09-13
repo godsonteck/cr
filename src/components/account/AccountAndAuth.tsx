@@ -1125,7 +1125,7 @@ export const AccountPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Touch-friendly account shortcuts */}
+            {/* Visible account shortcuts */}
             <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4 sm:gap-3">
               {[
                 { id: 'orders' as const, label: 'Orders', count: allOrders.length, icon: Package },
@@ -2274,8 +2274,8 @@ export const AccountPage: React.FC = () => {
             {/* Profile */}
             {activeTab === 'security' && user && (
               <div className="space-y-4 sm:space-y-6">
-                {/* Profile workspace */}
-                <div className="relative overflow-hidden rounded-[1.5rem] border border-[var(--accent)]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.07)] sm:rounded-[2rem] sm:p-6">
+                {/* The account header already contains identity and shortcuts. Keep this area focused on editable information. */}
+                <div className="hidden relative overflow-hidden rounded-[1.5rem] border border-[var(--accent)]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.07)] sm:rounded-[2rem] sm:p-6">
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[var(--accent-strong)] via-[#55383A] to-[var(--accent)]" />
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 sm:gap-4">
@@ -2325,7 +2325,7 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {/* Quick links are already available in the responsive account sidebar. */}
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                <div className="hidden grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('orders')}
@@ -2402,11 +2402,11 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {/* Account details */}
-                <div className="rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-xs">
-                  <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
-                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-subtle)]">
-                      My Account Details
-                    </h3>
+                <div className="overflow-hidden rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_12px_32px_rgba(45,27,31,0.05)] sm:rounded-[2rem]">
+                  <div className="border-b border-[var(--border-color)] px-4 py-4 sm:px-6 sm:py-5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Your details</p>
+                    <h2 className="mt-1 font-serif text-xl font-bold text-[var(--text-primary)]">Profile and security</h2>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">Everything you need to manage your account is below.</p>
                   </div>
 
                   <div className="divide-y divide-[var(--border-color)]">
