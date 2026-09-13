@@ -53,24 +53,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
   };
 
   return (
-    <div className={standalone ? 'mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10' : 'space-y-6'}>
-      <header className="relative mb-5 overflow-hidden rounded-[1.5rem] border border-[#C86D51]/20 bg-[var(--bg-card)] p-4 shadow-[0_12px_32px_rgba(45,27,31,0.07)] sm:mb-6 sm:p-5">
-        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-[#2A1D20] via-[#55383A] to-[#C86D51]" />
-        <div className="relative flex items-end gap-3 pt-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-white bg-[var(--accent)] text-sm font-serif font-bold text-white shadow-lg">
-            {user?.profileImage ? <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" /> : (user?.fullName?.charAt(0).toUpperCase() || 'U')}
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/80">Account preferences</p>
-            <h1 className="truncate font-serif text-xl font-bold text-white sm:text-2xl">Settings</h1>
-          </div>
-        </div>
-        <p className="relative mt-4 text-xs leading-5 text-[var(--text-muted)]">
-          Control your theme, alerts, account shortcuts, and support options.
-        </p>
+    <div className={standalone ? 'mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10' : 'space-y-6'}>
+      <header className="mb-5 border-b border-[var(--border-color)] pb-4 sm:mb-6">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Account</p>
+        <h1 className="mt-1 font-serif text-2xl font-bold text-[var(--text-primary)]">Settings</h1>
+        <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Choose how the store looks and which updates you receive.</p>
       </header>
 
-      <div className={standalone ? 'grid gap-4 sm:gap-5 lg:grid-cols-2 lg:items-start' : 'space-y-4 sm:space-y-5'}>
+      <div className="space-y-4 sm:space-y-5">
         {/* 1. APPEARANCE / THEME */}
         <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xs">
           <div className="border-b border-[var(--border-color)] px-4 sm:px-5 py-3 bg-[var(--bg-soft)]/50">
