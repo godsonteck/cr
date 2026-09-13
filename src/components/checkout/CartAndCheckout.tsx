@@ -21,6 +21,7 @@ import {
   Clock,
   Phone,
   Printer,
+  ExternalLink,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { Button, Badge } from '../common/UIPrimitives';
@@ -567,9 +568,23 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       ))}
                     </div>
                     {deliveryMethod === 'store-pickup' && (
-                      <p className="mt-3 rounded-xl bg-[var(--bg-soft)] p-3 text-xs leading-5 text-[var(--text-muted)]">
-                        Pickup location: <strong className="text-[var(--text-primary)]">{storeSettings.storeAddress}</strong>. We will confirm when your order is ready.
-                      </p>
+                      <div className="mt-3 rounded-xl bg-[var(--bg-soft)] p-3 text-xs leading-5 text-[var(--text-muted)]">
+                        <p>
+                          Pickup location: <strong className="text-[var(--text-primary)]">{storeSettings.storeAddress}</strong>. We will confirm when your order is ready.
+                        </p>
+                        {storeSettings.googleMapsUrl && (
+                          <a
+                            href={storeSettings.googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 font-bold text-[#FF6B00] hover:underline"
+                          >
+                            <MapPin className="h-3 w-3 inline" />
+                            <span>View store location on Google Maps</span>
+                            <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -863,7 +878,7 @@ export const OrderConfirmationPage: React.FC = () => {
       `Pickup order: ${order.orderNumber}`,
       `Name: ${order.shippingAddress.fullName}`,
       `Phone: ${order.shippingAddress.phone}`,
-      `Location: ${storeSettings.storeAddress}`,
+      `Location: ${storeSettings.storeAddress}${storeSettings.googleMapsUrl ? ` (${storeSettings.googleMapsUrl})` : ''}`,
       'Please show this order number and the phone number at pickup.',
     ].join('\n');
 
@@ -1026,7 +1041,21 @@ export const OrderConfirmationPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="text-xs space-y-1 text-[var(--text-muted)] pt-1 border-t border-[#C86D51]/15">
-                  <p><strong className="text-[var(--text-primary)]">Location:</strong> {storeSettings.storeAddress}</p>
+                  <p className="flex flex-wrap items-center gap-x-2">
+                    <span><strong className="text-[var(--text-primary)]">Location:</strong> {storeSettings.storeAddress}</span>
+                    {storeSettings.googleMapsUrl && (
+                      <a
+                        href={storeSettings.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-bold text-[#C86D51] hover:underline"
+                      >
+                        <MapPin className="h-3 w-3" />
+                        <span>Google Maps</span>
+                        <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+                      </a>
+                    )}
+                  </p>
                   <p><strong className="text-[var(--text-primary)]">Recipient:</strong> {order.shippingAddress.fullName} ({order.shippingAddress.phone})</p>
                 </div>
                 <button

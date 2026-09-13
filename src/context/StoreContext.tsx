@@ -153,7 +153,8 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
   intercityShippingFee: 70,
   storePhone: '+233 59 215 3306',
   storeEmail: 'contact@crcosmetics.com',
-  storeAddress: 'East Legon / Accra Shopping Hub, Ghana',
+  storeAddress: 'Nmai Dzorn Adjiringano Road, Accra, Ghana',
+  googleMapsUrl: 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en',
   storeHours: 'Mon - Sat: 8:00 AM - 8:00 PM | Sun: 12:00 PM - 6:00 PM',
   whatsappNumber: '233592153306',
   maintenanceMode: false,
@@ -192,7 +193,11 @@ const normalizeStoreSettings = (settings: Partial<StoreSettings>): Partial<Store
   navBeautyLabel: settings.navBeautyLabel === 'Beauty & Skincare' ? 'Beauty' : (settings.navBeautyLabel || 'Beauty'),
   navGroceriesLabel: settings.navGroceriesLabel === 'Groceries & Essentials' ? 'Essentials' : (settings.navGroceriesLabel || 'Essentials'),
   navAboutLabel: settings.navAboutLabel === 'About Us' ? 'About' : (settings.navAboutLabel || 'About'),
-  storeAddress: (settings.storeAddress || 'East Legon / Accra Shopping Hub, Ghana').replace(/\s*\(Google Maps:\s*https?:\/\/[^)]+\)/i, '').trim(),
+  storeAddress: (settings.storeAddress === 'East Legon / Accra Shopping Hub, Ghana' || !settings.storeAddress
+    ? 'Nmai Dzorn Adjiringano Road, Accra, Ghana'
+    : settings.storeAddress
+  ).replace(/\s*\(Google Maps:\s*https?:\/\/[^)]+\)/i, '').trim() || 'Nmai Dzorn Adjiringano Road, Accra, Ghana',
+  googleMapsUrl: settings.googleMapsUrl?.trim() || 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en',
 });
 
 const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [

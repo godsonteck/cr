@@ -1859,6 +1859,10 @@ export function AdminSettingsScreen() {
               Address
               <input className={`${inputClass} mt-2`} value={form.storeAddress} onChange={e => update('storeAddress', e.target.value)} />
             </label>
+            <label className="text-xs font-bold text-stone-600 dark:text-stone-400 sm:col-span-2">
+              Google Maps Link
+              <input className={`${inputClass} mt-2`} value={form.googleMapsUrl || ''} onChange={e => update('googleMapsUrl', e.target.value)} placeholder="https://maps.google.com/maps?q=..." />
+            </label>
             <label className="text-xs font-bold text-stone-600 dark:text-stone-400">
               Hours
               <input className={`${inputClass} mt-2`} value={form.storeHours} onChange={e => update('storeHours', e.target.value)} placeholder="9am - 6pm daily" />

@@ -132,6 +132,7 @@ export interface StoreSettings {
   storePhone: string;
   storeEmail: string;
   storeAddress: string;
+  googleMapsUrl?: string;
   storeHours: string;
   whatsappNumber: string;
   supportPhone?: string;

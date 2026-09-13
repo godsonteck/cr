@@ -23,6 +23,8 @@ import {
   Search,
   Send,
   Clock,
+  ExternalLink,
+  Navigation,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Button } from '../common/UIPrimitives';
@@ -384,10 +386,15 @@ const LegacyAboutPage: React.FC = () => {
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51]" />
                 <span className="break-all">{storeSettings.storeEmail}</span>
               </a>
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51]" />
-                <span>{storeSettings.storeAddress}</span>
-              </div>
+              <a
+                href={storeSettings.googleMapsUrl || 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 transition hover:text-[var(--accent)] group"
+              >
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C86D51] transition group-hover:scale-110" />
+                <span className="group-hover:underline">{storeSettings.storeAddress}</span>
+              </a>
             </div>
           </div>
         </div>
@@ -746,11 +753,22 @@ export const SupportPage: React.FC = () => {
           <p className="mt-2 text-sm font-semibold text-[var(--text-primary)] break-all">{supportEmail}</p>
         </a>
 
-        <div className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center">
-          <MapPin className="mx-auto h-6 w-6 text-[#C86D51]" />
-          <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Store Location</h4>
-          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{supportAddress}</p>
-        </div>
+        <a
+          href={storeSettings.googleMapsUrl || 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-6 text-center transition hover:border-[#C86D51] hover:shadow-sm group flex flex-col justify-between"
+        >
+          <div>
+            <MapPin className="mx-auto h-6 w-6 text-[#C86D51] transition group-hover:scale-110" />
+            <h4 className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-primary)]">Store Location</h4>
+            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{supportAddress}</p>
+          </div>
+          <p className="mt-3 text-xs font-semibold text-[#C86D51] group-hover:underline inline-flex items-center justify-center gap-1">
+            <span>View on Google Maps</span>
+            <ExternalLink className="h-3 w-3" />
+          </p>
+        </a>
       </div>
 
       {/* Interactive FAQ & Help Section */}
@@ -1065,13 +1083,23 @@ export const ContactPage: React.FC = () => {
           <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 sm:p-8 space-y-4">
             <div className="flex items-start gap-4">
               <MapPin className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Visit or receive delivery</h3>
                 <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">{supportAddress}</p>
+                <a
+                  href={storeSettings.googleMapsUrl || 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] transition hover:border-[#C86D51] hover:text-[#C86D51] hover:shadow-sm"
+                >
+                  <Navigation className="h-3.5 w-3.5 text-[#C86D51]" />
+                  <span>Get directions on Google Maps</span>
+                  <ExternalLink className="h-3 w-3 ml-0.5 opacity-60" />
+                </a>
               </div>
             </div>
 
-            <div className="flex items-start gap-4 pt-2 border-t border-[var(--border-color)]">
+            <div className="flex items-start gap-4 pt-4 border-t border-[var(--border-color)]">
               <Clock className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
               <div>
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Operating Hours</h3>
@@ -1083,7 +1111,7 @@ export const ContactPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 pt-2 border-t border-[var(--border-color)]">
+            <div className="flex items-start gap-4 pt-4 border-t border-[var(--border-color)]">
               <Truck className="mt-1 h-5 w-5 flex-none text-[#C86D51]" />
               <div>
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Delivery coverage</h3>
@@ -1092,6 +1120,39 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Interactive Google Map Embed */}
+          <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-[#C86D51]" />
+                <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-primary)]">Store Location Map</h4>
+              </div>
+              <a
+                href={storeSettings.googleMapsUrl || 'https://maps.google.com/maps?q=5.6710920333862305%2C-0.1282176822423935&z=17&hl=en'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-[#C86D51] hover:underline inline-flex items-center gap-1"
+              >
+                <span>Full map</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="relative w-full h-60 rounded-2xl overflow-hidden border border-[var(--border-color)] bg-stone-100 dark:bg-stone-900 shadow-inner">
+              <iframe
+                title="CR Cosmetics Store Location Map"
+                src="https://maps.google.com/maps?q=5.6710920333862305,-0.1282176822423935&z=17&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <p className="mt-2.5 text-[11px] text-[var(--text-muted)] text-center">
+              Nmai Dzorn Adjiringano Road · Pickup & in-store customer desk
+            </p>
           </div>
         </div>
       </div>
