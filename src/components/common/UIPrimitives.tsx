@@ -2,7 +2,7 @@ import React from 'react';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'terracotta' | 'botanical' | 'espresso' | 'gold' | 'outline' | 'secondary';
+  variant?: 'terracotta' | 'botanical' | 'espresso' | 'gold' | 'outline' | 'secondary' | 'warm';
   className?: string;
   size?: 'sm' | 'md';
 }
@@ -20,6 +20,7 @@ export const Badge: React.FC<BadgeProps> = ({
     botanical: 'bg-[#2e4c36] text-white font-bold',
     espresso: 'bg-[#181214] text-white dark:bg-[#d5e5fc] dark:text-slate-950 font-bold',
     gold: 'bg-[#d49e35] text-[#181214] font-bold',
+    warm: 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200 font-bold',
     secondary: 'bg-[var(--bg-soft)] text-[var(--text-primary)] border border-[var(--border-color)] font-semibold',
     outline: 'border border-[var(--border-color)] text-[var(--text-primary)] font-semibold'
   };

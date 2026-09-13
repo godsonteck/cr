@@ -1156,7 +1156,7 @@ export const OrderConfirmationPage: React.FC = () => {
                   <div className="space-y-2 text-xs text-[var(--text-muted)]">
                     <p><strong className="text-[var(--text-primary)]">Recipient:</strong> {order.shippingAddress.fullName}</p>
                     <p><strong className="text-[var(--text-primary)]">Contact Phone:</strong> {order.shippingAddress.phone}</p>
-                    <p><strong className="text-[var(--text-primary)]">Address:</strong> {order.shippingAddress.addressLine1 || order.shippingAddress.area}</p>
+                    <p><strong className="text-[var(--text-primary)]">Address:</strong> {order.shippingAddress.addressLine1 || order.shippingAddress.landmarkOrGps || order.shippingAddress.area}</p>
                     <p><strong className="text-[var(--text-primary)]">Area & City:</strong> {order.shippingAddress.area}, {order.shippingAddress.city}</p>
                     {order.shippingAddress.region && (
                       <p><strong className="text-[var(--text-primary)]">Region:</strong> {order.shippingAddress.region}</p>
@@ -1170,7 +1170,21 @@ export const OrderConfirmationPage: React.FC = () => {
                   </p>
                   <div className="space-y-2 text-xs text-[var(--text-muted)]">
                     <p><strong className="text-[var(--text-primary)]">Store:</strong> {storeSettings.storeName}</p>
-                    <p><strong className="text-[var(--text-primary)]">Address:</strong> {storeSettings.storeAddress}</p>
+                    <p className="flex flex-wrap items-center gap-x-2">
+                      <span><strong className="text-[var(--text-primary)]">Address:</strong> {storeSettings.storeAddress}</span>
+                      {storeSettings.googleMapsUrl && (
+                        <a
+                          href={storeSettings.googleMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-bold text-[#C86D51] hover:underline"
+                        >
+                          <MapPin className="h-3 w-3" />
+                          <span>Google Maps</span>
+                          <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+                        </a>
+                      )}
+                    </p>
                     <p><strong className="text-[var(--text-primary)]">Collector:</strong> {order.shippingAddress.fullName}</p>
                     <p><strong className="text-[var(--text-primary)]">Phone:</strong> {order.shippingAddress.phone}</p>
                   </div>

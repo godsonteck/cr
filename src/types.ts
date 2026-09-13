@@ -266,6 +266,7 @@ export interface ShippingAddress {
   phone: string;
   altPhone?: string;
   email?: string;
+  addressLine1?: string;
   city: string;
   region?: string;
   area: string;
