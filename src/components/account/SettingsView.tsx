@@ -53,8 +53,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
   };
 
   return (
-    <div className={standalone ? 'mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10' : 'space-y-6'}>
-      <header className="mb-5 border-b border-[var(--border-color)] pb-4 sm:mb-6">
+    <div className={standalone ? 'mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-10' : 'space-y-5 sm:space-y-6'}>
+      <header className="mb-4 border-b border-[var(--border-color)] pb-4 sm:mb-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Account</p>
         <h1 className="mt-1 font-serif text-2xl font-bold text-[var(--text-primary)]">Settings</h1>
         <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Control how the store looks and which updates you receive.</p>
@@ -69,7 +69,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
             </h2>
           </div>
 
-          <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
+          <div className="flex flex-col items-stretch gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
                 {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
@@ -82,14 +82,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
               </div>
             </div>
 
-            <div className="flex items-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-1 gap-1">
+            <div className="flex w-full items-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-1 gap-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => {
                   setTheme('light');
                   showAlert('Switched to light mode', 'info');
                 }}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold transition sm:flex-none sm:py-1.5 ${
                   !isDarkMode
                     ? 'bg-[var(--accent)] text-white shadow-xs'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
@@ -104,7 +104,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
                   setTheme('dark');
                   showAlert('Switched to dark mode', 'info');
                 }}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold transition sm:flex-none sm:py-1.5 ${
                   isDarkMode
                     ? 'bg-[var(--accent)] text-white shadow-xs'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
@@ -127,7 +127,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
 
           <div className="divide-y divide-[var(--border-color)]">
             {/* Order Updates */}
-            <div className="flex items-center justify-between p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3 p-4 sm:items-center sm:p-5">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
                   <Package className="h-4 w-4" />
@@ -137,7 +137,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
                   <p className="text-[11px] text-[var(--text-muted)]">Dispatch status and delivery rider alerts</p>
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex shrink-0 items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={preferences.orderUpdates}
@@ -152,7 +152,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
             </div>
 
             {/* Promo Alerts */}
-            <div className="flex items-center justify-between p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3 p-4 sm:items-center sm:p-5">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
                   <Sparkles className="h-4 w-4" />
@@ -162,7 +162,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
                   <p className="text-[11px] text-[var(--text-muted)]">Discount vouchers and special sales announcements</p>
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex shrink-0 items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={preferences.promoAlerts}
@@ -190,7 +190,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
           {isAuthenticated && user ? (
             <div className="divide-y divide-[var(--border-color)]">
               {/* Profile summary row */}
-              <div className="p-4 sm:p-5 flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3 p-4 sm:p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] text-white font-serif font-bold text-base shadow-xs">
                     {user.profileImage ? (
@@ -206,7 +206,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ standalone = false }
                 </div>
                 <Link
                   to="/account?tab=security"
-                  className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
+                  className="flex shrink-0 items-center gap-1 rounded-lg px-1 py-2 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:underline"
                 >
                   Manage <ChevronRight className="h-3.5 w-3.5" />
                 </Link>

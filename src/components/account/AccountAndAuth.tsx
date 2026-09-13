@@ -1052,8 +1052,8 @@ export const AccountPage: React.FC = () => {
     <div className="account-page min-h-[calc(100vh-4.5rem)] overflow-x-hidden bg-[var(--bg-main)] py-4 sm:py-8 font-sans">
       <div className="mx-auto w-full max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         {/* Customer identity and quick destinations */}
-        <section className="relative mb-4 overflow-hidden rounded-[1.5rem] border border-[#C86D51]/20 bg-[var(--bg-card)] p-4 shadow-[0_16px_40px_rgba(45,27,31,0.08)] sm:mb-6 sm:rounded-[2rem] sm:p-6">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#2A1D20] via-[#55383A] to-[#C86D51] sm:h-28" />
+        <section className="relative mb-4 overflow-hidden rounded-2xl border border-[#C86D51]/20 bg-[var(--bg-card)] p-3 shadow-[0_16px_40px_rgba(45,27,31,0.08)] sm:mb-6 sm:rounded-[2rem] sm:p-6">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[5.75rem] bg-gradient-to-r from-[#2A1D20] via-[#55383A] to-[#C86D51] sm:h-28" />
           <div className="relative z-10 flex min-w-0 flex-col gap-4 sm:gap-5">
             {/* Top row: Avatar + Identity + Quick Actions */}
             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1137,7 +1137,7 @@ export const AccountPage: React.FC = () => {
                   key={label}
                   type="button"
                   onClick={() => setActiveTab(id)}
-                    className={`group flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all sm:p-3 ${
+                    className={`group flex min-h-[4.5rem] flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all sm:min-h-[4.75rem] sm:rounded-2xl sm:p-3 ${
                     activeTab === id && (label !== 'In Transit' || activeOrders.length > 0)
                       ? 'border-[var(--accent)]/35 bg-[var(--accent)]/10 text-[var(--accent)]'
                       : 'border-[var(--border-color)] bg-[var(--bg-soft)]/50 text-[var(--text-primary)] hover:border-[var(--accent)]/35 hover:text-[var(--accent)]'
@@ -1166,12 +1166,12 @@ export const AccountPage: React.FC = () => {
 
         {/* Main Grid: Sidebar (Desktop Only) + Screen Content */}
         <div className="grid min-w-0 gap-4 lg:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <aside className="order-1 h-fit border-b border-[var(--border-color)] pb-3 lg:border-b-0 lg:pb-0">
+          <aside className="order-1 h-fit rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 shadow-xs lg:rounded-3xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
             <div className="flex items-center justify-between px-1 py-2 lg:px-3">
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-subtle)]">Account</p>
               <Settings className="h-4 w-4 text-[var(--text-subtle)]" />
             </div>
-            <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block lg:space-y-1">
+            <nav className="grid grid-cols-2 gap-1 lg:block lg:space-y-1">
               {[
                 { id: 'overview' as const, label: 'Overview', icon: Sparkles },
                 { id: 'orders' as const, label: 'Orders & Tracking', icon: Package, count: allOrders.length },
@@ -1188,9 +1188,9 @@ export const AccountPage: React.FC = () => {
                     key={id}
                     type="button"
                     onClick={() => setActiveTab(id)}
-                    className={`flex min-h-10 w-full items-center justify-between border-b border-[var(--border-color)] px-1 py-2.5 text-left text-[11px] font-bold transition lg:rounded-lg lg:border-b-0 lg:px-3 lg:py-2.5 lg:text-xs ${
+                    className={`flex min-h-11 w-full items-center justify-between rounded-xl px-2.5 py-2.5 text-left text-[11px] font-bold transition lg:min-h-10 lg:rounded-lg lg:px-3 lg:text-xs ${
                       isActive
-                        ? 'text-[var(--accent)]'
+                        ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                         : 'text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -1217,7 +1217,7 @@ export const AccountPage: React.FC = () => {
             <div className="col-span-2 border-t border-[var(--border-color)] pt-2 lg:col-span-1 lg:pt-3">
               <Link
                 to="/support"
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)] transition"
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[var(--text-subtle)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-primary)] transition lg:rounded-2xl lg:px-4 lg:py-3"
               >
                 <Headphones className="h-4 w-4" /> Customer Support
               </Link>
