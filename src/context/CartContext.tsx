@@ -109,7 +109,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const saveCart = useCallback(async () => {
     if (!isHydrated) return;
-    localStorage.setItem('cr_cart', JSON.stringify({ items: cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples }));
+    try {
+      localStorage.setItem('cr_cart', JSON.stringify({ items: cart, promoCode, discountAmount, hasFreeShippingCoupon, selectedSamples }));
+    } catch (error) {
+      // Cart persistence is a convenience only; do not crash checkout when
+      // browser storage is full (for example after a large product image cache).
+      console.warn('Could not cache cart locally.', error);
+    }
     try {
       await api.post('/cart', {
         items: cart.map(item => ({

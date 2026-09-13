@@ -364,10 +364,10 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial state with local storage fallback for 100% consistency
   const [products, setProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem('cr_products');
-      if (saved) return (JSON.parse(saved) as Product[]).map(clearUnverifiedReviewStats);
-    } catch { return PRODUCTS.map(clearUnverifiedReviewStats); }
+    // Product images can be large (especially uploaded base64 images). Product
+    // records are server-authoritative, so never cache them in limited browser
+    // storage; a stale oversized cache used to crash the entire app on startup.
+    try { localStorage.removeItem('cr_products'); } catch {}
     return PRODUCTS.map(clearUnverifiedReviewStats);
   });
   const [loading, setLoading] = useState(false);
@@ -473,33 +473,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAdminNotifications(prev => id ? prev.map(item => item.id === id ? { ...item, read: true } : item) : prev.map(item => ({ ...item, read: true })));
   }, []);
 
-  // Sync to localStorage on state changes
+  const persistCache = (key: string, value: unknown) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      // Browser cache is optional. Never allow a quota error to take down the
+      // storefront or admin portal; live data remains available from the API.
+      console.warn(`Could not cache ${key} locally.`, error);
+    }
+  };
+
+  // Sync small, non-critical caches only. Products deliberately stay out of localStorage.
   useEffect(() => {
-    localStorage.setItem('cr_products', JSON.stringify(products));
-  }, [products]);
+    try { localStorage.removeItem('cr_products'); } catch {}
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('cr_orders', JSON.stringify(orders));
+    persistCache('cr_orders', orders);
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('cr_promos', JSON.stringify(promoCodes));
+    persistCache('cr_promos', promoCodes);
   }, [promoCodes]);
 
   useEffect(() => {
-    localStorage.setItem('cr_categories', JSON.stringify(categories));
+    persistCache('cr_categories', categories);
   }, [categories]);
 
   useEffect(() => {
-    localStorage.setItem('cr_flash_deals', JSON.stringify(flashDeals));
+    persistCache('cr_flash_deals', flashDeals);
   }, [flashDeals]);
 
   useEffect(() => {
-    localStorage.setItem('cr_admin_accounts', JSON.stringify(adminAccounts));
+    persistCache('cr_admin_accounts', adminAccounts);
   }, [adminAccounts]);
 
   useEffect(() => {
-    localStorage.setItem('cr_settings', JSON.stringify(storeSettings));
+    persistCache('cr_settings', storeSettings);
   }, [storeSettings]);
 
   useEffect(() => {
@@ -1346,7 +1356,6 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
 
