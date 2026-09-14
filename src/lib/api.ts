@@ -51,7 +51,9 @@ async function request<T>(
   try {
     response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
-      cache: options.method === 'GET' ? 'no-store' : options.cache,
+      // Respect normal HTTP caching for public reads. Sensitive authenticated
+      // endpoints set their own private/no-store response policy server-side.
+      cache: options.cache,
       headers,
       signal: controller.signal,
     });

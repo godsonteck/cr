@@ -243,10 +243,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
 
   try {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-
     // ── GET ──────────────────────────────────────────────────────────────────
     if (method === 'GET') {
       if (query.sitemap === '1') {
@@ -274,6 +270,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (includeUnpublished) {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
+        // Admin inventory must always reflect the latest changes.
+        res.setHeader('Cache-Control', 'private, no-store');
+      } else {
+        // The public catalog is safe to cache briefly. Product writes explicitly
+        // purge this cache through its short lifetime, without making shoppers
+        // download the catalog from the database on every navigation.
+        res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
       }
 
       // Build WHERE conditions with explicit type so push() is always valid
@@ -337,13 +340,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (query.migrateImages === 'true') {
         const rows = await db.select().from(products);
         const legacy = rows.filter(product => !isStorageUrl(product.image));
+        // Keep this bounded so a large catalog never hits the serverless timeout.
+        // The admin action can be repeated; each run continues from where it left off.
+        const batch = legacy.slice(0, 8);
         let migrated = 0;
-        for (const product of legacy) {
+        for (const product of batch) {
           const image = await uploadProductImage(product.image);
           await db.update(products).set({ image, images: [image, ...(product.images || []).filter(isStorageUrl)], updatedAt: new Date() }).where(eq(products.id, product.id));
           migrated++;
         }
-        return res.status(200).json({ migrated, remaining: 0 });
+        return res.status(200).json({ migrated, remaining: Math.max(legacy.length - migrated, 0) });
       }
 
       const parsed = productCreateSchema.safeParse(body);

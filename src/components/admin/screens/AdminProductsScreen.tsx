@@ -165,7 +165,13 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
       const data = await result.json();
       if (!result.ok) throw new Error(data.error || 'Image migration failed.');
       await store.fetchProducts({ includeUnpublished: true });
-      showAlert(`${data.migrated || 0} product photo${data.migrated === 1 ? '' : 's'} moved to Supabase Storage.`, 'success');
+      const remaining = Number(data.remaining || 0);
+      showAlert(
+        remaining > 0
+          ? `${data.migrated || 0} photos moved. ${remaining} remaining — select “Move legacy photos” again to continue.`
+          : `${data.migrated || 0} product photo${data.migrated === 1 ? '' : 's'} moved to Supabase Storage.`,
+        'success',
+      );
     } catch (error: any) {
       showAlert(error?.message || 'Image migration failed.', 'error');
     } finally {
