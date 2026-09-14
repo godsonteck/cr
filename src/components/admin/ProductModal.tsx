@@ -84,7 +84,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       const adminToken = localStorage.getItem('admin_auth_token');
       if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
       const images = await Promise.all(previews.map(async image => {
-        const result = await api.post<{ url: string }>('/product-images', { image }, adminToken);
+        const result = await api.post<{ url: string }>('/products?imageUpload=true', { image }, adminToken);
         if (!isSupabaseStorageImage(result.url)) throw new Error('The image upload did not return a Supabase Storage URL.');
         return result.url;
       }));

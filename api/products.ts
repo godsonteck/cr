@@ -138,6 +138,30 @@ const productUpdateSchema = z.object({
 }).partial();
 
 const sitemapBaseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cosmeticse.vercel.app');
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const isStorageUrl = (value: unknown) => typeof value === 'string' && /^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\//.test(value);
+
+async function uploadProductImage(dataUrl: unknown) {
+  if (typeof dataUrl !== 'string') throw new Error('Image data is required.');
+  const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
+  if (!match) throw new Error('Use a JPG, PNG, WEBP, or GIF image.');
+  const bytes = Buffer.from(match[2], 'base64');
+  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Image must be smaller than 10 MB.');
+  const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '');
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) throw new Error('Supabase Storage is not configured.');
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  const bucket = await fetch(`${supabaseUrl}/storage/v1/bucket/product-media`, { headers });
+  if (bucket.status === 404) {
+    const created = await fetch(`${supabaseUrl}/storage/v1/bucket`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'product-media', name: 'product-media', public: true }) });
+    if (!created.ok && created.status !== 409) throw new Error('Could not create the product image bucket.');
+  } else if (!bucket.ok) throw new Error('Could not access the product image bucket.');
+  const extension = match[1] === 'image/jpeg' ? 'jpg' : match[1].split('/')[1];
+  const path = `products/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
+  const uploaded = await fetch(`${supabaseUrl}/storage/v1/object/product-media/${path}`, { method: 'POST', headers: { ...headers, 'Content-Type': match[1], 'x-upsert': 'false' }, body: bytes });
+  if (!uploaded.ok) throw new Error('Supabase Storage rejected the image upload.');
+  return `${supabaseUrl}/storage/v1/object/public/product-media/${path}`;
+}
 
 async function attachLiveReviewStats<T extends { id: string; rating: string; reviewCount: number }>(productRows: T[]) {
   if (productRows.length === 0) return productRows;
@@ -298,6 +322,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (method === 'POST') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
+
+      if (query.imageUpload === 'true') {
+        return res.status(201).json({ url: await uploadProductImage(body?.image) });
+      }
+      if (query.migrateImages === 'true') {
+        const rows = await db.select().from(products);
+        const legacy = rows.filter(product => !isStorageUrl(product.image));
+        let migrated = 0;
+        for (const product of legacy) {
+          const image = await uploadProductImage(product.image);
+          await db.update(products).set({ image, images: [image, ...(product.images || []).filter(isStorageUrl)], updatedAt: new Date() }).where(eq(products.id, product.id));
+          migrated++;
+        }
+        return res.status(200).json({ migrated, remaining: 0 });
+      }
 
       const parsed = productCreateSchema.safeParse(body);
       if (!parsed.success) {

@@ -161,7 +161,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
     try {
       const token = localStorage.getItem('admin_auth_token');
       if (!token) throw new Error('Administrator session required. Please sign in again.');
-      const result = await fetch('/api/product-images?migrate=true', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
+      const result = await fetch('/api/products?migrateImages=true', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
       const data = await result.json();
       if (!result.ok) throw new Error(data.error || 'Image migration failed.');
       await store.fetchProducts({ includeUnpublished: true });
