@@ -187,7 +187,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     event.preventDefault();
     if (!name.trim()) { showToast('Enter a product name'); return; }
     if (!image && !uploadedImages.length) { showToast('Upload at least one product photo'); return; }
-    if (![image, ...uploadedImages].filter(Boolean).every(isSupabaseStorageImage)) { showToast('Replace legacy photos with Supabase Storage uploads before saving.'); return; }
     if (price <= 0) { showToast('Enter a selling price'); return; }
     if (options.some(option => !option.name.trim() || !option.values.length)) { showToast('Complete or remove each product option'); return; }
     if (options.length && !variants.length) { showToast('Click "Create combinations" to generate your variations'); return; }

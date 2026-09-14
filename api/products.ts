@@ -179,6 +179,29 @@ async function uploadProductImage(dataUrl: unknown) {
   return `${supabaseUrl}/storage/v1/object/public/product-media/${path}`;
 }
 
+/** Move old embedded media only when an admin saves that product. */
+async function migrateLegacyProductMedia<T extends { image?: string; images?: string[]; variants?: Array<{ image?: string } & Record<string, unknown>> }>(product: T): Promise<T> {
+  const migrated = new Map<string, string>();
+  const move = async (value: string | undefined) => {
+    if (!value?.startsWith('data:image/')) return value;
+    const saved = migrated.get(value) || await uploadProductImage(value);
+    migrated.set(value, saved);
+    return saved;
+  };
+
+  return {
+    ...product,
+    ...(product.image ? { image: await move(product.image) } : {}),
+    ...(product.images ? { images: await Promise.all(product.images.map(move)) } : {}),
+    ...(product.variants ? {
+      variants: await Promise.all(product.variants.map(async variant => ({
+        ...variant,
+        ...(variant.image ? { image: await move(variant.image) } : {}),
+      }))),
+    } : {}),
+  } as T;
+}
+
 async function attachLiveReviewStats<T extends { id: string; rating: string; reviewCount: number }>(productRows: T[]) {
   if (productRows.length === 0) return productRows;
 
@@ -408,8 +431,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!existing) return res.status(404).json({ error: 'Product not found' });
 
       const { deliveryPrice, ...rest } = parsed.data;
+      let mediaSafeRest = rest;
+      try {
+        mediaSafeRest = await migrateLegacyProductMedia(rest);
+      } catch (error: any) {
+        console.error('Product media migration during update failed:', error);
+        return res.status(400).json({ error: 'Could not move the existing product photos to Supabase Storage. Please try saving again.' });
+      }
       const updateData: Record<string, unknown> = {
-        ...rest,
+        ...mediaSafeRest,
         // deliveryPrice is already string | null from the Zod transform;
         // only include it if the field was actually sent in the request body
         ...(deliveryPrice !== undefined ? { deliveryPrice: deliveryPrice ?? null } : {}),
@@ -419,11 +449,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Stock can be changed by any admin screen, so enforce the visibility rule
       // here at the source of truth rather than depending on a particular UI.
       const nextInventory = {
-        stockCount: rest.stockCount ?? existing.stockCount,
-        inStock: rest.inStock ?? existing.inStock,
-        variants: rest.variants ?? existing.variants,
+        stockCount: mediaSafeRest.stockCount ?? existing.stockCount,
+        inStock: mediaSafeRest.inStock ?? existing.inStock,
+        variants: mediaSafeRest.variants ?? existing.variants,
       };
-      if (rest.variants !== undefined || rest.stockCount !== undefined || rest.inStock !== undefined || rest.isPublished === true) {
+      if (mediaSafeRest.variants !== undefined || mediaSafeRest.stockCount !== undefined || mediaSafeRest.inStock !== undefined || mediaSafeRest.isPublished === true) {
         const available = hasAvailableInventory(nextInventory);
         updateData.inStock = available;
         if (!available) updateData.isPublished = false;
