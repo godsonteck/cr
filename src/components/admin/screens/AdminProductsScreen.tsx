@@ -161,15 +161,23 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
     try {
       const token = localStorage.getItem('admin_auth_token');
       if (!token) throw new Error('Administrator session required. Please sign in again.');
-      const result = await fetch('/api/products?migrateImages=true', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
-      const data = await result.json();
-      if (!result.ok) throw new Error(data.error || 'Image migration failed.');
+      let migrated = 0;
+      let remaining = 1;
+      // The API deliberately uses small batches to stay reliable on serverless.
+      // Continue here so the admin only needs one action for the whole catalog.
+      for (let batch = 0; batch < 25 && remaining > 0; batch++) {
+        const result = await fetch('/api/products?migrateImages=true', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
+        const data = await result.json();
+        if (!result.ok) throw new Error(data.error || 'Image migration failed.');
+        migrated += Number(data.migrated || 0);
+        remaining = Number(data.remaining || 0);
+        if (!data.migrated && remaining > 0) throw new Error('Image migration stopped before it could finish. Please try again.');
+      }
       await store.fetchProducts({ includeUnpublished: true });
-      const remaining = Number(data.remaining || 0);
       showAlert(
         remaining > 0
-          ? `${data.migrated || 0} photos moved. ${remaining} remaining — select “Move legacy photos” again to continue.`
-          : `${data.migrated || 0} product photo${data.migrated === 1 ? '' : 's'} moved to Supabase Storage.`,
+          ? `${migrated} photos moved. ${remaining} remaining — select “Move legacy photos” again to continue.`
+          : `${migrated} product photo${migrated === 1 ? '' : 's'} moved to Supabase Storage.`,
         'success',
       );
     } catch (error: any) {
