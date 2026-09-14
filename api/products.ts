@@ -141,6 +141,14 @@ const sitemapBaseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https:/
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const isStorageUrl = (value: unknown) => typeof value === 'string' && /^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\//.test(value);
 
+/** A listing is sellable when its own stock, or at least one of its variants, is available. */
+function hasAvailableInventory(product: { stockCount?: number; inStock?: boolean; variants?: Array<{ stockCount?: number; inStock?: boolean }> }) {
+  const variants = product.variants || [];
+  return variants.length > 0
+    ? variants.some(variant => Boolean(variant.inStock) && Number(variant.stockCount ?? 0) > 0)
+    : Boolean(product.inStock) && Number(product.stockCount ?? 0) > 0;
+}
+
 async function uploadProductImage(dataUrl: unknown) {
   if (typeof dataUrl !== 'string') throw new Error('Image data is required.');
   const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -366,7 +374,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         deliveryPrice: deliveryPrice ?? null,
       };
 
-      const [newProduct] = await db.insert(products).values(productData as any).returning();
+      // A product with no available inventory must never be exposed to shoppers.
+      const available = hasAvailableInventory(productData);
+      const [newProduct] = await db.insert(products).values({
+        ...productData,
+        inStock: available,
+        isPublished: available ? productData.isPublished : false,
+      } as any).returning();
       return res.status(201).json(newProduct);
     }
 
@@ -387,13 +401,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const { deliveryPrice, ...rest } = parsed.data;
-      const updateData = {
+      const updateData: Record<string, unknown> = {
         ...rest,
         // deliveryPrice is already string | null from the Zod transform;
         // only include it if the field was actually sent in the request body
         ...(deliveryPrice !== undefined ? { deliveryPrice: deliveryPrice ?? null } : {}),
         updatedAt: new Date(),
       };
+
+      // Stock can be changed by any admin screen, so enforce the visibility rule
+      // here at the source of truth rather than depending on a particular UI.
+      if (rest.variants !== undefined) {
+        const available = hasAvailableInventory({ variants: rest.variants });
+        updateData.inStock = available;
+        if (!available) updateData.isPublished = false;
+      } else if (rest.stockCount !== undefined) {
+        const available = Number(rest.stockCount) > 0 && rest.inStock !== false;
+        updateData.inStock = available;
+        if (!available) updateData.isPublished = false;
+      }
 
       const [updated] = await db
         .update(products)

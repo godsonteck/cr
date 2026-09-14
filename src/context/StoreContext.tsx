@@ -847,7 +847,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateProductStock = async (id: string, stockCount: number, inStock?: boolean) => {
-    await updateProduct(id, { stockCount, inStock: inStock !== undefined ? inStock : stockCount > 0 });
+    const available = inStock !== undefined ? inStock && stockCount > 0 : stockCount > 0;
+    await updateProduct(id, { stockCount, inStock: available, ...(available ? {} : { isPublished: false }) });
   };
 
   const clearAllProducts = async () => {
@@ -1360,5 +1361,4 @@ export const useStore = () => {
   }
   return context;
 };
-
 

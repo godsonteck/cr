@@ -380,6 +380,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .set({
             stockCount: sql`${products.stockCount} - ${quantity}`,
             inStock: sql`(${products.stockCount} - ${quantity}) > 0`,
+            // Reaching zero immediately removes the listing from all public
+            // catalog queries. Restocking does not auto-publish it again.
+            isPublished: sql`(${products.stockCount} - ${quantity}) > 0`,
             updatedAt: new Date(),
           })
           .where(and(
@@ -397,7 +400,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           stockCount: Math.max(0, (variant.stockCount ?? 0) - quantity),
           inStock: (variant.stockCount ?? 0) - quantity > 0,
         });
-        await db.update(products).set({ variants: nextVariants, updatedAt: new Date() }).where(eq(products.id, productId));
+        const hasAvailableVariant = nextVariants.some(variant => variant.inStock && (variant.stockCount ?? 0) > 0);
+        await db.update(products).set({
+          variants: nextVariants,
+          inStock: hasAvailableVariant,
+          ...(hasAvailableVariant ? {} : { isPublished: false }),
+          updatedAt: new Date(),
+        }).where(eq(products.id, productId));
       }
 
       await db.insert(notifications).values([
