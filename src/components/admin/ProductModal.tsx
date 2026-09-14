@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Product, CategoryConfig, CategoryType, DepartmentType, ProductOption, ProductVariant } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
+import { isSupabaseStorageImage } from '../../lib/productImages';
+import { api } from '../../lib/api';
 import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 
 interface ProductModalProps { isOpen: boolean; onClose: () => void; productToEdit?: Product | null; }
@@ -78,15 +80,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     }
     setIsProcessingPhotos(true);
     try {
-      const images = await Promise.all(valid.map(readImage));
+      const previews = await Promise.all(valid.map(readImage));
+      const adminToken = localStorage.getItem('admin_auth_token');
+      if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
+      const images = await Promise.all(previews.map(async image => {
+        const result = await api.post<{ url: string }>('/product-images', { image }, adminToken);
+        if (!isSupabaseStorageImage(result.url)) throw new Error('The image upload did not return a Supabase Storage URL.');
+        return result.url;
+      }));
       setUploadedImages(previous => {
         const next = Array.from(new Set([...previous, ...images]));
         return next;
       });
       setImage(previous => previous || images[0]);
       showToast(valid.length === 1 ? '1 photo added' : `${valid.length} photos added successfully`);
-    } catch {
-      showToast('Could not read photos. Please try again.');
+    } catch (error: any) {
+      showToast(error?.message || 'Could not upload photos. Please try again.');
     } finally {
       setIsProcessingPhotos(false);
     }
@@ -95,8 +104,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const addImageUrl = () => {
     const url = imageUrlInput.trim();
     if (!url) return;
-    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:image/')) {
-      showToast('Please enter a valid image URL starting with http:// or https://');
+    if (!isSupabaseStorageImage(url)) {
+      showToast('Use a public Supabase Storage image URL.');
       return;
     }
     setUploadedImages(previous => Array.from(new Set([...previous, url])));
@@ -178,6 +187,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     event.preventDefault();
     if (!name.trim()) { showToast('Enter a product name'); return; }
     if (!image && !uploadedImages.length) { showToast('Upload at least one product photo'); return; }
+    if (![image, ...uploadedImages].filter(Boolean).every(isSupabaseStorageImage)) { showToast('Replace legacy photos with Supabase Storage uploads before saving.'); return; }
     if (price <= 0) { showToast('Enter a selling price'); return; }
     if (options.some(option => !option.name.trim() || !option.values.length)) { showToast('Complete or remove each product option'); return; }
     if (options.length && !variants.length) { showToast('Click "Create combinations" to generate your variations'); return; }

@@ -5,17 +5,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { Heart, Minus, Plus, ShoppingCart } from 'lucide-react';
-
-const getResponsiveImageSet = (image: string) => {
-  if (!image.includes('images.unsplash.com')) return undefined;
-  return [300, 600, 900]
-    .map(width => {
-      const url = new URL(image);
-      url.searchParams.set('w', String(width));
-      return `${url.toString()} ${width}w`;
-    })
-    .join(', ');
-};
+import { isSupabaseStorageImage } from '../../lib/productImages';
 
 interface ProductCardProps {
   product: Product;
@@ -87,17 +77,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className={`group relative flex min-w-0 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 pb-3 text-[var(--text-primary)] shadow-[var(--shadow-soft)] transition-shadow hover:shadow-md ${className}`}
     >
       <div className={`relative w-full overflow-hidden rounded-2xl bg-[var(--bg-soft)] ${effectiveMode === 'beauty' ? 'aspect-[4/5] lg:aspect-[5/4]' : 'aspect-square lg:aspect-[5/4]'}`}>
-        <img
-          src={product.image}
-          srcSet={getResponsiveImageSet(product.image)}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          alt={product.name}
-          width="600"
-          height="600"
-          decoding="async"
-          className={`h-full w-full transition-transform duration-300 group-hover:scale-[1.03] ${effectiveMode === 'beauty' ? 'object-cover' : 'object-contain p-3'}`}
-          loading="lazy"
-        />
+        {isSupabaseStorageImage(product.image) ? (
+          <img
+            src={product.image}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            alt={product.name}
+            width="600"
+            height="600"
+            decoding="async"
+            className={`h-full w-full transition-transform duration-300 group-hover:scale-[1.03] ${effectiveMode === 'beauty' ? 'object-cover' : 'object-contain p-3'}`}
+            loading="lazy"
+          />
+        ) : <div className="h-full w-full animate-pulse bg-[var(--border-color)]" aria-label="Product image unavailable" />}
 
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1">
           {(product.discountBadge || product.badge) && (

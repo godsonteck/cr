@@ -3,6 +3,7 @@ import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, 
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { Product } from '../../../types';
+import { isSupabaseStorageImage } from '../../../lib/productImages';
 
 interface ProductsScreenProps {
   onAddProduct?: () => void;
@@ -47,10 +48,6 @@ function StatCard({ label, value, detail, icon: Icon }: { label: string; value: 
   );
 }
 
-// SVG placeholder for broken product images — no external hotlinks
-const IMG_FALLBACK =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f1ece8'/%3E%3Cpath d='M34 60l12-16 9 12 6-8 11 12H34z' fill='%23c9b8ae' opacity='.6'/%3E%3Ccircle cx='38' cy='38' r='5' fill='%23c9b8ae' opacity='.6'/%3E%3C/svg%3E";
-
 export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
   onAddProduct,
   onEditProduct,
@@ -62,6 +59,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
   const [departmentFilter, setDepartmentFilter] = useState<'all' | 'beauty' | 'groceries'>('all');
   const [stockFilter, setStockFilter] = useState<'all' | 'in' | 'low' | 'out'>('all');
   const [loading, setLoading] = useState(false);
+  const [migratingImages, setMigratingImages] = useState(false);
   // Per-product delete confirmation state
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -157,6 +155,24 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
     }
   };
 
+  const handleMigrateImages = async () => {
+    if (!window.confirm('Move every legacy product photo into Supabase Storage now? This keeps the catalog unchanged but may take a moment.')) return;
+    setMigratingImages(true);
+    try {
+      const token = localStorage.getItem('admin_auth_token');
+      if (!token) throw new Error('Administrator session required. Please sign in again.');
+      const result = await fetch('/api/product-images?migrate=true', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
+      const data = await result.json();
+      if (!result.ok) throw new Error(data.error || 'Image migration failed.');
+      await store.fetchProducts({ includeUnpublished: true });
+      showAlert(`${data.migrated || 0} product photo${data.migrated === 1 ? '' : 's'} moved to Supabase Storage.`, 'success');
+    } catch (error: any) {
+      showAlert(error?.message || 'Image migration failed.', 'error');
+    } finally {
+      setMigratingImages(false);
+    }
+  };
+
   const stockBadge = (count: number) => {
     if (count === 0)  return 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400';
     if (count <= 5)   return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400';
@@ -173,6 +189,13 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
         description="Add products, update prices, and keep stock accurate."
         action={
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleMigrateImages}
+              disabled={migratingImages}
+              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50 dark:border-[#2e2428] dark:bg-[#201b1a] dark:text-stone-300"
+            >
+              {migratingImages ? 'Moving photos…' : 'Move legacy photos'}
+            </button>
             <button
               onClick={handleExport}
               className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors"
@@ -249,12 +272,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
               <div className="flex gap-4 p-4">
                 {/* Image */}
                 <div className="w-20 h-20 rounded-xl bg-stone-100 dark:bg-[#2a2024] flex-shrink-0 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={e => ((e.target as HTMLImageElement).src = IMG_FALLBACK)}
-                  />
+                  {isSupabaseStorageImage(product.image) ? <img src={product.image} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-stone-200 dark:bg-stone-700" aria-label="Product image unavailable" />}
                 </div>
 
                 {/* Content */}

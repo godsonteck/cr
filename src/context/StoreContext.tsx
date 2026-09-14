@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { api } from '../lib/api';
 import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
+import { isSupabaseStorageImage, productImageUrls } from '../lib/productImages';
 
 interface StoreContextType {
   products: Product[];
@@ -226,6 +227,10 @@ const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
 
 const normalizeProduct = (product: Product): Product => ({
   ...product,
+  // Do not render legacy base64/local/placeholder product media. Product photos
+  // are server-hosted Supabase Storage URLs only.
+  image: isSupabaseStorageImage(product.image) ? product.image : '',
+  images: productImageUrls(product.images || [product.image]),
   price: Number(product.price),
   originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
   deliveryPrice: product.deliveryPrice == null ? undefined : Number(product.deliveryPrice),
@@ -364,13 +369,12 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial state with local storage fallback for 100% consistency
   const [products, setProducts] = useState<Product[]>(() => {
-    // Product images can be large (especially uploaded base64 images). Product
-    // records are server-authoritative, so never cache them in limited browser
-    // storage; a stale oversized cache used to crash the entire app on startup.
+    // Products are server-authoritative. Starting empty prevents static product
+    // images or legacy base64 blobs from flashing before the live catalog arrives.
     try { localStorage.removeItem('cr_products'); } catch {}
-    return PRODUCTS.map(clearUnverifiedReviewStats);
+    return [];
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [brands, setBrands] = useState<string[]>(() => {
@@ -1264,7 +1268,7 @@ const addOrder = async (order: Order) => {
   };
 
   const resetStoreToDefaults = async () => {
-    setProducts(PRODUCTS.map(clearUnverifiedReviewStats));
+    setProducts([]);
     setCategories(CATEGORIES_CONFIG);
     setBrands(BRANDS_LIST);
     setOrders(INITIAL_SEED_ORDERS);
@@ -1356,7 +1360,6 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
 

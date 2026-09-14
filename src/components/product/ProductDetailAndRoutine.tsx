@@ -35,6 +35,7 @@ import { useReviews } from '../../context/ReviewsContext';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
 import { api } from '../../lib/api';
+import { isSupabaseStorageImage, productImageUrls } from '../../lib/productImages';
 import { SEO } from '../common/SEO';
 
 const COLOR_SWATCHES: Record<string, string> = {
@@ -275,15 +276,15 @@ export const ProductDetailPage: React.FC = () => {
       ...(product.images || []),
       product.image,
       ...(product.variants?.map(v => v.image).filter(Boolean) as string[] || [])
-    ].filter(Boolean) as string[];
-    return Array.from(new Set(all));
+    ];
+    return productImageUrls(all);
   }, [product]);
 
   useEffect(() => {
     // A sellable variation is always explicitly chosen, never guessed.
     setSelectedVariant(undefined);
     setSelectedOptionValues({});
-    if (product?.image) setSelectedImage(product.image);
+    if (isSupabaseStorageImage(product?.image)) setSelectedImage(product.image);
   }, [product?.id]);
 
   if (!product) {
@@ -297,7 +298,7 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const wishlisted = isInWishlist(product.id);
-  const currentImage = selectedImage || product.image;
+  const currentImage = isSupabaseStorageImage(selectedImage) ? selectedImage : galleryImages[0];
   const hasOptions = Boolean(product.options?.length);
 
   const effectiveReviewCount = ratingStats.totalReviews > 0
@@ -402,11 +403,7 @@ export const ProductDetailPage: React.FC = () => {
                       -{discountPct}%
                     </span>
                   )}
-                  <img
-                    src={currentImage}
-                    alt={product.name}
-                    className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-                  />
+                  {currentImage ? <img src={currentImage} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" /> : <div className="h-full w-full animate-pulse bg-[var(--border-color)]" aria-label="Product image unavailable" />}
                   
                   {/* Video Play Overlay Indicator */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-10 transition-opacity">
