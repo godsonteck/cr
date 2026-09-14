@@ -35,7 +35,7 @@ import { useReviews } from '../../context/ReviewsContext';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
 import { api } from '../../lib/api';
-import { isSupabaseStorageImage, productImageUrls } from '../../lib/productImages';
+import { isRenderableProductImage, productImageUrls } from '../../lib/productImages';
 import { SEO } from '../common/SEO';
 
 const COLOR_SWATCHES: Record<string, string> = {
@@ -284,7 +284,7 @@ export const ProductDetailPage: React.FC = () => {
     // A sellable variation is always explicitly chosen, never guessed.
     setSelectedVariant(undefined);
     setSelectedOptionValues({});
-    if (isSupabaseStorageImage(product?.image)) setSelectedImage(product.image);
+    if (isRenderableProductImage(product?.image)) setSelectedImage(product.image);
   }, [product?.id]);
 
   if (!product) {
@@ -298,7 +298,7 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const wishlisted = isInWishlist(product.id);
-  const currentImage = isSupabaseStorageImage(selectedImage) ? selectedImage : galleryImages[0];
+  const currentImage = isRenderableProductImage(selectedImage) ? selectedImage : galleryImages[0];
   const hasOptions = Boolean(product.options?.length);
 
   const effectiveReviewCount = ratingStats.totalReviews > 0

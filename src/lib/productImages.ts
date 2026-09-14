@@ -11,5 +11,9 @@ export const isSupabaseStorageImage = (value: unknown): value is string => {
   }
 };
 
+/** Existing database media remains visible until the admin migration moves it to Storage. */
+export const isRenderableProductImage = (value: unknown): value is string =>
+  typeof value === 'string' && (value.startsWith('data:image/') || /^https:\/\//.test(value));
+
 export const productImageUrls = (images: unknown[]): string[] =>
-  Array.from(new Set(images.filter(isSupabaseStorageImage)));
+  Array.from(new Set(images.filter(isRenderableProductImage)));

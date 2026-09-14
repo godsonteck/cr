@@ -3,7 +3,7 @@ import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, 
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { Product } from '../../../types';
-import { isSupabaseStorageImage } from '../../../lib/productImages';
+import { isRenderableProductImage } from '../../../lib/productImages';
 
 interface ProductsScreenProps {
   onAddProduct?: () => void;
@@ -272,7 +272,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
               <div className="flex gap-4 p-4">
                 {/* Image */}
                 <div className="w-20 h-20 rounded-xl bg-stone-100 dark:bg-[#2a2024] flex-shrink-0 overflow-hidden">
-                  {isSupabaseStorageImage(product.image) ? <img src={product.image} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-stone-200 dark:bg-stone-700" aria-label="Product image unavailable" />}
+                  {isRenderableProductImage(product.image) ? <img src={product.image} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-stone-200 dark:bg-stone-700" aria-label="Product image unavailable" />}
                 </div>
 
                 {/* Content */}

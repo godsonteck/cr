@@ -5,7 +5,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { Heart, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { isSupabaseStorageImage } from '../../lib/productImages';
+import { isRenderableProductImage } from '../../lib/productImages';
 
 interface ProductCardProps {
   product: Product;
@@ -77,7 +77,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className={`group relative flex min-w-0 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2.5 pb-3 text-[var(--text-primary)] shadow-[var(--shadow-soft)] transition-shadow hover:shadow-md ${className}`}
     >
       <div className={`relative w-full overflow-hidden rounded-2xl bg-[var(--bg-soft)] ${effectiveMode === 'beauty' ? 'aspect-[4/5] lg:aspect-[5/4]' : 'aspect-square lg:aspect-[5/4]'}`}>
-        {isSupabaseStorageImage(product.image) ? (
+        {isRenderableProductImage(product.image) ? (
           <img
             src={product.image}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

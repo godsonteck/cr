@@ -15,7 +15,7 @@ import {
 } from '../types';
 import { api } from '../lib/api';
 import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
-import { isSupabaseStorageImage, productImageUrls } from '../lib/productImages';
+import { isRenderableProductImage, productImageUrls } from '../lib/productImages';
 
 interface StoreContextType {
   products: Product[];
@@ -227,9 +227,9 @@ const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
 
 const normalizeProduct = (product: Product): Product => ({
   ...product,
-  // Do not render legacy base64/local/placeholder product media. Product photos
-  // are server-hosted Supabase Storage URLs only.
-  image: isSupabaseStorageImage(product.image) ? product.image : '',
+  // Existing records remain visible during the server-side migration. New media
+  // is accepted only through the Supabase Storage upload endpoint.
+  image: isRenderableProductImage(product.image) ? product.image : '',
   images: productImageUrls(product.images || [product.image]),
   price: Number(product.price),
   originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
@@ -1360,6 +1360,5 @@ export const useStore = () => {
   }
   return context;
 };
-
 
 
