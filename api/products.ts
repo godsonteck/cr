@@ -148,14 +148,20 @@ async function uploadProductImage(dataUrl: unknown) {
   const bytes = Buffer.from(match[2], 'base64');
   if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw new Error('Image must be smaller than 10 MB.');
   const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '');
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // New Supabase projects issue sb_secret keys; prefer that current server-only
+  // credential, then retain service-role compatibility for older projects.
+  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) throw new Error('Supabase Storage is not configured.');
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
   const bucket = await fetch(`${supabaseUrl}/storage/v1/bucket/product-media`, { headers });
   if (bucket.status === 404) {
     const created = await fetch(`${supabaseUrl}/storage/v1/bucket`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'product-media', name: 'product-media', public: true }) });
     if (!created.ok && created.status !== 409) throw new Error('Could not create the product image bucket.');
-  } else if (!bucket.ok) throw new Error('Could not access the product image bucket.');
+  } else if (!bucket.ok) {
+    const detail = await bucket.text().catch(() => '');
+    console.error('Supabase Storage bucket access failed:', bucket.status, detail.slice(0, 300));
+    throw new Error('Supabase Storage access was denied. Check the server secret key.');
+  }
   const extension = match[1] === 'image/jpeg' ? 'jpg' : match[1].split('/')[1];
   const path = `products/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
   const uploaded = await fetch(`${supabaseUrl}/storage/v1/object/product-media/${path}`, { method: 'POST', headers: { ...headers, 'Content-Type': match[1], 'x-upsert': 'false' }, body: bytes });
