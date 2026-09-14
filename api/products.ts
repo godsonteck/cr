@@ -154,12 +154,14 @@ async function uploadProductImage(dataUrl: unknown) {
   if (!supabaseUrl || !serviceKey) throw new Error('Supabase Storage is not configured.');
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
   const bucket = await fetch(`${supabaseUrl}/storage/v1/bucket/product-media`, { headers });
-  if (bucket.status === 404) {
+  const bucketDetail = bucket.ok ? '' : await bucket.text().catch(() => '');
+  // Storage returns either 404 or 400/NoSuchBucket when a bucket does not yet exist.
+  const bucketMissing = bucket.status === 404 || /NoSuchBucket|Bucket not found/i.test(bucketDetail);
+  if (bucketMissing) {
     const created = await fetch(`${supabaseUrl}/storage/v1/bucket`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'product-media', name: 'product-media', public: true }) });
     if (!created.ok && created.status !== 409) throw new Error('Could not create the product image bucket.');
   } else if (!bucket.ok) {
-    const detail = await bucket.text().catch(() => '');
-    console.error('Supabase Storage bucket access failed:', bucket.status, detail.slice(0, 300));
+    console.error('Supabase Storage bucket access failed:', bucket.status, bucketDetail.slice(0, 300));
     throw new Error('Supabase Storage access was denied. Check the server secret key.');
   }
   const extension = match[1] === 'image/jpeg' ? 'jpg' : match[1].split('/')[1];
