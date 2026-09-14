@@ -400,6 +400,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Product ID is required' });
       }
 
+      const [existing] = await db.select({
+        stockCount: products.stockCount,
+        inStock: products.inStock,
+        variants: products.variants,
+      }).from(products).where(eq(products.id, id)).limit(1);
+      if (!existing) return res.status(404).json({ error: 'Product not found' });
+
       const { deliveryPrice, ...rest } = parsed.data;
       const updateData: Record<string, unknown> = {
         ...rest,
@@ -411,12 +418,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Stock can be changed by any admin screen, so enforce the visibility rule
       // here at the source of truth rather than depending on a particular UI.
-      if (rest.variants !== undefined) {
-        const available = hasAvailableInventory({ variants: rest.variants });
-        updateData.inStock = available;
-        if (!available) updateData.isPublished = false;
-      } else if (rest.stockCount !== undefined) {
-        const available = Number(rest.stockCount) > 0 && rest.inStock !== false;
+      const nextInventory = {
+        stockCount: rest.stockCount ?? existing.stockCount,
+        inStock: rest.inStock ?? existing.inStock,
+        variants: rest.variants ?? existing.variants,
+      };
+      if (rest.variants !== undefined || rest.stockCount !== undefined || rest.inStock !== undefined || rest.isPublished === true) {
+        const available = hasAvailableInventory(nextInventory);
         updateData.inStock = available;
         if (!available) updateData.isPublished = false;
       }
@@ -427,7 +435,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(products.id, id))
         .returning();
 
-      if (!updated) return res.status(404).json({ error: 'Product not found' });
       return res.status(200).json(updated);
     }
 
