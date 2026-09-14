@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaTiktok, FaWhatsapp } from 'react-icons/fa';
 import { useStore } from '../../context/StoreContext';
 import logoImg from '../../assets/logo.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
@@ -31,6 +31,7 @@ export const Footer: React.FC = () => {
             <Link to="/contact" className="transition hover:text-[var(--accent)]">Contact</Link>
             <Link to="/delivery-returns" className="transition hover:text-[var(--accent)]">Delivery &amp; returns</Link>
             <a href={getWhatsAppUrl(storeSettings.whatsappNumber)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 transition hover:text-[#189a51]"><FaWhatsapp className="h-3.5 w-3.5 text-[#1FAE5B]" aria-hidden="true" /> WhatsApp</a>
+            <a href="https://www.tiktok.com/@cr.cosmetics.andessenti3" target="_blank" rel="noopener noreferrer" aria-label="Visit CR Cosmetics and Essentials on TikTok" className="inline-flex items-center gap-1.5 transition hover:text-[var(--accent)]"><FaTiktok className="h-3.5 w-3.5" aria-hidden="true" /> TikTok</a>
           </nav>
         </div>
 
