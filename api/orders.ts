@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
 import { orders, products, storeSettings, promoCodes, flashDeals, notifications } from '../src/db/schema.js';
-import { eq, desc, and, sql, inArray } from 'drizzle-orm';
+import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
 import { escapeHtml, sendEmail } from './_email.js';
@@ -370,45 +370,63 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource }
         : orderData;
 
-      const [createdOrder] = await db.insert(orders).values(insertOrderData).returning();
+      // Lock every item in one consistently ordered database transaction, then
+      // create the order and reduce stock together. This prevents two shoppers
+      // from both buying the final unit during concurrent checkouts.
+      const createdOrder = await db.transaction(async tx => {
+        const lockedProducts = await tx
+          .select()
+          .from(products)
+          .where(inArray(products.id, productIds))
+          .orderBy(asc(products.id))
+          .for('update');
+        const lockedById = new Map(lockedProducts.map(product => [product.id, product]));
 
-      for (const [productId, quantity] of quantities) {
-        const product = productMap.get(productId);
-        if (!product) continue;
-        await db
-          .update(products)
-          .set({
-            stockCount: sql`${products.stockCount} - ${quantity}`,
-            inStock: sql`(${products.stockCount} - ${quantity}) > 0`,
-            // Reaching zero immediately removes the listing from all public
-            // catalog queries. Restocking does not auto-publish it again.
-            isPublished: sql`(${products.stockCount} - ${quantity}) > 0`,
+        for (const [productId, quantity] of quantities) {
+          const product = lockedById.get(productId);
+          if (!product || !product.isPublished || !product.inStock || product.stockCount < quantity) {
+            throw new Error('One or more products just sold out. Please refresh your cart and try again.');
+          }
+        }
+        for (const [stockKey, quantity] of variantQuantities) {
+          const [productId, variantId] = stockKey.split(':');
+          const variant = lockedById.get(productId)?.variants?.find(item => item.id === variantId);
+          if (!variant || !variant.inStock || (variant.stockCount ?? 0) < quantity) {
+            throw new Error('A selected variation just sold out. Please refresh your cart and try again.');
+          }
+        }
+
+        const [order] = await tx.insert(orders).values(insertOrderData).returning();
+
+        for (const [productId, quantity] of quantities) {
+          const product = lockedById.get(productId)!;
+          const nextStock = product.stockCount - quantity;
+          await tx.update(products).set({
+            stockCount: nextStock,
+            inStock: nextStock > 0,
+            isPublished: nextStock > 0,
             updatedAt: new Date(),
-          })
-          .where(and(
-            eq(products.id, productId),
-            eq(products.inStock, true),
-            sql`${products.stockCount} >= ${quantity}`,
-          ));
-      }
-      for (const [stockKey, quantity] of variantQuantities) {
-        const [productId, variantId] = stockKey.split(':');
-        const product = productMap.get(productId);
-        if (!product) continue;
-        const nextVariants = (product.variants || []).map(variant => variant.id !== variantId ? variant : {
-          ...variant,
-          stockCount: Math.max(0, (variant.stockCount ?? 0) - quantity),
-          inStock: (variant.stockCount ?? 0) - quantity > 0,
-        });
-        const hasAvailableVariant = nextVariants.some(variant => variant.inStock && (variant.stockCount ?? 0) > 0);
-        await db.update(products).set({
-          variants: nextVariants,
-          stockCount: nextVariants.reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0),
-          inStock: hasAvailableVariant,
-          ...(hasAvailableVariant ? {} : { isPublished: false }),
-          updatedAt: new Date(),
-        }).where(eq(products.id, productId));
-      }
+          }).where(eq(products.id, productId));
+        }
+        for (const [stockKey, quantity] of variantQuantities) {
+          const [productId, variantId] = stockKey.split(':');
+          const product = lockedById.get(productId)!;
+          const nextVariants = (product.variants || []).map(variant => variant.id !== variantId ? variant : {
+            ...variant,
+            stockCount: Math.max(0, (variant.stockCount ?? 0) - quantity),
+            inStock: (variant.stockCount ?? 0) - quantity > 0,
+          });
+          const totalStock = nextVariants.reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0);
+          await tx.update(products).set({
+            variants: nextVariants,
+            stockCount: totalStock,
+            inStock: totalStock > 0,
+            ...(totalStock > 0 ? {} : { isPublished: false }),
+            updatedAt: new Date(),
+          }).where(eq(products.id, productId));
+        }
+        return order;
+      });
 
       await db.insert(notifications).values([
         {
@@ -540,6 +558,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
     console.error('Orders API error:', error);
+    if (typeof error?.message === 'string' && /just sold out/i.test(error.message)) {
+      return res.status(409).json({ error: error.message });
+    }
     return res.status(500).json({ error: error?.message || 'Internal server error' });
   }
 }
