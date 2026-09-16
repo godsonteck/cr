@@ -403,6 +403,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const hasAvailableVariant = nextVariants.some(variant => variant.inStock && (variant.stockCount ?? 0) > 0);
         await db.update(products).set({
           variants: nextVariants,
+          stockCount: nextVariants.reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0),
           inStock: hasAvailableVariant,
           ...(hasAvailableVariant ? {} : { isPublished: false }),
           updatedAt: new Date(),

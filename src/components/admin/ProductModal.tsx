@@ -44,6 +44,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     }
   }, [isOpen, productToEdit, brands]);
 
+  const variantStockTotal = variants.reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0);
+  const usesVariations = variants.length > 0;
+
+  useEffect(() => {
+    if (!usesVariations) return;
+    setStockCount(variantStockTotal);
+    setInStock(variantStockTotal > 0);
+  }, [usesVariations, variantStockTotal]);
+
   if (!isOpen) return null;
 
   const readImage = (file: File) => new Promise<string>((resolve, reject) => {
@@ -213,9 +222,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       description: description.trim(),
       highlights: highlights.length ? highlights : ['Original and authentic', 'Quality inspected'],
       badge: badge || undefined,
-      inStock,
+      inStock: usesVariations ? variantStockTotal > 0 : inStock,
       isPublished,
-      stockCount,
+      stockCount: usesVariations ? variantStockTotal : stockCount,
       options: cleanOptions,
       variants: variants.map(({ optionValues, ...variant }) => {
         const suppliedStock = Number(variant.stockCount);
@@ -524,8 +533,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
               <input type="number" min="0" step="0.01" required value={price || ''} onChange={event => setPrice(Number(event.target.value) || 0)} className={`${fieldClass} text-base font-bold`} />
             </label>
             <label className="font-bold text-stone-800">
-              Units in stock <span className="text-rose-600">*</span>
-              <input type="number" min="0" required value={stockCount} onChange={event => { const count = Number(event.target.value) || 0; setStockCount(count); setInStock(count > 0); }} className={`${fieldClass} text-base font-bold`} />
+              {usesVariations ? 'Total units across variations' : 'Units in stock'} <span className="text-rose-600">*</span>
+              <input
+                type="number"
+                min="0"
+                required
+                readOnly={usesVariations}
+                value={usesVariations ? variantStockTotal : stockCount}
+                onChange={event => { const count = Number(event.target.value) || 0; setStockCount(count); setInStock(count > 0); }}
+                className={`${fieldClass} text-base font-bold ${usesVariations ? 'cursor-not-allowed bg-stone-100 text-stone-600' : ''}`}
+              />
+              {usesVariations && <span className="mt-1 block text-[11px] font-normal text-stone-500">Calculated automatically from the variation stock values below.</span>}
             </label>
             <label className="font-bold text-stone-800">
               Category

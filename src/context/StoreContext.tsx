@@ -225,7 +225,15 @@ const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   },
 ];
 
-const normalizeProduct = (product: Product): Product => ({
+const normalizeProduct = (product: Product): Product => {
+  const normalizedVariants = (product.variants || []).map(variant => ({
+    ...variant,
+    price: Number(variant.price),
+    originalPrice: variant.originalPrice == null ? undefined : Number(variant.originalPrice),
+  }));
+  const variantStockTotal = normalizedVariants.reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0);
+  const hasVariants = normalizedVariants.length > 0;
+  return {
   ...product,
   // Existing records remain visible during the server-side migration. New media
   // is accepted only through the Supabase Storage upload endpoint.
@@ -234,15 +242,12 @@ const normalizeProduct = (product: Product): Product => ({
   price: Number(product.price),
   originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
   deliveryPrice: product.deliveryPrice == null ? undefined : Number(product.deliveryPrice),
-  stockCount: Number(product.stockCount || 0),
+  stockCount: hasVariants ? variantStockTotal : Number(product.stockCount || 0),
   rating: Number(product.rating || 0),
   reviewCount: Number(product.reviewCount || 0),
-  variants: (product.variants || []).map(variant => ({
-    ...variant,
-    price: Number(variant.price),
-    originalPrice: variant.originalPrice == null ? undefined : Number(variant.originalPrice),
-  })),
-});
+  variants: normalizedVariants,
+};
+};
 
 const clearUnverifiedReviewStats = (product: Product): Product => ({
   ...product,
@@ -1361,4 +1366,3 @@ export const useStore = () => {
   }
   return context;
 };
-

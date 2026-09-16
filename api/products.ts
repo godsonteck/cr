@@ -149,6 +149,10 @@ function hasAvailableInventory(product: { stockCount?: number; inStock?: boolean
     : Boolean(product.inStock) && Number(product.stockCount ?? 0) > 0;
 }
 
+function variantStockTotal(variants: Array<{ stockCount?: number }> | undefined) {
+  return (variants || []).reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0);
+}
+
 async function uploadProductImage(dataUrl: unknown) {
   if (typeof dataUrl !== 'string') throw new Error('Image data is required.');
   const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -398,9 +402,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
 
       // A product with no available inventory must never be exposed to shoppers.
-      const available = hasAvailableInventory(productData);
+      const hasVariants = productData.variants.length > 0;
+      const totalStock = hasVariants ? variantStockTotal(productData.variants) : productData.stockCount;
+      const available = hasAvailableInventory({ ...productData, stockCount: totalStock });
       const [newProduct] = await db.insert(products).values({
         ...productData,
+        stockCount: totalStock,
         inStock: available,
         isPublished: available ? productData.isPublished : false,
       } as any).returning();
@@ -455,6 +462,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
       if (mediaSafeRest.variants !== undefined || mediaSafeRest.stockCount !== undefined || mediaSafeRest.inStock !== undefined || mediaSafeRest.isPublished === true) {
         const available = hasAvailableInventory(nextInventory);
+        if (mediaSafeRest.variants !== undefined) {
+          updateData.stockCount = variantStockTotal(mediaSafeRest.variants);
+        }
         updateData.inStock = available;
         if (!available) updateData.isPublished = false;
       }
