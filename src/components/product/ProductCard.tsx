@@ -29,17 +29,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const effectiveMode = mode === 'auto' ? (product.department === 'groceries' ? 'grocery' : 'beauty') : mode;
   const price = Number(product.price || 0);
   const originalPrice = product.originalPrice == null ? undefined : Number(product.originalPrice);
-  const cartItem = cartItems.find(item => item.product.id === product.id && !item.selectedOption && !item.selectedVariant);
+  const parentId = product.listingParentId || product.id;
+  const listingVariant = product.listingVariantId ? product.variants?.find(variant => variant.id === product.listingVariantId) : undefined;
+  const cartItem = cartItems.find(item => item.product.id === parentId && (listingVariant ? item.selectedVariant?.id === listingVariant.id : !item.selectedOption && !item.selectedVariant));
   const cartQuantity = cartItem?.quantity || 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (product.options?.length) {
-      navigate(`/product/${product.id}`);
+    if (listingVariant || product.options?.length) {
+      navigate(`/product/${parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
       return;
     }
-    addToCart(product, 1);
+    addToCart({ ...product, id: parentId }, 1, undefined, listingVariant);
     showToast(`Added ${product.name} to cart`);
   };
 
@@ -54,12 +56,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     e.preventDefault();
     if (cartItem) {
-      updateQuantity(product.id, nextQuantity);
+      updateQuantity(parentId, nextQuantity, listingVariant?.id);
     }
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${product.id}`);
+    navigate(`/product/${parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
   };
 
   return (

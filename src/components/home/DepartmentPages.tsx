@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
+import { storefrontListings } from '../../lib/storefrontListings';
 
 export const BeautyDepartmentPage: React.FC = () => {
   const { products, storeSettings } = useStore();
-  const beautyProducts = products.filter(p => p.isPublished !== false && p.department === 'beauty');
+  const beautyProducts = storefrontListings(products).filter(p => p.department === 'beauty');
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -52,7 +53,7 @@ export const BeautyDepartmentPage: React.FC = () => {
 
 export const GroceryDepartmentPage: React.FC = () => {
   const { products, storeSettings } = useStore();
-  const groceryProducts = products.filter(p => p.isPublished !== false && p.department === 'groceries');
+  const groceryProducts = storefrontListings(products).filter(p => p.department === 'groceries');
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">

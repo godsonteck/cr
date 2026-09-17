@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
 import { useStore } from '../../context/StoreContext';
+import { storefrontListings } from '../../lib/storefrontListings';
 
 const getResponsiveImageSet = (image: string) => {
   if (!image.includes('images.unsplash.com')) return undefined;
@@ -17,7 +18,7 @@ const getResponsiveImageSet = (image: string) => {
 
 export const HomePage: React.FC = () => {
   const { products, storeSettings, flashDeals } = useStore();
-  const publishedProducts = products.filter(product => product.isPublished !== false);
+  const publishedProducts = storefrontListings(products);
   const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
   const homepageSections = storeSettings.homepageSections || {
     flashDeal: true,
@@ -160,4 +161,3 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
-

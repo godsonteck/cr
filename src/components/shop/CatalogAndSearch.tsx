@@ -11,11 +11,12 @@ import {
 import { useStore } from '../../context/StoreContext';
 import { DepartmentType } from '../../types';
 import { ProductCard } from '../product/ProductCard';
+import { storefrontListings } from '../../lib/storefrontListings';
 
 export const ShopCatalogPage: React.FC = () => {
   const { products, categories, brands } = useStore();
   const navigate = useNavigate();
-  const publishedProducts = products.filter(product => product.isPublished !== false);
+  const publishedProducts = storefrontListings(products);
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCategorySlug = categorySlug || searchParams.get('category') || '';
@@ -252,7 +253,7 @@ export const ShopCatalogPage: React.FC = () => {
 
 export const SearchResultsPage: React.FC = () => {
   const { products } = useStore();
-  const publishedProducts = products.filter(product => product.isPublished !== false);
+  const publishedProducts = storefrontListings(products);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [searchInput, setSearchInput] = useState(query);

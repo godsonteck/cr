@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Heart,
   ShoppingCart,
@@ -64,6 +64,7 @@ export const ProductDetailPage: React.FC = () => {
   const { products, storeSettings, flashDeals, promoCodes } = useStore();
   const publishedProducts = products.filter(product => product.isPublished !== false);
   const { productId } = useParams<{ productId: string }>();
+  const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -91,6 +92,11 @@ export const ProductDetailPage: React.FC = () => {
   const [starFilter, setStarFilter] = useState<number | 'all'>('all');
   const [photoOnlyFilter, setPhotoOnlyFilter] = useState(false);
   const [helpfulVoted, setHelpfulVoted] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const requestedVariantId = searchParams.get('variant');
+    setSelectedVariant(requestedVariantId ? product?.variants?.find(variant => variant.id === requestedVariantId) : undefined);
+  }, [product, searchParams]);
 
   // In-page review writer state
   const [isWritingReview, setIsWritingReview] = useState(false);
