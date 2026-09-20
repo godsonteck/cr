@@ -16,13 +16,19 @@ import { NotificationProvider } from './context/NotificationContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import './index.css';
 
-// Auto-reload when Vite can't fetch a chunk (happens after a new deployment
-// invalidates the old hashed filenames that the browser has cached).
+// Recover once when a deployment replaces a lazy-loaded chunk. Without this
+// guard a transient network failure can trigger a continuous page-reload loop.
 window.addEventListener('vite:preloadError', () => {
-  const url = new URL(window.location.href);
-  // Force a fresh HTML document after a deployment changes hashed JS files.
-  url.searchParams.set('_reload', String(Date.now()));
-  window.location.replace(url.toString());
+  try {
+    const reloadKey = 'vite_preload_reload_attempted';
+    if (sessionStorage.getItem(reloadKey)) return;
+    sessionStorage.setItem(reloadKey, '1');
+    const url = new URL(window.location.href);
+    url.searchParams.set('_reload', String(Date.now()));
+    window.location.replace(url.toString());
+  } catch {
+    // If browser storage is unavailable, keep the page open instead of risking a loop.
+  }
 });
 
 

@@ -767,6 +767,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const refreshVisibleCatalog = () => {
+      // The admin portal owns its own 15-second operations sync. Avoid issuing
+      // a second overlapping catalog request every 12 seconds on that route.
+      if (window.location.pathname.startsWith('/admin')) return;
       if (document.visibilityState === 'visible') {
         void fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) });
       }
