@@ -199,6 +199,7 @@ export const AdminPortal: React.FC = () => {
   const visibleNavItems = navItems.filter(item => accessibleTabs.includes(item.id));
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -262,18 +263,24 @@ export const AdminPortal: React.FC = () => {
     serverIds.forEach(id => { void store.markAdminNotificationsRead(id); });
   };
 
-  React.useEffect(() => {
-    if (!store.adminSession.isLoggedIn) return;
-    const refresh = () => {
-      void Promise.allSettled([
+  const refreshAdminData = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const results = await Promise.allSettled([
         store.fetchProducts({ includeUnpublished: true }),
         store.fetchOrders(),
         store.fetchAdminNotifications(),
       ]);
-    };
-    const interval = window.setInterval(refresh, 15000);
-    return () => window.clearInterval(interval);
-  }, [store.adminSession.isLoggedIn, store.fetchAdminNotifications, store.fetchOrders, store.fetchProducts]);
+      if (results.some(result => result.status === 'rejected')) {
+        showAlert('Some portal data could not be refreshed. Please try again.', 'error');
+      } else {
+        showAlert('Portal data refreshed.', 'success');
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleLogout = () => {
     if (confirmLogout) {
@@ -483,6 +490,15 @@ export const AdminPortal: React.FC = () => {
                 <span className="hidden sm:inline">Add product</span>
               </button>
             )}
+            <button
+              onClick={() => void refreshAdminData()}
+              disabled={isRefreshing}
+              className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#35272c] dark:text-stone-300 dark:hover:bg-[#1f1a1a]"
+              title="Refresh portal data"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
             <button
               onClick={() => setSearchOpen(true)}
               className="p-2.5 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] transition-colors"
