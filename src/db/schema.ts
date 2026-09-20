@@ -81,6 +81,7 @@ export const products = pgTable('products', {
   originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
   discountBadge: varchar('discount_badge', { length: 20 }),
   unit: varchar('unit', { length: 100 }).notNull(),
+  barcode: varchar('barcode', { length: 128 }),
   image: text('image').notNull(),
   images: jsonb('images').$type<string[]>().notNull().default([]),
   description: text('description').notNull(),
@@ -108,6 +109,7 @@ export const products = pgTable('products', {
     image?: string;
     inStock: boolean;
     stockCount?: number;
+    barcode?: string;
   }>>().default([]),
   details: jsonb('details').$type<{
     howToUse?: string;
@@ -122,6 +124,7 @@ export const products = pgTable('products', {
   departmentIdx: index('products_department_idx').on(table.department),
   publishedIdx: index('products_published_idx').on(table.isPublished),
   brandIdx: index('products_brand_idx').on(table.brand),
+  barcodeIdx: uniqueIndex('products_barcode_idx').on(table.barcode),
 }));
 
 export const categories = pgTable('categories', {

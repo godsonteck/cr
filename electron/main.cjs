@@ -1,10 +1,12 @@
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
 // The desktop app intentionally uses the live application: POS, stock,
 // products, orders and permissions remain one system instead of drifting into
 // a local database. An installer can override this for a staging environment.
-const POS_URL = process.env.CR_POS_URL || 'https://crcosmeticsgh.com/admin?tab=pos';
+const POS_URL = process.env.CR_POS_URL || 'https://cosmeticse.vercel.app/admin?tab=pos';
+const LIVE_ORIGIN = new URL(POS_URL).origin;
 
 function createWindow() {
   const window = new BrowserWindow({
@@ -23,7 +25,7 @@ function createWindow() {
   });
   window.loadURL(POS_URL);
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://crcosmeticsgh.com')) return { action: 'allow' };
+    if (url.startsWith(LIVE_ORIGIN)) return { action: 'allow' };
     void shell.openExternal(url);
     return { action: 'deny' };
   });
@@ -36,6 +38,19 @@ app.whenReady().then(() => {
     });
   }));
   createWindow();
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.on('update-downloaded', () => {
+      void dialog.showMessageBox({
+        type: 'info',
+        title: 'POS update ready',
+        message: 'A POS update has been downloaded and will install when you close the app.',
+      });
+    });
+    autoUpdater.on('error', (error) => console.warn('POS update check failed:', error.message));
+    void autoUpdater.checkForUpdatesAndNotify();
+  }
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

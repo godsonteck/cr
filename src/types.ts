@@ -192,6 +192,7 @@ export interface ProductVariant {
   image?: string;
   inStock: boolean;
   stockCount?: number;
+  barcode?: string;
 }
 
 export interface ProductOption {
@@ -214,6 +215,7 @@ export interface Product {
   originalPrice?: number;
   discountBadge?: string; // e.g. "-10%"
   unit: string; // e.g. "30ml Dropper Bottle", "5kg Bag", "400ml Bottle"
+  barcode?: string;
   image: string;
   images: string[];
   description: string;

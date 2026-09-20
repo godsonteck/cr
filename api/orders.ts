@@ -179,6 +179,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
       }
+      if (isPosOrder && parsed.data.paymentMethod === 'card' && !parsed.data.paymentReference?.trim()) {
+        return res.status(400).json({ error: 'Card terminal reference is required for a counter card sale.' });
+      }
 
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));

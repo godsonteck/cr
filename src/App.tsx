@@ -38,7 +38,7 @@ const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCh
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 function AppLayout() {
-  const { storeSettings, adminSession } = useStore();
+  const { storeSettings } = useStore();
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
 

@@ -104,6 +104,7 @@ async function runMigration() {
     `ALTER TABLE "admin_sessions" ADD COLUMN IF NOT EXISTS "phone" varchar(30) NOT NULL DEFAULT ''`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT '[]'::jsonb`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "delivery_price" numeric(10, 2)`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "barcode" varchar(128)`,
     `ALTER TABLE "flash_deals" ADD COLUMN IF NOT EXISTS "product_ids" jsonb NOT NULL DEFAULT '[]'::jsonb`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_reference" varchar(100)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_sender_phone" varchar(50)`,
@@ -121,6 +122,16 @@ async function runMigration() {
     } catch (e: any) {
       console.error('Compatibility column error:', e.message);
     }
+  }
+
+  // Exact product scans use the btree index; variation barcode lookups use
+  // jsonb containment. Both are safe to create repeatedly in production.
+  for (const indexSql of [
+    `CREATE UNIQUE INDEX IF NOT EXISTS "products_barcode_idx" ON "products" ("barcode")`,
+    `CREATE INDEX IF NOT EXISTS "products_variants_barcode_idx" ON "products" USING gin ("variants" jsonb_path_ops)`,
+  ]) {
+    try { await db.execute(indexSql); console.log('✅ POS barcode index verified'); }
+    catch (e: any) { console.error('POS barcode index error:', e.message); }
   }
 
   console.log('🎉 Migration completed!');

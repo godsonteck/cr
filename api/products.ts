@@ -31,6 +31,7 @@ const productQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(500).optional().default(100),
   offset: z.coerce.number().min(0).optional().default(0),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
+  barcode: z.string().trim().min(1).max(128).optional(),
 });
 
 /** A variation is a sellable SKU: preserve its option combination and inventory. */
@@ -47,6 +48,7 @@ const variantItemSchema = z.object({
   stockCount: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
     v == null ? 0 : Number(v)
   ),
+  barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   options: z.record(z.string()).optional().nullable(),
 });
 
@@ -74,6 +76,7 @@ const productCreateSchema = z.object({
   ),
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100),
+  barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).max(2_100_000),
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
@@ -113,6 +116,7 @@ const productUpdateSchema = z.object({
   ),
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100).optional(),
+  barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).optional(),
   images: z.array(z.string().min(1)).min(1).optional(),
   description: z.string().min(1).optional(),
@@ -142,7 +146,7 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const isStorageUrl = (value: unknown) => typeof value === 'string' && /^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\//.test(value);
 
 /** A listing is sellable when its own stock, or at least one of its variants, is available. */
-function hasAvailableInventory(product: { stockCount?: number; inStock?: boolean; variants?: Array<{ stockCount?: number; inStock?: boolean }> }) {
+function hasAvailableInventory(product: { stockCount?: number; inStock?: boolean; variants?: Array<{ stockCount?: number; inStock?: boolean }> | null }) {
   const variants = product.variants || [];
   return variants.length > 0
     ? variants.some(variant => Boolean(variant.inStock) && Number(variant.stockCount ?? 0) > 0)
@@ -300,7 +304,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid query parameters', details: parsed.error.flatten() });
       }
 
-      const { category, department, brand, search, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
+      const { category, department, brand, search, barcode, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
 
       if (includeUnpublished) {
         const auth = await requireAdmin(req, res);
@@ -334,6 +338,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ilike(products.name, `%${search}%`),
           ilike(products.description, `%${search}%`),
           ilike(products.brand, `%${search}%`)
+        ) as SQL<unknown>);
+      }
+      // A scanner lookup is exact and uses the indexed product barcode. The
+      // JSON containment branch also supports a barcode assigned to a variant.
+      if (barcode) {
+        conditions.push(or(
+          eq(products.barcode, barcode),
+          sql`${products.variants} @> ${JSON.stringify([{ barcode }])}::jsonb`
         ) as SQL<unknown>);
       }
       if (featured) {
