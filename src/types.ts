@@ -293,7 +293,7 @@ export interface Order {
   total: number;
   paymentMethod: PaymentMethod;
   paymentStatus: 'paid' | 'pending';
-  orderSource?: 'website' | 'whatsapp';
+  orderSource?: 'website' | 'whatsapp' | 'pos';
   deliveryMethod: DeliveryMethod;
   shippingAddress: ShippingAddress;
   status: OrderStatus;

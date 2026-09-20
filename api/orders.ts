@@ -37,7 +37,7 @@ const orderCreateSchema = z.object({
   discount: z.coerce.number().min(0).default(0),
   total: z.coerce.number().positive(),
   paymentMethod: z.enum(['paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay']),
-  orderSource: z.enum(['website', 'whatsapp']).default('website'),
+  orderSource: z.enum(['website', 'whatsapp', 'pos']).default('website'),
   paymentStatus: z.enum(['paid', 'pending']).default('pending'),
   deliveryMethod: z.enum(['accra-express', 'standard-delivery', 'intercity', 'store-pickup']),
   shippingAddress: z.object({
@@ -157,7 +157,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (method === 'POST') {
       const isWhatsAppOrder = query.channel === 'whatsapp';
-      const auth = isWhatsAppOrder ? null : await requireAuth(req, res);
+      const isPosOrder = query.channel === 'pos';
+      const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : await requireAuth(req, res);
       if (!isWhatsAppOrder && !auth) return;
       if (isWhatsAppOrder) {
         const rateLimit = checkRateLimit(`whatsapp-order:${getClientIp(req.headers)}`, 10, 60 * 60 * 1000);
@@ -171,6 +172,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (isWhatsAppOrder && parsed.data.paymentMethod !== 'cash-on-delivery') {
         return res.status(400).json({ error: 'WhatsApp orders must be confirmed with the store before payment.' });
+      }
+      if (isPosOrder && parsed.data.orderSource !== 'pos') {
+        return res.status(400).json({ error: 'POS sales must use the POS order source.' });
       }
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
@@ -310,7 +314,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
 
-      const onlinePaymentMethods = ['paystack', 'card'];
+      // Card payments at the counter have already been authorised by the
+      // terminal. Only customer checkout payments are verified with Paystack.
+      const onlinePaymentMethods = isPosOrder ? [] : ['paystack', 'card'];
       let isPaystackVerified = false;
       if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
         const reference = parsed.data.paymentReference?.trim();
@@ -359,15 +365,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...parsed.data,
         items: verifiedItems,
         appliedPromoCode,
-        userId: auth?.sub || null,
+        // A POS sale belongs to the walk-in customer (or no online account),
+        // never the staff member who recorded it.
+        userId: isPosOrder ? null : auth?.sub || null,
         orderNumber,
         subtotal: calculatedSubtotal.toString(),
         shippingFee: finalShippingFee.toString(),
         discount: calculatedDiscount.toString(),
         total: calculatedTotal.toString(),
+        // Counter sales are fulfilled immediately; delivery orders keep the
+        // normal lifecycle and default status.
+        ...(isPosOrder ? { status: 'Delivered' as const, paymentStatus: 'paid' as const } : {}),
       };
       const insertOrderData = hasOrderSourceColumn
-        ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : parsed.data.orderSource }
+        ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : isPosOrder ? 'pos' as const : parsed.data.orderSource }
         : orderData;
 
       // Lock every item in one consistently ordered database transaction, then

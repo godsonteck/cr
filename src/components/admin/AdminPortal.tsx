@@ -26,6 +26,7 @@ import {
   RefreshCw,
   PanelLeft,
   PanelLeftClose,
+  ScanLine,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useAlert } from '../../context/AlertContext';
@@ -50,6 +51,7 @@ import {
 } from './screens/AdminOperationsScreens';
 import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
 import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
+import { AdminPOSScreen } from './screens/AdminPOSScreen';
 import { getGeneratedAdminNotifications } from './screens/AdminOperationsScreens';
 import logoImg from '../../assets/logo.jpeg';
 import { AdminNotification, AdminSession, Product, Order, Customer } from '../../types';
@@ -57,6 +59,7 @@ import { AdminNotification, AdminSession, Product, Order, Customer } from '../..
 type AdminTab =
   | 'overview'
   | 'live'
+  | 'pos'
   | 'products'
   | 'orders'
   | 'inventory'
@@ -80,6 +83,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'overview',       label: 'Dashboard',  icon: BarChart3,      group: 'main'   },
   { id: 'live',           label: 'Live & Finance', icon: Activity,    group: 'main'   },
+  { id: 'pos',            label: 'Point of Sale', icon: ScanLine,    group: 'main'   },
   { id: 'products',       label: 'Products',   icon: Boxes,          group: 'shop'   },
   { id: 'orders',         label: 'Orders',     icon: ClipboardList,  group: 'shop'   },
   { id: 'inventory',      label: 'Stock',      icon: Truck,          group: 'shop'   },
@@ -101,14 +105,15 @@ const navGroups: { key: NavItem['group']; label: string }[] = [
 ];
 
 const roleAccess: Record<AdminSession['adminRole'], AdminTab[]> = {
-  'Super Admin': ['overview', 'live', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
-  'Store Manager': ['overview', 'live', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
+  'Super Admin': ['overview', 'live', 'pos', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
+  'Store Manager': ['overview', 'live', 'pos', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
   'Inventory Dispatcher': ['overview', 'live', 'products', 'orders', 'inventory', 'notifications'],
 };
 
 const tabLabels: Record<AdminTab, string> = {
   overview:      'Dashboard',
   live:          'Live & Finance',
+  pos:           'Point of Sale',
   products:      'Products',
   orders:        'Orders',
   inventory:     'Inventory',
@@ -508,6 +513,7 @@ export const AdminPortal: React.FC = () => {
             >
               {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
               {currentTab === 'live' && <AdminLiveOperationsScreen onViewOrder={handleViewOrder} />}
+              {currentTab === 'pos' && <AdminPOSScreen />}
               {currentTab === 'products' && (
                 <AdminProductsScreen
                   onAddProduct={handleAddProduct}
