@@ -82,6 +82,7 @@ export const products = pgTable('products', {
   discountBadge: varchar('discount_badge', { length: 20 }),
   unit: varchar('unit', { length: 100 }).notNull(),
   barcode: varchar('barcode', { length: 128 }),
+  serialNumber: varchar('serial_number', { length: 128 }),
   image: text('image').notNull(),
   images: jsonb('images').$type<string[]>().notNull().default([]),
   description: text('description').notNull(),
@@ -110,6 +111,7 @@ export const products = pgTable('products', {
     inStock: boolean;
     stockCount?: number;
     barcode?: string;
+    serialNumber?: string;
   }>>().default([]),
   details: jsonb('details').$type<{
     howToUse?: string;
@@ -125,6 +127,7 @@ export const products = pgTable('products', {
   publishedIdx: index('products_published_idx').on(table.isPublished),
   brandIdx: index('products_brand_idx').on(table.brand),
   barcodeIdx: uniqueIndex('products_barcode_idx').on(table.barcode),
+  serialNumberIdx: uniqueIndex('products_serial_number_idx').on(table.serialNumber),
 }));
 
 export const categories = pgTable('categories', {
@@ -221,6 +224,8 @@ export const orders = pgTable('orders', {
   appliedPromoCode: varchar('applied_promo_code', { length: 50 }),
   paymentReference: varchar('payment_reference', { length: 100 }),
   paymentSenderPhone: varchar('payment_sender_phone', { length: 50 }),
+  idempotencyKey: varchar('idempotency_key', { length: 160 }),
+  cashierName: varchar('cashier_name', { length: 100 }),
   riderInfo: jsonb('rider_info').$type<{
     riderName?: string;
     riderPhone?: string;
@@ -241,7 +246,43 @@ export const orders = pgTable('orders', {
   statusIdx: index('orders_status_idx').on(table.status),
   createdAtIdx: index('orders_created_at_idx').on(table.createdAt),
   orderNumberIdx: uniqueIndex('orders_order_number_idx').on(table.orderNumber),
+  idempotencyKeyIdx: uniqueIndex('orders_idempotency_key_idx').on(table.idempotencyKey),
 }));
+
+export const posPayments = pgTable('pos_payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orderId: uuid('order_id').notNull().references(() => orders.id, { onDelete: 'restrict' }).unique(),
+  method: paymentMethodEnum('method').notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  reference: varchar('reference', { length: 100 }),
+  cashReceived: decimal('cash_received', { precision: 10, scale: 2 }),
+  changeGiven: decimal('change_given', { precision: 10, scale: 2 }),
+  cashierName: varchar('cashier_name', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const inventoryMovements = pgTable('inventory_movements', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  productId: varchar('product_id', { length: 100 }).notNull().references(() => products.id, { onDelete: 'restrict' }),
+  variantId: varchar('variant_id', { length: 100 }),
+  orderId: uuid('order_id').references(() => orders.id, { onDelete: 'restrict' }),
+  movementType: varchar('movement_type', { length: 30 }).notNull(),
+  quantity: integer('quantity').notNull(),
+  quantityBefore: integer('quantity_before').notNull(),
+  quantityAfter: integer('quantity_after').notNull(),
+  actorName: varchar('actor_name', { length: 100 }),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({ productIdx: index('inventory_movements_product_idx').on(table.productId), orderIdx: index('inventory_movements_order_idx').on(table.orderId) }));
+
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').primaryKey().defaultRandom(), action: varchar('action', { length: 80 }).notNull(), entityType: varchar('entity_type', { length: 40 }).notNull(), entityId: varchar('entity_id', { length: 100 }).notNull(), actorName: varchar('actor_name', { length: 100 }), metadata: jsonb('metadata').notNull().default({}), createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const posShifts = pgTable('pos_shifts', {
+  id: uuid('id').primaryKey().defaultRandom(), deviceId: varchar('device_id', { length: 100 }).notNull(), cashierName: varchar('cashier_name', { length: 100 }).notNull(), status: varchar('status', { length: 20 }).notNull().default('OPEN'), openingCash: decimal('opening_cash', { precision: 10, scale: 2 }).notNull(), expectedCash: decimal('expected_cash', { precision: 10, scale: 2 }), actualCash: decimal('actual_cash', { precision: 10, scale: 2 }), difference: decimal('difference', { precision: 10, scale: 2 }), openedAt: timestamp('opened_at').defaultNow().notNull(), closedAt: timestamp('closed_at'), notes: text('notes'),
+}, (table) => ({ deviceIdx: index('pos_shifts_device_idx').on(table.deviceId), statusIdx: index('pos_shifts_status_idx').on(table.status) }));
 
 export const reviews = pgTable('reviews', {
   id: uuid('id').primaryKey().defaultRandom(),

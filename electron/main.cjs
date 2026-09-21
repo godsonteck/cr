@@ -1,6 +1,7 @@
 const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const { createPosStore } = require('./pos-store.cjs');
 
 // The desktop app intentionally uses the live application: POS, stock,
 // products, orders and permissions remain one system instead of drifting into
@@ -32,6 +33,13 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  const posStore = createPosStore(app.getPath('userData'));
+  ipcMain.handle('pos:status', () => ({ deviceId: posStore.deviceId, online: require('net').isOnline }));
+  ipcMain.handle('pos:catalog:get', () => posStore.getCatalog());
+  ipcMain.handle('pos:catalog:cache', (_event, products) => { if (!Array.isArray(products)) throw new Error('Invalid catalogue payload'); posStore.cacheCatalog(products); return true; });
+  ipcMain.handle('pos:sale:queue', (_event, sale) => { if (!sale || typeof sale.idempotencyKey !== 'string' || !sale.idempotencyKey.startsWith('POS-')) throw new Error('Invalid POS sale'); posStore.queueSale(sale.idempotencyKey, sale); return true; });
+  ipcMain.handle('pos:sales:pending', () => posStore.pendingSales());
+  ipcMain.handle('pos:sale:mark-sync', (_event, value) => { if (!value || typeof value.idempotencyKey !== 'string' || !['SYNCED', 'SYNC_FAILED', 'SYNC_CONFLICT'].includes(value.status)) throw new Error('Invalid sync status'); posStore.markSync(value.idempotencyKey, value.status, typeof value.error === 'string' ? value.error : null); return true; });
   ipcMain.handle('print-current-page', async (event) => new Promise((resolve, reject) => {
     event.sender.print({ silent: false, printBackground: true }, (success, errorType) => {
       success ? resolve(true) : reject(new Error(errorType || 'Printing was cancelled'));

@@ -6,7 +6,7 @@ import { api } from '../../../lib/api';
 import type { PaymentMethod, Product, ProductVariant } from '../../../types';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
-type PosCatalogueItem = { product: Product; variant?: ProductVariant; title: string; stockCount: number; barcode?: string };
+type PosCatalogueItem = { product: Product; variant?: ProductVariant; title: string; stockCount: number; barcode?: string; serialNumber?: string };
 type PosPayment = 'cash-on-delivery' | 'card' | 'momo-mtn';
 
 const money = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
@@ -25,6 +25,7 @@ export function AdminPOSScreen() {
   const [customerName, setCustomerName] = useState('');
   const [cashReceived, setCashReceived] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [saleKey, setSaleKey] = useState(() => `POS-${crypto.randomUUID()}`);
   const scannerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { void fetchProducts({ includeUnpublished: true }); }, [fetchProducts]);
@@ -34,9 +35,9 @@ export function AdminPOSScreen() {
     if (product.isPublished === false) return [];
     if (product.variants?.length) return product.variants
       .filter(variant => variant.inStock && Number(variant.stockCount) > 0)
-      .map(variant => ({ product, variant, title: `${product.name} — ${variant.name}`, stockCount: Number(variant.stockCount), barcode: variant.barcode }));
+      .map(variant => ({ product, variant, title: `${product.name} — ${variant.name}`, stockCount: Number(variant.stockCount), barcode: variant.barcode, serialNumber: variant.serialNumber }));
     return product.inStock && Number(product.stockCount) > 0
-      ? [{ product, title: product.name, stockCount: Number(product.stockCount), barcode: product.barcode }]
+      ? [{ product, title: product.name, stockCount: Number(product.stockCount), barcode: product.barcode, serialNumber: product.serialNumber }]
       : [];
   }), [products]);
   const sellable = useMemo(() => catalogueItems.map(item => item.product).filter((product, index, all) => all.findIndex(item => item.id === product.id) === index), [catalogueItems]);
@@ -45,7 +46,7 @@ export function AdminPOSScreen() {
     const needle = query.trim().toLowerCase();
     return catalogueItems.filter(item => {
       const matchesCategory = activeCategory === 'all' || (item.product.categoryLabel || item.product.category) === activeCategory;
-      const matchesSearch = !needle || [item.title, item.product.brand, item.product.category, item.product.categoryLabel, item.product.id, item.variant?.id, item.barcode].filter(Boolean).join(' ').toLowerCase().includes(needle);
+      const matchesSearch = !needle || [item.title, item.product.brand, item.product.category, item.product.categoryLabel, item.product.id, item.variant?.id, item.barcode, item.serialNumber].filter(Boolean).join(' ').toLowerCase().includes(needle);
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, catalogueItems, query]);
@@ -80,11 +81,11 @@ export function AdminPOSScreen() {
     // product IDs and names.
     let scannedProduct: Product | undefined;
     try {
-      const result = await api.get<{ products: Product[] }>(`/products?barcode=${encodeURIComponent(scannerValue.trim())}&limit=1`);
+      const result = await api.get<{ products: Product[] }>(`/products?scanCode=${encodeURIComponent(scannerValue.trim())}&limit=1`);
       scannedProduct = result.products?.[0];
     } catch { /* A manual lookup can still use the already loaded catalogue. */ }
-    const product = scannedProduct || sellable.find(item => item.id.toLowerCase() === needle || item.name.toLowerCase() === needle || item.barcode?.toLowerCase() === needle);
-    const variantMatch = (scannedProduct ? [scannedProduct] : sellable).flatMap(item => (item.variants || []).map(variant => ({ item, variant }))).find(item => item.variant.barcode?.toLowerCase() === needle || item.variant.id.toLowerCase() === needle || item.variant.name.toLowerCase() === needle);
+    const product = scannedProduct || sellable.find(item => item.id.toLowerCase() === needle || item.name.toLowerCase() === needle || item.barcode?.toLowerCase() === needle || item.serialNumber?.toLowerCase() === needle);
+    const variantMatch = (scannedProduct ? [scannedProduct] : sellable).flatMap(item => (item.variants || []).map(variant => ({ item, variant }))).find(item => item.variant.barcode?.toLowerCase() === needle || item.variant.serialNumber?.toLowerCase() === needle || item.variant.id.toLowerCase() === needle || item.variant.name.toLowerCase() === needle);
     if (variantMatch) addLine(variantMatch.item, variantMatch.variant);
     else if (product) addLine(product);
     else showAlert('No live product or variation matches that scan. Search by name instead.', 'warning');
@@ -99,9 +100,9 @@ export function AdminPOSScreen() {
     setSubmitting(true);
     try {
       const payload = {
-        orderSource: 'pos', subtotal: total, shippingFee: 0, discount: 0, total,
+        orderSource: 'pos', idempotencyKey: saleKey, subtotal: total, shippingFee: 0, discount: 0, total,
         paymentMethod: payment as PaymentMethod, paymentStatus: 'paid', deliveryMethod: 'store-pickup',
-        paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined,
+        paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined, cashReceived: payment === 'cash-on-delivery' ? tendered : undefined,
         shippingAddress: { fullName: customerName.trim() || 'Walk-in customer', phone: payment === 'momo-mtn' ? senderPhone.trim() : 'In-store sale', city: 'In-store', area: 'POS counter' },
         items: cart.map(line => ({
           product: { id: line.product.id, name: line.product.name, brand: line.product.brand, price: Number(line.variant?.price ?? line.product.price), originalPrice: line.variant?.originalPrice ?? line.product.originalPrice, image: line.variant?.image || line.product.image, unit: line.product.unit, category: line.product.category, inStock: true, stockCount: Number(line.variant?.stockCount ?? line.product.stockCount) },
@@ -120,7 +121,7 @@ export function AdminPOSScreen() {
         receiptWindow.document.write(`<!doctype html><html><head><title>Receipt ${escape(order.orderNumber)}</title><style>body{font-family:Arial,sans-serif;max-width:360px;margin:24px auto;color:#171717}.brand{border-bottom:2px solid #171717;padding-bottom:14px;text-align:center}.logo{display:block;max-height:64px;max-width:150px;margin:0 auto 9px;object-fit:contain}h1{font-size:20px;margin:0}.company-detail{margin:3px 0;color:#555;font-size:12px}p{margin:6px 0;color:#555}table{width:100%;border-collapse:collapse;margin:18px 0}td{padding:9px 0;border-bottom:1px solid #ddd;font-size:13px}small{color:#666}.total{font-size:18px;font-weight:bold;border-top:2px solid #111;padding-top:12px}button{width:100%;padding:12px;border:0;background:#171717;color:#fff;font-weight:bold}@media print{body{margin:0 auto}button{display:none}}</style></head><body><header class="brand">${companyLogo}<h1>${escape(companyName)}</h1>${companyDetails}</header><p>Sale receipt · ${escape(order.orderNumber)}</p><p>${new Date().toLocaleString()}</p><p>Customer: ${escape(customerName.trim() || 'Walk-in customer')}</p><table>${lines}</table><p>Payment: ${payment === 'cash-on-delivery' ? 'Cash' : payment === 'momo-mtn' ? 'Mobile Money' : 'Card'}${reference.trim() ? ` · Ref: ${escape(reference.trim())}` : ''}</p>${payment === 'cash-on-delivery' ? `<p>Cash received: ${money.format(tendered)}<br>Change: ${money.format(change)}</p>` : ''}<p class="total">Total: ${money.format(total)}</p><button onclick="window.print()">Print receipt</button></body></html>`);
         receiptWindow.document.close();
       }
-      setCart([]); setReference(''); setSenderPhone(''); setCustomerName(''); setCashReceived('');
+      setCart([]); setReference(''); setSenderPhone(''); setCustomerName(''); setCashReceived(''); setSaleKey(`POS-${crypto.randomUUID()}`);
       await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
     } catch (error: any) { showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error'); }
     finally { setSubmitting(false); scannerRef.current?.focus(); }
@@ -130,7 +131,7 @@ export function AdminPOSScreen() {
     <section className="min-w-0 space-y-4 print:hidden">
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#35272c] dark:bg-[#1e1719] sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">Counter sale</h2><p className="text-sm text-stone-500">Every stocked product and variation is shown separately. Stock is checked again when you complete the sale.</p></div><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Secure stock sync</div></div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2"><div><div className="flex gap-2"><label className="relative min-w-0 flex-1"><Barcode className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input ref={scannerRef} value={scannerValue} onChange={event => setScannerValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') void scan(); }} placeholder="Scan barcode or enter product ID" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label><button type="button" onClick={() => void scan()} disabled={!scannerValue.trim()} className="rounded-xl bg-[#24191b] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Add</button></div><p className="mt-1.5 text-xs text-stone-500">Connect a USB or Bluetooth scanner in keyboard mode, click this field once, then scan. Press Enter after a typed barcode.</p></div><label className="relative"><Search className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search products" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label></div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2"><div><div className="flex gap-2"><label className="relative min-w-0 flex-1"><Barcode className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input ref={scannerRef} value={scannerValue} onChange={event => setScannerValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') void scan(); }} placeholder="Scan barcode, serial number, or product ID" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label><button type="button" onClick={() => void scan()} disabled={!scannerValue.trim()} className="rounded-xl bg-[#24191b] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Add</button></div><p className="mt-1.5 text-xs text-stone-500">Connect a USB or Bluetooth scanner in keyboard mode, click this field once, then scan a barcode or serial number. Press Enter after a typed code.</p></div><label className="relative"><Search className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search products" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label></div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1"><button type="button" onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>All products</button>{categories.map(category => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === category ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>{category}</button>)}</div>
       </div>
       <div className="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm dark:border-[#35272c] dark:bg-[#1e1719]"><div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1"><p className="text-sm font-bold">Product keys <span className="font-normal text-stone-500">({shownProducts.length} shown)</span></p>{barcodeMissing > 0 && <p className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">{barcodeMissing} item{barcodeMissing === 1 ? '' : 's'} need a barcode</p>}</div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">{loading ? <p className="col-span-full p-8 text-center text-sm text-stone-500">Loading products…</p> : shownProducts.map(item => <button key={keyFor(item.product, item.variant)} type="button" onClick={() => addLine(item.product, item.variant)} className="group overflow-hidden rounded-xl border border-stone-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#b9774c] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]"><img src={item.variant?.image || item.product.image} alt="" className="h-28 w-full object-cover" /><span className="block p-3"><span className="line-clamp-2 block text-sm font-bold">{item.product.name}</span>{item.variant && <span className="mt-0.5 block truncate text-xs font-semibold text-[#a85e35]">{item.variant.name}</span>}<span className="mt-2 block text-sm font-extrabold">{money.format(Number(item.variant?.price ?? item.product.price))}</span><span className="mt-2 flex items-center justify-between gap-2 text-[11px]"><span className="font-medium text-stone-500">{item.stockCount} in stock</span>{item.barcode?.trim() ? <span className="text-emerald-700">Barcode ready</span> : <span className="text-amber-700">No barcode</span>}</span></span></button>)}</div>{!loading && !shownProducts.length && <p className="p-8 text-center text-sm text-stone-500">No in-stock products or variations match this search.</p>}</div>

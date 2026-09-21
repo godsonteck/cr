@@ -1,0 +1,8 @@
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "idempotency_key" varchar(160);
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "cashier_name" varchar(100);
+CREATE UNIQUE INDEX IF NOT EXISTS "orders_idempotency_key_idx" ON "orders" ("idempotency_key") WHERE "idempotency_key" IS NOT NULL;
+CREATE TABLE IF NOT EXISTS "pos_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "order_id" uuid NOT NULL UNIQUE REFERENCES "orders"("id") ON DELETE RESTRICT, "method" "payment_method" NOT NULL, "status" varchar(20) NOT NULL, "amount" numeric(10,2) NOT NULL, "reference" varchar(100), "cash_received" numeric(10,2), "change_given" numeric(10,2), "cashier_name" varchar(100), "created_at" timestamp DEFAULT now() NOT NULL);
+CREATE TABLE IF NOT EXISTS "inventory_movements" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "product_id" varchar(100) NOT NULL REFERENCES "products"("id") ON DELETE RESTRICT, "variant_id" varchar(100), "order_id" uuid REFERENCES "orders"("id") ON DELETE RESTRICT, "movement_type" varchar(30) NOT NULL, "quantity" integer NOT NULL, "quantity_before" integer NOT NULL, "quantity_after" integer NOT NULL, "actor_name" varchar(100), "reason" text, "created_at" timestamp DEFAULT now() NOT NULL);
+CREATE INDEX IF NOT EXISTS "inventory_movements_product_idx" ON "inventory_movements" ("product_id");
+CREATE INDEX IF NOT EXISTS "inventory_movements_order_idx" ON "inventory_movements" ("order_id");
+CREATE TABLE IF NOT EXISTS "audit_logs" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "action" varchar(80) NOT NULL, "entity_type" varchar(40) NOT NULL, "entity_id" varchar(100) NOT NULL, "actor_name" varchar(100), "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb, "created_at" timestamp DEFAULT now() NOT NULL);

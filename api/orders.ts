@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/neon.js';
-import { orders, products, storeSettings, promoCodes, flashDeals, notifications } from '../src/db/schema.js';
+import { orders, products, storeSettings, promoCodes, flashDeals, notifications, posPayments, inventoryMovements, auditLogs } from '../src/db/schema.js';
 import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -56,6 +56,8 @@ const orderCreateSchema = z.object({
   paymentSenderPhone: z.string().max(50).optional(),
   // Server-verified Paystack reference — required for paystack/momo payment methods
   paystackReference: z.string().optional(),
+  idempotencyKey: z.string().trim().min(12).max(160).optional(),
+  cashReceived: z.coerce.number().nonnegative().optional(),
 });
 
 const orderUpdateSchema = z.object({
@@ -176,6 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (isPosOrder && parsed.data.orderSource !== 'pos') {
         return res.status(400).json({ error: 'POS sales must use the POS order source.' });
       }
+      if (isPosOrder && !parsed.data.idempotencyKey) return res.status(400).json({ error: 'POS sale identifier is required. Please retry the sale.' });
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
       }
@@ -317,6 +320,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
 
+      if (isPosOrder && parsed.data.paymentMethod === 'cash-on-delivery' && (parsed.data.cashReceived == null || parsed.data.cashReceived < calculatedTotal)) {
+        return res.status(400).json({ error: 'Cash received must cover the final sale total.' });
+      }
+
       // Card payments at the counter have already been authorised by the
       // terminal. Only customer checkout payments are verified with Paystack.
       const onlinePaymentMethods = isPosOrder ? [] : ['paystack', 'card'];
@@ -379,6 +386,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Counter sales are fulfilled immediately; delivery orders keep the
         // normal lifecycle and default status.
         ...(isPosOrder ? { status: 'Delivered' as const, paymentStatus: 'paid' as const } : {}),
+        ...(isPosOrder ? { idempotencyKey: parsed.data.idempotencyKey, cashierName: auth?.adminName || auth?.name || 'POS cashier' } : {}),
       };
       const insertOrderData = hasOrderSourceColumn
         ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : isPosOrder ? 'pos' as const : parsed.data.orderSource }
@@ -388,6 +396,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // create the order and reduce stock together. This prevents two shoppers
       // from both buying the final unit during concurrent checkouts.
       const createdOrder = await db.transaction(async tx => {
+        if (isPosOrder && parsed.data.idempotencyKey) {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${parsed.data.idempotencyKey}))`);
+          const [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
+          if (existing) return existing;
+        }
         const lockedProducts = await tx
           .select()
           .from(products)
@@ -412,6 +425,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const [order] = await tx.insert(orders).values(insertOrderData).returning();
 
+        if (isPosOrder) {
+          const cashReceived = parsed.data.paymentMethod === 'cash-on-delivery' ? parsed.data.cashReceived : undefined;
+          await tx.insert(posPayments).values({ orderId: order.id, method: parsed.data.paymentMethod, status: 'SUCCESS', amount: calculatedTotal.toString(), reference: parsed.data.paymentReference?.trim() || undefined, cashReceived: cashReceived?.toString(), changeGiven: cashReceived == null ? undefined : Math.max(0, cashReceived - calculatedTotal).toString(), cashierName: auth?.adminName || auth?.name || 'POS cashier' });
+        }
+
         for (const [productId, quantity] of quantities) {
           const product = lockedById.get(productId)!;
           const nextStock = product.stockCount - quantity;
@@ -421,6 +439,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             isPublished: nextStock > 0,
             updatedAt: new Date(),
           }).where(eq(products.id, productId));
+          if (isPosOrder) await tx.insert(inventoryMovements).values({ productId, orderId: order.id, movementType: 'POS_SALE', quantity: -quantity, quantityBefore: product.stockCount, quantityAfter: nextStock, actorName: auth?.adminName || auth?.name, reason: `POS sale ${order.orderNumber}` });
         }
         for (const [stockKey, quantity] of variantQuantities) {
           const [productId, variantId] = stockKey.split(':');
@@ -438,7 +457,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ...(totalStock > 0 ? {} : { isPublished: false }),
             updatedAt: new Date(),
           }).where(eq(products.id, productId));
+          if (isPosOrder) await tx.insert(inventoryMovements).values({ productId, variantId, orderId: order.id, movementType: 'POS_SALE', quantity: -quantity, quantityBefore: Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0), quantityAfter: Math.max(0, Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0) - quantity), actorName: auth?.adminName || auth?.name, reason: `POS sale ${order.orderNumber}` });
         }
+        if (isPosOrder) await tx.insert(auditLogs).values({ action: 'POS_SALE_COMPLETED', entityType: 'order', entityId: order.id, actorName: auth?.adminName || auth?.name, metadata: { orderNumber: order.orderNumber, total: calculatedTotal, idempotencyKey: parsed.data.idempotencyKey } });
         return order;
       });
 
@@ -556,17 +577,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (method === 'DELETE') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
-
-      const { id } = query;
-      if (!id || typeof id !== 'string') {
-        return res.status(400).json({ error: 'Order ID is required' });
-      }
-
-      const [deleted] = await db.delete(orders).where(eq(orders.id, id)).returning({ id: orders.id });
-      if (!deleted) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
-      return res.status(200).json({ success: true, id: deleted.id });
+      // Sales and orders are financial records. A return, refund, or void
+      // must create its own auditable transaction; deleting history is unsafe.
+      return res.status(405).json({ error: 'Orders cannot be deleted. Use an authorised return, refund, or void workflow.' });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

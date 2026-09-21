@@ -6,4 +6,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('crDesktop', {
   isDesktop: true,
   print: () => ipcRenderer.invoke('print-current-page'),
+  pos: {
+    status: () => ipcRenderer.invoke('pos:status'),
+    catalog: { get: () => ipcRenderer.invoke('pos:catalog:get'), cache: (products) => ipcRenderer.invoke('pos:catalog:cache', products) },
+    sales: { queue: (sale) => ipcRenderer.invoke('pos:sale:queue', sale), pending: () => ipcRenderer.invoke('pos:sales:pending'), markSync: (value) => ipcRenderer.invoke('pos:sale:mark-sync', value) },
+  },
 });

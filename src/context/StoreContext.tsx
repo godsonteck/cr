@@ -1121,56 +1121,13 @@ const addOrder = async (order: Order) => {
         return true;
       }
     } catch {
-      // Backend offline or local development fallback
-    }
-
-    // 2. Local fallback is useful for offline development only. Production
-    // must never claim an admin session that the API cannot validate.
-    if (!import.meta.env.DEV) {
-      return false;
-    }
-
-    // 2. Resilient local credential validation
-    const savedCustomPassword = localStorage.getItem(`cr_admin_password_${cleanEmail}`);
-    const globalAdminPassword = localStorage.getItem('cr_admin_password_admin@crcosmetics.com');
-    const validPins = [
-      savedCustomPassword,
-      globalAdminPassword,
-      '1234',
-      '0000',
-      '123456',
-      'admin123',
-    ].filter(Boolean);
-
-    if (validPins.includes(cleanPin)) {
-      const matchedAccount = (adminAccounts || []).find(a => a.email.toLowerCase() === cleanEmail);
-      const sessionData = {
-        isLoggedIn: true,
-        adminName: matchedAccount?.fullName || name || 'Store Administrator',
-        adminRole: (matchedAccount?.role === 'super_admin'
-          ? 'Super Admin'
-          : matchedAccount?.role === 'manager'
-          ? 'Store Manager'
-          : matchedAccount?.role === 'admin'
-          ? 'Super Admin'
-          : role) as AdminSession['adminRole'],
-        email: cleanEmail || 'admin@crcosmetics.com',
-      };
-
-      const mockToken = localStorage.getItem('admin_auth_token') || 'local_admin_token_' + Date.now();
-      localStorage.setItem('admin_auth_token', mockToken);
-      localStorage.setItem('admin_session', JSON.stringify(sessionData));
-      setAdminSession(sessionData);
-      // Refresh data after local login
-      await Promise.allSettled([
-        fetchProducts({ includeUnpublished: true }),
-        fetchOrders(),
-        fetchSettings(),
-        fetchPromoCodes(),
-        fetchFlashDeals(),
-      ]);
+      // POS authentication is server-authoritative in every environment.
+      // A local fallback would create an unverified administrator session.
+      localStorage.removeItem('admin_auth_token');
+      localStorage.removeItem('admin_session');
+      setAdminSession(prev => ({ ...prev, isLoggedIn: false }));
       setLoadingAdmin(false);
-      return true;
+      return false;
     }
 
     setLoadingAdmin(false);

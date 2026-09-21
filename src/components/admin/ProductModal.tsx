@@ -29,7 +29,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const [brand, setBrand] = useState(''); const [newBrandInput, setNewBrandInput] = useState(''); const [category, setCategory] = useState<CategoryType>('skincare');
   const [categoryLabel, setCategoryLabel] = useState(''); const [price, setPrice] = useState(0); const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(); const [originalPrice, setOriginalPrice] = useState<number | undefined>();
   const [catalogOpen, setCatalogOpen] = useState(false); const [newBrandName, setNewBrandName] = useState(''); const [newCategoryId, setNewCategoryId] = useState(''); const [newCategoryName, setNewCategoryName] = useState(''); const [newCategoryImage, setNewCategoryImage] = useState('');
-  const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [barcode, setBarcode] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
+  const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [barcode, setBarcode] = useState(''); const [serialNumber, setSerialNumber] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [description, setDescription] = useState(''); const [highlights, setHighlights] = useState<string[]>([]); const [badge, setBadge] = useState<Product['badge']>(); const [inStock, setInStock] = useState(true); const [isPublished, setIsPublished] = useState(true); const [stockCount, setStockCount] = useState(0);
   const [options, setOptions] = useState<ProductOption[]>([]); const [variants, setVariants] = useState<VariantDraft[]>([]); const [origin, setOrigin] = useState(''); const [howToUse, setHowToUse] = useState(''); const [ingredients, setIngredients] = useState(''); const [benefits, setBenefits] = useState(''); const [isSaving, setIsSaving] = useState(false);
@@ -38,9 +38,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (!isOpen) return;
     if (productToEdit) {
       const product = productToEdit;
-      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
+      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
     } else {
-      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(0); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
+      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(0); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
     }
   }, [isOpen, productToEdit, brands]);
 
@@ -199,8 +199,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (price <= 0) { showToast('Enter a selling price'); return; }
     if (options.some(option => !option.name.trim() || !option.values.length)) { showToast('Complete or remove each product option'); return; }
     if (options.length && !variants.length) { showToast('Click "Create combinations" to generate your variations'); return; }
-    const scanCodes = [barcode.trim(), ...variants.map(variant => variant.barcode?.trim() || '')].filter(Boolean);
-    if (new Set(scanCodes).size !== scanCodes.length) { showToast('Each product or variation barcode must be unique'); return; }
+    const scanCodes = [barcode.trim(), serialNumber.trim(), ...variants.flatMap(variant => [variant.barcode?.trim() || '', variant.serialNumber?.trim() || ''])].filter(Boolean);
+    if (new Set(scanCodes).size !== scanCodes.length) { showToast('Each barcode or serial number must be unique'); return; }
 
     const primaryImage = image || uploadedImages[0];
     const finalImages = uploadedImages.length
@@ -220,6 +220,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       discountBadge: discountBadge.trim() || undefined,
       unit: unit.trim() || 'Standard Pack',
       barcode: barcode.trim() || undefined,
+      serialNumber: serialNumber.trim() || undefined,
       image: primaryImage,
       images: finalImages,
       description: description.trim(),
@@ -240,6 +241,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
           stockCount: normalizedStock,
           inStock: normalizedStock > 0,
           image: variant.image || primaryImage,
+          barcode: variant.barcode?.trim() || undefined,
+          serialNumber: variant.serialNumber?.trim() || undefined,
         };
       }),
       origin: origin.trim(),
@@ -306,6 +309,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
           <label className="block font-bold text-stone-800">
             Product barcode <span className="font-normal text-stone-400">(optional — for POS scanning)</span>
             <input value={barcode} onChange={event => setBarcode(event.target.value)} inputMode="numeric" placeholder="Scan or type the barcode on this product" className={`${fieldClass} font-normal`} />
+          </label>
+          <label className="block font-bold text-stone-800">
+            Product serial number <span className="font-normal text-stone-400">(optional — also works in POS)</span>
+            <input value={serialNumber} onChange={event => setSerialNumber(event.target.value)} placeholder="Scan or type the supplier/manufacturer serial number" className={`${fieldClass} font-normal`} />
           </label>
 
           <div>
@@ -718,6 +725,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                           onChange={(e) => setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, barcode: e.target.value } : item))}
                           inputMode="numeric"
                           placeholder="Variation barcode (optional)"
+                          className="mt-1.5 w-full rounded-md border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#B27A52] outline-none"
+                        />
+                        <input
+                          value={v.serialNumber || ''}
+                          onChange={(e) => setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, serialNumber: e.target.value } : item))}
+                          placeholder="Variation serial number (optional)"
                           className="mt-1.5 w-full rounded-md border border-stone-300 px-2.5 py-1.5 text-xs text-stone-900 focus:border-[#B27A52] outline-none"
                         />
                         {uploadedImages.length > 1 && (

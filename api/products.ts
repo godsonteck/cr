@@ -32,6 +32,7 @@ const productQuerySchema = z.object({
   offset: z.coerce.number().min(0).optional().default(0),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'rating', 'popular']).optional().default('newest'),
   barcode: z.string().trim().min(1).max(128).optional(),
+  scanCode: z.string().trim().min(1).max(128).optional(),
 });
 
 /** A variation is a sellable SKU: preserve its option combination and inventory. */
@@ -49,6 +50,7 @@ const variantItemSchema = z.object({
     v == null ? 0 : Number(v)
   ),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
+  serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   options: z.record(z.string()).optional().nullable(),
 });
 
@@ -77,6 +79,7 @@ const productCreateSchema = z.object({
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
+  serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).max(2_100_000),
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
@@ -117,6 +120,7 @@ const productUpdateSchema = z.object({
   discountBadge: z.string().max(20).optional().nullable(),
   unit: z.string().min(1).max(100).optional(),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
+  serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).optional(),
   images: z.array(z.string().min(1)).min(1).optional(),
   description: z.string().min(1).optional(),
@@ -304,7 +308,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid query parameters', details: parsed.error.flatten() });
       }
 
-      const { category, department, brand, search, barcode, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
+      const { category, department, brand, search, barcode, scanCode, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
 
       if (includeUnpublished) {
         const auth = await requireAdmin(req, res);
@@ -346,6 +350,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         conditions.push(or(
           eq(products.barcode, barcode),
           sql`${products.variants} @> ${JSON.stringify([{ barcode }])}::jsonb`
+        ) as SQL<unknown>);
+      }
+      if (scanCode) {
+        conditions.push(or(
+          eq(products.barcode, scanCode),
+          eq(products.serialNumber, scanCode),
+          sql`${products.variants} @> ${JSON.stringify([{ barcode: scanCode }])}::jsonb`,
+          sql`${products.variants} @> ${JSON.stringify([{ serialNumber: scanCode }])}::jsonb`
         ) as SQL<unknown>);
       }
       if (featured) {

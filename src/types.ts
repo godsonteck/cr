@@ -193,6 +193,8 @@ export interface ProductVariant {
   inStock: boolean;
   stockCount?: number;
   barcode?: string;
+  /** Supplier or manufacturer identifier accepted by the POS scanner. */
+  serialNumber?: string;
 }
 
 export interface ProductOption {
@@ -216,6 +218,8 @@ export interface Product {
   discountBadge?: string; // e.g. "-10%"
   unit: string; // e.g. "30ml Dropper Bottle", "5kg Bag", "400ml Bottle"
   barcode?: string;
+  /** Supplier or manufacturer identifier accepted by the POS scanner. */
+  serialNumber?: string;
   image: string;
   images: string[];
   description: string;

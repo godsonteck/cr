@@ -105,11 +105,14 @@ async function runMigration() {
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT '[]'::jsonb`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "delivery_price" numeric(10, 2)`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "barcode" varchar(128)`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "serial_number" varchar(128)`,
     `ALTER TABLE "flash_deals" ADD COLUMN IF NOT EXISTS "product_ids" jsonb NOT NULL DEFAULT '[]'::jsonb`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_reference" varchar(100)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_sender_phone" varchar(50)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "order_source" varchar(20) NOT NULL DEFAULT 'website'`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "admin_notes" jsonb NOT NULL DEFAULT '[]'::jsonb`,
+    `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "idempotency_key" varchar(160)`,
+    `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "cashier_name" varchar(100)`,
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profile_image" text`,
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "admin_notes" text`,
     `ALTER TABLE "reviews" ADD COLUMN IF NOT EXISTS "images" jsonb DEFAULT '[]'::jsonb`,
@@ -124,10 +127,23 @@ async function runMigration() {
     }
   }
 
+  for (const posSql of [
+    `CREATE UNIQUE INDEX IF NOT EXISTS "orders_idempotency_key_idx" ON "orders" ("idempotency_key") WHERE "idempotency_key" IS NOT NULL`,
+    `CREATE TABLE IF NOT EXISTS "pos_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "order_id" uuid NOT NULL UNIQUE REFERENCES "orders"("id") ON DELETE RESTRICT, "method" "payment_method" NOT NULL, "status" varchar(20) NOT NULL, "amount" numeric(10,2) NOT NULL, "reference" varchar(100), "cash_received" numeric(10,2), "change_given" numeric(10,2), "cashier_name" varchar(100), "created_at" timestamp DEFAULT now() NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS "inventory_movements" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "product_id" varchar(100) NOT NULL REFERENCES "products"("id") ON DELETE RESTRICT, "variant_id" varchar(100), "order_id" uuid REFERENCES "orders"("id") ON DELETE RESTRICT, "movement_type" varchar(30) NOT NULL, "quantity" integer NOT NULL, "quantity_before" integer NOT NULL, "quantity_after" integer NOT NULL, "actor_name" varchar(100), "reason" text, "created_at" timestamp DEFAULT now() NOT NULL)`,
+    `CREATE INDEX IF NOT EXISTS "inventory_movements_product_idx" ON "inventory_movements" ("product_id")`,
+    `CREATE INDEX IF NOT EXISTS "inventory_movements_order_idx" ON "inventory_movements" ("order_id")`,
+    `CREATE TABLE IF NOT EXISTS "audit_logs" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "action" varchar(80) NOT NULL, "entity_type" varchar(40) NOT NULL, "entity_id" varchar(100) NOT NULL, "actor_name" varchar(100), "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb, "created_at" timestamp DEFAULT now() NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS "pos_shifts" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "device_id" varchar(100) NOT NULL, "cashier_name" varchar(100) NOT NULL, "status" varchar(20) NOT NULL DEFAULT 'OPEN', "opening_cash" numeric(10,2) NOT NULL, "expected_cash" numeric(10,2), "actual_cash" numeric(10,2), "difference" numeric(10,2), "opened_at" timestamp DEFAULT now() NOT NULL, "closed_at" timestamp, "notes" text)`,
+    `CREATE INDEX IF NOT EXISTS "pos_shifts_device_idx" ON "pos_shifts" ("device_id")`,
+  ]) { try { await db.execute(posSql); console.log('✅ POS transaction schema verified'); } catch (e: any) { console.error('POS transaction schema error:', e.message); } }
+
   // Exact product scans use the btree index; variation barcode lookups use
   // jsonb containment. Both are safe to create repeatedly in production.
   for (const indexSql of [
     `CREATE UNIQUE INDEX IF NOT EXISTS "products_barcode_idx" ON "products" ("barcode")`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS "products_serial_number_idx" ON "products" ("serial_number")`,
+    `CREATE INDEX IF NOT EXISTS "products_variants_serial_number_idx" ON "products" USING gin ("variants" jsonb_path_ops)`,
     `CREATE INDEX IF NOT EXISTS "products_variants_barcode_idx" ON "products" USING gin ("variants" jsonb_path_ops)`,
   ]) {
     try { await db.execute(indexSql); console.log('✅ POS barcode index verified'); }
