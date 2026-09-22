@@ -4,48 +4,12 @@ import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { Product } from '../../../types';
 import { isRenderableProductImage } from '../../../lib/productImages';
+import { AdminMetricCard, AdminPageHeader } from '../components/AdminPrimitives';
 
 interface ProductsScreenProps {
   onAddProduct?: () => void;
   onEditProduct?: (product: Product) => void;
   onViewProduct?: (product: Product) => void;
-}
-
-// ─── Design tokens ─────────────────────────────────────────────────────────────
-function ScreenHeader({
-  eyebrow,
-  title,
-  description,
-  action,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-4 border-b border-stone-200 dark:border-[#2e2428] pb-6 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">{eyebrow}</p>
-        <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">{description}</p>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-function StatCard({ label, value, detail, icon: Icon }: { label: string; value: string | number; detail: string; icon: React.ElementType }) {
-  return (
-    <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">{label}</span>
-        <Icon className="h-4 w-4 text-[#B27A52]" />
-      </div>
-      <p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p>
-      <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{detail}</p>
-    </div>
-  );
 }
 
 export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
@@ -197,7 +161,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
     <div className="space-y-6">
 
       {/* Header */}
-      <ScreenHeader
+      <AdminPageHeader
         eyebrow="Store"
         title="Products"
         description="Add products, update prices, and keep stock accurate."
@@ -230,11 +194,11 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <StatCard label="Products"      value={stats.total}          detail="In catalog"        icon={Package} />
-        <StatCard label="Live"          value={stats.published}      detail="Shown online"       icon={Check as any} />
-        <StatCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} />
-        <StatCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} />
-        <StatCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />
+        <AdminMetricCard label="Products"      value={stats.total}          detail="In catalog"        icon={Package} />
+        <AdminMetricCard label="Live"          value={stats.published}      detail="Shown online"       icon={Check as any} />
+        <AdminMetricCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} />
+        <AdminMetricCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} />
+        <AdminMetricCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />
       </div>
 
       {/* Filters */}

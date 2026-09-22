@@ -4,6 +4,7 @@ import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { CategoryConfig, CategoryType, DepartmentType } from '../../../types';
 import { DATE_PRESETS, DateFilterPreset, isWithinDateRange } from '../../../utils/dateFilters';
+import { AdminPageHeader } from '../components/AdminPrimitives';
 
 const inputClass = 'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719]';
 
@@ -111,10 +112,12 @@ export const AdminCategoriesScreen: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-2 border-b border-stone-200 pb-6 dark:border-[#2e2428] sm:flex-row sm:items-end sm:justify-between">
-        <div><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Catalog</p><h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">Categories</h1><p className="mt-2 text-sm text-stone-500 dark:text-stone-400">Control the collections customers use to browse your catalog.</p></div>
-        <span className="rounded-full bg-stone-100 px-3 py-1.5 text-xs font-bold text-stone-600">{store.categories.filter(category => category.isActive).length} active</span>
-      </header>
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Categories"
+        description="Control the collections customers use to browse your catalog."
+        action={<span className="rounded-full bg-stone-100 px-3 py-1.5 text-xs font-bold text-stone-600 dark:bg-stone-800 dark:text-stone-300">{store.categories.filter(category => category.isActive).length} active</span>}
+      />
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><Layers className="h-5 w-5 text-[#B27A52]" /><p className="mt-3 text-2xl font-bold">{store.categories.length}</p><p className="text-xs text-stone-500">Total categories</p></div>
         <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><Check className="h-5 w-5 text-emerald-600" /><p className="mt-3 text-2xl font-bold">{store.categories.filter(category => category.isActive).length}</p><p className="text-xs text-stone-500">Visible to customers</p></div>
@@ -212,11 +215,11 @@ export const AdminAnalyticsScreen: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <header className="border-b border-stone-200 pb-6 dark:border-[#2e2428]">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Reports</p>
-        <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">Sales Analytics &amp; Reports</h1>
-        <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">Track and sort revenue, volume, and top-selling items across any date range.</p>
-      </header>
+      <AdminPageHeader
+        eyebrow="Reports"
+        title="Sales Analytics & Reports"
+        description="Track and sort revenue, volume, and top-selling items across any date range."
+      />
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
