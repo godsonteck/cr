@@ -4,10 +4,10 @@ import { db } from '../src/database.js';
 import { adminSessions, users } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 
-const jwtSecret = process.env.JWT_SECRET;
+const jwtSecret = process.env.JWT_SECRET?.trim();
 
-if (!jwtSecret) {
-  console.warn('JWT_SECRET is not set. Authentication endpoints will reject requests until it is configured.');
+if (!jwtSecret || jwtSecret.length < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 characters');
 }
 
 export type AuthSession = {
@@ -26,7 +26,7 @@ export function signToken(payload: Record<string, unknown>, expiresIn: SignOptio
     throw new Error('JWT_SECRET is missing');
   }
 
-  return jwt.sign(payload, jwtSecret, { expiresIn });
+  return jwt.sign(payload, jwtSecret, { algorithm: 'HS256', expiresIn });
 }
 
 export function verifyToken(token: string): AuthSession {
@@ -34,7 +34,7 @@ export function verifyToken(token: string): AuthSession {
     throw new Error('JWT_SECRET is missing');
   }
 
-  return jwt.verify(token, jwtSecret) as AuthSession;
+  return jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as AuthSession;
 }
 
 function getAuthorizationToken(req: VercelRequest) {
@@ -57,7 +57,7 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
     const payload = verifyToken(token);
     const userId = payload.sub;
 
-    if (!userId) {
+    if (!userId || (payload.role !== 'customer' && payload.role !== 'admin') || typeof payload.email !== 'string') {
       res.status(401).json({ error: 'Invalid token payload' });
       return null;
     }
@@ -72,11 +72,19 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
     }
 
     if (payload.role === 'admin') {
-      const [admin] = await db.select({ isActive: adminSessions.isActive }).from(adminSessions).where(eq(adminSessions.id, userId)).limit(1);
+      const [admin] = await db.select({
+        isActive: adminSessions.isActive,
+        email: adminSessions.email,
+        adminName: adminSessions.adminName,
+        adminRole: adminSessions.adminRole,
+      }).from(adminSessions).where(eq(adminSessions.id, userId)).limit(1);
       if (!admin || !admin.isActive) {
         res.status(401).json({ error: 'Administrator account is no longer active' });
         return null;
       }
+      payload.email = admin.email;
+      payload.adminName = admin.adminName;
+      payload.adminRole = admin.adminRole;
     }
 
     return payload;

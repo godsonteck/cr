@@ -5,6 +5,7 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { requireAdmin, requireAuth, signToken } from './_auth.js';
+import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 // Ensure the admin_notes column exists on the users table (zero-downtime migration)
 async function ensureAdminNotesColumn() {
@@ -272,6 +273,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const auth = await requireAuth(req, res);
         if (!auth) return;
 
+        const rateLimit = checkRateLimit(`password-change:${getClientIp(req.headers)}:${auth.sub}`, 5, 15 * 60 * 1000);
+        if (!rateLimit.allowed) {
+          res.setHeader('Retry-After', Math.ceil((rateLimit.resetAt - Date.now()) / 1000).toString());
+          return res.status(429).json({ error: 'Too many password change attempts. Please try again later.' });
+        }
+
         const parsed = changePasswordSchema.safeParse(body);
         if (!parsed.success) {
           return res.status(400).json({ error: 'Invalid password details', details: parsed.error.flatten() });
@@ -300,6 +307,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Default POST: User Registration
+      const registrationLimit = checkRateLimit(`registration:${getClientIp(req.headers)}`, 5, 60 * 60 * 1000);
+      if (!registrationLimit.allowed) {
+        res.setHeader('Retry-After', Math.ceil((registrationLimit.resetAt - Date.now()) / 1000).toString());
+        return res.status(429).json({ error: 'Too many registration attempts. Please try again later.' });
+      }
       const parsed = userCreateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid user registration data', details: parsed.error.flatten() });

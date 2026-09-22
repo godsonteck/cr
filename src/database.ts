@@ -9,10 +9,10 @@ const rawConnectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_
 const connectionString = rawConnectionString ? rawConnectionString.replace(/^\uFEFF/, '').trim() : undefined;
 
 if (!connectionString) {
-  console.warn('DATABASE_URL is not set - database queries will fail until it is configured.');
+  throw new Error('DATABASE_URL is required; refusing to start without a database connection');
 }
 
-const client = postgres(connectionString || 'postgres://user:pass@localhost:5432/db', {
+const client = postgres(connectionString, {
   ssl: 'require',
   max: 3,
   prepare: false,

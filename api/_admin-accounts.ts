@@ -64,6 +64,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Only Super Admins can manage other team accounts' });
       }
       const { fullName, email, phone, role, isActive, pin, currentPin } = req.body || {};
+      if (target.id === session.sub && (role !== undefined || isActive === false)) {
+        return res.status(400).json({ error: 'You cannot change your own role or deactivate your own account' });
+      }
       if (pin) {
         if (!currentPin || !(await bcrypt.compare(String(currentPin), target.pinHash))) {
           return res.status(401).json({ error: 'Current PIN is incorrect' });
@@ -81,6 +84,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'DELETE') {
+      if (session.adminRole !== 'Super Admin') {
+        return res.status(403).json({ error: 'Only Super Admins can delete team accounts' });
+      }
       if (target.id === session.sub) return res.status(400).json({ error: 'You cannot delete your own account' });
       await db.delete(adminSessions).where(eq(adminSessions.id, id));
       return res.status(204).end();
