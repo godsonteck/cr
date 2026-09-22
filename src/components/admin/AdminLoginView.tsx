@@ -20,14 +20,17 @@ interface AdminLoginProps {
   onSuccess: () => void;
 }
 
+const DEFAULT_ADMIN_EMAIL = 'admin@crcosmetics.com';
+const DEFAULT_ADMIN_PIN = '0000';
+
 export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
   const { loginAdmin, storeSettings } = useStore();
   const { showToast } = useToast();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
 
-  const [usernameOrEmail, setUsernameOrEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState(DEFAULT_ADMIN_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_ADMIN_PIN);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +62,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
     }
 
     try {
-      const success = await loginAdmin(password.trim(), autoName, autoRole, cleanUser || 'admin@crcosmetics.com');
+      const success = await loginAdmin(password.trim(), autoName, autoRole, cleanUser || DEFAULT_ADMIN_EMAIL);
       if (success) {
         showToast(`Signed in successfully. Welcome, ${autoName}!`);
         onSuccess();

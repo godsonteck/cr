@@ -1188,7 +1188,10 @@ const addOrder = async (order: Order) => {
     }
     try {
       await api.patch(`/admin-accounts/${id}`, updates);
-    } catch (e: any) { setError(e.message || 'Operation failed'); }
+    } catch (e: any) {
+      setError(e.message || 'Operation failed');
+      throw e;
+    }
   };
 
   const deleteAdminAccount = async (id: string) => {
