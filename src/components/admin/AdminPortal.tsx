@@ -51,7 +51,7 @@ import {
 } from './screens/AdminOperationsScreens';
 import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
 import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
-import { AdminPOSScreen } from './screens/AdminPOSScreen';
+import { AdminPOSWorkspace } from './screens/AdminPOSWorkspace';
 import { getGeneratedAdminNotifications } from './screens/AdminOperationsScreens';
 import logoImg from '../../assets/logo.jpeg';
 import { AdminNotification, AdminSession, Product, Order, Customer } from '../../types';
@@ -460,7 +460,7 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        <header className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-4 min-w-0">
             {/* Sidebar toggle */}
             <button
@@ -520,8 +520,8 @@ export const AdminPortal: React.FC = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-4 sm:p-6">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 min-w-0 overflow-auto p-8">
+          <div className="max-w-[1500px] mx-auto">
             <AdminTabErrorBoundary
               key={currentTab}
               tabName={tabLabels[currentTab] || currentTab}
@@ -529,7 +529,7 @@ export const AdminPortal: React.FC = () => {
             >
               {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
               {currentTab === 'live' && <AdminLiveOperationsScreen onViewOrder={handleViewOrder} />}
-              {currentTab === 'pos' && <AdminPOSScreen />}
+              {currentTab === 'pos' && <AdminPOSWorkspace />}
               {currentTab === 'products' && (
                 <AdminProductsScreen
                   onAddProduct={handleAddProduct}
