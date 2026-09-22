@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Banknote,
@@ -38,6 +38,14 @@ function escapeReceipt(value: string) {
   return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character));
 }
 
+const browserQueueKey = 'cr_pos_pending_sales';
+function readBrowserQueue(): DesktopQueuedSale[] {
+  try { return JSON.parse(localStorage.getItem(browserQueueKey) || '[]') as DesktopQueuedSale[]; } catch { return []; }
+}
+function writeBrowserQueue(queue: DesktopQueuedSale[]) {
+  localStorage.setItem(browserQueueKey, JSON.stringify(queue));
+}
+
 export function AdminPOSWorkspace() {
   const { products, loading, fetchProducts, fetchOrders, storeSettings } = useStore();
   const { showAlert } = useAlert();
@@ -52,15 +60,47 @@ export function AdminPOSWorkspace() {
   const [reference, setReference] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
   const [activeDeal, setActiveDeal] = useState<FlashDeal | null>(null);
+  const [cachedProducts, setCachedProducts] = useState<Product[]>([]);
+  const [syncState, setSyncState] = useState<{ pending: number; conflicts: DesktopQueuedSale[] }>({ pending: 0, conflicts: [] });
   const [submitting, setSubmitting] = useState(false);
   const [online, setOnline] = useState(() => navigator.onLine);
   const [saleKey, setSaleKey] = useState(() => `POS-${crypto.randomUUID()}`);
 
+  const syncQueuedSales = useCallback(async () => {
+    const desktop = window.crDesktop?.pos;
+    if (!navigator.onLine) return;
+    const pending = desktop ? await desktop.sales.pending() : readBrowserQueue();
+    for (const sale of pending.filter(item => item.status !== 'SYNC_CONFLICT')) {
+      try {
+        await api.post('/orders?channel=pos', sale.payload);
+        if (desktop) await desktop.sales.markSync({ idempotencyKey: sale.idempotencyKey, status: 'SYNCED' });
+        else writeBrowserQueue(readBrowserQueue().filter(item => item.idempotencyKey !== sale.idempotencyKey));
+      } catch (error) {
+        const status = error instanceof ApiError && error.status === 409 ? 'SYNC_CONFLICT' : 'SYNC_FAILED';
+        if (desktop) await desktop.sales.markSync({ idempotencyKey: sale.idempotencyKey, status, error: error instanceof Error ? error.message : 'Could not synchronize sale' });
+        else writeBrowserQueue(readBrowserQueue().map(item => item.idempotencyKey === sale.idempotencyKey ? { ...item, status, attempts: item.attempts + 1, last_error: error instanceof Error ? error.message : 'Could not synchronize sale' } : item));
+        if (status === 'SYNC_FAILED') break;
+      }
+    }
+    const remaining = desktop ? await desktop.sales.pending() : readBrowserQueue();
+    setSyncState({ pending: remaining.filter(item => item.status !== 'SYNC_CONFLICT').length, conflicts: remaining.filter(item => item.status === 'SYNC_CONFLICT') });
+  }, []);
+
   useEffect(() => {
-    void fetchProducts({ includeUnpublished: true });
+    let active = true;
+    const loadCatalogue = async () => {
+      const desktop = window.crDesktop?.pos;
+      try {
+        await fetchProducts({ includeUnpublished: true });
+      } catch {
+        if (desktop && active) setCachedProducts(await desktop.catalog.get());
+      }
+      if (desktop && navigator.onLine) void syncQueuedSales();
+    };
+    void loadCatalogue();
     void api.get<FlashDeal[]>('/flash-deals').then(deals => setActiveDeal(deals[0] || null)).catch(() => setActiveDeal(null));
     scannerRef.current?.focus();
-    const handleOnline = () => setOnline(true);
+    const handleOnline = () => { setOnline(true); void loadCatalogue(); };
     const handleOffline = () => setOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -68,9 +108,14 @@ export function AdminPOSWorkspace() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [fetchProducts]);
+  }, [fetchProducts, syncQueuedSales]);
 
-  const items = useMemo<PosItem[]>(() => products.flatMap(product => {
+  useEffect(() => {
+    if (window.crDesktop?.pos && products.length) void window.crDesktop.pos.catalog.cache(products);
+  }, [products]);
+
+  const posProducts = products.length ? products : cachedProducts;
+  const items = useMemo<PosItem[]>(() => posProducts.flatMap(product => {
     if (product.isPublished === false) return [];
     if (product.variants?.length) {
       return product.variants
@@ -80,7 +125,7 @@ export function AdminPOSWorkspace() {
     return product.inStock && Number(product.stockCount) > 0
       ? [{ product, title: product.name, stock: Number(product.stockCount), barcode: product.barcode }]
       : [];
-  }), [products]);
+  }), [posProducts]);
 
   const categories = useMemo(() => Array.from(new Set(items.map(item => item.product.categoryLabel || item.product.category))).sort(), [items]);
   const filteredItems = useMemo(() => {
@@ -164,8 +209,9 @@ export function AdminPOSWorkspace() {
       return;
     }
     setSubmitting(true);
+    let payload: Record<string, unknown> | null = null;
     try {
-      const order = await api.post<{ orderNumber: string }>('/orders?channel=pos', {
+      payload = {
         orderSource: 'pos', idempotencyKey: saleKey, subtotal, shippingFee: 0, discount: 0, total: subtotal,
         paymentMethod: payment as PaymentMethod, paymentStatus: 'paid', deliveryMethod: 'store-pickup',
         paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined,
@@ -176,14 +222,28 @@ export function AdminPOSWorkspace() {
           quantity: line.quantity,
           selectedVariant: line.variant ? { id: line.variant.id, name: line.variant.name, price: Number(line.variant.price), originalPrice: line.variant.originalPrice, inStock: true } : undefined,
         })),
-      });
+      };
+      const order = await api.post<{ orderNumber: string }>('/orders?channel=pos', payload);
       printReceipt(order.orderNumber);
       showAlert(`Sale ${order.orderNumber} completed. Stock was updated.`, 'success');
       setCart([]); setCustomer(''); setCashReceived(''); setReference(''); setSenderPhone(''); setSaleKey(`POS-${crypto.randomUUID()}`);
       await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
     } catch (error: any) {
       const offline = !navigator.onLine || error instanceof TypeError || (error instanceof ApiError && error.status === 408);
-      showAlert(offline ? 'The sale could not sync. Check the connection and try again.' : error?.data?.error || error?.message || 'Could not complete this sale.', offline ? 'warning' : 'error');
+      const desktop = window.crDesktop?.pos;
+      if (offline && payload) {
+        if (desktop) await desktop.sales.queue(payload);
+        else {
+          const queue = readBrowserQueue();
+          writeBrowserQueue([...queue, { idempotencyKey: saleKey, payload, status: 'PENDING_SYNC', attempts: 0 }]);
+        }
+        const pending = desktop ? await desktop.sales.pending() : readBrowserQueue();
+        setSyncState({ pending: pending.filter(item => item.status !== 'SYNC_CONFLICT').length, conflicts: pending.filter(item => item.status === 'SYNC_CONFLICT') });
+        setCart([]); setCustomer(''); setCashReceived(''); setReference(''); setSenderPhone(''); setSaleKey(`POS-${crypto.randomUUID()}`);
+        showAlert('Sale saved on this terminal and will sync automatically when the connection returns.', 'warning');
+      } else {
+        showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error');
+      }
     } finally {
       setSubmitting(false);
       scannerRef.current?.focus();
@@ -208,6 +268,7 @@ export function AdminPOSWorkspace() {
 
   return <div className="min-h-[calc(100vh-2rem)] space-y-4">
     <div className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><label className="relative min-w-0 flex-1"><Search className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products by name or barcode..." className="w-full rounded-xl bg-stone-50 py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#b9774c] dark:bg-[#241b1d]" /></label><div className="hidden items-center gap-2 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]"><span className="text-lg text-[#249447]">★</span><span><b className="block text-sm">Loyalty</b><small className="text-xs text-stone-500">View / Add</small></span></div><div className="hidden items-center gap-3 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 dark:bg-[#342528]">{(storeSettings.storeName || 'C').charAt(0)}</span><span><b className="block text-sm">Cashier</b><small className="text-xs text-stone-500">{online ? 'Online' : 'Offline'}</small></span></div></div>
+    {(syncState.pending > 0 || syncState.conflicts.length > 0) && <div className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${syncState.conflicts.length ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}><span><b>{syncState.conflicts.length ? `${syncState.conflicts.length} sale conflict${syncState.conflicts.length === 1 ? '' : 's'}` : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</b><span className="ml-2 text-xs opacity-80">{syncState.conflicts.length ? 'Review stock or pricing changes before retrying.' : 'The terminal will retry automatically.'}</span></span><button type="button" onClick={() => void syncQueuedSales()} className="rounded-lg border border-current px-3 py-1.5 text-xs font-bold">Retry sync</button></div>}
     <header className="flex flex-col gap-3 border-b border-stone-200 pb-4 dark:border-[#3b2b2f] sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Counter workspace</p><h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Point of Sale</h1><p className="mt-1 text-sm text-stone-500">Build the ticket, confirm payment, and move to the next customer.</p></div><div className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-2 text-xs font-bold sm:self-auto ${online ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300'}`}>{online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}{online ? 'Live inventory' : 'Offline mode'}</div></header>
     <div className="grid grid-cols-[210px_minmax(0,1fr)_440px] items-stretch gap-6">
       <aside className="sticky top-24 self-start space-y-2 rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-3 shadow-[0_18px_50px_rgba(36,25,27,0.06)] dark:border-[#3b2b2f] dark:bg-[#1e1719]"><p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Browse</p><button type="button" onClick={() => setCategory('all')} className={`w-full rounded-2xl px-3 py-3 text-left text-sm font-bold transition ${category === 'all' ? 'bg-[#24191b] text-white' : 'text-stone-600 hover:bg-[#f5ebe5] dark:text-stone-300 dark:hover:bg-[#342528]'}`}><span className="block">All stock</span><span className={`mt-1 block text-[10px] font-medium ${category === 'all' ? 'text-stone-300' : 'text-stone-400'}`}>{items.length} available</span></button>{categories.map(item => <button type="button" key={item} onClick={() => setCategory(item)} className={`w-full rounded-2xl px-3 py-3 text-left text-sm font-bold transition ${category === item ? 'bg-[#f5ebe5] text-[#8e4d2d] ring-1 ring-[#d89b76] dark:bg-[#342528] dark:text-[#e6a47d]' : 'text-stone-600 hover:bg-[#f5ebe5] dark:text-stone-300 dark:hover:bg-[#342528]'}`}><span className="block truncate">{item}</span><span className="mt-1 block text-[10px] font-medium text-stone-400">Browse shelf</span></button>)}</aside>
