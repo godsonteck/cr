@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { db } from '../src/neon.js';
+import { db } from '../src/database.js';
 import { adminSessions, users, products } from '../src/db/schema.js';
 import { requireAuth, signToken } from './_auth.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';

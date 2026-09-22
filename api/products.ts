@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/neon.js';
+import { db } from '../src/database.js';
 import { categories, products, reviews } from '../src/db/schema.js';
 import { eq, and, or, ilike, desc, asc, sql, inArray, avg, count, SQL } from 'drizzle-orm';
 import { z } from 'zod';

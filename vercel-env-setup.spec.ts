@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 const ENV_VARS = [
   {
     key: 'DATABASE_URL',
-    value: 'postgresql://neondb_owner:npg_NTQDd27Agkuw@ep-cool-term-ay9u3ysn-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+    value: process.env.DATABASE_URL || '',
     target: ['production', 'preview', 'development']
   },
   {

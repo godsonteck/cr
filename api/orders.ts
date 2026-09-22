@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/neon.js';
+import { db } from '../src/database.js';
 import { orders, products, storeSettings, promoCodes, flashDeals, notifications, posPayments, inventoryMovements, auditLogs } from '../src/db/schema.js';
 import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -54,6 +54,7 @@ const orderCreateSchema = z.object({
   appliedPromoCode: z.string().optional(),
   paymentReference: z.string().max(100).optional(),
   paymentSenderPhone: z.string().max(50).optional(),
+  deviceId: z.string().trim().max(100).optional(),
   // Server-verified Paystack reference — required for paystack/momo payment methods
   paystackReference: z.string().optional(),
   idempotencyKey: z.string().trim().min(12).max(160).optional(),
@@ -162,6 +163,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isPosOrder = query.channel === 'pos';
       const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : await requireAuth(req, res);
       if (!isWhatsAppOrder && !auth) return;
+      if (isPosOrder && !['Super Admin', 'Store Manager'].includes(auth?.adminRole || '')) {
+        return res.status(403).json({ error: 'Only Store Managers and Super Admins can record POS sales.' });
+      }
       if (isWhatsAppOrder) {
         const rateLimit = checkRateLimit(`whatsapp-order:${getClientIp(req.headers)}`, 10, 60 * 60 * 1000);
         if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many order attempts. Please try again later.' });
@@ -179,6 +183,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'POS sales must use the POS order source.' });
       }
       if (isPosOrder && !parsed.data.idempotencyKey) return res.status(400).json({ error: 'POS sale identifier is required. Please retry the sale.' });
+      if (isPosOrder && parsed.data.idempotencyKey) {
+        const [existingOrder] = await db.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
+        if (existingOrder) return res.status(200).json(existingOrder);
+      }
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
       }
@@ -459,7 +467,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }).where(eq(products.id, productId));
           if (isPosOrder) await tx.insert(inventoryMovements).values({ productId, variantId, orderId: order.id, movementType: 'POS_SALE', quantity: -quantity, quantityBefore: Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0), quantityAfter: Math.max(0, Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0) - quantity), actorName: auth?.adminName || auth?.name, reason: `POS sale ${order.orderNumber}` });
         }
-        if (isPosOrder) await tx.insert(auditLogs).values({ action: 'POS_SALE_COMPLETED', entityType: 'order', entityId: order.id, actorName: auth?.adminName || auth?.name, metadata: { orderNumber: order.orderNumber, total: calculatedTotal, idempotencyKey: parsed.data.idempotencyKey } });
+        if (isPosOrder) await tx.insert(auditLogs).values({ action: 'POS_SALE_COMPLETED', entityType: 'order', entityId: order.id, actorName: auth?.adminName || auth?.name, metadata: { orderNumber: order.orderNumber, total: calculatedTotal, idempotencyKey: parsed.data.idempotencyKey, deviceId: parsed.data.deviceId || null, adminId: auth?.sub || null, paymentMethod: parsed.data.paymentMethod } });
         return order;
       });
 

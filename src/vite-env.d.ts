@@ -20,7 +20,7 @@ declare module '*.svg' {
   export default src;
 }
 
-type DesktopQueuedSale = { idempotencyKey: string; payload: Record<string, unknown>; status: string; attempts: number; last_error?: string | null };
+type DesktopQueuedSale = { idempotencyKey: string; payload: Record<string, unknown>; status: 'PENDING_SYNC' | 'SYNC_FAILED' | 'SYNC_CONFLICT'; attempts: number; last_error?: string | null };
 interface Window {
   crDesktop?: {
     isDesktop: boolean;

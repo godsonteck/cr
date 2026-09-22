@@ -10,9 +10,13 @@ ORG_ID="manuelgodson10-2150s-projects"
 echo "🔧 Setting up Vercel environment variables for CR Cosmetics..."
 
 # Core required variables
-vercel env add DATABASE_URL production <<< "postgresql://neondb_owner:npg_NTQDd27Agkuw@ep-cool-term-ay9u3ysn-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-vercel env add DATABASE_URL preview <<< "postgresql://neondb_owner:npg_NTQDd27Agkuw@ep-cool-term-ay9u3ysn-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-vercel env add DATABASE_URL development <<< "postgresql://neondb_owner:npg_NTQDd27Agkuw@ep-cool-term-ay9u3ysn-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+if [ -z "${DATABASE_URL:-}" ]; then
+	echo "DATABASE_URL must be set in the environment before configuring Vercel."
+	exit 1
+fi
+vercel env add DATABASE_URL production <<< "$DATABASE_URL"
+vercel env add DATABASE_URL preview <<< "$DATABASE_URL"
+vercel env add DATABASE_URL development <<< "$DATABASE_URL"
 
 # App URL - UPDATE AFTER FIRST DEPLOY
 vercel env add APP_URL production <<< "https://cosmeticse.vercel.app"

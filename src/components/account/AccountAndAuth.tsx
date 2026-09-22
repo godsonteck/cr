@@ -693,7 +693,7 @@ export const AccountPage: React.FC = () => {
     }
   }, [user]);
 
-  // Fetch orders live from Neon PostgreSQL
+  // Fetch orders live from Supabase PostgreSQL
   const loadOrders = async () => {
     setLoadingOrders(true);
     try {

@@ -151,7 +151,7 @@ async function runMigration() {
     catch (e: any) { console.error('POS barcode index error:', e.message); }
   }
 
-  console.log('🎉 Migration completed!');
+  console.log('Migration completed!');
 }
 
 runMigration()

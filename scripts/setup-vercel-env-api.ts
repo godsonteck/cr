@@ -24,7 +24,7 @@ const client = createClient({ token: VERCEL_TOKEN });
 
 const ENV_VARS = [
   // Required - Core
-  { key: 'DATABASE_URL', value: 'postgresql://neondb_owner:npg_NTQDd27Agkuw@ep-cool-term-ay9u3ysn-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require', target: ['production', 'preview', 'development'] },
+  { key: 'DATABASE_URL', value: process.env.DATABASE_URL || '', target: ['production', 'preview', 'development'] },
   { key: 'APP_URL', value: 'https://cosmeticse.vercel.app', target: ['production'] },
   { key: 'APP_URL', value: 'https://cosmeticse-git-preview.vercel.app', target: ['preview'] },
   { key: 'APP_URL', value: 'http://localhost:3000', target: ['development'] },

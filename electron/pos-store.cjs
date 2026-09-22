@@ -22,8 +22,11 @@ function createPosStore(userDataPath) {
     },
     getCatalog() { return db.prepare('SELECT payload FROM pos_catalog ORDER BY updated_at DESC').all().map(row => JSON.parse(row.payload)); },
     queueSale(idempotencyKey, payload) { const now = new Date().toISOString(); db.prepare('INSERT OR IGNORE INTO pos_sale_queue (idempotency_key,payload,created_at,updated_at) VALUES (?,?,?,?)').run(idempotencyKey, JSON.stringify(payload), now, now); },
-    pendingSales() { return db.prepare("SELECT idempotency_key, payload, status, attempts, last_error FROM pos_sale_queue WHERE status IN ('PENDING_SYNC','SYNC_FAILED') ORDER BY created_at").all().map(row => ({ ...row, payload: JSON.parse(row.payload) })); },
-    markSync(idempotencyKey, status, error = null) { db.prepare('UPDATE pos_sale_queue SET status=?, attempts=attempts+1, last_error=?, updated_at=? WHERE idempotency_key=?').run(status, error, new Date().toISOString(), idempotencyKey); },
+    pendingSales() { return db.prepare("SELECT idempotency_key, payload, status, attempts, last_error FROM pos_sale_queue WHERE status IN ('PENDING_SYNC','SYNC_FAILED','SYNC_CONFLICT') ORDER BY created_at").all().map(row => ({ ...row, payload: JSON.parse(row.payload) })); },
+    markSync(idempotencyKey, status, error = null) {
+      if (status === 'SYNCED') db.prepare('DELETE FROM pos_sale_queue WHERE idempotency_key=?').run(idempotencyKey);
+      else db.prepare('UPDATE pos_sale_queue SET status=?, attempts=attempts+1, last_error=?, updated_at=? WHERE idempotency_key=?').run(status, error, new Date().toISOString(), idempotencyKey);
+    },
   };
 }
 module.exports = { createPosStore };

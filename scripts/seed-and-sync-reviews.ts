@@ -4,7 +4,7 @@ import postgres from 'postgres';
 dotenv.config({ path: '.env.local' });
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
+const connectionString = process.env.DATABASE_URL ?? process.env.SUPABASE_DB_URL;
 
 // These records were placeholder testimonials, not customer-submitted feedback.
 // Keep this list so removal is precise and repeatable without touching real reviews.

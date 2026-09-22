@@ -4,7 +4,7 @@ dotenv.config();
 
 import postgres from 'postgres';
 
-const connectionString = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
+const connectionString = process.env.DATABASE_URL ?? process.env.SUPABASE_DB_URL;
 
 async function run() {
   if (!connectionString) {

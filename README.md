@@ -17,7 +17,7 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
 - TypeScript
 - Tailwind CSS v4
 - Drizzle ORM
-- Neon Postgres
+- Supabase Postgres + Storage
 - Vercel Serverless Functions
 - bcryptjs + jsonwebtoken
 
@@ -25,7 +25,7 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
 
 - Node.js 20+
 - npm
-- A Neon Postgres database
+- A Supabase project with Postgres and a public `product-media` Storage bucket
 - A Vercel project (optional for deployment)
 
 ## Local setup
@@ -75,7 +75,7 @@ After the seed step, the admin account is created from the `ADMIN_INITIAL_PIN` e
 3. Set both `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` to that client ID. `GOOGLE_CLIENT_ID` is used by the Vercel API to verify Google credentials; `VITE_GOOGLE_CLIENT_ID` renders the Google button in the browser.
 4. Run `npm run db:push` and redeploy Vercel after setting the variables. Do not run `drizzle-kit push` directly against production.
 
-Google customers are created or matched by their verified Google email in Neon and receive the same JWT session as password-based customers. A Google account starts with an empty phone field so it can be completed later from the customer profile.
+Google customers are created or matched by their verified Google email in Supabase Postgres and receive the same JWT session as password-based customers. A Google account starts with an empty phone field so it can be completed later from the customer profile.
 
 ## Paystack checkout
 
@@ -103,7 +103,7 @@ The endpoint accepts `charge.success` events, validates the `x-paystack-signatur
 1. Import the repository into Vercel.
 2. Add the same environment variables used in `.env.local` to the Vercel project settings.
 3. Set `APP_URL` to your production domain such as `https://your-app.vercel.app`.
-4. Ensure `DATABASE_URL` points to the Neon Postgres instance used by the app.
+4. Set `DATABASE_URL` to the Supabase transaction pooler connection string. Keep `prepare: false` enabled for Supabase's PgBouncer pooler.
 5. Redeploy.
 
 The project includes a Vercel rewrite for `/sitemap.xml` to the API route `/api/sitemap`.

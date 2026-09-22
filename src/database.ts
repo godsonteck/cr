@@ -9,12 +9,15 @@ const rawConnectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_
 const connectionString = rawConnectionString ? rawConnectionString.replace(/^\uFEFF/, '').trim() : undefined;
 
 if (!connectionString) {
-  console.warn('⚠️  DATABASE_URL is not set — database queries will fail until it is configured.');
+  console.warn('DATABASE_URL is not set - database queries will fail until it is configured.');
 }
 
 const client = postgres(connectionString || 'postgres://user:pass@localhost:5432/db', {
   ssl: 'require',
-  max: 1,
+  max: 3,
+  prepare: false,
+  connect_timeout: 10,
+  idle_timeout: 20,
 });
 
 export const db = drizzle(client);

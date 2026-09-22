@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt, { type SignOptions } from 'jsonwebtoken';
-import { db } from '../src/neon.js';
+import { db } from '../src/database.js';
 import { adminSessions, users } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 
@@ -71,9 +71,13 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
       }
     }
 
-    // For admins, the cryptographically-signed JWT is sufficient proof —
-    // no need to hit the DB on every request (that's what caused the hang).
-    // The token already expires (7d) and can be invalidated by changing JWT_SECRET.
+    if (payload.role === 'admin') {
+      const [admin] = await db.select({ isActive: adminSessions.isActive }).from(adminSessions).where(eq(adminSessions.id, userId)).limit(1);
+      if (!admin || !admin.isActive) {
+        res.status(401).json({ error: 'Administrator account is no longer active' });
+        return null;
+      }
+    }
 
     return payload;
   } catch (error) {

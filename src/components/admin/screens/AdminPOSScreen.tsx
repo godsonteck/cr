@@ -3,7 +3,7 @@ import { Barcode, Banknote, CreditCard, Loader2, Minus, Plus, Search, ShoppingCa
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { api, ApiError } from '../../../lib/api';
-import type { PaymentMethod, Product, ProductVariant } from '../../../types';
+import type { FlashDeal, PaymentMethod, Product, ProductVariant } from '../../../types';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
 type PosCatalogueItem = { product: Product; variant?: ProductVariant; title: string; stockCount: number; barcode?: string; serialNumber?: string };
@@ -27,14 +27,16 @@ export function AdminPOSScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [saleKey, setSaleKey] = useState(() => `POS-${crypto.randomUUID()}`);
   const [cachedProducts, setCachedProducts] = useState<Product[]>([]);
-  const [syncState, setSyncState] = useState<{ online: boolean; pending: number }>({ online: navigator.onLine, pending: 0 });
+  const [activeFlashDeal, setActiveFlashDeal] = useState<FlashDeal | null>(null);
+  const [deviceId, setDeviceId] = useState('browser');
+  const [syncState, setSyncState] = useState<{ online: boolean; pending: number; conflicts: DesktopQueuedSale[] }>({ online: navigator.onLine, pending: 0, conflicts: [] });
   const scannerRef = useRef<HTMLInputElement>(null);
 
   const syncQueuedSales = useCallback(async () => {
     const desktop = window.crDesktop?.pos;
     if (!desktop || !navigator.onLine) return;
     const pending = await desktop.sales.pending();
-    for (const sale of pending) {
+    for (const sale of pending.filter(item => item.status !== 'SYNC_CONFLICT')) {
       try {
         await api.post('/orders?channel=pos', sale.payload);
         await desktop.sales.markSync({ idempotencyKey: sale.idempotencyKey, status: 'SYNCED' });
@@ -45,7 +47,7 @@ export function AdminPOSScreen() {
       }
     }
     const remaining = await desktop.sales.pending();
-    setSyncState({ online: true, pending: remaining.length });
+    setSyncState({ online: true, pending: remaining.length, conflicts: remaining.filter(item => item.status === 'SYNC_CONFLICT') });
   }, []);
 
   useEffect(() => {
@@ -68,6 +70,8 @@ export function AdminPOSScreen() {
     return () => { active = false; window.removeEventListener('online', online); };
   }, [fetchProducts, syncQueuedSales]);
   useEffect(() => { if (window.crDesktop?.pos && products.length) void window.crDesktop.pos.catalog.cache(products); }, [products]);
+  useEffect(() => { void window.crDesktop?.pos.status().then(status => setDeviceId(status.deviceId)).catch(() => undefined); }, []);
+  useEffect(() => { void api.get<FlashDeal[]>('/flash-deals').then(deals => setActiveFlashDeal(deals[0] || null)).catch(() => setActiveFlashDeal(null)); }, []);
   useEffect(() => { scannerRef.current?.focus(); }, []);
 
   const posProducts = products.length ? products : cachedProducts;
@@ -91,7 +95,13 @@ export function AdminPOSScreen() {
     });
   }, [activeCategory, catalogueItems, query]);
   const barcodeMissing = catalogueItems.filter(item => !item.barcode?.trim()).length;
-  const total = cart.reduce((sum, line) => sum + Number(line.variant?.price ?? line.product.price) * line.quantity, 0);
+  const priceFor = (line: PosLine) => {
+    const basePrice = Number(line.variant?.price ?? line.product.price);
+    return activeFlashDeal?.productIds?.includes(line.product.id)
+      ? Math.max(0.01, basePrice * (1 - activeFlashDeal.discountPercentage / 100))
+      : basePrice;
+  };
+  const total = cart.reduce((sum, line) => sum + priceFor(line) * line.quantity, 0);
   const tendered = Number(cashReceived);
   const change = payment === 'cash-on-delivery' && Number.isFinite(tendered) ? Math.max(0, tendered - total) : 0;
 
@@ -141,12 +151,12 @@ export function AdminPOSScreen() {
     setSubmitting(true);
     try {
       payload = {
-        orderSource: 'pos', idempotencyKey: saleKey, subtotal: total, shippingFee: 0, discount: 0, total,
+        orderSource: 'pos', idempotencyKey: saleKey, deviceId, subtotal: total, shippingFee: 0, discount: 0, total,
         paymentMethod: payment as PaymentMethod, paymentStatus: 'paid', deliveryMethod: 'store-pickup',
         paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined, cashReceived: payment === 'cash-on-delivery' ? tendered : undefined,
         shippingAddress: { fullName: customerName.trim() || 'Walk-in customer', phone: payment === 'momo-mtn' ? senderPhone.trim() : 'In-store sale', city: 'In-store', area: 'POS counter' },
         items: cart.map(line => ({
-          product: { id: line.product.id, name: line.product.name, brand: line.product.brand, price: Number(line.variant?.price ?? line.product.price), originalPrice: line.variant?.originalPrice ?? line.product.originalPrice, image: line.variant?.image || line.product.image, unit: line.product.unit, category: line.product.category, inStock: true, stockCount: Number(line.variant?.stockCount ?? line.product.stockCount) },
+          product: { id: line.product.id, name: line.product.name, brand: line.product.brand, price: priceFor(line), originalPrice: line.variant?.originalPrice ?? line.product.originalPrice, image: line.variant?.image || line.product.image, unit: line.product.unit, category: line.product.category, inStock: true, stockCount: Number(line.variant?.stockCount ?? line.product.stockCount) },
           quantity: line.quantity,
           selectedVariant: line.variant ? { id: line.variant.id, name: line.variant.name, price: Number(line.variant.price), originalPrice: line.variant.originalPrice, inStock: true } : undefined,
         })),
@@ -155,7 +165,7 @@ export function AdminPOSScreen() {
       showAlert(`Sale ${order.orderNumber} completed and stock updated.`, 'success');
       if (receiptWindow) {
         const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
-        const lines = cart.map(line => `<tr><td>${escape(line.product.name)}${line.variant ? ` — ${escape(line.variant.name)}` : ''}<br><small>${line.quantity} × ${money.format(Number(line.variant?.price ?? line.product.price))}</small></td><td style="text-align:right">${money.format(Number(line.variant?.price ?? line.product.price) * line.quantity)}</td></tr>`).join('');
+        const lines = cart.map(line => `<tr><td>${escape(line.product.name)}${line.variant ? ` — ${escape(line.variant.name)}` : ''}<br><small>${line.quantity} × ${money.format(priceFor(line))}</small></td><td style="text-align:right">${money.format(priceFor(line) * line.quantity)}</td></tr>`).join('');
         const companyName = storeSettings.storeName.trim() || 'Store';
         const companyDetails = [storeSettings.storeTagline, storeSettings.storeAddress, storeSettings.storePhone, storeSettings.storeEmail, storeSettings.whatsappNumber && `WhatsApp: ${storeSettings.whatsappNumber}`, storeSettings.storeHours].map(detail => detail?.trim()).filter(Boolean).map(detail => `<p class="company-detail">${escape(detail!)}</p>`).join('');
         const companyLogo = storeSettings.storeLogo?.trim() ? `<img src="${escape(storeSettings.storeLogo.trim())}" alt="${escape(companyName)} logo" class="logo" />` : '';
@@ -173,7 +183,7 @@ export function AdminPOSScreen() {
         receiptWindow?.close();
         setCart([]); setReference(''); setSenderPhone(''); setCustomerName(''); setCashReceived(''); setSaleKey(`POS-${crypto.randomUUID()}`);
         const pending = await desktop.sales.pending();
-        setSyncState({ online: false, pending: pending.length });
+        setSyncState({ online: false, pending: pending.length, conflicts: pending.filter(item => item.status === 'SYNC_CONFLICT') });
         showAlert('Sale saved securely on this terminal and will sync when the connection returns. A final receipt will be available after sync.', 'warning');
       } else showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error');
     }
@@ -181,9 +191,10 @@ export function AdminPOSScreen() {
   };
 
   return <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px] print:block">
+    {syncState.conflicts.length > 0 && <section className="xl:col-span-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-950 shadow-sm dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-100"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-bold">{syncState.conflicts.length} offline sale{syncState.conflicts.length === 1 ? '' : 's'} need review</h2><p className="mt-1 text-sm">These sales could not be posted because stock or pricing changed. Do not hand over goods until each sale is reconciled.</p></div><button type="button" onClick={() => showAlert(syncState.conflicts.map(sale => `${sale.idempotencyKey}: ${sale.last_error || 'Server rejected the sale.'}`).join('\n'), 'warning')} className="shrink-0 rounded-lg border border-red-300 px-3 py-2 text-sm font-bold hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-950/40">View reasons</button></div></section>}
     <section className="min-w-0 space-y-4 print:hidden">
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#35272c] dark:bg-[#1e1719] sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">Counter sale</h2><p className="text-sm text-stone-500">Every stocked product and variation is shown separately. Stock is checked again when you complete the sale.</p></div><div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${syncState.online ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}><CheckCircle2 className="h-4 w-4" /> {syncState.online ? (syncState.pending ? `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} syncing` : 'Online · synced') : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</div></div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">Counter sale</h2><p className="text-sm text-stone-500">Every stocked product and variation is shown separately. Stock is checked again when you complete the sale.</p></div><div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${syncState.conflicts.length ? 'bg-red-50 text-red-700' : syncState.online ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}><CheckCircle2 className="h-4 w-4" /> {syncState.conflicts.length ? `${syncState.conflicts.length} sale${syncState.conflicts.length === 1 ? '' : 's'} need review` : syncState.online ? (syncState.pending ? `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} syncing` : 'Online · synced') : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</div></div>
         <div className="mt-4 grid gap-3 md:grid-cols-2"><div><div className="flex gap-2"><label className="relative min-w-0 flex-1"><Barcode className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input ref={scannerRef} value={scannerValue} onChange={event => setScannerValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') void scan(); }} placeholder="Scan barcode, serial number, or product ID" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label><button type="button" onClick={() => void scan()} disabled={!scannerValue.trim()} className="rounded-xl bg-[#24191b] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Add</button></div><p className="mt-1.5 text-xs text-stone-500">Connect a USB or Bluetooth scanner in keyboard mode, click this field once, then scan a barcode or serial number. Press Enter after a typed code.</p></div><label className="relative"><Search className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search products" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label></div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1"><button type="button" onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>All products</button>{categories.map(category => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === category ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>{category}</button>)}</div>
       </div>

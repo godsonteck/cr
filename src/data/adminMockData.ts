@@ -238,7 +238,7 @@ export const INITIAL_NOTIFICATIONS: AdminNotification[] = [
     id: 'notif-04',
     type: 'system',
     title: 'Daily Auto-Backup Verified',
-    message: 'Neon PostgreSQL store catalog and orders database verified intact.',
+    message: 'Supabase PostgreSQL store catalog and orders database verified intact.',
     timestamp: '5 hours ago',
     read: true,
     actionUrl: '/admin?tab=settings'

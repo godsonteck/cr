@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../src/neon.js';
+import { db } from '../src/database.js';
 import { notifications } from '../src/db/schema.js';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { requireAuth } from './_auth.js';
