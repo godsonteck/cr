@@ -333,6 +333,14 @@ html.dark .checkout-page .text-stone-600 {
   }
 }
 
+aside .grid-cols-3:has(button:nth-child(2)) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+aside .grid-cols-3 > button:nth-child(2) {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
