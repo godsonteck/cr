@@ -323,6 +323,16 @@ html.dark .checkout-page .text-stone-600 {
 .animate-slide-left { animation: slide-left 15s linear infinite; }
 .animate-menu-in { animation: menu-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
+@media (min-width: 1280px) {
+  aside:has([class*="max-h-[35vh]"]) {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
