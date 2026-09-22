@@ -22,6 +22,15 @@ const categoriesByDepartment: Record<DepartmentType, { value: CategoryType; labe
 };
 const fieldClass = 'mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none transition focus:border-[#B27A52] focus:ring-2 focus:ring-[#B27A52]/15';
 
+const RichVariationDescription: React.FC<{ value: string; onChange: (value: string) => void; label: string }> = ({ value, onChange, label }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (editorRef.current && editorRef.current.innerHTML !== value) editorRef.current.innerHTML = value; }, [value]);
+  const run = (command: string, commandValue?: string) => { editorRef.current?.focus(); document.execCommand(command, false, commandValue); onChange(editorRef.current?.innerHTML || ''); };
+  const addLink = () => { const url = window.prompt('Paste the full link (https://...)'); if (url && /^https?:\/\//i.test(url)) run('createLink', url); };
+  const tools: Array<[string, string, string?]> = [['B', 'bold'], ['I', 'italic'], ['U', 'underline'], ['H2', 'formatBlock', 'h2'], ['• List', 'insertUnorderedList'], ['1. List', 'insertOrderedList'], ['Link', 'link'], ['Undo', 'undo'], ['Redo', 'redo'], ['Clear', 'removeFormat']];
+  return <div className="rounded-lg border border-stone-300 bg-white focus-within:border-[#B27A52] focus-within:ring-2 focus-within:ring-[#B27A52]/15"><div className="flex flex-wrap gap-1 border-b border-stone-200 bg-stone-50 p-1.5">{tools.map(([labelText, command, commandValue]) => <button key={labelText} type="button" title={labelText} onMouseDown={event => event.preventDefault()} onClick={() => command === 'link' ? addLink() : run(command, commandValue)} className="rounded px-2 py-1 text-[11px] font-bold text-stone-700 hover:bg-white hover:shadow-sm">{labelText}</button>)}</div><div ref={editorRef} contentEditable suppressContentEditableWarning role="textbox" aria-label={label} aria-multiline="true" data-placeholder="Write the details for this exact variation…" onInput={event => onChange(event.currentTarget.innerHTML)} className="min-h-28 p-3 text-sm leading-6 text-stone-800 outline-none empty:before:pointer-events-none empty:before:text-stone-400 empty:before:content-[attr(data-placeholder)]" /></div>;
+};
+
 export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, productToEdit }) => {
   const { addProduct, updateProduct, brands, addBrand, deleteBrand, categories: storeCategories, addCategory, deleteCategory } = useStore();
   const { showToast } = useToast();
@@ -38,7 +47,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (!isOpen) return;
     if (productToEdit) {
       const product = productToEdit;
-      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
+      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
     } else {
       setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(0); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
     }
@@ -171,6 +180,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
         inStock: stockCount > 0,
         stockCount: Math.max(0, stockCount || 0),
         image: uploadedImages[index] || uploadedImages[0] || image || '',
+        description: '',
         optionValues,
       };
     }));
@@ -187,6 +197,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
         inStock: true,
         stockCount: stockCount || 0,
         image: uploadedImages[previous.length] || uploadedImages[0] || image || '',
+        description: '',
         optionValues: {},
       },
     ]);
@@ -199,6 +210,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (price <= 0) { showToast('Enter a selling price'); return; }
     if (options.some(option => !option.name.trim() || !option.values.length)) { showToast('Complete or remove each product option'); return; }
     if (options.length && !variants.length) { showToast('Click "Create combinations" to generate your variations'); return; }
+    if (variants.some(variant => !variant.description?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim())) { showToast('Write a description for every variation before saving'); return; }
     const scanCodes = [barcode.trim(), serialNumber.trim(), ...variants.flatMap(variant => [variant.barcode?.trim() || '', variant.serialNumber?.trim() || ''])].filter(Boolean);
     if (new Set(scanCodes).size !== scanCodes.length) { showToast('Each barcode or serial number must be unique'); return; }
 
@@ -241,6 +253,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
           stockCount: normalizedStock,
           inStock: normalizedStock > 0,
           image: variant.image || primaryImage,
+          description: variant.description?.trim() || '',
           barcode: variant.barcode?.trim() || undefined,
           serialNumber: variant.serialNumber?.trim() || undefined,
         };
@@ -782,6 +795,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                           }}
                           className="mt-1 w-full rounded-md border border-stone-300 px-2.5 py-1.5 text-xs font-semibold text-stone-900 focus:border-[#B27A52] outline-none"
                         />
+                      </div>
+
+                      <div className="sm:col-span-full">
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-500">Description for {v.name || `variation ${vIdx + 1}`} <span className="normal-case text-rose-600">required</span></label>
+                        <RichVariationDescription value={v.description || ''} onChange={description => setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, description } : item))} label={`Description for ${v.name || `variation ${vIdx + 1}`}`} />
+                        <p className="mt-1 text-[10px] text-stone-400">Admin/catalogue content only — this description is not shown at POS.</p>
                       </div>
 
                       {/* Delete Variant */}

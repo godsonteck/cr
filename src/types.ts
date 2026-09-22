@@ -192,6 +192,8 @@ export interface ProductVariant {
   image?: string;
   inStock: boolean;
   stockCount?: number;
+  /** Admin-authored rich description for this exact variation. Never shown in POS. */
+  description?: string;
   barcode?: string;
   /** Supplier or manufacturer identifier accepted by the POS scanner. */
   serialNumber?: string;

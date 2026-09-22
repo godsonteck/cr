@@ -136,6 +136,7 @@ async function runMigration() {
     `CREATE TABLE IF NOT EXISTS "audit_logs" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "action" varchar(80) NOT NULL, "entity_type" varchar(40) NOT NULL, "entity_id" varchar(100) NOT NULL, "actor_name" varchar(100), "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb, "created_at" timestamp DEFAULT now() NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS "pos_shifts" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "device_id" varchar(100) NOT NULL, "cashier_name" varchar(100) NOT NULL, "status" varchar(20) NOT NULL DEFAULT 'OPEN', "opening_cash" numeric(10,2) NOT NULL, "expected_cash" numeric(10,2), "actual_cash" numeric(10,2), "difference" numeric(10,2), "opened_at" timestamp DEFAULT now() NOT NULL, "closed_at" timestamp, "notes" text)`,
     `CREATE INDEX IF NOT EXISTS "pos_shifts_device_idx" ON "pos_shifts" ("device_id")`,
+    `UPDATE "products" AS p SET "variants" = (SELECT jsonb_agg(CASE WHEN COALESCE(NULLIF(trim(item->>'description'), ''), '') = '' THEN jsonb_set(item, '{description}', to_jsonb(p."description")) ELSE item END) FROM jsonb_array_elements(COALESCE(p."variants", '[]'::jsonb)) AS item) WHERE jsonb_array_length(COALESCE(p."variants", '[]'::jsonb)) > 0`,
   ]) { try { await db.execute(posSql); console.log('✅ POS transaction schema verified'); } catch (e: any) { console.error('POS transaction schema error:', e.message); } }
 
   // Exact product scans use the btree index; variation barcode lookups use

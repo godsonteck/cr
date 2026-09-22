@@ -49,6 +49,7 @@ const variantItemSchema = z.object({
   stockCount: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
     v == null ? 0 : Number(v)
   ),
+  description: z.string().trim().min(1).max(10_000),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   options: z.record(z.string()).optional().nullable(),

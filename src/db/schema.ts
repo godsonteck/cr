@@ -110,6 +110,7 @@ export const products = pgTable('products', {
     image?: string;
     inStock: boolean;
     stockCount?: number;
+    description?: string;
     barcode?: string;
     serialNumber?: string;
   }>>().default([]),
