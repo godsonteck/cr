@@ -192,7 +192,7 @@ export function AdminPOSWorkspace() {
   };
 
   const checkout = (
-    <section className="flex min-h-[calc(100vh-8rem)] flex-col rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-4 shadow-[0_18px_50px_rgba(36,25,27,0.08)] dark:border-[#3b2b2f] dark:bg-[#1e1719] sm:p-5 sticky top-24">
+    <section className="sticky top-24 z-20 flex h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)] self-start overflow-y-auto flex-col rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-4 shadow-[0_18px_50px_rgba(36,25,27,0.08)] dark:border-[#3b2b2f] dark:bg-[#1e1719] sm:p-5">
       <div className="flex items-start justify-between gap-3 border-b border-[#eee2dc] pb-4 dark:border-[#3b2b2f]">
         <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Checkout rail</p><h2 className="mt-1 text-xl font-bold">Current sale</h2><p className="mt-1 text-xs text-stone-500">{itemCount} item{itemCount === 1 ? '' : 's'} ready to settle</p></div>
         <div className="rounded-xl bg-[#f5ebe5] p-2.5 text-[#a85e35] dark:bg-[#342528]"><ShoppingBag className="h-5 w-5" /></div>
