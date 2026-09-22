@@ -183,6 +183,13 @@
     box-shadow: var(--shadow-card);
   }
 
+  .pos-workbench > div:nth-child(2) {
+    max-height: calc(100vh - 18rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c99573 transparent;
+  }
+
   .section-heading {
     font-size: 0.72rem;
     font-weight: 800;
