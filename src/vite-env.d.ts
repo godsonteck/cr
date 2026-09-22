@@ -19,3 +19,16 @@ declare module '*.svg' {
   const src: string;
   export default src;
 }
+
+type DesktopQueuedSale = { idempotencyKey: string; payload: Record<string, unknown>; status: string; attempts: number; last_error?: string | null };
+interface Window {
+  crDesktop?: {
+    isDesktop: boolean;
+    print: () => Promise<boolean>;
+    pos: {
+      status: () => Promise<{ deviceId: string; online?: boolean }>;
+      catalog: { get: () => Promise<import('./types').Product[]>; cache: (products: import('./types').Product[]) => Promise<boolean> };
+      sales: { queue: (sale: Record<string, unknown>) => Promise<boolean>; pending: () => Promise<DesktopQueuedSale[]>; markSync: (value: { idempotencyKey: string; status: 'SYNCED' | 'SYNC_FAILED' | 'SYNC_CONFLICT'; error?: string }) => Promise<boolean> };
+    };
+  };
+}

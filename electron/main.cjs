@@ -16,6 +16,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     title: 'CR Cosmetics POS',
+    icon: path.join(__dirname, 'icon.ico'),
     backgroundColor: '#faf6f0',
     webPreferences: {
       contextIsolation: true,
@@ -34,7 +35,9 @@ function createWindow() {
 
 app.whenReady().then(() => {
   const posStore = createPosStore(app.getPath('userData'));
-  ipcMain.handle('pos:status', () => ({ deviceId: posStore.deviceId, online: require('net').isOnline }));
+  // Connectivity is determined by an actual renderer sync attempt; Node's
+  // network module has no authoritative online/offline flag.
+  ipcMain.handle('pos:status', () => ({ deviceId: posStore.deviceId }));
   ipcMain.handle('pos:catalog:get', () => posStore.getCatalog());
   ipcMain.handle('pos:catalog:cache', (_event, products) => { if (!Array.isArray(products)) throw new Error('Invalid catalogue payload'); posStore.cacheCatalog(products); return true; });
   ipcMain.handle('pos:sale:queue', (_event, sale) => { if (!sale || typeof sale.idempotencyKey !== 'string' || !sale.idempotencyKey.startsWith('POS-')) throw new Error('Invalid POS sale'); posStore.queueSale(sale.idempotencyKey, sale); return true; });

@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Barcode, Banknote, CreditCard, Loader2, Minus, Plus, Search, ShoppingCart, Trash2, Smartphone, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
-import { api } from '../../../lib/api';
+import { api, ApiError } from '../../../lib/api';
 import type { PaymentMethod, Product, ProductVariant } from '../../../types';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
@@ -26,12 +26,52 @@ export function AdminPOSScreen() {
   const [cashReceived, setCashReceived] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [saleKey, setSaleKey] = useState(() => `POS-${crypto.randomUUID()}`);
+  const [cachedProducts, setCachedProducts] = useState<Product[]>([]);
+  const [syncState, setSyncState] = useState<{ online: boolean; pending: number }>({ online: navigator.onLine, pending: 0 });
   const scannerRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { void fetchProducts({ includeUnpublished: true }); }, [fetchProducts]);
+  const syncQueuedSales = useCallback(async () => {
+    const desktop = window.crDesktop?.pos;
+    if (!desktop || !navigator.onLine) return;
+    const pending = await desktop.sales.pending();
+    for (const sale of pending) {
+      try {
+        await api.post('/orders?channel=pos', sale.payload);
+        await desktop.sales.markSync({ idempotencyKey: sale.idempotencyKey, status: 'SYNCED' });
+      } catch (error) {
+        const status = error instanceof ApiError && error.status === 409 ? 'SYNC_CONFLICT' : 'SYNC_FAILED';
+        await desktop.sales.markSync({ idempotencyKey: sale.idempotencyKey, status, error: error instanceof Error ? error.message : 'Could not synchronize sale' });
+        if (status === 'SYNC_FAILED') break;
+      }
+    }
+    const remaining = await desktop.sales.pending();
+    setSyncState({ online: true, pending: remaining.length });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadCatalogue = async () => {
+      const desktop = window.crDesktop?.pos;
+      try {
+        if (desktop) setSyncState(current => ({ ...current, online: navigator.onLine }));
+        await fetchProducts({ includeUnpublished: true });
+      } catch {
+        if (!desktop || !active) return;
+        const localCatalogue = await desktop.catalog.get();
+        if (active) { setCachedProducts(localCatalogue); setSyncState(current => ({ ...current, online: false })); }
+      }
+      if (desktop && navigator.onLine) void syncQueuedSales();
+    };
+    void loadCatalogue();
+    const online = () => { void loadCatalogue(); };
+    window.addEventListener('online', online);
+    return () => { active = false; window.removeEventListener('online', online); };
+  }, [fetchProducts, syncQueuedSales]);
+  useEffect(() => { if (window.crDesktop?.pos && products.length) void window.crDesktop.pos.catalog.cache(products); }, [products]);
   useEffect(() => { scannerRef.current?.focus(); }, []);
 
-  const catalogueItems = useMemo<PosCatalogueItem[]>(() => products.flatMap(product => {
+  const posProducts = products.length ? products : cachedProducts;
+  const catalogueItems = useMemo<PosCatalogueItem[]>(() => posProducts.flatMap(product => {
     if (product.isPublished === false) return [];
     if (product.variants?.length) return product.variants
       .filter(variant => variant.inStock && Number(variant.stockCount) > 0)
@@ -39,7 +79,7 @@ export function AdminPOSScreen() {
     return product.inStock && Number(product.stockCount) > 0
       ? [{ product, title: product.name, stockCount: Number(product.stockCount), barcode: product.barcode, serialNumber: product.serialNumber }]
       : [];
-  }), [products]);
+  }), [posProducts]);
   const sellable = useMemo(() => catalogueItems.map(item => item.product).filter((product, index, all) => all.findIndex(item => item.id === product.id) === index), [catalogueItems]);
   const categories = useMemo(() => Array.from(new Set(catalogueItems.map(item => item.product.categoryLabel || item.product.category).filter(Boolean))).sort(), [catalogueItems]);
   const shownProducts = useMemo(() => {
@@ -97,9 +137,10 @@ export function AdminPOSScreen() {
     if (payment === 'card' && !reference.trim()) { showAlert('Enter the card terminal reference.', 'warning'); return; }
     if (payment === 'cash-on-delivery' && (!cashReceived || !Number.isFinite(tendered) || tendered < total)) { showAlert('Enter the cash received; it must cover the total.', 'warning'); return; }
     const receiptWindow = window.open('', '_blank');
+    let payload: Record<string, unknown> | null = null;
     setSubmitting(true);
     try {
-      const payload = {
+      payload = {
         orderSource: 'pos', idempotencyKey: saleKey, subtotal: total, shippingFee: 0, discount: 0, total,
         paymentMethod: payment as PaymentMethod, paymentStatus: 'paid', deliveryMethod: 'store-pickup',
         paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined, cashReceived: payment === 'cash-on-delivery' ? tendered : undefined,
@@ -123,14 +164,26 @@ export function AdminPOSScreen() {
       }
       setCart([]); setReference(''); setSenderPhone(''); setCustomerName(''); setCashReceived(''); setSaleKey(`POS-${crypto.randomUUID()}`);
       await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
-    } catch (error: any) { showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error'); }
+    } catch (error: any) {
+      const desktop = window.crDesktop?.pos;
+      const connectivityFailure = !navigator.onLine || error instanceof TypeError || (error instanceof ApiError && error.status === 408);
+      if (desktop && connectivityFailure) {
+        if (!payload) throw error;
+        await desktop.sales.queue(payload);
+        receiptWindow?.close();
+        setCart([]); setReference(''); setSenderPhone(''); setCustomerName(''); setCashReceived(''); setSaleKey(`POS-${crypto.randomUUID()}`);
+        const pending = await desktop.sales.pending();
+        setSyncState({ online: false, pending: pending.length });
+        showAlert('Sale saved securely on this terminal and will sync when the connection returns. A final receipt will be available after sync.', 'warning');
+      } else showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error');
+    }
     finally { setSubmitting(false); scannerRef.current?.focus(); }
   };
 
   return <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px] print:block">
     <section className="min-w-0 space-y-4 print:hidden">
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#35272c] dark:bg-[#1e1719] sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">Counter sale</h2><p className="text-sm text-stone-500">Every stocked product and variation is shown separately. Stock is checked again when you complete the sale.</p></div><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Secure stock sync</div></div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">Counter sale</h2><p className="text-sm text-stone-500">Every stocked product and variation is shown separately. Stock is checked again when you complete the sale.</p></div><div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${syncState.online ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}><CheckCircle2 className="h-4 w-4" /> {syncState.online ? (syncState.pending ? `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} syncing` : 'Online · synced') : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</div></div>
         <div className="mt-4 grid gap-3 md:grid-cols-2"><div><div className="flex gap-2"><label className="relative min-w-0 flex-1"><Barcode className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input ref={scannerRef} value={scannerValue} onChange={event => setScannerValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') void scan(); }} placeholder="Scan barcode, serial number, or product ID" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label><button type="button" onClick={() => void scan()} disabled={!scannerValue.trim()} className="rounded-xl bg-[#24191b] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Add</button></div><p className="mt-1.5 text-xs text-stone-500">Connect a USB or Bluetooth scanner in keyboard mode, click this field once, then scan a barcode or serial number. Press Enter after a typed code.</p></div><label className="relative"><Search className="absolute left-3 top-3 h-5 w-5 text-stone-400" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search products" className="w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-3 text-sm outline-none focus:border-[#b9774c] dark:border-[#514048] dark:bg-[#21191b]" /></label></div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1"><button type="button" onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>All products</button>{categories.map(category => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold ${activeCategory === category ? 'bg-[#24191b] text-white' : 'border border-stone-300 text-stone-600 hover:border-[#b9774c]'}`}>{category}</button>)}</div>
       </div>

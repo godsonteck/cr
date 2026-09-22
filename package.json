@@ -30,7 +30,6 @@
     "@vercel/sdk": "^1.28.25",
     "@vitejs/plugin-react": "^5.0.4",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^13.0.3",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.38.3",
     "express": "^4.21.2",
@@ -48,7 +47,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.2.0",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.30.1",
     "electron": "^44.4.3",
@@ -66,13 +64,16 @@
       "package.json"
     ],
     "win": {
+      "icon": "electron/icon.ico",
       "target": [
         "nsis"
       ]
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico"
     },
     "publish": {
       "provider": "generic",
