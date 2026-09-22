@@ -355,6 +355,10 @@ export const AdminPortal: React.FC = () => {
     );
   }
 
+  if (currentTab === 'pos') {
+    return <div className="min-h-screen bg-[#f6f7f5] px-4 py-4 text-[#171b18] dark:bg-[#151313] dark:text-stone-100"><AdminPOSWorkspace /></div>;
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
       {/* Sidebar */}
@@ -529,7 +533,6 @@ export const AdminPortal: React.FC = () => {
             >
               {currentTab === 'overview' && <AdminDashboard onNavigate={handleTabChange} />}
               {currentTab === 'live' && <AdminLiveOperationsScreen onViewOrder={handleViewOrder} />}
-              {currentTab === 'pos' && <AdminPOSWorkspace />}
               {currentTab === 'products' && (
                 <AdminProductsScreen
                   onAddProduct={handleAddProduct}
