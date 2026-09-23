@@ -55,6 +55,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/:route*",
+      "destination": "/api/index?route=:route*"
+    },
+    {
       "source": "/api/brands",
       "destination": "/api/catalog?resource=brands"
     },
