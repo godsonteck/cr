@@ -190,6 +190,61 @@
     scrollbar-color: #c99573 transparent;
   }
 
+  .pos-reference .pos-workbench > div:nth-child(2) .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pos-reference .pos-workbench > div:nth-child(2) > div:first-child {
+    border-radius: 1.125rem;
+  }
+
+  .pos-reference .pos-workbench > div:nth-child(2) img {
+    height: 9.5rem;
+  }
+
+  .pos-reference .pos-workbench > div:nth-child(2) button {
+    border-radius: 0.75rem;
+  }
+
+  .pos-reference > div:first-child {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pos-reference > div:first-child::before {
+    content: "CR COSMETICS AND ESSENTIALS\A Skincare & Beauty Essentials, Ghana";
+    white-space: pre;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #241b1d;
+  }
+
+  .pos-reference > div:first-child::first-line {
+    color: #201719;
+  }
+
+  .pos-reference > header {
+    display: none;
+  }
+
+  @media (max-width: 1100px) {
+    .pos-reference > div:first-child {
+      display: flex;
+    }
+
+    .pos-reference > div:first-child::before {
+      display: none;
+    }
+
+    .pos-reference .pos-workbench > div:nth-child(2) .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   .section-heading {
     font-size: 0.72rem;
     font-weight: 800;
