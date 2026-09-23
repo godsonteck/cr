@@ -69,6 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (query.admin === 'true') {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
+        const search = typeof query.search === 'string' ? query.search.trim().toLowerCase() : '';
 
         // Older production databases may not have this optional admin field yet.
         await ensureAdminNotesColumn();
@@ -82,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           profileImage: users.profileImage,
           savedAddresses: users.savedAddresses,
           savedItemIds: users.savedItemIds,
+          loyaltyPoints: users.loyaltyPoints,
           isActive: users.isActive,
           adminNotes: users.adminNotes,
           createdAt: users.createdAt,
@@ -121,7 +123,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           };
         });
 
-        return res.status(200).json(enhancedUsers);
+        const filteredUsers = search
+          ? enhancedUsers.filter(user => [user.fullName, user.email, user.phone].some(value => value.toLowerCase().includes(search)))
+          : enhancedUsers;
+        return res.status(200).json(filteredUsers);
       }
 
       if (me === 'true') {

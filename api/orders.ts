@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/database.js';
-import { orders, products, storeSettings, promoCodes, flashDeals, notifications, posPayments, inventoryMovements, auditLogs } from '../src/db/schema.js';
+import { orders, products, storeSettings, promoCodes, flashDeals, notifications, posPayments, inventoryMovements, auditLogs, users } from '../src/db/schema.js';
 import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -186,6 +186,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (isPosOrder && parsed.data.idempotencyKey) {
         const [existingOrder] = await db.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
         if (existingOrder) return res.status(200).json(existingOrder);
+      }
+      if (isPosOrder && parsed.data.userId) {
+        const [posCustomer] = await db.select({ id: users.id, isActive: users.isActive }).from(users).where(eq(users.id, parsed.data.userId)).limit(1);
+        if (!posCustomer || !posCustomer.isActive) return res.status(400).json({ error: 'The selected customer account is unavailable.' });
       }
       if (parsed.data.paymentMethod.startsWith('momo') && (!parsed.data.paymentReference?.trim() || !parsed.data.paymentSenderPhone?.trim())) {
         return res.status(400).json({ error: 'Mobile-money transaction reference and sender phone are required.' });
@@ -385,7 +389,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         appliedPromoCode,
         // A POS sale belongs to the walk-in customer (or no online account),
         // never the staff member who recorded it.
-        userId: isPosOrder ? null : auth?.sub || null,
+        userId: isPosOrder ? parsed.data.userId || null : auth?.sub || null,
         orderNumber,
         subtotal: calculatedSubtotal.toString(),
         shippingFee: finalShippingFee.toString(),
@@ -403,11 +407,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Lock every item in one consistently ordered database transaction, then
       // create the order and reduce stock together. This prevents two shoppers
       // from both buying the final unit during concurrent checkouts.
-      const createdOrder = await db.transaction(async tx => {
+      const transactionResult = await db.transaction(async tx => {
         if (isPosOrder && parsed.data.idempotencyKey) {
           await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${parsed.data.idempotencyKey}))`);
           const [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
-          if (existing) return existing;
+          if (existing) return { order: existing, replayed: true };
         }
         const lockedProducts = await tx
           .select()
@@ -467,26 +471,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }).where(eq(products.id, productId));
           if (isPosOrder) await tx.insert(inventoryMovements).values({ productId, variantId, orderId: order.id, movementType: 'POS_SALE', quantity: -quantity, quantityBefore: Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0), quantityAfter: Math.max(0, Number(product.variants?.find(v => v.id === variantId)?.stockCount ?? 0) - quantity), actorName: auth?.adminName || auth?.name, reason: `POS sale ${order.orderNumber}` });
         }
+        if (isPosOrder && order.userId) {
+          await tx.update(users).set({ loyaltyPoints: sql`${users.loyaltyPoints} + ${Math.floor(calculatedTotal)}` }).where(eq(users.id, order.userId));
+        }
         if (isPosOrder) await tx.insert(auditLogs).values({ action: 'POS_SALE_COMPLETED', entityType: 'order', entityId: order.id, actorName: auth?.adminName || auth?.name, metadata: { orderNumber: order.orderNumber, total: calculatedTotal, idempotencyKey: parsed.data.idempotencyKey, deviceId: parsed.data.deviceId || null, adminId: auth?.sub || null, paymentMethod: parsed.data.paymentMethod } });
-        return order;
+        return { order, replayed: false };
       });
+      const createdOrder = transactionResult.order;
 
-      await db.insert(notifications).values([
-        {
-          userId: auth?.sub || null,
-          type: 'order',
-          title: 'Order received',
-          message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
-          actionUrl: `/account/orders`,
-        },
-        {
-          userId: null,
-          type: 'order',
-          title: 'New order received',
-          message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
-          actionUrl: '/admin?tab=orders',
-        },
-      ]);
+      if (!transactionResult.replayed) {
+        await db.insert(notifications).values([
+          {
+            userId: createdOrder.userId || null,
+            type: 'order',
+            title: 'Order received',
+            message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
+            actionUrl: `/account/orders`,
+          },
+          {
+            userId: null,
+            type: 'order',
+            title: 'New order received',
+            message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
+            actionUrl: '/admin?tab=orders',
+          },
+        ]);
+      }
 
       const newOrder = createdOrder;
 

@@ -167,6 +167,7 @@ export const users = pgTable('users', {
     landmarkOrGps?: string;
   }>>().default([]),
   savedItemIds: jsonb('saved_item_ids').$type<string[]>().default([]),
+  loyaltyPoints: integer('loyalty_points').notNull().default(0),
   isActive: boolean('is_active').notNull().default(true),
   /** Admin-written notes about this customer. Auto-migrated on first use. */
   adminNotes: text('admin_notes'),

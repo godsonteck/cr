@@ -340,6 +340,7 @@ export interface UserProfile {
   savedAddresses: ShippingAddress[];
   orders: Order[];
   savedItemIds: string[];
+  loyaltyPoints?: number;
   skinProfile?: SkinProfile;
   preferredPayment?: PreferredPayment;
   isActive?: boolean;
