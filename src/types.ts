@@ -161,7 +161,7 @@ export interface StoreSettingsRow {
 export interface AdminSession {
   isLoggedIn: boolean;
   adminName: string;
-  adminRole: 'Super Admin' | 'Store Manager' | 'Inventory Dispatcher';
+  adminRole: 'Super Admin' | 'Store Manager' | 'Inventory Dispatcher' | 'Cashier';
   email: string;
 }
 
@@ -354,7 +354,7 @@ export interface AdminAccount {
   fullName: string;
   email: string;
   phone: string;
-  role: 'super_admin' | 'admin' | 'manager';
+  role: 'super_admin' | 'admin' | 'manager' | 'cashier';
 }
 
 export interface InventoryMovement {

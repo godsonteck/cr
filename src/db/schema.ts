@@ -62,6 +62,7 @@ export const adminRoleEnum = pgEnum('admin_role', [
   'Super Admin',
   'Store Manager',
   'Inventory Dispatcher',
+  'Cashier',
 ]);
 export const routineStepEnum = pgEnum('routine_step', [
   'cleanse',

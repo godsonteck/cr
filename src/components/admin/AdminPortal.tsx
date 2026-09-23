@@ -108,6 +108,7 @@ const roleAccess: Record<AdminSession['adminRole'], AdminTab[]> = {
   'Super Admin': ['overview', 'live', 'pos', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'accounts', 'notifications', 'reviews', 'settings'],
   'Store Manager': ['overview', 'live', 'pos', 'products', 'orders', 'inventory', 'customers', 'promos', 'flash', 'categories', 'analytics', 'notifications', 'reviews', 'settings'],
   'Inventory Dispatcher': ['overview', 'live', 'products', 'orders', 'inventory', 'notifications'],
+  'Cashier': ['pos'],
 };
 
 const tabLabels: Record<AdminTab, string> = {

@@ -5,7 +5,7 @@ import { db } from '../src/database.js';
 import { adminSessions } from '../src/db/schema.js';
 import { requireAdmin } from './_auth.js';
 
-const allowedRoles = ['Super Admin', 'Store Manager', 'Inventory Dispatcher'] as const;
+const allowedRoles = ['Super Admin', 'Store Manager', 'Inventory Dispatcher', 'Cashier'] as const;
 type AdminRole = typeof allowedRoles[number];
 
 const safeAccount = (account: typeof adminSessions.$inferSelect) => ({
@@ -20,6 +20,7 @@ const safeAccount = (account: typeof adminSessions.$inferSelect) => ({
 });
 
 function roleFromRequest(role: unknown): AdminRole {
+  if (role === 'cashier' || role === 'Cashier') return 'Cashier';
   if (role === 'manager' || role === 'Store Manager') return 'Store Manager';
   if (role === 'super_admin' || role === 'Super Admin') return 'Super Admin';
   return 'Inventory Dispatcher';

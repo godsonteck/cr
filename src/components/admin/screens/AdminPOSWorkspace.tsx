@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Banknote,
@@ -70,6 +71,7 @@ function writeBrowserQueue(queue: DesktopQueuedSale[]) {
 export function AdminPOSWorkspace() {
   const { products, loading, fetchProducts, fetchOrders, orders, loadingOrders, storeSettings, adminSession, logoutAdmin, validatePromoCode } = useStore();
   const { showAlert } = useAlert();
+  const navigate = useNavigate();
   const scannerRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -168,7 +170,11 @@ export function AdminPOSWorkspace() {
       showAlert('Close the active cash drawer before switching cashier.', 'warning');
       return;
     }
-    await logoutAdmin();
+    if (adminSession.adminRole === 'Cashier') {
+      await logoutAdmin();
+    } else {
+      navigate('/admin?tab=overview');
+    }
   };
 
   const syncQueuedSales = useCallback(async () => {

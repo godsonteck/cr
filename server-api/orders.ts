@@ -207,8 +207,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isPosOrder = query.channel === 'pos';
       const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : await requireAuth(req, res);
       if (!isWhatsAppOrder && !auth) return;
-      if (isPosOrder && !['Super Admin', 'Store Manager'].includes(auth?.adminRole || '')) {
-        return res.status(403).json({ error: 'Only Store Managers and Super Admins can record POS sales.' });
+      if (isPosOrder && !['Super Admin', 'Store Manager', 'Cashier'].includes(auth?.adminRole || '')) {
+        return res.status(403).json({ error: 'This account cannot record POS sales.' });
       }
       if (isWhatsAppOrder) {
         const rateLimit = checkRateLimit(`whatsapp-order:${getClientIp(req.headers)}`, 10, 60 * 60 * 1000);

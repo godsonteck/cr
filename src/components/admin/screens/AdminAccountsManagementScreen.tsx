@@ -49,12 +49,19 @@ const ROLE_BADGE: Record<string, string> = {
   super_admin: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
   admin:       'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
   manager:     'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+  cashier:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  Cashier:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
 };
 
 const ROLE_LABEL: Record<string, string> = {
   super_admin: 'Super Admin',
   admin:       'Admin',
   manager:     'Manager',
+  cashier:     'POS Cashier',
+  Cashier:     'POS Cashier',
+  'Super Admin': 'Super Admin',
+  'Store Manager': 'Store Manager',
+  'Inventory Dispatcher': 'Inventory Dispatcher',
 };
 
 export const AdminAccountsManagementScreen: React.FC = () => {
@@ -108,6 +115,8 @@ export const AdminAccountsManagementScreen: React.FC = () => {
         ? 'super_admin'
         : adminSession?.adminRole === 'Store Manager'
         ? 'manager'
+        : adminSession?.adminRole === 'Cashier'
+        ? 'cashier'
         : 'admin') as AdminAccount['role'],
     }),
     [safeAccounts, adminSession, currentAdminAccountId]
@@ -275,6 +284,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
             <input name="pin" type="password" inputMode="numeric" minLength={4} placeholder="Temporary PIN" required className={inputCls} />
             <select name="role" defaultValue="admin" className={inputCls}>
               <option value="admin">Inventory Dispatcher</option>
+              <option value="cashier">POS Cashier</option>
               <option value="manager">Manager</option>
               <option value="super_admin">Super Admin</option>
             </select>
@@ -367,6 +377,7 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                           >
                             <option value="manager">Manager</option>
                             <option value="admin">Admin</option>
+                            <option value="cashier">POS Cashier</option>
                             <option value="super_admin">Super Admin</option>
                           </select>
                         </td>
