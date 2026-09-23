@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
   Banknote,
+  Baby,
   Barcode,
   Check,
   ChevronDown,
+  Droplets,
+  Flame,
+  Leaf,
   Minus,
   PackageOpen,
   Plus,
@@ -14,6 +18,8 @@ import {
   Search,
   ShoppingBag,
   Smartphone,
+  Sparkles,
+  SprayCan,
   Trash2,
   UserRound,
   Wifi,
@@ -31,6 +37,15 @@ type PaymentChoice = 'cash-on-delivery' | 'momo-mtn';
 type PosShift = { id: string; deviceId: string; cashierName: string; status: 'OPEN' | 'CLOSED'; openingCash: number; expectedCash: number | null; actualCash: number | null; difference: number | null; openedAt: string; closedAt: string | null; notes?: string | null };
 type PosCustomer = { id: string; fullName: string; email: string; phone: string; loyaltyPoints?: number; savedAddresses?: Array<{ fullName: string; phone: string; email?: string; city: string; area: string; landmarkOrGps?: string; deliveryNotes?: string; isDefault?: boolean }> };
 type HeldTicket = { cart: PosLine[]; customer: string; selectedCustomer: PosCustomer | null; payment: PaymentChoice; cashReceived: string; reference: string; senderPhone: string; promoCode: string; discountAmount: number };
+const browseCategories = [
+  { id: 'body-care', label: 'Body Care', aliases: ['body-care', 'body care'], icon: SprayCan },
+  { id: 'skincare', label: 'Skincare', aliases: ['skincare', 'skin care'], icon: Droplets },
+  { id: 'deodorants', label: 'Deodorants', aliases: ['deodorants', 'deodorant'], icon: Sparkles },
+  { id: 'baby-care', label: 'Baby Care', aliases: ['baby-care', 'baby care'], icon: Baby },
+  { id: 'fragrances', label: 'Fragrance', aliases: ['fragrances', 'fragrance'], icon: Leaf },
+  { id: 'offers', label: 'Hot Deals', aliases: ['offers', 'hot deals'], icon: Flame },
+  { id: 'essentials', label: 'Essentials', aliases: ['daily-essentials', 'household-care', 'essentials', 'grocery'], icon: ShoppingBag },
+] as const;
 
 const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
 const lineKey = (line: PosLine | PosItem) => `${line.product.id}:${line.variant?.id || 'base'}`;
@@ -250,16 +265,18 @@ export function AdminPOSWorkspace() {
       : [];
   }), [posProducts]);
 
-  const categories = useMemo(() => Array.from(new Set(items.map(item => item.product.categoryLabel || item.product.category))).sort(), [items]);
   const filteredItems = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return items.filter(item => {
       const itemCategory = item.product.categoryLabel || item.product.category;
-      const matchesCategory = category === 'all' || itemCategory === category;
+      const browseCategory = browseCategories.find(option => option.id === category || option.label === category);
+      const matchesCategory = category === 'all' || itemCategory === category || item.product.category === category || Boolean(browseCategory?.aliases.some(alias => alias === itemCategory.toLowerCase() || alias === item.product.category));
       const searchable = [item.title, item.product.brand, item.product.id, item.variant?.id, item.barcode].filter(Boolean).join(' ').toLowerCase();
       return matchesCategory && (!needle || searchable.includes(needle));
     });
   }, [items, search, category]);
+
+  const categories = browseCategories.map(option => option.label);
 
   const priceFor = (line: PosLine) => {
     const price = Number(line.variant?.price ?? line.product.price);
