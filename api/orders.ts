@@ -75,6 +75,8 @@ const orderUpdateSchema = z.object({
   }).optional(),
 }).partial();
 
+const posRefundSchema = z.object({ orderId: z.string().uuid() });
+
 function generateOrderNumber(): string {
   const date = new Date();
   const year = date.getFullYear().toString().slice(-2);
@@ -156,6 +158,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         orders: results,
         pagination: { total, limit: lim, offset: off, hasMore: off + lim < total },
       });
+    }
+
+    if (method === 'POST' && query.action === 'refund') {
+      const auth = await requireAdmin(req, res);
+      if (!auth) return;
+      if (!['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
+        return res.status(403).json({ error: 'Only Store Managers and Super Admins can refund POS sales.' });
+      }
+      const parsed = posRefundSchema.safeParse(body);
+      if (!parsed.success) return res.status(400).json({ error: 'A valid POS sale is required for refund.' });
+      const refundedOrder = await db.transaction(async tx => {
+        const [order] = await tx.select().from(orders).where(eq(orders.id, parsed.data.orderId)).for('update').limit(1);
+        if (!order || order.orderSource !== 'pos') throw new Error('POS sale not found.');
+        if (order.status === 'Refunded') throw new Error('This POS sale has already been refunded.');
+        const productIds = order.items.map(item => item.product.id);
+        const lockedProducts = await tx.select().from(products).where(inArray(products.id, productIds)).for('update');
+        const productMap = new Map(lockedProducts.map(product => [product.id, product]));
+        for (const item of order.items) {
+          const product = productMap.get(item.product.id);
+          if (!product) continue;
+          const variantId = item.selectedVariant?.id;
+          if (variantId) {
+            const nextVariants = (product.variants || []).map(variant => variant.id !== variantId ? variant : {
+              ...variant,
+              stockCount: Number(variant.stockCount || 0) + item.quantity,
+              inStock: true,
+            });
+            const nextStock = nextVariants.reduce((sum, variant) => sum + Number(variant.stockCount || 0), 0);
+            await tx.update(products).set({ variants: nextVariants, stockCount: nextStock, inStock: true, isPublished: true, updatedAt: new Date() }).where(eq(products.id, product.id));
+            await tx.insert(inventoryMovements).values({ productId: product.id, variantId, orderId: order.id, movementType: 'POS_REFUND', quantity: item.quantity, quantityBefore: Number(product.variants?.find(variant => variant.id === variantId)?.stockCount || 0), quantityAfter: Number(product.variants?.find(variant => variant.id === variantId)?.stockCount || 0) + item.quantity, actorName: auth.adminName, reason: `POS refund ${order.orderNumber}` });
+          } else {
+            const nextStock = product.stockCount + item.quantity;
+            await tx.update(products).set({ stockCount: nextStock, inStock: true, isPublished: true, updatedAt: new Date() }).where(eq(products.id, product.id));
+            await tx.insert(inventoryMovements).values({ productId: product.id, orderId: order.id, movementType: 'POS_REFUND', quantity: item.quantity, quantityBefore: product.stockCount, quantityAfter: nextStock, actorName: auth.adminName, reason: `POS refund ${order.orderNumber}` });
+          }
+        }
+        await tx.update(posPayments).set({ status: 'REFUNDED' }).where(eq(posPayments.orderId, order.id));
+        await tx.insert(auditLogs).values({ action: 'POS_SALE_REFUNDED', entityType: 'order', entityId: order.id, actorName: auth.adminName, metadata: { orderNumber: order.orderNumber, adminId: auth.sub } });
+        const [updated] = await tx.update(orders).set({ status: 'Refunded', updatedAt: new Date() }).where(eq(orders.id, order.id)).returning();
+        return updated;
+      });
+      return res.status(200).json(refundedOrder);
     }
 
     if (method === 'POST') {

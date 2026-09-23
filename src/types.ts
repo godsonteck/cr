@@ -287,7 +287,7 @@ export interface ShippingAddress {
   tag?: 'Home' | 'Work' | 'Other';
 }
 
-export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered';
+export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered' | 'Refunded';
 
 export interface Order {
   id: string;

@@ -39,6 +39,7 @@ export const orderStatusEnum = pgEnum('order_status', [
   'Packing Order',
   'Out for Delivery',
   'Delivered',
+  'Refunded',
 ]);
 export const paymentMethodEnum = pgEnum('payment_method', [
   'paystack',

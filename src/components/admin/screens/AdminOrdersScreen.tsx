@@ -33,6 +33,7 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
   'Packing Order':    'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
   'Out for Delivery': 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
   'Delivered':        'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+  'Refunded':         'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
 };
 
 const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
@@ -41,6 +42,7 @@ const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   'Packing Order':    Package,
   'Out for Delivery': Truck,
   'Delivered':        CheckCircle2,
+  'Refunded':         RotateCcw,
 };
 
 export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) => {
@@ -53,7 +55,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
   const [customEnd, setCustomEnd] = useState('');
   const [sortOrder, setSortOrder] = useState<DateSortOrder>('date-desc');
 
-  const statuses: (OrderStatus | 'all')[] = ['all', 'Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered'];
+  const statuses: (OrderStatus | 'all')[] = ['all', 'Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered', 'Refunded'];
 
   const filteredOrders = useMemo(() => {
     let orders = store.orders || [];

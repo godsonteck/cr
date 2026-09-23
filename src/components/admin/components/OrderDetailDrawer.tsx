@@ -433,7 +433,8 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                     'Processing': 'Packing Order',
                     'Packing Order': 'Out for Delivery',
                     'Out for Delivery': 'Delivered',
-                    'Delivered': 'Delivered'
+                    'Delivered': 'Delivered',
+                    'Refunded': 'Refunded'
                   };
                   const next = nextStageMap[order.status];
                   if (!next) return;

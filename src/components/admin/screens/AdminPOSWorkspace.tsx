@@ -30,6 +30,7 @@ type PosItem = { product: Product; variant?: ProductVariant; title: string; stoc
 type PaymentChoice = 'cash-on-delivery' | 'momo-mtn';
 type PosShift = { id: string; deviceId: string; cashierName: string; status: 'OPEN' | 'CLOSED'; openingCash: number; expectedCash: number | null; actualCash: number | null; difference: number | null; openedAt: string; closedAt: string | null; notes?: string | null };
 type PosCustomer = { id: string; fullName: string; email: string; phone: string; loyaltyPoints?: number; savedAddresses?: Array<{ fullName: string; phone: string; email?: string; city: string; area: string; landmarkOrGps?: string; deliveryNotes?: string; isDefault?: boolean }> };
+type HeldTicket = { cart: PosLine[]; customer: string; selectedCustomer: PosCustomer | null; payment: PaymentChoice; cashReceived: string; reference: string; senderPhone: string; promoCode: string; discountAmount: number };
 
 const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
 const lineKey = (line: PosLine | PosItem) => `${line.product.id}:${line.variant?.id || 'base'}`;
@@ -51,7 +52,7 @@ function writeBrowserQueue(queue: DesktopQueuedSale[]) {
 }
 
 export function AdminPOSWorkspace() {
-  const { products, loading, fetchProducts, fetchOrders, orders, loadingOrders, storeSettings, adminSession, logoutAdmin } = useStore();
+  const { products, loading, fetchProducts, fetchOrders, orders, loadingOrders, storeSettings, adminSession, logoutAdmin, validatePromoCode } = useStore();
   const { showAlert } = useAlert();
   const scannerRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
@@ -65,6 +66,12 @@ export function AdminPOSWorkspace() {
   const [cashReceived, setCashReceived] = useState('');
   const [reference, setReference] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountMessage, setDiscountMessage] = useState('');
+  const [heldTicket, setHeldTicket] = useState<HeldTicket | null>(() => {
+    try { return JSON.parse(localStorage.getItem('cr_pos_held_ticket') || 'null') as HeldTicket | null; } catch { return null; }
+  });
   const [activeDeal, setActiveDeal] = useState<FlashDeal | null>(null);
   const [cachedProducts, setCachedProducts] = useState<Product[]>([]);
   const [syncState, setSyncState] = useState<{ pending: number; conflicts: DesktopQueuedSale[] }>({ pending: 0, conflicts: [] });
@@ -261,10 +268,83 @@ export function AdminPOSWorkspace() {
       : price;
   };
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
-  const subtotal = cart.reduce((sum, line) => sum + priceFor(line) * line.quantity, 0);
+  const grossSubtotal = cart.reduce((sum, line) => sum + priceFor(line) * line.quantity, 0);
   const received = Number(cashReceived);
-  const change = payment === 'cash-on-delivery' && Number.isFinite(received) ? Math.max(0, received - subtotal) : 0;
+  const subtotal = Math.max(0, grossSubtotal - discountAmount);
+  const total = subtotal;
+  const change = payment === 'cash-on-delivery' && Number.isFinite(received) ? Math.max(0, received - total) : 0;
   const selectedAddress = selectedCustomer?.savedAddresses?.find(address => address.isDefault) || selectedCustomer?.savedAddresses?.[0];
+
+  const applyDiscount = async () => {
+    const code = promoCode.trim();
+    if (!code) {
+      setDiscountAmount(0);
+      setDiscountMessage('Enter a promotion code.');
+      return;
+    }
+    try {
+      const result = await validatePromoCode(code, grossSubtotal);
+      if (!result.valid) {
+        setDiscountAmount(0);
+        setDiscountMessage(result.message || 'This promotion is not valid.');
+        return;
+      }
+      setPromoCode(result.promo?.code || code.toUpperCase());
+      setDiscountAmount(result.discountAmount);
+      setDiscountMessage(`${money(result.discountAmount)} discount applied.`);
+    } catch (error: any) {
+      setDiscountAmount(0);
+      setDiscountMessage(error?.message || 'Could not validate this promotion.');
+    }
+  };
+
+  const holdTicket = () => {
+    if (!cart.length) return;
+    const ticket: HeldTicket = { cart, customer, selectedCustomer, payment, cashReceived, reference, senderPhone, promoCode, discountAmount };
+    localStorage.setItem('cr_pos_held_ticket', JSON.stringify(ticket));
+    setHeldTicket(ticket);
+    setCart([]); setCustomer(''); setSelectedCustomer(null); setCashReceived(''); setReference(''); setSenderPhone(''); setPromoCode(''); setDiscountAmount(0); setDiscountMessage('');
+    showAlert('Ticket held. It can be recalled from the Hold button.', 'success');
+  };
+
+  const recallTicket = () => {
+    if (!heldTicket) return;
+    setCart(heldTicket.cart); setCustomer(heldTicket.customer); setSelectedCustomer(heldTicket.selectedCustomer); setPayment(heldTicket.payment); setCashReceived(heldTicket.cashReceived); setReference(heldTicket.reference); setSenderPhone(heldTicket.senderPhone); setPromoCode(heldTicket.promoCode); setDiscountAmount(heldTicket.discountAmount); setDiscountMessage('Held ticket restored.');
+    localStorage.removeItem('cr_pos_held_ticket');
+    setHeldTicket(null);
+  };
+
+  const setScaleQuantity = () => {
+    const line = cart[0];
+    if (!line) {
+      showAlert('Add an item before using quantity mode.', 'info');
+      return;
+    }
+    const entered = window.prompt(`Quantity for ${line.product.name}`, String(line.quantity));
+    if (entered == null) return;
+    const quantity = Number(entered);
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      showAlert('Enter a whole-number quantity.', 'warning');
+      return;
+    }
+    updateLine(line, quantity);
+  };
+
+  const refundLatestSale = async () => {
+    const latestSale = (orders || []).find(order => order.orderSource === 'pos' && order.status !== 'Refunded');
+    if (!latestSale) {
+      showAlert('There are no refundable POS sales.', 'info');
+      return;
+    }
+    if (!window.confirm(`Refund sale ${latestSale.orderNumber} for ${money(Number(latestSale.total))}? Stock will be restored.`)) return;
+    try {
+      await api.post('/orders?action=refund', { orderId: latestSale.id });
+      showAlert(`Sale ${latestSale.orderNumber} refunded and stock restored.`, 'success');
+      await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
+    } catch (error: any) {
+      showAlert(error?.data?.error || error?.message || 'Could not refund this sale.', 'error');
+    }
+  };
 
   const addToCart = (item: PosItem) => {
     setCart(previous => {
@@ -328,7 +408,7 @@ export function AdminPOSWorkspace() {
 
   const completeSale = async () => {
     if (!cart.length || submitting) return;
-    if (payment === 'cash-on-delivery' && (!cashReceived || !Number.isFinite(received) || received < subtotal)) {
+    if (payment === 'cash-on-delivery' && (!cashReceived || !Number.isFinite(received) || received < total)) {
       showAlert('Cash received must cover the sale total.', 'warning');
       return;
     }
@@ -341,7 +421,8 @@ export function AdminPOSWorkspace() {
     let payload: Record<string, unknown> | null = null;
     try {
       payload = {
-        orderSource: 'pos', idempotencyKey: saleKey, subtotal, shippingFee: 0, discount: 0, total: subtotal,
+        orderSource: 'pos', idempotencyKey: saleKey, subtotal: grossSubtotal, shippingFee: 0, discount: discountAmount, total,
+        appliedPromoCode: promoCode.trim() || undefined,
         paymentMethod: payment as PaymentMethod, paymentStatus: 'paid', deliveryMethod: 'store-pickup',
         paymentReference: reference.trim() || undefined, paymentSenderPhone: payment === 'momo-mtn' ? senderPhone.trim() : undefined,
         cashReceived: payment === 'cash-on-delivery' ? received : undefined,
@@ -364,7 +445,7 @@ export function AdminPOSWorkspace() {
       const order = await api.post<Order>('/orders?channel=pos', payload);
       printReceipt(order, receiptWindow, payment === 'cash-on-delivery' ? received : undefined);
       showAlert(`Sale ${order.orderNumber} completed. Stock was updated.`, 'success');
-      setCart([]); setCustomer(''); setSelectedCustomer(null); setCustomerMatches([]); setCashReceived(''); setReference(''); setSenderPhone(''); setSaleKey(`POS-${crypto.randomUUID()}`);
+      setCart([]); setCustomer(''); setSelectedCustomer(null); setCustomerMatches([]); setCashReceived(''); setReference(''); setSenderPhone(''); setPromoCode(''); setDiscountAmount(0); setDiscountMessage(''); setSaleKey(`POS-${crypto.randomUUID()}`);
       await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
     } catch (error: any) {
       receiptWindow?.close();
@@ -378,7 +459,7 @@ export function AdminPOSWorkspace() {
         }
         const pending = desktop ? await desktop.sales.pending() : readBrowserQueue();
         setSyncState({ pending: pending.filter(item => item.status !== 'SYNC_CONFLICT').length, conflicts: pending.filter(item => item.status === 'SYNC_CONFLICT') });
-        setCart([]); setCustomer(''); setSelectedCustomer(null); setCustomerMatches([]); setCashReceived(''); setReference(''); setSenderPhone(''); setSaleKey(`POS-${crypto.randomUUID()}`);
+        setCart([]); setCustomer(''); setSelectedCustomer(null); setCustomerMatches([]); setCashReceived(''); setReference(''); setSenderPhone(''); setPromoCode(''); setDiscountAmount(0); setDiscountMessage(''); setSaleKey(`POS-${crypto.randomUUID()}`);
         showAlert('Sale saved on this terminal and will sync automatically when the connection returns.', 'warning');
       } else {
         showAlert(error?.data?.error || error?.message || 'Could not complete this sale.', 'error');
@@ -398,6 +479,7 @@ export function AdminPOSWorkspace() {
       <div className="py-4 pr-1">
         {cart.length ? <div className="max-h-[30vh] space-y-2 overflow-y-auto pr-1">{cart.map(line => <div key={lineKey(line)} className="rounded-2xl border border-[#eee2dc] bg-white p-3 dark:border-[#3b2b2f] dark:bg-[#241b1d]"><div className="flex gap-3"><img src={line.variant?.image || line.product.image} alt="" className="h-12 w-12 rounded-xl object-cover" /><div className="min-w-0 flex-1"><div className="flex justify-between gap-2"><p className="truncate text-sm font-bold">{line.product.name}</p><button type="button" onClick={() => updateLine(line, 0)} aria-label={`Remove ${line.product.name}`} className="text-stone-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div>{line.variant && <p className="truncate text-xs text-[#a85e35]">{line.variant.name}</p>}<div className="mt-2 flex items-center justify-between"><span className="text-sm font-bold">{money(priceFor(line) * line.quantity)}</span><span className="flex items-center gap-2"><button type="button" onClick={() => updateLine(line, line.quantity - 1)} className="rounded-lg border border-stone-200 p-1 hover:bg-stone-100 dark:border-[#4a383d]"><Minus className="h-3.5 w-3.5" /></button><b className="min-w-4 text-center text-xs">{line.quantity}</b><button type="button" onClick={() => updateLine(line, line.quantity + 1)} className="rounded-lg border border-stone-200 p-1 hover:bg-stone-100 dark:border-[#4a383d]"><Plus className="h-3.5 w-3.5" /></button></span></div></div></div></div>)}</div> : <div className="flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-[#dbc9c0] bg-[#fff8f3] text-center dark:border-[#4a383d] dark:bg-[#241b1d]"><ReceiptText className="h-8 w-8 text-[#b9774c]" /><p className="mt-3 text-sm font-bold">Your ticket is empty</p><p className="mt-1 max-w-[220px] text-xs leading-5 text-stone-500">Tap a product tile or scan a barcode to start the sale.</p></div>}
         <div className="relative mt-4"><label className="flex items-center gap-2 text-xs font-bold"><UserRound className="h-4 w-4 text-[#a85e35]" />Customer account <span className="font-normal text-stone-400">optional</span></label><input value={customer} onChange={event => { setCustomer(event.target.value); setSelectedCustomer(null); }} placeholder="Search name, phone, or email" className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#b9774c] dark:border-[#4a383d] dark:bg-[#241b1d]" />{selectedCustomer && <p className="mt-1 text-[10px] font-bold text-emerald-700">Linked account: {selectedCustomer.email}</p>}{customerMatches.length > 0 && <div className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xl dark:border-[#4a383d] dark:bg-[#241b1d]">{customerMatches.map(match => <button key={match.id} type="button" onClick={() => { setSelectedCustomer(match); setCustomer(match.fullName); setCustomerMatches([]); }} className="block w-full border-b border-stone-100 px-3 py-2 text-left text-xs hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:hover:bg-[#342528]"><b className="block">{match.fullName}</b><span className="text-stone-500">{match.phone} · {match.email}</span></button>)}</div>}</div>
+        <div className="mt-4"><label className="text-xs font-bold">Promotion code</label><div className="mt-1.5 flex gap-2"><input value={promoCode} onChange={event => { setPromoCode(event.target.value); setDiscountMessage(''); }} placeholder="Optional code" className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#b9774c] dark:border-[#4a383d] dark:bg-[#241b1d]" /><button type="button" onClick={() => void applyDiscount()} disabled={!promoCode.trim() || !cart.length} className="rounded-xl border border-[#b9774c] px-3 text-xs font-bold text-[#8e4d2d] disabled:opacity-40">Apply</button></div>{discountMessage && <p className={`mt-1 text-[10px] font-bold ${discountAmount > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>{discountMessage}</p>}</div>
         <div className="mt-4"><p className="text-xs font-bold">Payment method</p><div className="mt-2 grid grid-cols-2 gap-2">{([{ id: 'cash-on-delivery', label: 'Cash', icon: Banknote }, { id: 'momo-mtn', label: 'MoMo', icon: Smartphone }] as const).map(option => <button key={option.id} type="button" onClick={() => setPayment(option.id)} className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[11px] font-bold transition ${payment === option.id ? 'border-[#a85e35] bg-[#f5ebe5] text-[#8e4d2d] dark:bg-[#342528] dark:text-[#e6a47d]' : 'border-stone-200 text-stone-500 hover:border-[#b9774c] dark:border-[#4a383d]'}`}><option.icon className="h-4 w-4" />{option.label}</button>)}</div></div>
         {payment === 'cash-on-delivery' ? <div className="mt-3"><label className="text-xs font-bold">Cash received</label><input type="number" min="0" step="0.01" value={cashReceived} onChange={event => setCashReceived(event.target.value)} placeholder={money(subtotal)} className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:border-[#b9774c] dark:border-[#4a383d] dark:bg-[#241b1d]" /><div className="mt-2 flex justify-between text-xs"><span className="text-stone-500">Change</span><b className={change > 0 ? 'text-emerald-700' : 'text-stone-700 dark:text-stone-300'}>{money(change)}</b></div></div> : <div className="mt-3 space-y-2"><label className="text-xs font-bold">Payment reference<input value={reference} onChange={event => setReference(event.target.value)} placeholder="Required for reconciliation" className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#b9774c] dark:border-[#4a383d] dark:bg-[#241b1d]" /></label>{payment === 'momo-mtn' && <label className="text-xs font-bold">Sender phone<input value={senderPhone} onChange={event => setSenderPhone(event.target.value)} placeholder="024..." className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#b9774c] dark:border-[#4a383d] dark:bg-[#241b1d]" /></label>}</div>}
       </div>
@@ -422,7 +504,7 @@ export function AdminPOSWorkspace() {
       <section>{checkout}</section>
     </div>
     <div className="grid grid-cols-3 gap-4"><button type="button" onClick={() => { setCart([]); setCustomer(''); setCashReceived(''); setReference(''); setSenderPhone(''); }} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-red-950/20">Clear ticket</button><button type="button" onClick={() => scannerRef.current?.focus()} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Focus scanner</button><button type="button" disabled={!cart.length || submitting} onClick={() => void completeSale()} className="rounded-2xl bg-[#249447] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#1d7e3b] disabled:cursor-not-allowed disabled:opacity-40">Pay {money(subtotal)} <ArrowRight className="ml-1 inline h-4 w-4" /></button></div>
-    <div className="grid grid-cols-5 gap-4"><button type="button" onClick={() => showAlert('Scale mode is ready for weighed products.', 'info')} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Scale<span className="mt-1 block text-[10px] font-medium text-stone-400">Weigh item</span></button><button type="button" onClick={() => showAlert('Apply a promotion from the ticket before payment.', 'info')} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Discount<span className="mt-1 block text-[10px] font-medium text-stone-400">Apply discount</span></button><button type="button" disabled={!cart.length} onClick={() => showAlert('Current ticket held for this cashier session.', 'success')} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] disabled:opacity-40 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Hold<span className="mt-1 block text-[10px] font-medium text-stone-400">Save ticket</span></button><button type="button" onClick={() => showAlert('Refunds are handled from the Orders workspace.', 'info')} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Refund<span className="mt-1 block text-[10px] font-medium text-stone-400">Process refund</span></button><button type="button" disabled={!cart.length || submitting} onClick={() => void completeSale()} className="rounded-2xl bg-[#249447] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#1d7e3b] disabled:cursor-not-allowed disabled:opacity-40">Pay {money(subtotal)} <ArrowRight className="ml-1 inline h-4 w-4" /></button></div>
-    <section className="rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-4 shadow-[0_18px_50px_rgba(36,25,27,0.06)] dark:border-[#3b2b2f] dark:bg-[#1e1719] sm:p-5"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a85e35]">POS ledger</p><h2 className="mt-1 text-lg font-bold">Recent sales</h2><p className="mt-1 text-xs text-stone-500">Completed counter sales from the shared order system.</p></div><button type="button" onClick={() => void fetchOrders()} disabled={loadingOrders} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"><RefreshCw className={`h-3.5 w-3.5 ${loadingOrders ? 'animate-spin' : ''}`} />Refresh</button></div>{posHistory.length ? <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-stone-200 text-[10px] uppercase tracking-wider text-stone-500 dark:border-[#3b2b2f]"><tr><th className="px-3 py-2">Sale</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Payment</th><th className="px-3 py-2">Total</th><th className="px-3 py-2">Date</th><th className="px-3 py-2 text-right">Receipt</th></tr></thead><tbody className="divide-y divide-stone-100 dark:divide-[#3b2b2f]">{posHistory.map(order => <tr key={order.id}><td className="px-3 py-3 font-mono text-xs font-bold">{order.orderNumber}</td><td className="px-3 py-3">{order.shippingAddress?.fullName || 'Walk-in customer'}</td><td className="px-3 py-3 capitalize text-stone-500">{order.paymentMethod.replaceAll('-', ' ')}</td><td className="px-3 py-3 font-bold">{money(Number(order.total))}</td><td className="px-3 py-3 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</td><td className="px-3 py-3 text-right"><button type="button" onClick={() => printReceipt(order)} aria-label={`Print receipt for ${order.orderNumber}`} className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-bold hover:bg-[#f5ebe5] dark:border-[#4a383d] dark:hover:bg-[#342528]"><Printer className="h-3.5 w-3.5" />Print</button></td></tr>)}</tbody></table></div> : <div className="mt-4 rounded-2xl border border-dashed border-[#dbc9c0] px-4 py-8 text-center text-sm text-stone-500">{loadingOrders ? 'Loading sales history...' : 'No POS sales have been recorded yet.'}</div>}</section>
+    <div className="pos-action-strip grid grid-cols-4 gap-2 rounded-2xl border border-[#eadfd9] bg-white p-2 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><button type="button" onClick={setScaleQuantity} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] dark:hover:bg-[#342528]">Quantity<span className="mt-1 block text-[10px] font-medium text-stone-400">Set item count</span></button><button type="button" onClick={() => void applyDiscount()} disabled={!promoCode.trim() || !cart.length} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] disabled:opacity-40 dark:hover:bg-[#342528]">Discount<span className="mt-1 block text-[10px] font-medium text-stone-400">Apply promo code</span></button><button type="button" onClick={heldTicket ? recallTicket : holdTicket} disabled={!heldTicket && !cart.length} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] disabled:opacity-40 dark:hover:bg-[#342528]">{heldTicket ? 'Recall' : 'Hold'}<span className="mt-1 block text-[10px] font-medium text-stone-400">{heldTicket ? 'Restore ticket' : 'Save ticket'}</span></button><button type="button" onClick={() => showAlert('Select a completed sale from Recent sales to process a refund.', 'info')} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] dark:hover:bg-[#342528]">Refund<span className="mt-1 block text-[10px] font-medium text-stone-400">Open sales ledger</span></button></div>
+    <section className="rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-4 shadow-[0_18px_50px_rgba(36,25,27,0.06)] dark:border-[#3b2b2f] dark:bg-[#1e1719] sm:p-5"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a85e35]">POS ledger</p><h2 className="mt-1 text-lg font-bold">Recent sales</h2><p className="mt-1 text-xs text-stone-500">Completed counter sales from the shared order system.</p></div><button type="button" onClick={() => void fetchOrders()} disabled={loadingOrders} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"><RefreshCw className={`h-3.5 w-3.5 ${loadingOrders ? 'animate-spin' : ''}`} />Refresh</button></div>{posHistory.length ? <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-stone-200 text-[10px] uppercase tracking-wider text-stone-500 dark:border-[#3b2b2f]"><tr><th className="px-3 py-2">Sale</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Payment</th><th className="px-3 py-2">Total</th><th className="px-3 py-2">Date</th><th className="px-3 py-2 text-right">Receipt</th></tr></thead><tbody className="divide-y divide-stone-100 dark:divide-[#3b2b2f]">{posHistory.map(order => <tr key={order.id}><td className="px-3 py-3 font-mono text-xs font-bold">{order.orderNumber}</td><td className="px-3 py-3">{order.shippingAddress?.fullName || 'Walk-in customer'}</td><td className="px-3 py-3 capitalize text-stone-500">{order.paymentMethod.replaceAll('-', ' ')}</td><td className="px-3 py-3 font-bold">{money(Number(order.total))}</td><td className="px-3 py-3 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</td><td className="px-3 py-3 text-right"><button type="button" onClick={() => printReceipt(order)} aria-label={`Print receipt for ${order.orderNumber}`} className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-bold hover:bg-[#f5ebe5] dark:border-[#4a383d] dark:hover:bg-[#342528]"><Printer className="h-3.5 w-3.5" />Print</button></td></tr>)}</tbody></table></div> : <div className="mt-4 rounded-2xl border border-dashed border-[#dbc9c0] px-4 py-8 text-center text-sm text-stone-500">{loadingOrders ? 'Loading sales history...' : 'No POS sales have been recorded yet.'}</div>}<div className="mt-4 flex justify-end"><button type="button" onClick={() => void refundLatestSale()} className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/20">Refund latest refundable sale</button></div></section>
   </div>;
 }
