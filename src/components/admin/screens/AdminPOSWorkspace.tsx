@@ -30,6 +30,7 @@ import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { api, ApiError } from '../../../lib/api';
 import type { FlashDeal, Order, PaymentMethod, Product, ProductVariant } from '../../../types';
+import logoImg from '../../../assets/logo.jpeg';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
 type PosItem = { product: Product; variant?: ProductVariant; title: string; stock: number; barcode?: string };
@@ -421,6 +422,14 @@ export function AdminPOSWorkspace() {
       : '';
     receipt.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${escapeReceipt(order.orderNumber)}</title><style>body{font-family:Arial,sans-serif;max-width:380px;margin:24px auto;color:#201719}header{text-align:center;border-bottom:2px solid #201719;padding-bottom:14px}h1{font-size:20px;margin:0 0 6px}p{color:#655d5a;font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse;margin:18px 0}td{padding:10px 0;border-bottom:1px solid #ddd;font-size:13px}td:last-child{text-align:right;font-weight:bold}small{display:block;color:#655d5a;margin-top:3px}.summary{margin-top:14px;border-top:1px solid #ddd;padding-top:10px}.row{display:flex;justify-content:space-between;margin:5px 0}.total{font-size:18px;font-weight:bold;border-top:2px solid #201719;padding-top:12px;text-align:right}button{width:100%;padding:12px;background:#201719;color:#fff;border:0;font-weight:bold;margin-top:14px}@media print{button{display:none}}</style></head><body><header><h1>${storeName}</h1><p>${escapeReceipt(storeSettings.storeAddress || '')}</p><p>${escapeReceipt(storeSettings.storePhone || '')} · ${escapeReceipt(storeSettings.storeEmail || '')}</p><p>Sale receipt · ${escapeReceipt(order.orderNumber)}</p><p>${new Date(order.createdAt).toLocaleString()}</p></header><p>Customer: ${escapeReceipt(order.shippingAddress?.fullName || 'Walk-in customer')}</p><p>Phone: ${escapeReceipt(order.shippingAddress?.phone || 'In-store sale')}</p><table>${lines}</table><div class="summary"><div class="row"><span>Subtotal</span><b>${money(Number(order.subtotal))}</b></div>${Number(order.discount) > 0 ? `<div class="row"><span>Discount</span><b>-${money(Number(order.discount))}</b></div>` : ''}<div class="row"><span>Delivery</span><b>${money(Number(order.shippingFee))}</b></div><p class="total">Total: ${money(Number(order.total))}</p></div><p>Payment: ${escapeReceipt(paymentLabel)}${order.paymentReference ? ` · Ref: ${escapeReceipt(order.paymentReference)}` : ''}</p>${cashDetails}<p>Thank you for shopping with ${storeName}.</p><button onclick="window.print()">Print receipt</button></body></html>`);
     receipt.document.close();
+    const logo = receipt.document.createElement('img');
+    logo.src = storeSettings.storeLogo || logoImg;
+    logo.alt = storeName;
+    logo.width = 72;
+    logo.height = 72;
+    logo.style.cssText = 'display:block;margin:0 auto 10px;object-fit:contain;border-radius:12px;';
+    logo.onerror = () => { logo.src = logoImg; };
+    receipt.document.querySelector('header')?.prepend(logo);
   };
 
   const completeSale = async () => {
