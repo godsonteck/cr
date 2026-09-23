@@ -284,9 +284,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       setIsSaving(false);
     }
   };
-  const categories = storeCategories.filter(item => item.department === department).length
-    ? storeCategories.filter(item => item.department === department).map(item => ({ value: item.id, label: item.name }))
-    : categoriesByDepartment[department];
+  const categories = Array.from(new Map([
+    ...categoriesByDepartment[department],
+    ...storeCategories
+      .filter(item => item.department === department)
+      .map(item => ({ value: item.id, label: item.name })),
+  ].map(item => [item.value, item])).values());
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1e1719]/65 p-3 font-sans backdrop-blur-sm sm:p-6"><div className="mx-auto flex min-h-full max-w-4xl items-center justify-center"><div className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-2xl bg-[#fffdfb] shadow-2xl" onClick={event => event.stopPropagation()}>
       <header className="flex items-start justify-between border-b border-stone-200 px-5 py-5 sm:px-7"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#B27A52]">Products</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-[#1E1719]">{productToEdit ? 'Edit product' : 'Add a product'}</h2><p className="mt-1 text-sm text-stone-500">Add the details customers need to buy this item.</p></div><button type="button" onClick={onClose} disabled={isSaving} aria-label="Close" className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-900"><X className="h-5 w-5" /></button></header>
