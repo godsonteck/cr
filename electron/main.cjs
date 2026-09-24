@@ -1,7 +1,13 @@
 const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { createPosStore } = require('./pos-store.cjs');
+
+let autoUpdater = null;
+try {
+  ({ autoUpdater } = require('electron-updater'));
+} catch (error) {
+  console.warn('electron-updater is unavailable; continuing without automatic updates.', error && error.message ? error.message : error);
+}
 
 // The desktop app intentionally uses the live application: POS, stock,
 // products, orders and permissions remain one system instead of drifting into
@@ -49,7 +55,7 @@ app.whenReady().then(() => {
     });
   }));
   createWindow();
-  if (app.isPackaged) {
+  if (app.isPackaged && autoUpdater) {
     autoUpdater.autoDownload = true;
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.on('update-downloaded', () => {

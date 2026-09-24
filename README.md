@@ -97,6 +97,36 @@ The endpoint accepts `charge.success` events, validates the `x-paystack-signatur
 - `npm run db:push` — apply the idempotent, non-destructive schema migration
 - `npm run db:seed` — populate products, settings, promo codes, and admin session
 - `npm run sitemap:generate` — generate the public sitemap.xml file locally
+- `npm run pos:desktop:build` — build a Windows installer only after a valid code-signing certificate is configured
+
+## Windows installer signing and Smart App Control
+
+Windows Smart App Control will block unsigned `.exe` installers even when the application itself works correctly. To avoid that, the desktop build must be signed with a legitimate code-signing certificate before distribution.
+
+### Required setup
+
+1. Purchase or obtain a valid Windows code-signing certificate (`.pfx` or `.p12` file).
+2. Set the certificate path and password in your environment before running the installer build:
+
+   PowerShell:
+
+   ```powershell
+   $env:CSC_LINK = "C:\Certificates\CRCosmetics.pfx"
+   $env:CSC_KEY_PASSWORD = "your-certificate-password"
+   npm run pos:desktop:build
+   ```
+
+   Or on a CI machine:
+
+   ```bash
+   CSC_LINK="/path/to/CRCosmetics.pfx"
+   CSC_KEY_PASSWORD="your-certificate-password"
+   npm run pos:desktop:build
+   ```
+
+3. The repo build script now refuses to continue if the certificate variables are missing, so the app does not ship as an unsigned installer.
+
+> Without a valid signature, the installer will continue to trigger Smart App Control trust warnings on Windows.
 
 ## Vercel deployment
 
