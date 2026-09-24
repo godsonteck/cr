@@ -5,6 +5,8 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { SEO } from './components/common/SEO';
 import { useStore } from './context/StoreContext';
 import { PageSkeleton, StorefrontSkeleton } from './components/common/LoadingStates';
+import { AdminLoginView } from './components/admin/AdminLoginView';
+import { AdminPOSWorkspace } from './components/admin/screens/AdminPOSWorkspace';
 
 // Components
 import { Header } from './components/common/Header';
@@ -38,7 +40,7 @@ const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCh
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 function AppLayout() {
-  const { storeSettings } = useStore();
+  const { storeSettings, adminSession, loadingAdmin } = useStore();
   const location = useLocation();
   const siteIsPaused = storeSettings.maintenanceMode && location.pathname !== '/admin';
 
@@ -72,13 +74,41 @@ function AppLayout() {
   );
 
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isPosRoute = location.pathname === '/pos';
   const adminPageTitle = `${storeSettings.storeName} | Admin Portal`;
 
   // The admin area renders outside the storefront SEO component. Set the browser
   // title directly as well so the tab never falls back to the URL while loading.
   React.useEffect(() => {
-    if (isAdminRoute) document.title = adminPageTitle;
-  }, [adminPageTitle, isAdminRoute]);
+    if (isAdminRoute || isPosRoute) document.title = adminPageTitle;
+  }, [adminPageTitle, isAdminRoute, isPosRoute]);
+
+  if (isPosRoute) {
+    if (!storeSettings.storeName) {
+      return <PageSkeleton />;
+    }
+
+    if (!adminSession.isLoggedIn) {
+      return <AdminLoginView onSuccess={() => {}} />;
+    }
+
+    if (loadingAdmin) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-600">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#B27A52]" />
+            <p className="mt-3 text-sm font-semibold">Opening POS terminal...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-[#f6f7f5] px-4 py-4 text-[#171b18] dark:bg-[#151313] dark:text-stone-100">
+        <AdminPOSWorkspace />
+      </div>
+    );
+  }
 
   if (isAdminRoute) {
     return (
@@ -138,6 +168,7 @@ function AppLayout() {
 
                 <Route path="/cart" element={pageVisibility.shop ? <FullCartPage /> : renderUnavailable('Shopping cart is currently offline')} />
                 <Route path="/checkout" element={pageVisibility.checkout ? <MultiStepCheckoutPage /> : renderUnavailable('Checkout is temporarily closed')} />
+                <Route path="/pos" element={<AdminPOSWorkspace />} />
                 <Route path="/order-confirmation/:orderId" element={pageVisibility.checkout ? <OrderConfirmationPage /> : renderUnavailable('Order confirmation is temporarily unavailable')} />
 
                 <Route path="/account" element={pageVisibility.account ? <AccountPage /> : renderUnavailable('Account area is currently offline')} />

@@ -12,7 +12,7 @@ try {
 // The desktop app intentionally uses the live application: POS, stock,
 // products, orders and permissions remain one system instead of drifting into
 // a local database. An installer can override this for a staging environment.
-const POS_URL = process.env.CR_POS_URL || 'https://cosmeticse.vercel.app/admin?tab=pos';
+const POS_URL = process.env.CR_POS_URL || 'https://cosmeticse.vercel.app/pos';
 const LIVE_ORIGIN = new URL(POS_URL).origin;
 
 function createWindow() {
