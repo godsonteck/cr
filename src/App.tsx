@@ -76,12 +76,14 @@ function AppLayout() {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPosRoute = location.pathname === '/pos';
   const adminPageTitle = `${storeSettings.storeName} | Admin Portal`;
+  const posPageTitle = `${storeSettings.storeName} | POS`;
 
   // The admin area renders outside the storefront SEO component. Set the browser
   // title directly as well so the tab never falls back to the URL while loading.
   React.useEffect(() => {
-    if (isAdminRoute || isPosRoute) document.title = adminPageTitle;
-  }, [adminPageTitle, isAdminRoute, isPosRoute]);
+    if (isAdminRoute) document.title = adminPageTitle;
+    if (isPosRoute) document.title = posPageTitle;
+  }, [adminPageTitle, isAdminRoute, isPosRoute, posPageTitle]);
 
   if (isPosRoute) {
     if (!storeSettings.storeName) {
@@ -89,7 +91,7 @@ function AppLayout() {
     }
 
     if (!adminSession.isLoggedIn) {
-      return <AdminLoginView onSuccess={() => {}} />;
+      return <AdminLoginView mode="pos" onSuccess={() => {}} />;
     }
 
     if (loadingAdmin) {

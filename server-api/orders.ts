@@ -639,9 +639,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (method === 'DELETE') {
       const auth = await requireAdmin(req, res);
       if (!auth) return;
-      // Sales and orders are financial records. A return, refund, or void
-      // must create its own auditable transaction; deleting history is unsafe.
-      return res.status(405).json({ error: 'Orders cannot be deleted. Use an authorised return, refund, or void workflow.' });
+      if (!['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
+        return res.status(403).json({ error: 'Only Store Managers and Super Admins can delete orders.' });
+      }
+
+      const requestedId = typeof query.id === 'string' ? query.id : undefined;
+      const result = await db.transaction(async tx => {
+        const targetOrders = requestedId
+          ? await tx.select().from(orders).where(eq(orders.id, requestedId)).for('update')
+          : await tx.select().from(orders).for('update');
+
+        if (requestedId && targetOrders.length === 0) throw new Error('Order not found');
+
+        const productIds = [...new Set(targetOrders.flatMap(order => order.items.map(item => item.product.id)))];
+        const lockedProducts = productIds.length
+          ? await tx.select().from(products).where(inArray(products.id, productIds)).for('update')
+          : [];
+        const productMap = new Map(lockedProducts.map(product => [product.id, product]));
+
+        for (const order of targetOrders) {
+          for (const item of order.items) {
+            const product = productMap.get(item.product.id);
+            if (!product) continue;
+            const variantId = item.selectedVariant?.id;
+            const variants = Array.isArray(product.variants) ? product.variants : [];
+            const variant = variantId ? variants.find(candidate => candidate.id === variantId) : undefined;
+            if (variant) {
+              const quantityBefore = Number(variant.stockCount || 0);
+              const updatedVariants = variants.map(candidate => candidate.id === variantId
+                ? { ...candidate, stockCount: quantityBefore + item.quantity, inStock: true }
+                : candidate);
+              await tx.update(products).set({ variants: updatedVariants, updatedAt: new Date() }).where(eq(products.id, product.id));
+              await tx.insert(inventoryMovements).values({ productId: product.id, variantId, orderId: null, movementType: 'ORDER_DELETE', quantity: item.quantity, quantityBefore, quantityAfter: quantityBefore + item.quantity, actorName: auth.adminName, reason: `Deleted order ${order.orderNumber}` });
+              product.variants = updatedVariants;
+            } else {
+              const quantityBefore = product.stockCount;
+              await tx.update(products).set({ stockCount: quantityBefore + item.quantity, inStock: true, isPublished: true, updatedAt: new Date() }).where(eq(products.id, product.id));
+              await tx.insert(inventoryMovements).values({ productId: product.id, orderId: null, movementType: 'ORDER_DELETE', quantity: item.quantity, quantityBefore, quantityAfter: quantityBefore + item.quantity, actorName: auth.adminName, reason: `Deleted order ${order.orderNumber}` });
+              product.stockCount = quantityBefore + item.quantity;
+            }
+          }
+        }
+
+        const orderIds = targetOrders.map(order => order.id);
+        if (orderIds.length) {
+          await tx.delete(inventoryMovements).where(inArray(inventoryMovements.orderId, orderIds));
+          await tx.delete(posPayments).where(inArray(posPayments.orderId, orderIds));
+          await tx.delete(orders).where(inArray(orders.id, orderIds));
+        }
+        await tx.insert(auditLogs).values({ action: requestedId ? 'ORDER_DELETED' : 'ORDERS_DELETED', entityType: 'order', entityId: requestedId || 'all', actorName: auth.adminName, metadata: { orderNumbers: targetOrders.map(order => order.orderNumber), restoredStock: true } });
+        return { deleted: targetOrders.length, restoredStock: true };
+      });
+      return res.status(200).json(result);
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

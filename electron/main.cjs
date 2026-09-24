@@ -32,8 +32,18 @@ function createWindow() {
     },
   });
   window.loadURL(POS_URL);
+  window.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith(LIVE_ORIGIN) && new URL(url).pathname !== '/pos') {
+      event.preventDefault();
+      void window.loadURL(POS_URL);
+    }
+  });
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(LIVE_ORIGIN)) return { action: 'allow' };
+    if (url.startsWith(LIVE_ORIGIN) && new URL(url).pathname === '/pos') return { action: 'allow' };
+    if (url.startsWith(LIVE_ORIGIN)) {
+      void window.loadURL(POS_URL);
+      return { action: 'deny' };
+    }
     void shell.openExternal(url);
     return { action: 'deny' };
   });

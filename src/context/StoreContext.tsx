@@ -964,17 +964,25 @@ const addOrder = async (order: Order) => {
   };
 
   const deleteOrder = async (orderId: string) => {
-    setOrders(prev => prev.filter(o => o.id !== orderId));
     try {
       await api.delete(`/orders?id=${encodeURIComponent(orderId)}`);
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
+    } catch (e: any) {
+      setError(e.message || "Operation failed");
+      throw e;
+    }
   };
 
   const clearAllOrders = async () => {
-    setOrders([]);
     try {
       await api.delete('/orders');
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+      setOrders([]);
+      await Promise.all([fetchProducts({ includeUnpublished: true }), fetchOrders()]);
+    } catch (e: any) {
+      setError(e.message || "Operation failed");
+      throw e;
+    }
   };
 
   const getOrderById = (orderIdOrNumber: string): Order | undefined => {

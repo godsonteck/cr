@@ -18,12 +18,13 @@ import logoImg from '../../assets/logo.jpeg';
 
 interface AdminLoginProps {
   onSuccess: () => void;
+  mode?: 'admin' | 'pos';
 }
 
 const DEFAULT_ADMIN_EMAIL = 'admin@crcosmetics.com';
 const DEFAULT_ADMIN_PIN = '0000';
 
-export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
+export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'admin' }) => {
   const { loginAdmin, storeSettings } = useStore();
   const { showToast } = useToast();
   const { theme, toggleTheme, isDark } = useTheme();
@@ -100,7 +101,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
           </button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-muted)] text-[11px] font-medium shadow-xs">
             <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">Secure Store Login</span>
+            <span className="hidden sm:inline">{mode === 'pos' ? 'Secure POS Login' : 'Secure Store Login'}</span>
           </div>
         </div>
       </header>
@@ -124,11 +125,11 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess }) => {
                 {storeSettings.storeName}
               </p>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--text-primary)] tracking-tight mt-1">
-                Admin login
+                {mode === 'pos' ? 'POS terminal login' : 'Admin login'}
               </h1>
             </div>
             <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
-              Sign in to manage your store.
+              {mode === 'pos' ? 'Sign in to open the point-of-sale terminal.' : 'Sign in to manage your store.'}
             </p>
           </div>
 

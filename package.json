@@ -59,7 +59,8 @@
     "productName": "CR Cosmetics POS",
     "files": [
       "electron/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*"
     ],
     "win": {
       "icon": "electron/icon.ico",
