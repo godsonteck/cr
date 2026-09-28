@@ -578,7 +578,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         || (params?.published === undefined && Boolean(localStorage.getItem('admin_auth_token')));
       if (shouldIncludeUnpublished) query.set('includeUnpublished', 'true');
       query.set('limit', '500');
-      const data = await api.get<{ products: Product[] }>(`/products?${query}`);
+      const data = await api.get<{ products: Product[] }>(`/products?${query}`, shouldIncludeUnpublished ? undefined : null);
       if (data && Array.isArray(data.products)) {
         setProducts(data.products.map(normalizeProduct));
       }

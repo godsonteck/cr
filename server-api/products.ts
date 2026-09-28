@@ -193,9 +193,9 @@ async function uploadProductImage(dataUrl: unknown) {
 }
 
 /** Move old embedded media only when an admin saves that product. */
-async function migrateLegacyProductMedia<T extends { image?: string; images?: string[]; variants?: Array<{ image?: string } & Record<string, unknown>> }>(product: T): Promise<T> {
+async function migrateLegacyProductMedia<T extends { image?: string | null; images?: string[] | null; variants?: Array<{ image?: string | null }> | null }>(product: T): Promise<T> {
   const migrated = new Map<string, string>();
-  const move = async (value: string | undefined) => {
+  const move = async (value: string | null | undefined) => {
     if (!value?.startsWith('data:image/')) return value;
     const saved = migrated.get(value) || await uploadProductImage(value);
     migrated.set(value, saved);
@@ -213,6 +213,14 @@ async function migrateLegacyProductMedia<T extends { image?: string; images?: st
       }))),
     } : {}),
   } as T;
+}
+
+function hasEmbeddedProductMedia(product: { image?: string | null; images?: string[] | null; variants?: Array<{ image?: string | null }> | null }) {
+  return Boolean(
+    product.image?.startsWith('data:image/') ||
+    product.images?.some(image => image.startsWith('data:image/')) ||
+    product.variants?.some(variant => variant.image?.startsWith('data:image/'))
+  );
 }
 
 async function attachLiveReviewStats<T extends { id: string; rating: string; reviewCount: number }>(productRows: T[]) {
@@ -399,14 +407,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (query.migrateImages === 'true') {
         const rows = await db.select().from(products);
-        const legacy = rows.filter(product => !isStorageUrl(product.image));
+        const legacy = rows.filter(hasEmbeddedProductMedia);
         // Keep this bounded so a large catalog never hits the serverless timeout.
         // The admin action can be repeated; each run continues from where it left off.
         const batch = legacy.slice(0, 8);
         let migrated = 0;
         for (const product of batch) {
-          const image = await uploadProductImage(product.image);
-          await db.update(products).set({ image, images: [image, ...(product.images || []).filter(isStorageUrl)], updatedAt: new Date() }).where(eq(products.id, product.id));
+          const updatedProduct = await migrateLegacyProductMedia(product);
+          await db.update(products).set({
+            image: updatedProduct.image ?? product.image,
+            images: updatedProduct.images ?? product.images,
+            variants: updatedProduct.variants ?? product.variants,
+            updatedAt: new Date(),
+          }).where(eq(products.id, product.id));
           migrated++;
         }
         return res.status(200).json({ migrated, remaining: Math.max(legacy.length - migrated, 0) });
