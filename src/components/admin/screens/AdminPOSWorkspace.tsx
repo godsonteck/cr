@@ -533,7 +533,60 @@ export function AdminPOSWorkspace() {
   const posHistory = (orders || []).filter(order => order.orderSource === 'pos').slice(0, 12);
 
   return <div className="pos-reference min-h-screen space-y-3 bg-[#fffdfb] px-3 pb-4 text-[#201719] sm:px-4">
-    <div className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><label className="relative min-w-0 flex-1"><Search className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products by name or barcode..." className="w-full rounded-xl bg-stone-50 py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#b9774c] dark:bg-[#241b1d]" /></label><div className="hidden items-center gap-2 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]"><span className="text-lg text-[#249447]">★</span><span><b className="block text-sm">Loyalty</b><small className="text-xs text-stone-500">{selectedCustomer ? `${selectedCustomer.loyaltyPoints || 0} points · earns 1/GHS` : 'Link a customer account'}</small></span></div><div className="hidden items-center gap-3 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-500 dark:bg-[#342528]">{(adminSession.adminName || 'C').charAt(0).toUpperCase()}</span><span><b className="block text-sm">{adminSession.adminName || 'Cashier'}</b><small className="text-xs text-stone-500">{adminSession.adminRole} · {online ? 'Online' : 'Offline'}</small></span><button type="button" onClick={() => void switchCashier()} className="ml-2 rounded-lg border border-stone-200 px-2 py-1 text-[10px] font-bold text-stone-600 hover:bg-stone-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]">Log out</button></div></div>
+    <div className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]">
+      <div className="flex shrink-0 items-center gap-2.5">
+        <img
+          src={storeSettings.storeLogo || logoImg}
+          alt={storeSettings.storeName || 'Store Logo'}
+          className="h-10 w-10 shrink-0 rounded-full border border-stone-200 object-contain shadow-xs dark:border-[#3b2b2f]"
+          onError={event => { (event.currentTarget as HTMLImageElement).src = logoImg; }}
+        />
+        <div className="hidden sm:block">
+          <p className="font-serif text-xs font-bold uppercase leading-tight tracking-wide text-stone-900 dark:text-stone-100">
+            {storeSettings.storeName || 'CR COSMETICS AND ESSENTIALS'}
+          </p>
+          <p className="text-[10px] font-medium text-stone-500 dark:text-stone-400">
+            {storeSettings.storeTagline || 'Skincare & Beauty Essentials, Ghana'}
+          </p>
+        </div>
+      </div>
+      <label className="relative min-w-0 flex-1">
+        <Search className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" />
+        <input
+          value={search}
+          onChange={event => setSearch(event.target.value)}
+          placeholder="Search products by name or barcode..."
+          className="w-full rounded-xl bg-stone-50 py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#b9774c] dark:bg-[#241b1d]"
+        />
+      </label>
+      <div className="hidden items-center gap-2 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]">
+        <span className="text-lg text-[#249447]">★</span>
+        <span>
+          <b className="block text-sm">Loyalty</b>
+          <small className="text-xs text-stone-500">
+            {selectedCustomer ? `${selectedCustomer.loyaltyPoints || 0} points · earns 1/GHS` : 'Link a customer account'}
+          </small>
+        </span>
+      </div>
+      <div className="hidden items-center gap-3 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-500 dark:bg-[#342528]">
+          {(adminSession.adminName || 'C').charAt(0).toUpperCase()}
+        </span>
+        <span>
+          <b className="block text-sm">{adminSession.adminName || 'Cashier'}</b>
+          <small className="text-xs text-stone-500">
+            {adminSession.adminRole} · {online ? 'Online' : 'Offline'}
+          </small>
+        </span>
+        <button
+          type="button"
+          onClick={() => void switchCashier()}
+          className="ml-2 rounded-lg border border-stone-200 px-2 py-1 text-[10px] font-bold text-stone-600 hover:bg-stone-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"
+        >
+          Log out
+        </button>
+      </div>
+    </div>
     {(syncState.pending > 0 || syncState.conflicts.length > 0) && <div className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${syncState.conflicts.length ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}><span><b>{syncState.conflicts.length ? `${syncState.conflicts.length} sale conflict${syncState.conflicts.length === 1 ? '' : 's'}` : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</b><span className="ml-2 text-xs opacity-80">{syncState.conflicts.length ? 'Review stock or pricing changes before retrying.' : 'The terminal will retry automatically.'}</span></span><button type="button" onClick={() => void syncQueuedSales()} className="rounded-lg border border-current px-3 py-1.5 text-xs font-bold">Retry sync</button></div>}
     <header className="flex flex-col gap-3 border-b border-stone-200 pb-4 dark:border-[#3b2b2f] sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Counter workspace</p><h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Point of Sale</h1><p className="mt-1 text-sm text-stone-500">Build the ticket, confirm payment, and move to the next customer.</p></div><div className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-2 text-xs font-bold sm:self-auto ${online ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300'}`}>{online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}{online ? 'Live inventory' : 'Offline mode'}</div></header>
     <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a85e35]">Cash drawer</p><h2 className="mt-1 text-base font-bold">{shift?.status === 'OPEN' ? 'Shift open' : 'Open a cashier shift'}</h2><p className="mt-1 text-xs text-stone-500">{shift?.status === 'OPEN' ? `Opened ${new Date(shift.openedAt).toLocaleString()} with ${money(shift.openingCash)} float.` : 'Count the opening float before recording sales.'}</p></div>{shift?.status === 'OPEN' ? <div className="flex flex-col gap-2 sm:flex-row sm:items-end"><div><label className="block text-[10px] font-bold uppercase text-stone-500">Counted cash</label><input type="number" min="0" step="0.01" value={actualCash} onChange={event => setActualCash(event.target.value)} placeholder={shift.expectedCash == null ? '0.00' : money(shift.expectedCash)} className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-bold outline-none focus:border-[#b9774c] sm:w-36 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><div><label className="block text-[10px] font-bold uppercase text-stone-500">Note</label><input value={shiftNotes} onChange={event => setShiftNotes(event.target.value)} placeholder="Optional" className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm outline-none focus:border-[#b9774c] sm:w-44 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><button type="button" onClick={() => void closeShift()} disabled={shiftBusy} className="rounded-xl bg-[#24191b] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{shiftBusy ? 'Saving...' : 'Close shift'}</button></div> : <div className="flex flex-col gap-2 sm:flex-row sm:items-end"><div><label className="block text-[10px] font-bold uppercase text-stone-500">Opening float</label><input type="number" min="0" step="0.01" value={openingCash} onChange={event => setOpeningCash(event.target.value)} placeholder="0.00" className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-bold outline-none focus:border-[#b9774c] sm:w-36 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><button type="button" onClick={() => void openShift()} disabled={shiftBusy} className="rounded-xl bg-[#249447] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{shiftBusy ? 'Opening...' : 'Open shift'}</button></div>}</div>{shift?.status === 'CLOSED' && <p className={`mt-3 text-xs font-bold ${Number(shift.difference || 0) === 0 ? 'text-emerald-700' : 'text-amber-700'}`}>Last shift closed with {money(Number(shift.actualCash || 0))} counted against {money(Number(shift.expectedCash || 0))} expected. Variance: {money(Number(shift.difference || 0))}.</p>}</section>
