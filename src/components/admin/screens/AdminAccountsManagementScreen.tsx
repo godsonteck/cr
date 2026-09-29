@@ -404,8 +404,12 @@ export const AdminAccountsManagementScreen: React.FC = () => {
                       <>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] font-bold text-xs flex-shrink-0">
-                              {String(account.fullName || '?').charAt(0).toUpperCase()}
+                            <div className="w-8 h-8 rounded-full bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] font-bold text-xs flex-shrink-0 overflow-hidden border border-amber-500/20">
+                              {account.avatar ? (
+                                <img src={account.avatar} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                String(account.fullName || '?').charAt(0).toUpperCase()
+                              )}
                             </div>
                             <div>
                               <p className="font-semibold text-stone-900 dark:text-stone-100">
@@ -482,8 +486,12 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       {/* My Profile Section */}
       <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6 space-y-5">
         <div className="flex items-center gap-4 pb-5 border-b border-stone-100 dark:border-[#2e2428]">
-          <div className="w-14 h-14 rounded-2xl bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] text-2xl font-bold flex-shrink-0">
-            {(currentAdminProfile?.fullName || 'A').charAt(0).toUpperCase()}
+          <div className="w-14 h-14 rounded-2xl bg-[#F2E3D7] dark:bg-[#3d2a22] flex items-center justify-center text-[#8A5738] dark:text-[#E8B792] text-2xl font-bold flex-shrink-0 overflow-hidden border border-amber-500/30">
+            {adminSession.avatar ? (
+              <img src={adminSession.avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              (currentAdminProfile?.fullName || 'A').charAt(0).toUpperCase()
+            )}
           </div>
           <div>
             <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">My Profile</h2>

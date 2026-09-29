@@ -439,7 +439,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // A customer token must never resurrect a saved administrator UI state.
       if (saved && localStorage.getItem('admin_auth_token')) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.isLoggedIn) return parsed;
+        if (parsed && parsed.isLoggedIn) {
+          const avatars = JSON.parse(localStorage.getItem('cr_admin_avatars') || '{}');
+          const emailKey = (parsed.email || '').toLowerCase().trim();
+          const avatar = parsed.avatar || (emailKey ? avatars[emailKey] : undefined) || (parsed.adminId ? avatars[parsed.adminId] : undefined);
+          return { ...parsed, avatar };
+        }
       }
     } catch {}
     return {
@@ -734,11 +739,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Do not let an older validation request overwrite a newer login.
         if (cancelled || localStorage.getItem('admin_auth_token') !== adminToken) return;
         if (session.role !== 'admin') throw new Error('Administrator session required');
+        const avatars = JSON.parse(localStorage.getItem('cr_admin_avatars') || '{}');
+        const emailKey = (session.email || '').toLowerCase().trim();
+        const existingSession = JSON.parse(localStorage.getItem('admin_session') || '{}');
         const restored: AdminSession = {
           isLoggedIn: true,
+          adminId: (session as any).adminId || existingSession.adminId,
           adminName: session.adminName || 'Store Administrator',
           adminRole: (session.adminRole || 'Super Admin') as AdminSession['adminRole'],
           email: session.email,
+          phone: (session as any).phone || existingSession.phone,
+          avatar: existingSession.avatar || (emailKey ? avatars[emailKey] : undefined),
         };
         localStorage.setItem('admin_session', JSON.stringify(restored));
         setAdminSession(restored);
@@ -1104,18 +1115,19 @@ const addOrder = async (order: Order) => {
 
       if (result && result.admin) {
         localStorage.setItem('admin_auth_token', result.token);
-        localStorage.setItem('admin_session', JSON.stringify({
+        const avatars = JSON.parse(localStorage.getItem('cr_admin_avatars') || '{}');
+        const emailKey = (result.admin.email || '').toLowerCase().trim();
+        const avatar = (result.admin as any).avatar || (emailKey ? avatars[emailKey] : undefined) || (result.admin.id ? avatars[result.admin.id] : undefined);
+        const sessionPayload: AdminSession = {
           isLoggedIn: true,
+          adminId: result.admin.id,
           adminName: result.admin.adminName,
           adminRole: result.admin.adminRole as AdminSession['adminRole'],
           email: result.admin.email,
-        }));
-        setAdminSession({
-          isLoggedIn: true,
-          adminName: result.admin.adminName,
-          adminRole: result.admin.adminRole as AdminSession['adminRole'],
-          email: result.admin.email,
-        });
+          avatar,
+        };
+        localStorage.setItem('admin_session', JSON.stringify(sessionPayload));
+        setAdminSession(sessionPayload);
         // Refresh all data after login
         await Promise.allSettled([
           fetchProducts({ includeUnpublished: true }),
@@ -1160,9 +1172,17 @@ const addOrder = async (order: Order) => {
     try {
       const accounts = await api.get<AdminAccount[]>('/admin-accounts');
       if (Array.isArray(accounts)) {
-        setAdminAccounts(accounts);
+        const avatars = JSON.parse(localStorage.getItem('cr_admin_avatars') || '{}');
+        const enriched = accounts.map(acc => {
+          const emailKey = (acc.email || '').toLowerCase().trim();
+          return {
+            ...acc,
+            avatar: acc.avatar || (emailKey ? avatars[emailKey] : undefined) || (acc.id ? avatars[acc.id] : undefined),
+          };
+        });
+        setAdminAccounts(enriched);
         try {
-          localStorage.setItem('cr_admin_accounts', JSON.stringify(accounts));
+          localStorage.setItem('cr_admin_accounts', JSON.stringify(enriched));
         } catch {}
       }
     } catch (e: any) {
@@ -1182,22 +1202,78 @@ const addOrder = async (order: Order) => {
   };
 
   const updateAdminAccount = async (id: string, updates: Partial<AdminAccount>) => {
-    setAdminAccounts(prev => prev.map(account => account.id === id ? { ...account, ...updates } : account));
-    const account = adminAccounts.find(item => item && item.id === id);
     const sessionEmail = (adminSession?.email || '').toLowerCase().trim();
-    if (account && account.email && account.email.toLowerCase().trim() === sessionEmail) {
-      setAdminSession(prev => ({
-        ...prev,
-        adminName: updates.fullName ?? prev.adminName,
-        email: updates.email ?? prev.email,
-        adminRole: updates.role === 'super_admin' ? 'Super Admin' : updates.role === 'manager' ? 'Store Manager' : updates.role === 'admin' ? 'Inventory Dispatcher' : prev.adminRole,
-      }));
+
+    // Persist avatar locally if provided
+    if (updates.avatar !== undefined) {
+      try {
+        const avatars = JSON.parse(localStorage.getItem('cr_admin_avatars') || '{}');
+        const match = adminAccounts.find(item => item && item.id === id);
+        const emailKey = (updates.email || match?.email || adminSession?.email || '').toLowerCase().trim();
+        if (emailKey) avatars[emailKey] = updates.avatar;
+        if (id && id !== 'self') avatars[id] = updates.avatar;
+        if (adminSession?.adminId) avatars[adminSession.adminId] = updates.avatar;
+        localStorage.setItem('cr_admin_avatars', JSON.stringify(avatars));
+      } catch {}
     }
-    try {
-      await api.patch(`/admin-accounts/${id}`, updates);
-    } catch (e: any) {
-      setError(e.message || 'Operation failed');
-      throw e;
+
+    setAdminAccounts(prev =>
+      prev.map(account =>
+        account.id === id || (id === 'self' && account.email.toLowerCase().trim() === sessionEmail)
+          ? { ...account, ...updates }
+          : account
+      )
+    );
+
+    const account = adminAccounts.find(item => item && item.id === id);
+    const isCurrentUser =
+      id === 'self' ||
+      (account && account.email && account.email.toLowerCase().trim() === sessionEmail) ||
+      (updates.email && updates.email.toLowerCase().trim() === sessionEmail) ||
+      (adminSession?.adminId && adminSession.adminId === id);
+
+    if (isCurrentUser) {
+      setAdminSession(prev => {
+        const nextSession: AdminSession = {
+          ...prev,
+          adminName: updates.fullName ?? prev.adminName,
+          email: updates.email ?? prev.email,
+          phone: updates.phone ?? prev.phone,
+          avatar: updates.avatar !== undefined ? updates.avatar : prev.avatar,
+          adminRole:
+            updates.role === 'super_admin'
+              ? 'Super Admin'
+              : updates.role === 'manager'
+              ? 'Store Manager'
+              : updates.role === 'cashier'
+              ? 'Cashier'
+              : updates.role === 'admin'
+              ? 'Inventory Dispatcher'
+              : prev.adminRole,
+        };
+        try {
+          localStorage.setItem('admin_session', JSON.stringify(nextSession));
+        } catch {}
+        return nextSession;
+      });
+    }
+
+    // Determine actual backend target ID
+    let targetBackendId = id;
+    if (targetBackendId === 'self') {
+      const match = adminAccounts.find(item => item && item.email && item.email.toLowerCase().trim() === sessionEmail);
+      targetBackendId = match?.id || adminSession?.adminId || '';
+    }
+
+    // Safe backend payload omitting client-only avatar
+    const { avatar: _a, profileImage: _p, ...backendUpdates } = updates;
+    if (targetBackendId && Object.keys(backendUpdates).length > 0) {
+      try {
+        await api.patch(`/admin-accounts/${targetBackendId}`, backendUpdates);
+      } catch (e: any) {
+        setError(e.message || 'Operation failed');
+        throw e;
+      }
     }
   };
 
@@ -1210,9 +1286,20 @@ const addOrder = async (order: Order) => {
 
   const changeAdminPassword = async (currentPin: string, newPin: string) => {
     const sessionEmail = (adminSession?.email || '').toLowerCase().trim();
-    const account = adminAccounts.find(item => item && item.email && item.email.toLowerCase().trim() === sessionEmail);
-    if (!account) throw new Error('Active admin account was not found');
-    await api.patch(`/admin-accounts/${account.id}`, { currentPin, pin: newPin });
+    let account = adminAccounts.find(item => item && item.email && item.email.toLowerCase().trim() === sessionEmail);
+    let targetId = account?.id || adminSession?.adminId;
+
+    if (!targetId) {
+      try {
+        const accounts = await api.get<AdminAccount[]>('/admin-accounts');
+        setAdminAccounts(accounts);
+        account = accounts.find(item => item && item.email && item.email.toLowerCase().trim() === sessionEmail);
+        targetId = account?.id;
+      } catch {}
+    }
+
+    if (!targetId) throw new Error('Active admin account was not found');
+    await api.patch(`/admin-accounts/${targetId}`, { currentPin, pin: newPin });
   };
 
   // Flash Deal Actions

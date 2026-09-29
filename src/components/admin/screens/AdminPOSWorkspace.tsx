@@ -34,6 +34,7 @@ import { useAlert } from '../../../context/AlertContext';
 import { api, ApiError } from '../../../lib/api';
 import type { FlashDeal, Order, PaymentMethod, Product, ProductVariant } from '../../../types';
 import logoImg from '../../../assets/logo-optimized.jpeg';
+import { AdminMyProfilePanel } from '../components/AdminMyProfilePanel';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
 type PosItem = { product: Product; variant?: ProductVariant; title: string; stock: number; barcode?: string };
@@ -76,6 +77,7 @@ export function AdminPOSWorkspace() {
   const navigate = useNavigate();
   const scannerRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [category, setCategory] = useState('all');
   const [cart, setCart] = useState<PosLine[]>([]);
   const [payment, setPayment] = useState<PaymentChoice>('cash-on-delivery');
@@ -568,20 +570,39 @@ export function AdminPOSWorkspace() {
           </small>
         </span>
       </div>
-      <div className="hidden items-center gap-3 rounded-xl border border-stone-200 px-4 py-2.5 lg:flex dark:border-[#3b2b2f]">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-500 dark:bg-[#342528]">
-          {(adminSession.adminName || 'C').charAt(0).toUpperCase()}
-        </span>
-        <span>
-          <b className="block text-sm">{adminSession.adminName || 'Cashier'}</b>
-          <small className="text-xs text-stone-500">
-            {adminSession.adminRole} · {online ? 'Online' : 'Offline'}
-          </small>
-        </span>
+      <div className="hidden items-center gap-2 rounded-xl border border-stone-200 px-3 py-2 lg:flex dark:border-[#3b2b2f]">
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          className="flex items-center gap-2.5 text-left hover:opacity-85 transition"
+          title="Manage My Account, Avatar & Password"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-500 overflow-hidden border border-amber-500/20 dark:bg-[#342528]">
+            {adminSession.avatar ? (
+              <img src={adminSession.avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              (adminSession.adminName || 'C').charAt(0).toUpperCase()
+            )}
+          </span>
+          <span>
+            <b className="block text-sm leading-tight">{adminSession.adminName || 'Cashier'}</b>
+            <small className="text-xs text-stone-500 leading-tight">
+              {adminSession.adminRole} · {online ? 'Online' : 'Offline'}
+            </small>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          className="ml-2 rounded-lg border border-amber-200 bg-amber-50/50 px-2 py-1 text-[10px] font-bold text-amber-800 hover:bg-amber-100 dark:border-[#4a383d] dark:bg-[#2e2023] dark:text-amber-300 transition"
+          title="Manage Account, Profile Picture & PIN"
+        >
+          Profile
+        </button>
         <button
           type="button"
           onClick={() => void switchCashier()}
-          className="ml-2 rounded-lg border border-stone-200 px-2 py-1 text-[10px] font-bold text-stone-600 hover:bg-stone-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"
+          className="ml-1 rounded-lg border border-stone-200 px-2 py-1 text-[10px] font-bold text-stone-600 hover:bg-stone-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"
         >
           Log out
         </button>
@@ -590,7 +611,18 @@ export function AdminPOSWorkspace() {
     {(syncState.pending > 0 || syncState.conflicts.length > 0) && <div className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${syncState.conflicts.length ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}><span><b>{syncState.conflicts.length ? `${syncState.conflicts.length} sale conflict${syncState.conflicts.length === 1 ? '' : 's'}` : `${syncState.pending} sale${syncState.pending === 1 ? '' : 's'} waiting to sync`}</b><span className="ml-2 text-xs opacity-80">{syncState.conflicts.length ? 'Review stock or pricing changes before retrying.' : 'The terminal will retry automatically.'}</span></span><button type="button" onClick={() => void syncQueuedSales()} className="rounded-lg border border-current px-3 py-1.5 text-xs font-bold">Retry sync</button></div>}
     <header className="flex flex-col gap-3 border-b border-stone-200 pb-4 dark:border-[#3b2b2f] sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Counter workspace</p><h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Point of Sale</h1><p className="mt-1 text-sm text-stone-500">Build the ticket, confirm payment, and move to the next customer.</p></div><div className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-2 text-xs font-bold sm:self-auto ${online ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300'}`}>{online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}{online ? 'Live inventory' : 'Offline mode'}</div></header>
     <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a85e35]">Cash drawer</p><h2 className="mt-1 text-base font-bold">{shift?.status === 'OPEN' ? 'Shift open' : 'Open a cashier shift'}</h2><p className="mt-1 text-xs text-stone-500">{shift?.status === 'OPEN' ? `Opened ${new Date(shift.openedAt).toLocaleString()} with ${money(shift.openingCash)} float.` : 'Count the opening float before recording sales.'}</p></div>{shift?.status === 'OPEN' ? <div className="flex flex-col gap-2 sm:flex-row sm:items-end"><div><label className="block text-[10px] font-bold uppercase text-stone-500">Counted cash</label><input type="number" min="0" step="0.01" value={actualCash} onChange={event => setActualCash(event.target.value)} placeholder={shift.expectedCash == null ? '0.00' : money(shift.expectedCash)} className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-bold outline-none focus:border-[#b9774c] sm:w-36 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><div><label className="block text-[10px] font-bold uppercase text-stone-500">Note</label><input value={shiftNotes} onChange={event => setShiftNotes(event.target.value)} placeholder="Optional" className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm outline-none focus:border-[#b9774c] sm:w-44 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><button type="button" onClick={() => void closeShift()} disabled={shiftBusy} className="rounded-xl bg-[#24191b] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{shiftBusy ? 'Saving...' : 'Close shift'}</button></div> : <div className="flex flex-col gap-2 sm:flex-row sm:items-end"><div><label className="block text-[10px] font-bold uppercase text-stone-500">Opening float</label><input type="number" min="0" step="0.01" value={openingCash} onChange={event => setOpeningCash(event.target.value)} placeholder="0.00" className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-bold outline-none focus:border-[#b9774c] sm:w-36 dark:border-[#4a383d] dark:bg-[#241b1d]" /></div><button type="button" onClick={() => void openShift()} disabled={shiftBusy} className="rounded-xl bg-[#249447] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{shiftBusy ? 'Opening...' : 'Open shift'}</button></div>}</div>{shift?.status === 'CLOSED' && <p className={`mt-3 text-xs font-bold ${Number(shift.difference || 0) === 0 ? 'text-emerald-700' : 'text-amber-700'}`}>Last shift closed with {money(Number(shift.actualCash || 0))} counted against {money(Number(shift.expectedCash || 0))} expected. Variance: {money(Number(shift.difference || 0))}.</p>}</section>
-    {shift?.status !== 'OPEN' && <div className="flex justify-end"><button type="button" onClick={() => void switchCashier()} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#241b1d]">Switch cashier</button></div>}
+    {shift?.status !== 'OPEN' && (
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#241b1d]"
+        >
+          My Profile & PIN
+        </button>
+        <button type="button" onClick={() => void switchCashier()} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#241b1d]">Switch cashier</button>
+      </div>
+    )}
     <div className="grid grid-cols-[180px_minmax(0,1fr)_360px] items-start gap-3 xl:grid-cols-[190px_minmax(0,1fr)_380px]">
       <aside className="sticky top-24 self-start space-y-2 rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-3 shadow-[0_18px_50px_rgba(36,25,27,0.06)] dark:border-[#3b2b2f] dark:bg-[#1e1719]"><p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a85e35]">Browse</p><button type="button" onClick={() => setCategory('all')} className={`w-full rounded-2xl px-3 py-3 text-left text-sm font-bold transition ${category === 'all' ? 'bg-[#24191b] text-white' : 'text-stone-600 hover:bg-[#f5ebe5] dark:text-stone-300 dark:hover:bg-[#342528]'}`}><span className="block">All stock</span><span className={`mt-1 block text-[10px] font-medium ${category === 'all' ? 'text-stone-300' : 'text-stone-400'}`}>{items.length} available</span></button>{categories.map(item => <button type="button" key={item} onClick={() => setCategory(item)} className={`w-full rounded-2xl px-3 py-3 text-left text-sm font-bold transition ${category === item ? 'bg-[#f5ebe5] text-[#8e4d2d] ring-1 ring-[#d89b76] dark:bg-[#342528] dark:text-[#e6a47d]' : 'text-stone-600 hover:bg-[#f5ebe5] dark:text-stone-300 dark:hover:bg-[#342528]'}`}><span className="block truncate">{item}</span><span className="mt-1 block text-[10px] font-medium text-stone-400">Browse shelf</span></button>)}</aside>
       <section className="pos-workbench min-w-0 space-y-4">
@@ -602,5 +634,9 @@ export function AdminPOSWorkspace() {
     <div className="grid grid-cols-3 gap-4"><button type="button" onClick={() => { setCart([]); setCustomer(''); setCashReceived(''); setReference(''); setSenderPhone(''); }} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-red-950/20">Clear ticket</button><button type="button" onClick={() => scannerRef.current?.focus()} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-[#b9774c] hover:bg-[#f5ebe5] dark:border-[#3b2b2f] dark:bg-[#1e1719] dark:text-stone-300 dark:hover:bg-[#342528]">Focus scanner</button><button type="button" disabled={!cart.length || submitting} onClick={() => void completeSale()} className="rounded-2xl bg-[#249447] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#1d7e3b] disabled:cursor-not-allowed disabled:opacity-40">Pay {money(subtotal)} <ArrowRight className="ml-1 inline h-4 w-4" /></button></div>
     <div className="pos-action-strip grid grid-cols-4 gap-2 rounded-2xl border border-[#eadfd9] bg-white p-2 shadow-sm dark:border-[#3b2b2f] dark:bg-[#1e1719]"><button type="button" onClick={setScaleQuantity} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] dark:hover:bg-[#342528]">Quantity<span className="mt-1 block text-[10px] font-medium text-stone-400">Set item count</span></button><button type="button" onClick={() => void applyDiscount()} disabled={!promoCode.trim() || !cart.length} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] disabled:opacity-40 dark:hover:bg-[#342528]">Discount<span className="mt-1 block text-[10px] font-medium text-stone-400">Apply promo code</span></button><button type="button" onClick={heldTicket ? recallTicket : holdTicket} disabled={!heldTicket && !cart.length} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] disabled:opacity-40 dark:hover:bg-[#342528]">{heldTicket ? 'Recall' : 'Hold'}<span className="mt-1 block text-[10px] font-medium text-stone-400">{heldTicket ? 'Restore ticket' : 'Save ticket'}</span></button><button type="button" onClick={() => showAlert('Select a completed sale from Recent sales to process a refund.', 'info')} className="rounded-xl px-3 py-3 text-left text-sm font-bold hover:bg-[#f5ebe5] dark:hover:bg-[#342528]">Refund<span className="mt-1 block text-[10px] font-medium text-stone-400">Open sales ledger</span></button></div>
     <section className="rounded-[24px] border border-[#e8d9d2] bg-[#fffdfb] p-4 shadow-[0_18px_50px_rgba(36,25,27,0.06)] dark:border-[#3b2b2f] dark:bg-[#1e1719] sm:p-5"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a85e35]">POS ledger</p><h2 className="mt-1 text-lg font-bold">Recent sales</h2><p className="mt-1 text-xs text-stone-500">Completed counter sales from the shared order system.</p></div><button type="button" onClick={() => void fetchOrders()} disabled={loadingOrders} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 dark:border-[#4a383d] dark:text-stone-300 dark:hover:bg-[#241b1d]"><RefreshCw className={`h-3.5 w-3.5 ${loadingOrders ? 'animate-spin' : ''}`} />Refresh</button></div>{posHistory.length ? <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-stone-200 text-[10px] uppercase tracking-wider text-stone-500 dark:border-[#3b2b2f]"><tr><th className="px-3 py-2">Sale</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Payment</th><th className="px-3 py-2">Total</th><th className="px-3 py-2">Date</th><th className="px-3 py-2 text-right">Receipt</th></tr></thead><tbody className="divide-y divide-stone-100 dark:divide-[#3b2b2f]">{posHistory.map(order => <tr key={order.id}><td className="px-3 py-3 font-mono text-xs font-bold">{order.orderNumber}</td><td className="px-3 py-3">{order.shippingAddress?.fullName || 'Walk-in customer'}</td><td className="px-3 py-3 capitalize text-stone-500">{order.paymentMethod.replaceAll('-', ' ')}</td><td className="px-3 py-3 font-bold">{money(Number(order.total))}</td><td className="px-3 py-3 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</td><td className="px-3 py-3 text-right"><button type="button" onClick={() => printReceipt(order)} aria-label={`Print receipt for ${order.orderNumber}`} className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-bold hover:bg-[#f5ebe5] dark:border-[#4a383d] dark:hover:bg-[#342528]"><Printer className="h-3.5 w-3.5" />Print</button></td></tr>)}</tbody></table></div> : <div className="mt-4 rounded-2xl border border-dashed border-[#dbc9c0] px-4 py-8 text-center text-sm text-stone-500">{loadingOrders ? 'Loading sales history...' : 'No POS sales have been recorded yet.'}</div>}<div className="mt-4 flex justify-end"><button type="button" onClick={() => void refundLatestSale()} className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/20">Refund latest refundable sale</button></div></section>
+    <AdminMyProfilePanel
+      isOpen={profileOpen}
+      onClose={() => setProfileOpen(false)}
+    />
   </div>;
 }

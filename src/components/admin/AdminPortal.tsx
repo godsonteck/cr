@@ -41,6 +41,7 @@ import { ProductModal } from './ProductModal';
 import { OrderDetailDrawer } from './components/OrderDetailDrawer';
 import { InvoicePrintModal } from './components/InvoicePrintModal';
 import { GlobalCommandPalette } from './components/GlobalCommandPalette';
+import { AdminMyProfilePanel } from './components/AdminMyProfilePanel';
 import {
   AdminCustomersScreen,
   AdminFlashDealsScreen,
@@ -209,6 +210,7 @@ export const AdminPortal: React.FC = () => {
   const [orderToPrint, setOrderToPrint] = useState<Order | null>(null);
   // Inline logout confirm state
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [profilePanelOpen, setProfilePanelOpen] = useState(false);
   const [reviewedNotifications, setReviewedNotifications] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('cr_admin_reviewed_notifications') || '[]');
@@ -427,8 +429,35 @@ export const AdminPortal: React.FC = () => {
             })}
           </nav>
 
-          {/* Logout Button */}
+          {/* Logout & Profile Section */}
           <div className="border-t border-stone-200 dark:border-[#1f1a1a] p-3 space-y-2">
+            {/* My Profile Button */}
+            <button
+              type="button"
+              onClick={() => setProfilePanelOpen(true)}
+              title={!sidebarOpen ? 'My Profile & Password' : undefined}
+              className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl border border-stone-200/80 dark:border-[#2b2024] bg-stone-50/50 dark:bg-[#1a1416]/50 hover:bg-stone-100 dark:hover:bg-[#251d20] transition-all text-left ${
+                !sidebarOpen ? 'justify-center px-1.5' : ''
+              }`}
+            >
+              <div className="h-8 w-8 rounded-lg overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">
+                {store.adminSession.avatar ? (
+                  <img src={store.adminSession.avatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{(store.adminSession.adminName || 'A').charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              {sidebarOpen && (
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate leading-snug">
+                    {store.adminSession.adminName}
+                  </p>
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold truncate leading-tight">
+                    Manage Profile & PIN
+                  </p>
+                </div>
+              )}
+            </button>
             {confirmLogout ? (
               <div className={`flex gap-1.5 ${!sidebarOpen ? 'flex-col' : ''}`}>
                 <button
@@ -521,6 +550,30 @@ export const AdminPortal: React.FC = () => {
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
+
+            {/* User Profile Trigger Button */}
+            <button
+              type="button"
+              onClick={() => setProfilePanelOpen(true)}
+              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-xl border border-stone-200 dark:border-[#2b2024] bg-stone-50/70 dark:bg-[#1f1a1a] hover:bg-stone-100 dark:hover:bg-[#251d20] transition-colors ml-1"
+              title="My Account, Profile & Password"
+            >
+              <div className="h-7 w-7 rounded-lg overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/20 shrink-0">
+                {store.adminSession.avatar ? (
+                  <img src={store.adminSession.avatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{(store.adminSession.adminName || 'A').charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="hidden sm:block text-left max-w-[120px]">
+                <p className="text-xs font-bold text-stone-800 dark:text-stone-200 truncate leading-tight">
+                  {store.adminSession.adminName}
+                </p>
+                <p className="text-[10px] text-stone-400 truncate leading-tight">
+                  {store.adminSession.adminRole}
+                </p>
+              </div>
+            </button>
           </div>
         </header>
 
@@ -600,6 +653,11 @@ export const AdminPortal: React.FC = () => {
           }}
         />
       )}
+
+      <AdminMyProfilePanel
+        isOpen={profilePanelOpen}
+        onClose={() => setProfilePanelOpen(false)}
+      />
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (

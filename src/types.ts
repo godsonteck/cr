@@ -160,9 +160,12 @@ export interface StoreSettingsRow {
 
 export interface AdminSession {
   isLoggedIn: boolean;
+  adminId?: string;
   adminName: string;
   adminRole: 'Super Admin' | 'Store Manager' | 'Inventory Dispatcher' | 'Cashier';
   email: string;
+  phone?: string;
+  avatar?: string;
 }
 
 export interface ProductReview {
@@ -358,6 +361,8 @@ export interface AdminAccount {
   email: string;
   phone: string;
   role: 'super_admin' | 'admin' | 'manager' | 'cashier';
+  avatar?: string;
+  profileImage?: string;
 }
 
 export interface InventoryMovement {
