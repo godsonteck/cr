@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Product, CategoryConfig, CategoryType, DepartmentType, ProductOption, ProductVariant } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
-import { isSupabaseStorageImage } from '../../lib/productImages';
-import { api } from '../../lib/api';
+import { isValidProductImageUrl, uploadImageToR2 } from '../../lib/r2Upload';
 import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 
 interface ProductModalProps { isOpen: boolean; onClose: () => void; productToEdit?: Product | null; }
@@ -64,31 +63,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
 
   if (!isOpen) return null;
 
-  const readImage = (file: File) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = event => {
-      const result = String(event.target?.result || '');
-      const preview = new Image();
-      preview.onload = () => {
-        const max = 840;
-        const scale = Math.min(1, max / Math.max(preview.width, preview.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(preview.width * scale);
-        canvas.height = Math.round(preview.height * scale);
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(preview, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.78));
-        } else {
-          resolve(result);
-        }
-      };
-      preview.onerror = () => resolve(result);
-      preview.src = result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+
 
   const processFiles = async (files: FileList | File[]) => {
     const valid = Array.from(files).filter(file => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024);
@@ -98,14 +73,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     }
     setIsProcessingPhotos(true);
     try {
-      const previews = await Promise.all(valid.map(readImage));
       const adminToken = localStorage.getItem('admin_auth_token');
       if (!adminToken) throw new Error('Administrator session required. Please sign in again.');
-      const images = await Promise.all(previews.map(async image => {
-        const result = await api.post<{ url: string }>('/products?imageUpload=true', { image }, adminToken);
-        if (!isSupabaseStorageImage(result.url)) throw new Error('The image upload did not return a Supabase Storage URL.');
-        return result.url;
-      }));
+      const images = await Promise.all(
+        valid.map(file => uploadImageToR2(file, adminToken))
+      );
       setUploadedImages(previous => {
         const next = Array.from(new Set([...previous, ...images]));
         return next;
@@ -122,8 +94,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const addImageUrl = () => {
     const url = imageUrlInput.trim();
     if (!url) return;
-    if (!isSupabaseStorageImage(url)) {
-      showToast('Use a public Supabase Storage image URL.');
+    if (!isValidProductImageUrl(url)) {
+      showToast('Use a public Cloudflare R2 or Supabase Storage image URL (https://).');
       return;
     }
     setUploadedImages(previous => Array.from(new Set([...previous, url])));
@@ -709,14 +681,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                               const file = e.target.files?.[0];
                               if (file) {
                                 try {
-                                  const compressed = await readImage(file);
-                                  setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, image: compressed } : item));
-                                  if (!uploadedImages.includes(compressed)) {
-                                    setUploadedImages(prev => [...prev, compressed]);
+                                  const adminToken = localStorage.getItem('admin_auth_token');
+                                  if (!adminToken) throw new Error('Sign in as admin first.');
+                                  const url = await uploadImageToR2(file, adminToken);
+                                  setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, image: url } : item));
+                                  if (!uploadedImages.includes(url)) {
+                                    setUploadedImages(prev => [...prev, url]);
                                   }
                                   showToast(`Photo updated for ${v.name}`);
-                                } catch {
-                                  showToast('Could not load variant image');
+                                } catch (err) {
+                                  showToast(err instanceof Error ? err.message : 'Could not upload variant image');
                                 }
                               }
                             }}
