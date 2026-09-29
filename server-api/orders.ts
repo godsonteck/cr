@@ -7,6 +7,8 @@ import { requireAdmin, requireAuth } from './_auth.js';
 import { escapeHtml, sendEmail } from './_email.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
+import { randomBytes } from 'crypto';
+
 const orderCreateSchema = z.object({
   userId: z.string().uuid().optional().nullable(),
   items: z.array(z.object({
@@ -82,7 +84,7 @@ function generateOrderNumber(): string {
   const year = date.getFullYear().toString().slice(-2);
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const day = date.getDate().toString().padStart(2, '0');
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const random = randomBytes(3).toString('hex').toUpperCase();
   return `CR-${year}${month}${day}-${random}`;
 }
 
@@ -245,7 +247,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));
       const productMap = new Map(productRows.map((product) => [product.id, product]));
-      const [activeDeal] = await db.select().from(flashDeals).where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`)).orderBy(desc(flashDeals.createdAt)).limit(1);
       const quantities = new Map<string, number>();
       const variantQuantities = new Map<string, number>();
       for (const item of parsed.data.items) {
@@ -274,10 +275,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const stockKey = selectedVariant ? `${product.id}:${selectedVariant.id}` : product.id;
         const quantity = (selectedVariant ? variantQuantities : quantities).get(stockKey) || 0;
         (selectedVariant ? variantQuantities : quantities).set(stockKey, quantity + item.quantity);
-        const basePrice = Number(selectedVariant?.price ?? product.price);
-        const price = activeDeal?.productIds?.includes(product.id)
-          ? Math.max(0.01, basePrice * (1 - activeDeal.discountPercentage / 100))
-          : basePrice;
+        // Use DB price (flash deal prices are re-applied inside the transaction)
+        const price = Number(selectedVariant?.price ?? product.price);
         return {
           ...item,
           product: {
@@ -417,36 +416,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const orderNumber = generateOrderNumber();
-      const columnCheck = await db.execute(sql`
-        SELECT EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'orders'
-            AND column_name = 'order_source'
-        ) AS exists
-      `);
-      const hasOrderSourceColumn = Boolean((columnCheck as unknown as Array<{ exists?: boolean }>)[0]?.exists);
-      const orderData = {
-        ...parsed.data,
-        items: verifiedItems,
-        appliedPromoCode,
-        // A POS sale belongs to the walk-in customer (or no online account),
-        // never the staff member who recorded it.
-        userId: isPosOrder ? parsed.data.userId || null : auth?.sub || null,
-        orderNumber,
-        subtotal: calculatedSubtotal.toString(),
-        shippingFee: finalShippingFee.toString(),
-        discount: calculatedDiscount.toString(),
-        total: calculatedTotal.toString(),
-        // Counter sales are fulfilled immediately; delivery orders keep the
-        // normal lifecycle and default status.
-        ...(isPosOrder ? { status: 'Delivered' as const, paymentStatus: 'paid' as const } : {}),
-        ...(isPosOrder ? { idempotencyKey: parsed.data.idempotencyKey, cashierName: auth?.adminName || auth?.name || 'POS cashier' } : {}),
+      const insertOrderData = {
+        ...{
+          ...parsed.data,
+          items: verifiedItems,
+          appliedPromoCode,
+          userId: isPosOrder ? parsed.data.userId || null : auth?.sub || null,
+          orderNumber,
+          subtotal: calculatedSubtotal.toString(),
+          shippingFee: finalShippingFee.toString(),
+          discount: calculatedDiscount.toString(),
+          total: calculatedTotal.toString(),
+          ...(isPosOrder ? { status: 'Delivered' as const, paymentStatus: 'paid' as const } : {}),
+          ...(isPosOrder ? { idempotencyKey: parsed.data.idempotencyKey, cashierName: auth?.adminName || auth?.name || 'POS cashier' } : {}),
+        },
+        orderSource: isWhatsAppOrder ? 'whatsapp' as const : isPosOrder ? 'pos' as const : parsed.data.orderSource,
       };
-      const insertOrderData = hasOrderSourceColumn
-        ? { ...orderData, orderSource: isWhatsAppOrder ? 'whatsapp' as const : isPosOrder ? 'pos' as const : parsed.data.orderSource }
-        : orderData;
 
       // Lock every item in one consistently ordered database transaction, then
       // create the order and reduce stock together. This prevents two shoppers
@@ -457,6 +442,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
           if (existing) return { order: existing, replayed: true };
         }
+        // Re-fetch flash deal inside the transaction to validate expiry atomically
+        const [activeDeal] = await tx.select().from(flashDeals)
+          .where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`))
+          .orderBy(desc(flashDeals.createdAt)).limit(1);
         const lockedProducts = await tx
           .select()
           .from(products)
@@ -464,6 +453,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .orderBy(asc(products.id))
           .for('update');
         const lockedById = new Map(lockedProducts.map(product => [product.id, product]));
+        // Recalculate verified item prices using the in-transaction flash deal
+        const txVerifiedItems = parsed.data.items.map((item) => {
+          const product = lockedById.get(item.product.id);
+          if (!product) return item;
+          const variants = product.variants || [];
+          const selectedVariant = item.selectedVariant?.id
+            ? variants.find(v => v.id === item.selectedVariant?.id)
+            : undefined;
+          const basePrice = Number(selectedVariant?.price ?? product.price);
+          const price = activeDeal?.productIds?.includes(product.id)
+            ? Math.max(0.01, basePrice * (1 - activeDeal.discountPercentage / 100))
+            : basePrice;
+          return {
+            ...item,
+            product: {
+              id: product.id,
+              name: product.name,
+              brand: product.brand,
+              price,
+              // coerce null → undefined to satisfy the schema type
+              originalPrice: product.originalPrice == null ? undefined : Number(product.originalPrice),
+              image: product.image,
+              unit: product.unit,
+              category: product.category,
+              inStock: product.inStock,
+              stockCount: product.stockCount,
+            },
+            selectedVariant: selectedVariant ? { ...selectedVariant, price } : item.selectedVariant,
+          };
+        });
+        // Use tx-verified items for the final insert
+        const finalInsertData = { ...insertOrderData, items: txVerifiedItems };
 
         for (const [productId, quantity] of quantities) {
           const product = lockedById.get(productId);
@@ -479,7 +500,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }
 
-        const [order] = await tx.insert(orders).values(insertOrderData).returning();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [order] = await tx.insert(orders).values(finalInsertData as any).returning();
+
+        // Increment promo usage count atomically inside the transaction
+        if (appliedPromoCode) {
+          await tx.update(promoCodes)
+            .set({ usageCount: sql`${promoCodes.usageCount} + 1`, updatedAt: new Date() })
+            .where(eq(promoCodes.code, appliedPromoCode));
+        }
 
         if (isPosOrder) {
           const cashReceived = parsed.data.paymentMethod === 'cash-on-delivery' ? parsed.data.cashReceived : undefined;

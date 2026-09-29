@@ -1,2 +1,2 @@
-export { db, default } from '../db';
-export * from '../db';
+export { db, default } from '../database';
+export * from '../database';

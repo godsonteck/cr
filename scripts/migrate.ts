@@ -1,4 +1,4 @@
-import { db } from '../src/db';
+import { db } from '../src/database';
 
 async function runMigration() {
   console.log('🔄 Running migration...');

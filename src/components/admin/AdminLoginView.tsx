@@ -21,8 +21,7 @@ interface AdminLoginProps {
   mode?: 'admin' | 'pos';
 }
 
-const DEFAULT_ADMIN_EMAIL = 'admin@crcosmetics.com';
-const DEFAULT_ADMIN_PIN = '0000';
+
 
 export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'admin' }) => {
   const { loginAdmin, storeSettings } = useStore();
@@ -30,14 +29,18 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
 
-  const [usernameOrEmail, setUsernameOrEmail] = useState(DEFAULT_ADMIN_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_ADMIN_PIN);
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!usernameOrEmail.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
     if (!password.trim()) {
       setError('Please enter your password.');
       return;
@@ -46,26 +49,12 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
     setIsLoading(true);
     setError(null);
 
-    // Determine identity automatically from credentials
     const cleanUser = usernameOrEmail.trim().toLowerCase();
-    let autoRole: 'Super Admin' | 'Store Manager' | 'Inventory Dispatcher' = 'Super Admin';
-    let autoName = 'Store Administrator';
-
-    if (cleanUser.includes('rider') || cleanUser.includes('dispatch') || cleanUser.includes('delivery')) {
-      autoRole = 'Inventory Dispatcher';
-      autoName = 'Kwame Boateng (Delivery & Dispatch)';
-    } else if (cleanUser.includes('manager') || cleanUser.includes('shop') || cleanUser.includes('retail')) {
-      autoRole = 'Store Manager';
-      autoName = 'Ama Mensah (Shop Manager)';
-    } else if (cleanUser.length > 0) {
-      autoName = usernameOrEmail.trim().split('@')[0];
-      autoName = autoName.charAt(0).toUpperCase() + autoName.slice(1);
-    }
 
     try {
-      const success = await loginAdmin(password.trim(), autoName, autoRole, cleanUser || DEFAULT_ADMIN_EMAIL);
+      const success = await loginAdmin(password.trim(), '', 'Super Admin', cleanUser);
       if (success) {
-        showToast(`Signed in successfully. Welcome, ${autoName}!`);
+        showToast('Signed in successfully. Welcome back!');
         onSuccess();
       } else {
         setError('Incorrect email or password. Please try again.');

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../src/database.js';
 import { orders } from '../src/db/schema.js';
 
@@ -53,16 +53,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Incomplete payment event' });
   }
 
-  const [order] = await db.select().from(orders).where(eq(orders.paymentReference, reference)).limit(1);
+  // Verify the amount before touching payment status
+  const [order] = await db
+    .select({ id: orders.id, total: orders.total })
+    .from(orders)
+    .where(eq(orders.paymentReference, reference))
+    .limit(1);
   if (!order) return res.status(200).json({ received: true, matched: false });
   if (Number(event.data.amount) !== Math.round(Number(order.total) * 100)) {
     return res.status(400).json({ error: 'Payment amount does not match order' });
   }
-  if (order.paymentStatus === 'paid') return res.status(200).json({ received: true, alreadyProcessed: true });
 
-  await db.update(orders)
+  // Atomic conditional update: only marks paid if still pending.
+  // Two simultaneous webhook deliveries cannot both succeed — whichever
+  // arrives second finds paymentStatus already 'paid' and returns early.
+  const result = await db
+    .update(orders)
     .set({ paymentStatus: 'paid', updatedAt: new Date() })
-    .where(eq(orders.id, order.id));
+    .where(and(
+      eq(orders.paymentReference, reference),
+      eq(orders.paymentStatus, 'pending'),
+    ))
+    .returning({ id: orders.id });
+
+  if (!result.length) {
+    return res.status(200).json({ received: true, alreadyProcessed: true });
+  }
 
   return res.status(200).json({ received: true, matched: true });
 }

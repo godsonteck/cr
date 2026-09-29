@@ -17,7 +17,8 @@ const reviewCreateSchema = z.object({
 const reviewUpdateSchema = z.object({
   isApproved: z.boolean().optional(),
   adminReply: z.string().optional(),
-  helpfulCount: z.number().int().min(0).optional(),
+  // Accepts boolean or client's projected count; server always increments atomically by 1
+  helpfulCount: z.union([z.boolean(), z.number()]).optional(),
 }).partial();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -214,11 +215,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!auth) return;
       }
 
+
+
       let updateValues: Record<string, any> = { updatedAt: new Date() };
       if (parsed.data.adminReply !== undefined) updateValues.adminReply = parsed.data.adminReply;
       if (parsed.data.isApproved !== undefined) updateValues.isApproved = parsed.data.isApproved;
       if (parsed.data.helpfulCount !== undefined) {
-        updateValues.helpfulCount = parsed.data.helpfulCount;
+        updateValues.helpfulCount = sql`${reviews.helpfulCount} + 1`;
       }
 
       const [updated] = await db

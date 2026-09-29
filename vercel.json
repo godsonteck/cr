@@ -59,42 +59,6 @@
       "destination": "/api/index?route=:route*"
     },
     {
-      "source": "/api/brands",
-      "destination": "/api/catalog?resource=brands"
-    },
-    {
-      "source": "/api/categories",
-      "destination": "/api/catalog?resource=categories"
-    },
-    {
-      "source": "/api/users/:id",
-      "destination": "/api/users?id=:id"
-    },
-    {
-      "source": "/api/admin-accounts/:id",
-      "destination": "/api/settings?resource=admin-accounts&id=:id"
-    },
-    {
-      "source": "/api/admin-accounts",
-      "destination": "/api/settings?resource=admin-accounts"
-    },
-    {
-      "source": "/api/wishlist",
-      "destination": "/api/cart?resource=wishlist"
-    },
-    {
-      "source": "/api/orders/:id",
-      "destination": "/api/orders?id=:id"
-    },
-    {
-      "source": "/api/products/:id",
-      "destination": "/api/products?id=:id"
-    },
-    {
-      "source": "/api/r2-sign",
-      "destination": "/api/index?route=r2-sign"
-    },
-    {
       "source": "/sitemap.xml",
       "destination": "/api/products?sitemap=1"
     },

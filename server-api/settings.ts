@@ -1,10 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/database.js';
 import { storeSettings } from '../src/db/schema.js';
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
 import handleAdminAccounts from './_admin-accounts.js';
+
+// Pattern for sensitive keys that should never be exposed without admin authentication
+const SENSITIVE_KEY_PATTERN = /(?:secret|private|token|password|pin|credential|api[_-]?key)/i;
+
+const isSensitiveSettingKey = (key: string) => SENSITIVE_KEY_PATTERN.test(key);
 
 const settingUpdateSchema = z.object({
   key: z.string().min(1).max(100),
@@ -23,17 +28,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (method === 'GET') {
       const { key } = query;
-      
+
       if (key && typeof key === 'string') {
         const [setting] = await db.select().from(storeSettings).where(eq(storeSettings.key, key)).limit(1);
         if (!setting) {
           return res.status(404).json({ error: 'Setting not found' });
         }
+        // Protect sensitive keys from unauthenticated callers
+        if (isSensitiveSettingKey(key)) {
+          const auth = await requireAdmin(req, res);
+          if (!auth) return;
+        }
         return res.status(200).json({ key: setting.key, value: setting.value });
       }
 
-      const results = await db.select().from(storeSettings);
-      return res.status(200).json(results);
+      // Check if admin request
+      const isAdminRequest = Boolean(req.headers.authorization);
+      if (isAdminRequest) {
+        const auth = await requireAdmin(req, res);
+        if (!auth) return;
+        const results = await db.select().from(storeSettings);
+        return res.status(200).json(results);
+      }
+
+      // Public: return store settings excluding any sensitive keys
+      const allSettings = await db.select().from(storeSettings);
+      const publicResults = allSettings.filter(s => !isSensitiveSettingKey(s.key));
+      return res.status(200).json(publicResults);
     }
 
     if (method === 'POST') {

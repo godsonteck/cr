@@ -277,6 +277,7 @@ ${routes.map(route => `  <url>
 </urlset>`;
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
   return res.status(200).send(sitemap);
 }
 

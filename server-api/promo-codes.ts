@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/database.js';
 import { promoCodes } from '../src/db/schema.js';
-import { eq, desc } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin } from './_auth.js';
 
@@ -84,16 +84,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json(promo);
       }
 
-      const conditions = [];
-      if (active !== undefined) {
-        conditions.push(eq(promoCodes.isActive, active === 'true'));
+      // Admin: full listing with usage counts and all fields
+      const adminAuth = req.headers.authorization
+        ? await (async () => { try { return await requireAdmin(req, res); } catch { return null; } })()
+        : null;
+
+      if (adminAuth) {
+        const conditions = [];
+        if (active !== undefined) {
+          conditions.push(eq(promoCodes.isActive, active === 'true'));
+        }
+        const results = conditions.length > 0
+          ? await db.select().from(promoCodes).where(conditions[0]).orderBy(desc(promoCodes.createdAt))
+          : await db.select().from(promoCodes).orderBy(desc(promoCodes.createdAt));
+        return res.status(200).json(results);
       }
 
-      const results = conditions.length > 0
-        ? await db.select().from(promoCodes).where(conditions[0]).orderBy(desc(promoCodes.createdAt))
-        : await db.select().from(promoCodes).orderBy(desc(promoCodes.createdAt));
-
-      return res.status(200).json(results);
+      // Public: only active, non-expired codes — no usage counts exposed
+      const now = new Date();
+      const publicResults = await db
+        .select({
+          id: promoCodes.id,
+          code: promoCodes.code,
+          discountType: promoCodes.discountType,
+          discountValue: promoCodes.discountValue,
+          minSpend: promoCodes.minSpend,
+          freeShipping: promoCodes.freeShipping,
+          isActive: promoCodes.isActive,
+          description: promoCodes.description,
+          expiryDate: promoCodes.expiryDate,
+        })
+        .from(promoCodes)
+        .where(and(
+          eq(promoCodes.isActive, true),
+          or(isNull(promoCodes.expiryDate), gt(promoCodes.expiryDate, now)),
+        ))
+        .orderBy(desc(promoCodes.createdAt));
+      return res.status(200).json(publicResults);
     }
 
     if (method === 'POST') {

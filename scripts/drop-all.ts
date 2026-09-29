@@ -1,4 +1,17 @@
-import { db } from '../src/db';
+import { db } from '../src/database';
+
+// ── PRODUCTION SAFETY GUARD ──────────────────────────────────────────────────
+// This script permanently destroys all data. It will refuse to run against a
+// production Supabase database unless you explicitly pass --confirm-destroy.
+const url = (process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || '').toLowerCase();
+const hasProductionUrl = url.includes('supabase') || url.includes('.pooler.supabase');
+const hasConfirmFlag = process.argv.includes('--confirm-destroy');
+if (hasProductionUrl && !hasConfirmFlag) {
+  console.error('❌ ABORTED: DATABASE_URL points to a production Supabase instance.');
+  console.error('   To proceed, run: tsx scripts/drop-all.ts --confirm-destroy');
+  process.exit(1);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function dropAll() {
   console.log('🗑️ Dropping all tables...');

@@ -1,4 +1,4 @@
-import { db } from '../src/db';
+import { db } from '../src/database';
 import {
   products,
   categories,

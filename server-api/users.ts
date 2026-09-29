@@ -7,14 +7,8 @@ import bcrypt from 'bcryptjs';
 import { requireAdmin, requireAuth, signToken } from './_auth.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
-// Ensure the admin_notes column exists on the users table (zero-downtime migration)
-async function ensureAdminNotesColumn() {
-  try {
-    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_notes text`);
-  } catch {
-    // Column already exists or DB doesn't support IF NOT EXISTS — ignore
-  }
-}
+
+
 
 const userCreateSchema = z.object({
   email: z.string().email(),
@@ -26,7 +20,16 @@ const userCreateSchema = z.object({
 const userProfileUpdateSchema = z.object({
   fullName: z.string().min(1).max(100).optional(),
   phone: z.string().max(50).optional(),
-  profileImage: z.string().max(7_000_000).refine(value => value.startsWith('data:image/') || value.startsWith('https://') || value.startsWith('http://'), 'Profile picture must be an image upload or URL').nullable().optional(),
+  profileImage: z.string()
+    .refine(
+      value => {
+        if (!value) return true; // empty string clears the avatar
+        if (value.startsWith('https://') || value.startsWith('http://')) return true;
+        if (value.startsWith('data:image/')) return value.length <= 5_000_000;
+        return false;
+      },
+      'Profile picture must be an image URL or photo upload (max 5 MB)'
+    ).nullable().optional(),
   savedAddresses: z.array(z.object({
     id: z.string().optional(),
     fullName: z.string().min(1),
@@ -70,9 +73,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
         const search = typeof query.search === 'string' ? query.search.trim().toLowerCase() : '';
-
-        // Older production databases may not have this optional admin field yet.
-        await ensureAdminNotesColumn();
 
         // Fetch all registered customers with aggregate order stats
         const allUsers = await db.select({
@@ -220,8 +220,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (auth.role !== 'admin') {
           return res.status(403).json({ error: 'Only admins can update customer notes' });
         }
-        // Ensure column exists before writing (no-op if already there)
-        await ensureAdminNotesColumn();
         updates.adminNotes = parsed.data.adminNotes;
       }
       if (parsed.data.savedAddresses !== undefined) {
