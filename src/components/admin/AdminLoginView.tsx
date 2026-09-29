@@ -141,7 +141,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
                     setUsernameOrEmail(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="admin@crcosmetics.com"
+                  placeholder="Enter your email or username"
                   className="w-full pl-10 pr-4 py-3 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl text-xs sm:text-sm font-semibold text-[var(--text-primary)] placeholder-[var(--text-subtle)] focus:bg-[var(--bg-card)] focus:outline-none focus:border-[#C89B3C] focus:ring-2 focus:ring-[#C89B3C]/20 transition-all"
                 />
               </div>

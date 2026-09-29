@@ -57,6 +57,9 @@
   "build": {
     "appId": "com.crcosmetics.pos",
     "productName": "CR Cosmetics POS",
+    "directories": {
+      "output": "release"
+    },
     "files": [
       "electron/**/*",
       "package.json",

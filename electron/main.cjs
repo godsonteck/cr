@@ -12,8 +12,22 @@ try {
 // The desktop app intentionally uses the live application: POS, stock,
 // products, orders and permissions remain one system instead of drifting into
 // a local database. An installer can override this for a staging environment.
-const POS_URL = process.env.CR_POS_URL || 'https://cosmeticse.vercel.app/pos';
+const POS_URL = process.env.CR_POS_URL || 'https://www.crcosmeticsgh.com/pos';
 const LIVE_ORIGIN = new URL(POS_URL).origin;
+
+function isAppDomain(urlStr) {
+  try {
+    const parsed = new URL(urlStr);
+    return (
+      parsed.origin === LIVE_ORIGIN ||
+      parsed.hostname.endsWith('crcosmeticsgh.com') ||
+      parsed.hostname.endsWith('vercel.app') ||
+      parsed.hostname === 'localhost'
+    );
+  } catch {
+    return false;
+  }
+}
 
 function createWindow() {
   const window = new BrowserWindow({
@@ -31,21 +45,66 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
+
   window.loadURL(POS_URL);
+
   window.webContents.on('will-navigate', (event, url) => {
-    if (url.startsWith(LIVE_ORIGIN) && new URL(url).pathname !== '/pos') {
+    if (isAppDomain(url)) {
+      try {
+        const parsed = new URL(url);
+        if (!parsed.pathname.startsWith('/pos') && !parsed.pathname.startsWith('/admin')) {
+          event.preventDefault();
+          void window.loadURL(POS_URL);
+        }
+      } catch {}
+    } else {
       event.preventDefault();
-      void window.loadURL(POS_URL);
+      void shell.openExternal(url);
     }
   });
+
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(LIVE_ORIGIN) && new URL(url).pathname === '/pos') return { action: 'allow' };
-    if (url.startsWith(LIVE_ORIGIN)) {
+    if (isAppDomain(url)) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.pathname.startsWith('/pos') || parsed.pathname.startsWith('/admin')) {
+          return { action: 'allow' };
+        }
+      } catch {}
       void window.loadURL(POS_URL);
       return { action: 'deny' };
     }
     void shell.openExternal(url);
     return { action: 'deny' };
+  });
+
+  window.webContents.on('did-fail-load', (_event, errorCode) => {
+    if (errorCode === -3) return;
+    const offlineHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CR Cosmetics POS</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #faf6f0; color: #201719; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #fff; padding: 2.5rem; border-radius: 1.25rem; box-shadow: 0 10px 30px rgba(0,0,0,0.06); text-align: center; max-width: 440px; border: 1px solid #ebdcd5; width: 100%; }
+    .badge { display: inline-block; background: #fdf2e9; color: #a85e35; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+    h1 { font-size: 1.35rem; margin: 0 0 0.5rem; font-weight: 800; color: #201719; }
+    p { font-size: 0.9rem; color: #6e6462; line-height: 1.5; margin: 0 0 1.5rem; }
+    button { background: #24191b; color: #fff; border: 0; padding: 0.75rem 1.75rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+    button:hover { background: #b9774c; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Connection Required</div>
+    <h1>Cannot Connect to POS Server</h1>
+    <p>Please check your internet connection or Wi-Fi network and try again.</p>
+    <button onclick="window.location.href = '${POS_URL}'">Retry Connection</button>
+  </div>
+</body>
+</html>`;
+    window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(offlineHtml)}`);
   });
 }
 
