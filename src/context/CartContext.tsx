@@ -59,6 +59,17 @@ const readSavedCart = (): SavedCart => {
   return { items: [], promoCode: '', discountAmount: 0, hasFreeShippingCoupon: false, selectedSamples: ['Baobab Barrier Crème (5ml Sample)'] };
 };
 
+const isWholesaleBuyer = (): boolean => {
+  try {
+    const saved = localStorage.getItem('cr_user_profile');
+    if (saved) {
+      const u = JSON.parse(saved);
+      return Boolean(u.isWholesale);
+    }
+  } catch {}
+  return false;
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { products, storeSettings, validatePromoCode } = useStore();
   const savedCart = React.useRef(readSavedCart());
@@ -85,10 +96,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedSamples: string[];
       }>('/cart');
       const items = Array.isArray(data.items) ? data.items : [];
+      const wholesaleUser = isWholesaleBuyer();
       const hydratedItems = items.flatMap((item: CartItem & { productId?: string }) => {
-        if (item.product) return [item];
-        const product = products.find(candidate => candidate.id === item.productId);
-        return product ? [{ ...item, product }] : [];
+        const baseProd = item.product || products.find(candidate => candidate.id === item.productId);
+        if (!baseProd) return [];
+        const variant = item.selectedVariant;
+        const price = wholesaleUser
+          ? (variant?.wholesalePrice != null
+              ? Number(variant.wholesalePrice)
+              : (baseProd.wholesalePrice != null
+                  ? Number(baseProd.wholesalePrice)
+                  : Number(variant?.price ?? baseProd.price)))
+          : Number(variant?.price ?? baseProd.price);
+
+        return [{
+          ...item,
+          product: { ...baseProd, price },
+          selectedVariant: variant ? { ...variant, price } : undefined,
+        }];
       });
       if (hydratedItems.length > 0 || items.length === 0) setCart(hydratedItems);
       setPromoCode(data.promoCode || '');
@@ -148,6 +173,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = async (product: Product, quantity = 1, selectedOption?: string, selectedVariant?: ProductVariant) => {
     const availableStock = selectedVariant?.stockCount ?? product.stockCount;
     if (!(selectedVariant?.inStock ?? product.inStock) || availableStock <= 0) return;
+
+    const wholesaleUser = isWholesaleBuyer();
+    const effectivePrice = selectedVariant
+      ? (wholesaleUser && selectedVariant.wholesalePrice != null
+          ? Number(selectedVariant.wholesalePrice)
+          : (wholesaleUser && product.wholesalePrice != null
+              ? Number(product.wholesalePrice)
+              : Number(selectedVariant.price)))
+      : (wholesaleUser && product.wholesalePrice != null
+          ? Number(product.wholesalePrice)
+          : Number(product.price));
+
     setCart(prev => {
       const existingIndex = prev.findIndex(item => item.product.id === product.id && item.selectedVariant?.id === selectedVariant?.id);
       if (existingIndex > -1) {
@@ -155,7 +192,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updated[existingIndex].quantity = Math.min(availableStock, updated[existingIndex].quantity + quantity);
         return updated;
       }
-      return [...prev, { product: selectedVariant ? { ...product, price: selectedVariant.price, originalPrice: selectedVariant.originalPrice, inStock: selectedVariant.inStock, stockCount: availableStock } : product, quantity: Math.min(availableStock, quantity), selectedOption, selectedVariant }];
+      return [
+        ...prev,
+        {
+          product: selectedVariant
+            ? { ...product, price: effectivePrice, originalPrice: selectedVariant.originalPrice, inStock: selectedVariant.inStock, stockCount: availableStock }
+            : { ...product, price: effectivePrice },
+          quantity: Math.min(availableStock, quantity),
+          selectedOption,
+          selectedVariant: selectedVariant ? { ...selectedVariant, price: effectivePrice } : undefined,
+        },
+      ];
     });
     setIsCartOpen(true);
   };

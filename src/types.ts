@@ -188,6 +188,7 @@ export interface ProductVariant {
   name: string; // e.g. "30ml", "100ml", "5kg", "10kg"
   options?: Record<string, string>;
   price: number;
+  wholesalePrice?: number;
   originalPrice?: number;
   image?: string;
   inStock: boolean;
@@ -214,7 +215,8 @@ export interface Product {
   department: DepartmentType;
   category: CategoryType;
   categoryLabel: string;
-  price: number; // in GHS
+  price: number; // in GHS (retail price)
+  wholesalePrice?: number; // optional wholesale price in GHS
   deliveryPrice?: number;
   originalPrice?: number;
   discountBadge?: string; // e.g. "-10%"
@@ -341,6 +343,7 @@ export interface UserProfile {
   orders: Order[];
   savedItemIds: string[];
   loyaltyPoints?: number;
+  isWholesale?: boolean;
   skinProfile?: SkinProfile;
   preferredPayment?: PreferredPayment;
   isActive?: boolean;
@@ -382,6 +385,7 @@ export interface Customer {
   lastOrderDate?: string;
   segment: 'High Value' | 'Returning' | 'New' | 'Inactive';
   status: 'Active' | 'Blocked';
+  isWholesale?: boolean;
   addresses: ShippingAddress[];
   notes?: string;
   createdAt: string;

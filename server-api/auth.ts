@@ -29,6 +29,7 @@ const paystackInitializeSchema = z.object({
   items: z.array(z.object({
     productId: z.string(),
     price: z.number(),
+    variantId: z.string().optional(),
   })).optional(),
 });
 function stripPassword(user: typeof users.$inferSelect) {
@@ -201,15 +202,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const productIds = parsed.data.items.map(i => i.productId);
           const productRows = await db.select().from(products).where(inArray(products.id, productIds));
           const productMap = new Map(productRows.map(p => [p.id, p]));
+
+          // Check if this customer is a wholesale buyer
+          const [authUser] = await db.select({ isWholesale: users.isWholesale })
+            .from(users).where(eq(users.id, auth.sub)).limit(1);
+          const isWholesaleUser = authUser?.isWholesale ?? false;
+
           for (const item of parsed.data.items) {
             const prod = productMap.get(item.productId);
             if (!prod) {
               return res.status(400).json({ error: `Product no longer exists: ${item.productId}. Please refresh your cart.` });
             }
-            const dbPrice = Number(prod.price);
-            if (Math.abs(item.price - dbPrice) > 0.01) {
+            const variant = item.variantId ? prod.variants?.find(v => v.id === item.variantId) : undefined;
+            const retailPrice = Number(variant?.price ?? prod.price);
+            const rawWholesale = variant?.wholesalePrice != null ? Number(variant.wholesalePrice) : (prod.wholesalePrice ? Number(prod.wholesalePrice) : null);
+            // Accept either retail or, for wholesale users, the wholesale price
+            const validPrice = isWholesaleUser && rawWholesale !== null ? rawWholesale : retailPrice;
+            if (Math.abs(item.price - validPrice) > 0.01) {
               return res.status(400).json({
-                error: `Cannot start payment: The price for "${prod.name}" in the store catalog is GHS ${dbPrice.toFixed(2)}, but your cart has GHS ${item.price.toFixed(2)}. Please refresh your cart before proceeding to checkout.`
+                error: `Cannot start payment: The price for "${prod.name}" in the store catalog is GHS ${validPrice.toFixed(2)}, but your cart has GHS ${item.price.toFixed(2)}. Please refresh your cart before proceeding to checkout.`
               });
             }
           }

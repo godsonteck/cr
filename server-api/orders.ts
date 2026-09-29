@@ -266,6 +266,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
+      // Check if buyer has wholesale pricing unlocked
+      const buyerId = isPosOrder ? (parsed.data.userId || null) : (auth?.sub || null);
+      let isWholesaleBuyer = false;
+      if (buyerId) {
+        const [buyerRecord] = await db.select({ isWholesale: users.isWholesale }).from(users).where(eq(users.id, buyerId)).limit(1);
+        isWholesaleBuyer = Boolean(buyerRecord?.isWholesale);
+      }
+
       const verifiedItems = parsed.data.items.map((item) => {
         const product = productMap.get(item.product.id)!;
         const variants = product.variants || [];
@@ -275,8 +283,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const stockKey = selectedVariant ? `${product.id}:${selectedVariant.id}` : product.id;
         const quantity = (selectedVariant ? variantQuantities : quantities).get(stockKey) || 0;
         (selectedVariant ? variantQuantities : quantities).set(stockKey, quantity + item.quantity);
-        // Use DB price (flash deal prices are re-applied inside the transaction)
-        const price = Number(selectedVariant?.price ?? product.price);
+
+        const retailPrice = Number(selectedVariant?.price ?? product.price);
+        const rawWholesale = selectedVariant?.wholesalePrice != null
+          ? Number(selectedVariant.wholesalePrice)
+          : (product.wholesalePrice != null ? Number(product.wholesalePrice) : null);
+
+        // Wholesale price applies if customer is marked wholesale OR if cashier applied wholesale price in POS
+        const isWholesaleAllowed = isWholesaleBuyer || (isPosOrder && rawWholesale !== null && Math.abs(item.product.price - rawWholesale) <= 0.01);
+        const price = (isWholesaleAllowed && rawWholesale !== null) ? rawWholesale : retailPrice;
+
         return {
           ...item,
           product: {
@@ -461,10 +477,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const selectedVariant = item.selectedVariant?.id
             ? variants.find(v => v.id === item.selectedVariant?.id)
             : undefined;
-          const basePrice = Number(selectedVariant?.price ?? product.price);
-          const price = activeDeal?.productIds?.includes(product.id)
+
+          const retailPrice = Number(selectedVariant?.price ?? product.price);
+          const rawWholesale = selectedVariant?.wholesalePrice != null
+            ? Number(selectedVariant.wholesalePrice)
+            : (product.wholesalePrice != null ? Number(product.wholesalePrice) : null);
+
+          const isWholesaleAllowed = isWholesaleBuyer || (isPosOrder && rawWholesale !== null && Math.abs(item.product.price - rawWholesale) <= 0.01);
+          const basePrice = (isWholesaleAllowed && rawWholesale !== null) ? rawWholesale : retailPrice;
+          const price = (!isWholesaleAllowed && activeDeal?.productIds?.includes(product.id))
             ? Math.max(0.01, basePrice * (1 - activeDeal.discountPercentage / 100))
             : basePrice;
+
           return {
             ...item,
             product: {

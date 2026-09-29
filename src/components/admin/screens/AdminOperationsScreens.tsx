@@ -961,6 +961,7 @@ function LegacyAdminCustomersScreen() {
             if (u.savedAddresses && u.savedAddresses.length > 0) {
               existing.addresses = [...existing.addresses, ...u.savedAddresses];
             }
+            existing.isWholesale = u.isWholesale ?? false;
           } else {
             const id = u.id || 'cust-' + Date.now();
             const isBlocked = u.isActive === false || localStorage.getItem(`cr_customer_blocked_${id}`) === 'true';
@@ -974,6 +975,7 @@ function LegacyAdminCustomersScreen() {
               totalSpent: u.totalSpent || 0,
               segment: u.segment || 'New',
               status: isBlocked ? 'Blocked' : 'Active',
+              isWholesale: u.isWholesale ?? false,
               addresses: u.savedAddresses || [],
               notes: localStorage.getItem(`cr_customer_notes_${id}`) || '',
               createdAt: u.createdAt || new Date().toISOString(),
@@ -1038,6 +1040,23 @@ function LegacyAdminCustomersScreen() {
     showAlert('Customer notes saved', 'success');
   };
 
+  const handleToggleWholesale = async (customerId: string, isWholesale: boolean) => {
+    try {
+      const adminToken = localStorage.getItem('admin_auth_token');
+      await api.patch(`/users/${customerId}`, { isWholesale }, adminToken || undefined);
+      setCustomers(prev =>
+        prev.map(c => (c.id === customerId ? { ...c, isWholesale } : c))
+      );
+      if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer(prev => (prev ? { ...prev, isWholesale } : null));
+      }
+      showAlert(isWholesale ? 'Customer set to wholesale pricing' : 'Customer set to retail pricing', 'success');
+    } catch {
+      showAlert('Could not update wholesale status. Please try again.', 'error');
+      throw new Error('Failed to update wholesale status');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ScreenHeader
@@ -1094,6 +1113,11 @@ function LegacyAdminCustomersScreen() {
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate font-bold text-stone-900 dark:text-stone-100">{customer.fullName}</p>
                         <span className="rounded-full bg-[#F2E3D7]/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8A5738] dark:bg-[#3d2a22] dark:text-[#E8B792]">{customer.segment}</span>
+                        {customer.isWholesale && (
+                          <span className="rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                            Wholesale
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400">{customer.email || 'No email recorded'}</p>
                       <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-600">Joined {new Date(customer.createdAt).toLocaleDateString()}</p>
@@ -1144,6 +1168,7 @@ function LegacyAdminCustomersScreen() {
         onClose={() => setSelectedCustomer(null)}
         orders={store.orders}
         onSaveCustomerNotes={handleSaveNotes}
+        onToggleWholesale={handleToggleWholesale}
       />
     </div>
   );

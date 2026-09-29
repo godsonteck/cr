@@ -274,9 +274,16 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 mt-2 mb-3">
-                    <p className="font-bold text-stone-900 dark:text-stone-100 text-sm">
-                      GHS {Number(product.price || 0).toFixed(2)}
-                    </p>
+                    <div>
+                      <p className="font-bold text-stone-900 dark:text-stone-100 text-sm">
+                        GHS {Number(product.price || 0).toFixed(2)}
+                      </p>
+                      {product.wholesalePrice != null && (
+                        <p className="text-[11px] font-semibold text-[#8A5738] dark:text-[#E8B792]">
+                          WS: GHS {Number(product.wholesalePrice).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${stockBadge(product.stockCount || 0)}`}>
                       {product.stockCount || 0} units
                     </span>

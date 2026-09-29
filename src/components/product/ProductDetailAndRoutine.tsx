@@ -343,10 +343,20 @@ export const ProductDetailPage: React.FC = () => {
         : (effectiveReviewCount > 0 ? (Number(product.rating) || 5.0) : 0));
 
   const activeVariant = selectedVariant;
-  const activeFlashDeal = flashDeals.find(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now() && deal.productIds?.includes(product.id));
-  const baseDisplayPrice = activeVariant?.price ?? product.price;
+  const isWholesaleUser = Boolean(user?.isWholesale);
+  const variantWholesale = activeVariant?.wholesalePrice != null ? Number(activeVariant.wholesalePrice) : null;
+  const productWholesale = product.wholesalePrice != null ? Number(product.wholesalePrice) : null;
+  const applicableWholesale = variantWholesale ?? (activeVariant ? null : productWholesale);
+  const isWholesaleApplied = isWholesaleUser && applicableWholesale !== null;
+
+  const retailBasePrice = Number(activeVariant?.price ?? product.price);
+  const activeFlashDeal = !isWholesaleApplied
+    ? flashDeals.find(deal => deal.isActive && new Date(deal.expiresAt).getTime() > Date.now() && deal.productIds?.includes(product.id))
+    : undefined;
+
+  const baseDisplayPrice = isWholesaleApplied ? applicableWholesale : retailBasePrice;
   const displayPrice = activeFlashDeal ? Math.max(0.01, baseDisplayPrice * (1 - activeFlashDeal.discountPercentage / 100)) : baseDisplayPrice;
-  const displayOriginalPrice = activeFlashDeal ? baseDisplayPrice : product.originalPrice;
+  const displayOriginalPrice = isWholesaleApplied ? retailBasePrice : (activeFlashDeal ? baseDisplayPrice : product.originalPrice);
   const discountPct = displayOriginalPrice ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) : (activeFlashDeal ? activeFlashDeal.discountPercentage : 0);
   const allOptionsSelected = !hasOptions || product.options!.every(option => Boolean(selectedOptionValues[option.name]));
   const requiresVariation = Boolean(product.variants?.length);
@@ -358,12 +368,14 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!canPurchase) return;
-    addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, activeVariant);
+    const variantToPass = activeVariant ? (isWholesaleApplied ? { ...activeVariant, price: displayPrice } : activeVariant) : undefined;
+    addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, variantToPass);
   };
 
   const handleBuyNow = async () => {
     if (!canPurchase) return;
-    await addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, activeVariant);
+    const variantToPass = activeVariant ? (isWholesaleApplied ? { ...activeVariant, price: displayPrice } : activeVariant) : undefined;
+    await addToCart({ ...product, price: displayPrice, originalPrice: displayOriginalPrice, discountBadge: activeFlashDeal ? `-${activeFlashDeal.discountPercentage}%` : product.discountBadge }, quantity, activeVariant?.name, variantToPass);
     navigate('/checkout');
   };
 
@@ -517,17 +529,33 @@ export const ProductDetailPage: React.FC = () => {
                       <span className="text-3xl font-black text-[#FD384F]">
                         GH₵{displayPrice.toFixed(2)}
                       </span>
-                      {displayOriginalPrice && (
+                      {isWholesaleApplied && (
+                        <span className="inline-flex items-center gap-1 rounded-sm bg-[#B27A52]/15 px-2 py-0.5 text-xs font-bold text-[#8A5738] dark:text-[#E8B792] border border-[#B27A52]/30">
+                          <Tag className="h-3 w-3" />
+                          Wholesale Price
+                        </span>
+                      )}
+                      {isWholesaleApplied && (
+                        <span className="text-xs text-stone-400 line-through">
+                          Retail GH₵{retailBasePrice.toFixed(2)}
+                        </span>
+                      )}
+                      {!isWholesaleApplied && displayOriginalPrice && (
                         <span className="inline-flex items-center rounded-xs bg-[#FD384F]/10 px-1.5 py-0.5 text-xs font-bold text-[#FD384F]">
                           Save GH₵{(displayOriginalPrice - displayPrice).toFixed(2)}
                         </span>
                       )}
-                      {displayOriginalPrice && (
+                      {!isWholesaleApplied && displayOriginalPrice && (
                         <span className="text-xs text-stone-400 line-through">
                           GH₵{displayOriginalPrice.toFixed(2)}
                         </span>
                       )}
                     </div>
+                    {!isWholesaleUser && (product.wholesalePrice != null || activeVariant?.wholesalePrice != null) && (
+                      <p className="text-[11px] font-semibold text-[#8A5738] dark:text-[#E8B792]">
+                        Wholesale pricing available for verified wholesale buyers.
+                      </p>
+                    )}
 
                     {storeSettings.productWholesaleMessage && <div className="text-[11px] text-[#D9381E] flex items-center gap-1 font-semibold">
                       <Tag className="h-3 w-3" />

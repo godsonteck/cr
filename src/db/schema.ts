@@ -79,6 +79,7 @@ export const products = pgTable('products', {
   category: categoryTypeEnum('category').notNull(),
   categoryLabel: varchar('category_label', { length: 100 }).notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  wholesalePrice: decimal('wholesale_price', { precision: 10, scale: 2 }),
   deliveryPrice: decimal('delivery_price', { precision: 10, scale: 2 }),
   originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
   discountBadge: varchar('discount_badge', { length: 20 }),
@@ -108,6 +109,7 @@ export const products = pgTable('products', {
     name: string;
     options?: Record<string, string>;
     price: number;
+    wholesalePrice?: number;
     originalPrice?: number;
     image?: string;
     inStock: boolean;
@@ -170,6 +172,7 @@ export const users = pgTable('users', {
   }>>().default([]),
   savedItemIds: jsonb('saved_item_ids').$type<string[]>().default([]),
   loyaltyPoints: integer('loyalty_points').notNull().default(0),
+  isWholesale: boolean('is_wholesale').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
   /** Admin-written notes about this customer. Auto-migrated on first use. */
   adminNotes: text('admin_notes'),

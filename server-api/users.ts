@@ -45,6 +45,8 @@ const userProfileUpdateSchema = z.object({
   })).optional(),
   savedItemIds: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
+  /** Admin-only: mark this customer as a wholesale buyer to unlock wholesale pricing */
+  isWholesale: z.boolean().optional(),
   /** Admin-only: notes about this customer stored in the DB */
   adminNotes: z.string().max(2000).nullable().optional(),
 });
@@ -84,6 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           savedAddresses: users.savedAddresses,
           savedItemIds: users.savedItemIds,
           loyaltyPoints: users.loyaltyPoints,
+          isWholesale: users.isWholesale,
           isActive: users.isActive,
           adminNotes: users.adminNotes,
           createdAt: users.createdAt,
@@ -237,6 +240,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Only admins can modify account status' });
         }
         updates.isActive = parsed.data.isActive;
+      }
+
+      // Only admins may toggle wholesale status
+      if (parsed.data.isWholesale !== undefined) {
+        if (auth.role !== 'admin') {
+          return res.status(403).json({ error: 'Only admins can modify wholesale status' });
+        }
+        updates.isWholesale = parsed.data.isWholesale;
       }
 
       const [updated] = await db.update(users)

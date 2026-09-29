@@ -35,7 +35,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const { showToast } = useToast();
   const [name, setName] = useState(''); const [department, setDepartment] = useState<DepartmentType>('beauty');
   const [brand, setBrand] = useState(''); const [newBrandInput, setNewBrandInput] = useState(''); const [category, setCategory] = useState<CategoryType>('skincare');
-  const [categoryLabel, setCategoryLabel] = useState(''); const [price, setPrice] = useState(0); const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(); const [originalPrice, setOriginalPrice] = useState<number | undefined>();
+  const [categoryLabel, setCategoryLabel] = useState(''); const [price, setPrice] = useState(0); const [wholesalePrice, setWholesalePrice] = useState<number | undefined>(); const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(); const [originalPrice, setOriginalPrice] = useState<number | undefined>();
   const [catalogOpen, setCatalogOpen] = useState(false); const [newBrandName, setNewBrandName] = useState(''); const [newCategoryId, setNewCategoryId] = useState(''); const [newCategoryName, setNewCategoryName] = useState(''); const [newCategoryImage, setNewCategoryImage] = useState('');
   const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [barcode, setBarcode] = useState(''); const [serialNumber, setSerialNumber] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
@@ -46,9 +46,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (!isOpen) return;
     if (productToEdit) {
       const product = productToEdit;
-      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
+      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setWholesalePrice(product.wholesalePrice); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
     } else {
-      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(0); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
+      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setWholesalePrice(undefined); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(0); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
     }
   }, [isOpen, productToEdit, brands]);
 
@@ -199,6 +199,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       category,
       categoryLabel: categoryLabel.trim() || 'Retail Item',
       price,
+      wholesalePrice: wholesalePrice || undefined,
       ...(deliveryPrice === undefined ? {} : { deliveryPrice }),
       originalPrice: originalPrice || undefined,
       discountBadge: discountBadge.trim() || undefined,
@@ -554,10 +555,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
               </select>
             </label>
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <label className="font-bold text-stone-800">
               Old price <span className="font-normal text-stone-400">(optional)</span>
               <input type="number" min="0" step="0.01" value={originalPrice || ''} onChange={event => setOriginalPrice(event.target.value ? Number(event.target.value) : undefined)} placeholder="Show a discount" className={`${fieldClass} font-normal`} />
+            </label>
+            <label className="font-bold text-stone-800">
+              Wholesale price <span className="font-normal text-stone-400">(optional)</span>
+              <input type="number" min="0" step="0.01" value={wholesalePrice || ''} onChange={event => setWholesalePrice(event.target.value ? Number(event.target.value) : undefined)} placeholder="For wholesale buyers" className={`${fieldClass} font-normal`} />
+              <span className="mt-1 block text-[11px] font-normal text-stone-500">Shown instead of retail price for customers marked as &quot;wholesale&quot;.</span>
             </label>
             <label className="font-bold text-stone-800">
               Delivery price <span className="font-normal text-stone-400">(optional)</span>
@@ -656,7 +662,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                   {variants.map((v, vIdx) => (
                     <div
                       key={v.id || vIdx}
-                      className="grid grid-cols-1 sm:grid-cols-[auto_1fr_120px_90px_auto] items-center gap-3 rounded-xl border border-stone-200 bg-white p-3 shadow-xs"
+                      className="grid grid-cols-1 sm:grid-cols-[auto_1fr_100px_100px_80px_auto] items-center gap-3 rounded-xl border border-stone-200 bg-white p-3 shadow-xs"
                     >
                       {/* Variant Photo & Image Selector */}
                       <div className="relative group shrink-0">
@@ -745,7 +751,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
 
                       {/* Variant Price */}
                       <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">Price (GHS)</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">Retail (GHS)</label>
                         <input
                           type="number"
                           min="0"
@@ -754,6 +760,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                           onChange={(e) => {
                             const val = Number(e.target.value) || 0;
                             setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, price: val } : item));
+                          }}
+                          className="mt-1 w-full rounded-md border border-stone-300 px-2.5 py-1.5 text-xs font-bold text-stone-900 focus:border-[#B27A52] outline-none"
+                        />
+                      </div>
+
+                      {/* Variant Wholesale Price */}
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">Wholesale (GHS)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={v.wholesalePrice ?? ''}
+                          placeholder="Optional"
+                          onChange={(e) => {
+                            const val = e.target.value ? Number(e.target.value) : undefined;
+                            setVariants(prev => prev.map((item, idx) => idx === vIdx ? { ...item, wholesalePrice: val } : item));
                           }}
                           className="mt-1 w-full rounded-md border border-stone-300 px-2.5 py-1.5 text-xs font-bold text-stone-900 focus:border-[#B27A52] outline-none"
                         />

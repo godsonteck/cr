@@ -40,6 +40,9 @@ const variantItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   price: z.union([z.number(), z.string()]).transform(v => Number(v) || 0),
+  wholesalePrice: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
+    v == null ? undefined : Number(v)
+  ),
   originalPrice: z.union([z.number(), z.string()]).optional().nullable().transform(v =>
     v == null ? undefined : Number(v)
   ),
@@ -71,6 +74,9 @@ const productCreateSchema = z.object({
   category: z.string().min(1),
   categoryLabel: z.string().min(1).max(100),
   price: z.union([z.string(), z.number()]).transform(v => String(v)),
+  wholesalePrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(Number(v))
+  ),
   deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
     v == null ? null : String(Number(v))
   ),
@@ -111,6 +117,9 @@ const productUpdateSchema = z.object({
   categoryLabel: z.string().min(1).max(100).optional(),
   price: z.union([z.string(), z.number()]).optional().transform(v =>
     v == null ? undefined : String(v)
+  ),
+  wholesalePrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
+    v == null ? null : String(Number(v))
   ),
   deliveryPrice: z.union([z.string(), z.number()]).optional().nullable().transform(v =>
     v == null ? null : String(Number(v))
@@ -432,12 +441,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid product data', details: parsed.error.flatten() });
       }
 
-      const { id: rawId, deliveryPrice, ...rest } = parsed.data;
+      const { id: rawId, deliveryPrice, wholesalePrice, ...rest } = parsed.data;
       const productData = {
         ...rest,
         id: rawId || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        // deliveryPrice is already a string | null from the Zod transform
+        // deliveryPrice and wholesalePrice are already strings | null from Zod transforms
         deliveryPrice: deliveryPrice ?? null,
+        wholesalePrice: wholesalePrice ?? null,
       };
 
       // A product with no available inventory must never be exposed to shoppers.
@@ -476,7 +486,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }).from(products).where(eq(products.id, id)).limit(1);
       if (!existing) return res.status(404).json({ error: 'Product not found' });
 
-      const { deliveryPrice, ...rest } = parsed.data;
+      const { deliveryPrice, wholesalePrice, ...rest } = parsed.data;
       let mediaSafeRest = rest;
       try {
         mediaSafeRest = await migrateLegacyProductMedia(rest);
@@ -486,9 +496,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const updateData: Record<string, unknown> = {
         ...mediaSafeRest,
-        // deliveryPrice is already string | null from the Zod transform;
-        // only include it if the field was actually sent in the request body
+        // deliveryPrice and wholesalePrice are already string | null from Zod transforms;
+        // only include them if the fields were actually sent in the request body
         ...(deliveryPrice !== undefined ? { deliveryPrice: deliveryPrice ?? null } : {}),
+        ...(wholesalePrice !== undefined ? { wholesalePrice: wholesalePrice ?? null } : {}),
         updatedAt: new Date(),
       };
 

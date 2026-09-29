@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { Heart, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { isRenderableProductImage } from '../../lib/productImages';
 
@@ -24,11 +25,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart, cartItems, updateQuantity } = useCart();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
+  const isWholesaleUser = user?.isWholesale ?? false;
   const isFavorited = isInWishlist(product.id);
   const effectiveMode = mode === 'auto' ? (product.department === 'groceries' ? 'grocery' : 'beauty') : mode;
-  const price = Number(product.price || 0);
+  const retailPrice = Number(product.price || 0);
+  const wholesalePriceVal = product.wholesalePrice != null ? Number(product.wholesalePrice) : null;
+  // The price shown and added to cart for this tier
+  const price = (isWholesaleUser && wholesalePriceVal !== null) ? wholesalePriceVal : retailPrice;
   const originalPrice = product.originalPrice == null ? undefined : Number(product.originalPrice);
+  const showWholesaleBadge = isWholesaleUser && wholesalePriceVal !== null;
   const parentId = product.listingParentId || product.id;
   const listingVariant = product.listingVariantId ? product.variants?.find(variant => variant.id === product.listingVariantId) : undefined;
   const cartItem = cartItems.find(item => item.product.id === parentId && (listingVariant ? item.selectedVariant?.id === listingVariant.id : !item.selectedOption && !item.selectedVariant));
@@ -41,7 +48,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       navigate(`/product/${parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
       return;
     }
-    addToCart({ ...product, id: parentId }, 1, undefined, listingVariant);
+    // Use the correct price tier so cart totals and checkout reflect the right amount
+    const cartProduct = showWholesaleBadge ? { ...product, id: parentId, price } : { ...product, id: parentId };
+    addToCart(cartProduct, 1, undefined, listingVariant);
     showToast(`Added ${product.name} to cart`);
   };
 
@@ -121,7 +130,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <span className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
                   GH₵{price.toFixed(2)}
                 </span>
-                {originalPrice && originalPrice > price && (
+                {showWholesaleBadge && (
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)]">
+                    Wholesale
+                  </span>
+                )}
+                {!showWholesaleBadge && originalPrice && originalPrice > price && (
                   <span className="text-[10px] text-[var(--text-subtle)] line-through">
                     GH₵{originalPrice.toFixed(2)}
                   </span>

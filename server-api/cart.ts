@@ -15,6 +15,7 @@ const cartUpdateSchema = z.object({
       id: z.string(),
       name: z.string(),
       price: z.number(),
+      wholesalePrice: z.number().optional().nullable(),
       originalPrice: z.number().optional(),
       image: z.string().optional(),
       inStock: z.boolean(),

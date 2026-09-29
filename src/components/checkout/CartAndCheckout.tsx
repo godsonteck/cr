@@ -470,6 +470,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
         items: orderPayload.items.map(item => ({
           productId: item.product.id,
           price: item.product.price,
+          variantId: item.selectedVariant?.id,
         })),
       }, customerToken);
       window.location.assign(result.checkoutUrl);

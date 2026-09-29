@@ -9,6 +9,7 @@ interface CustomerDetailDrawerProps {
   onClose: () => void;
   orders: Order[];
   onSaveCustomerNotes?: (customerId: string, notes: string) => void;
+  onToggleWholesale?: (customerId: string, isWholesale: boolean) => void;
 }
 
 export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
@@ -17,9 +18,17 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   onClose,
   orders,
   onSaveCustomerNotes,
+  onToggleWholesale,
 }) => {
   const { storeSettings } = useStore();
   const [notes, setNotes] = useState(customer?.notes || '');
+  const [isWholesale, setIsWholesale] = useState(customer?.isWholesale || false);
+  const [savingWholesale, setSavingWholesale] = useState(false);
+
+  React.useEffect(() => {
+    setNotes(customer?.notes || '');
+    setIsWholesale(customer?.isWholesale || false);
+  }, [customer]);
 
   if (!isOpen || !customer) return null;
 
@@ -137,6 +146,45 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
               ))}
             </div>
           )}
+
+          {/* Wholesale Status */}
+          <div className="p-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] space-y-3">
+            <h4 className="font-bold text-stone-900 dark:text-stone-100">Pricing Tier</h4>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-stone-700 dark:text-stone-300">Wholesale Buyer</p>
+                <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                  {isWholesale ? 'This customer sees wholesale prices' : 'This customer sees retail prices'}
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={savingWholesale || !onToggleWholesale}
+                onClick={async () => {
+                  if (!customer || !onToggleWholesale) return;
+                  setSavingWholesale(true);
+                  try {
+                    const newVal = !isWholesale;
+                    await onToggleWholesale(customer.id, newVal);
+                    setIsWholesale(newVal);
+                  } finally {
+                    setSavingWholesale(false);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                  isWholesale ? 'bg-[#B27A52]' : 'bg-stone-300 dark:bg-stone-600'
+                } ${savingWholesale || !onToggleWholesale ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                aria-checked={isWholesale}
+                role="switch"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                    isWholesale ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
 
           {/* Operational Notes */}
           <div className="p-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] space-y-3">
