@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
+import logoImg from '../../assets/logo-optimized.jpeg';
 
 interface SEOProps {
   title?: string;
@@ -18,7 +19,7 @@ interface SEOProps {
 
 const defaultTitle = 'CR COSMETICS AND ESSENTIALS | Beauty · Care · Essentials';
 const defaultDescription = 'CR COSMETICS AND ESSENTIALS: Authentic skincare, makeup, designer fragrances, and everyday essentials.';
-const defaultImage = '/logo.jpeg';
+const defaultImage = logoImg;
 
 const pageMeta: Record<string, { title: string; description: string }> = {
   '/': { title: 'CR COSMETICS AND ESSENTIALS | Beauty and everyday care', description: 'Shop curated skincare, beauty products, fragrances, and everyday essentials from CR COSMETICS AND ESSENTIALS.' },

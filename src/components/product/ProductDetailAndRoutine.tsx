@@ -42,6 +42,32 @@ const COLOR_SWATCHES: Record<string, string> = {
   black: '#171717', white: '#ffffff', red: '#c94b4b', blue: '#4b78c9', green: '#4d8b63', pink: '#db83a5', brown: '#8b5e3c', nude: '#c79578', gold: '#d4af37', silver: '#b8bec8', purple: '#8056a8', orange: '#df7b35', yellow: '#e0bb3f',
 };
 
+function compressReviewPhoto(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, 1200 / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Photo could not be processed'));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      image.onerror = () => reject(new Error('Photo could not be processed'));
+      image.src = String(reader.result || '');
+    };
+    reader.onerror = () => reject(new Error('Photo could not be read'));
+    reader.readAsDataURL(file);
+  });
+}
+
 function FlashCountdown({ expiresAt }: { expiresAt: string }) {
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
@@ -107,14 +133,15 @@ export const ProductDetailPage: React.FC = () => {
   const [newReviewImages, setNewReviewImages] = useState<string[]>([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  const loadReviews = useCallback(async () => {
+  const loadReviews = useCallback(async (forceRefresh = false) => {
     if (!productId) return;
     setLoadingReviews(true);
     try {
+      const refreshQuery = forceRefresh ? `&refresh=${Date.now()}` : '';
       const data = await api.get<{
         reviews: ProductReview[];
         stats: { averageRating: number; totalReviews: number; distribution: Record<number, number> };
-      }>(`/reviews?productId=${productId}`);
+      }>(`/reviews?productId=${productId}${refreshQuery}`, null);
       if (data?.reviews) {
         setReviewsList(data.reviews);
       }
@@ -156,12 +183,12 @@ export const ProductDetailPage: React.FC = () => {
       }
     } catch {}
 
-    // Realtime polling: refresh every 12s when tab is active so other visitors' reviews appear live
+    // Refresh occasionally; approved reviews are shared-cacheable at the edge.
     const pollInterval = window.setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
         void loadReviews();
       }
-    }, 12000);
+    }, 300000);
 
     return () => {
       window.removeEventListener('cr_review_added', handleReviewEvent);
@@ -177,22 +204,20 @@ export const ProductDetailPage: React.FC = () => {
       showAlert('Maximum 4 photos per review.', 'error');
       return;
     }
-    Array.from(files).forEach((file) => {
+    const validFiles = Array.from(files).filter((file) => {
       if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
         showAlert('Please choose JPG, PNG, or WEBP images only.', 'error');
-        return;
+        return false;
       }
       if (file.size > 5 * 1024 * 1024) {
         showAlert('Photos must be under 5MB each.', 'error');
-        return;
+        return false;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const res = String(ev.target?.result || '');
-        if (res) setNewReviewImages((prev) => [...prev, res]);
-      };
-      reader.readAsDataURL(file);
+      return true;
     });
+    void Promise.all(validFiles.map(compressReviewPhoto))
+      .then(images => setNewReviewImages(previous => [...previous, ...images].slice(0, 4)))
+      .catch(() => showAlert('A photo could not be processed. Please try another image.', 'error'));
     e.target.value = '';
   };
 
@@ -235,7 +260,7 @@ export const ProductDetailPage: React.FC = () => {
       setNewReviewTitle('');
       setNewReviewComment('');
       setNewReviewImages([]);
-      await loadReviews();
+      await loadReviews(true);
       setActiveTab('reviews');
 
       // Dispatch realtime event for store and all open tabs

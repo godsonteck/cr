@@ -5,7 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
 import { HeaderNotifications } from './HeaderNotifications';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 
 export const Header: React.FC = () => {
   const location = useLocation();

@@ -5,8 +5,6 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { SEO } from './components/common/SEO';
 import { useStore } from './context/StoreContext';
 import { PageSkeleton, StorefrontSkeleton } from './components/common/LoadingStates';
-import { AdminLoginView } from './components/admin/AdminLoginView';
-import { AdminPOSWorkspace } from './components/admin/screens/AdminPOSWorkspace';
 
 // Components
 import { Header } from './components/common/Header';
@@ -35,6 +33,8 @@ const DeliveryReturnsPage = lazy(() => import('./components/common/CustomerInfoP
 const FullCartPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.FullCartPage })));
 const MultiStepCheckoutPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.MultiStepCheckoutPage })));
 const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.OrderConfirmationPage })));
+const AdminLoginView = lazy(() => import('./components/admin/AdminLoginView').then(module => ({ default: module.AdminLoginView })));
+const AdminPOSWorkspace = lazy(() => import('./components/admin/screens/AdminPOSWorkspace').then(module => ({ default: module.AdminPOSWorkspace })));
 
 // Lazy-loaded Admin Command Center
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
@@ -91,7 +91,11 @@ function AppLayout() {
     }
 
     if (!adminSession.isLoggedIn) {
-      return <AdminLoginView mode="pos" onSuccess={() => {}} />;
+      return (
+        <Suspense fallback={<PageSkeleton />}>
+          <AdminLoginView mode="pos" onSuccess={() => {}} />
+        </Suspense>
+      );
     }
 
     if (loadingAdmin) {
@@ -106,9 +110,11 @@ function AppLayout() {
     }
 
     return (
-      <div className="min-h-screen bg-[#f6f7f5] px-4 py-4 text-[#171b18] dark:bg-[#151313] dark:text-stone-100">
-        <AdminPOSWorkspace />
-      </div>
+      <Suspense fallback={<PageSkeleton />}>
+        <div className="min-h-screen bg-[#f6f7f5] px-4 py-4 text-[#171b18] dark:bg-[#151313] dark:text-stone-100">
+          <AdminPOSWorkspace />
+        </div>
+      </Suspense>
     );
   }
 

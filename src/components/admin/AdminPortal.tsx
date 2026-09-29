@@ -53,7 +53,7 @@ import { AdminReviewsScreen } from './screens/AdminReviewsScreen';
 import { AdminAnalyticsScreen, AdminCategoriesScreen } from './screens/AdminCatalogReportsScreens';
 import { AdminPOSWorkspace } from './screens/AdminPOSWorkspace';
 import { getGeneratedAdminNotifications } from './screens/AdminOperationsScreens';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 import { AdminNotification, AdminSession, Product, Order, Customer } from '../../types';
 
 type AdminTab =

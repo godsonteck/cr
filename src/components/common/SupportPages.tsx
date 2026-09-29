@@ -29,7 +29,7 @@ import {
 import { useStore } from '../../context/StoreContext';
 import { Button } from '../common/UIPrimitives';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 
 const values = [
   {

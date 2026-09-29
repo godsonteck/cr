@@ -31,7 +31,7 @@ import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { api, ApiError } from '../../../lib/api';
 import type { FlashDeal, Order, PaymentMethod, Product, ProductVariant } from '../../../types';
-import logoImg from '../../../assets/logo.jpeg';
+import logoImg from '../../../assets/logo-optimized.jpeg';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
 type PosItem = { product: Product; variant?: ProductVariant; title: string; stock: number; barcode?: string };

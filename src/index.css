@@ -380,6 +380,23 @@ html.dark .checkout-page .text-stone-600 {
   to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes toast-countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.toast-enter,
+.alert-enter {
+  animation: fadeIn 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter,
+  .alert-enter {
+    animation: none;
+  }
+}
+
 .animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-pulse-badge { animation: pulse-badge 1.5s ease-in-out infinite; }
 .animate-slide-left { animation: slide-left 15s linear infinite; }

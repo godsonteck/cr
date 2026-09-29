@@ -18,7 +18,7 @@ const getResponsiveImageSet = (image: string) => {
 
 export const HomePage: React.FC = () => {
   const { products, storeSettings, flashDeals } = useStore();
-  const publishedProducts = storefrontListings(products);
+  const publishedProducts = useMemo(() => storefrontListings(products), [products]);
   const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
   const homepageSections = storeSettings.homepageSections || {
     flashDeal: true,
@@ -58,7 +58,9 @@ export const HomePage: React.FC = () => {
       return a.index - b.index;
     }).map(item => item.product);
   }, [publishedProducts, catalogSort]);
-  const displayedCollection = fullCollection.filter(product => !hotDeals.some(hotDeal => hotDeal.id === product.id));
+  const displayedCollection = fullCollection
+    .filter(product => !hotDeals.some(hotDeal => hotDeal.id === product.id))
+    .slice(0, 12);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -135,7 +137,7 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        <section className="space-y-3 border-t border-[var(--border-color)] pt-6" aria-label="All products">
+        <section className="space-y-3 border-t border-[var(--border-color)] pt-6" aria-label="Featured products">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">

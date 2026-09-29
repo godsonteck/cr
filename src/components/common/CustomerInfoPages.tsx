@@ -42,7 +42,7 @@ export const FeedbackPage: React.FC = () => {
 
   const loadReviews = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      const response = await api.get<{ reviews: typeof reviews; stats: typeof stats }>('/reviews?public=true');
+      const response = await api.get<{ reviews: typeof reviews; stats: typeof stats }>('/reviews?public=true', null);
       if (isActive()) {
         setReviews(response.reviews || []);
         setStats(response.stats || { averageRating: 0, totalReviews: 0 });
@@ -60,7 +60,7 @@ export const FeedbackPage: React.FC = () => {
 
     const refreshTimer = window.setInterval(() => {
       if (document.visibilityState === 'visible') void loadReviews(() => active);
-    }, 15000);
+    }, 300000);
 
     let reviewChannel: BroadcastChannel | null = null;
     try {

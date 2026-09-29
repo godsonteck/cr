@@ -14,7 +14,7 @@ import {
   AdminNotification,
 } from '../types';
 import { api } from '../lib/api';
-import { PRODUCTS, CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
+import { CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
 import { isRenderableProductImage, productImageUrls } from '../lib/productImages';
 
 interface StoreContextType {
@@ -261,11 +261,11 @@ const INITIAL_SEED_ORDERS: Order[] = [
     orderNumber: 'CR-GH-9842',
     items: [
       {
-        product: PRODUCTS[0] || { id: 'the-ordinary-niacinamide', name: 'Niacinamide 10% + Zinc 1%', price: 120, brand: 'The Ordinary', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 20, rating: 5, reviewCount: 12, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        product: { id: 'the-ordinary-niacinamide', name: 'Niacinamide 10% + Zinc 1%', price: 120, brand: 'The Ordinary', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80', images: [], inStock: true, stockCount: 20, rating: 5, reviewCount: 12, category: 'skincare', categoryLabel: 'Skincare', unit: '30ml', department: 'beauty', description: '', highlights: [] },
         quantity: 2,
       },
       {
-        product: PRODUCTS[1] || { id: 'cerave-moisturizing-cream', name: 'Moisturizing Cream (Tub)', price: 210, brand: 'CeraVe', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 15, rating: 5, reviewCount: 8, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        product: { id: 'cerave-moisturizing-cream', name: 'Moisturizing Cream (Tub)', price: 210, brand: 'CeraVe', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80', images: [], inStock: true, stockCount: 15, rating: 5, reviewCount: 8, category: 'skincare', categoryLabel: 'Skincare', unit: '454g', department: 'beauty', description: '', highlights: [] },
         quantity: 1,
       }
     ],
@@ -300,11 +300,11 @@ const INITIAL_SEED_ORDERS: Order[] = [
     orderNumber: 'CR-GH-9843',
     items: [
       {
-        product: PRODUCTS[6] || { id: 'royal-umbrella-rice-5kg', name: 'Royal Umbrella Fragrant Rice (5kg)', price: 175, brand: 'Royal Umbrella', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 30, rating: 5, reviewCount: 15, category: 'rice-grains', department: 'groceries', description: '', highlights: [] },
+        product: { id: 'royal-umbrella-rice-5kg', name: 'Royal Umbrella Fragrant Rice (5kg)', price: 175, brand: 'Royal Umbrella', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80', images: [], inStock: true, stockCount: 30, rating: 5, reviewCount: 15, category: 'rice-grains', categoryLabel: 'Rice & Grains', unit: '5kg', department: 'groceries', description: '', highlights: [] },
         quantity: 2,
       },
       {
-        product: PRODUCTS[7] || { id: 'frytol-cooking-oil-3l', name: 'Frytol Pure Vegetable Oil (3L)', price: 110, brand: 'Frytol', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 25, rating: 5, reviewCount: 10, category: 'cooking-oils', department: 'groceries', description: '', highlights: [] },
+        product: { id: 'frytol-cooking-oil-3l', name: 'Frytol Pure Vegetable Oil (3L)', price: 110, brand: 'Frytol', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80', images: [], inStock: true, stockCount: 25, rating: 5, reviewCount: 10, category: 'cooking-oils', categoryLabel: 'Cooking Oils', unit: '3L', department: 'groceries', description: '', highlights: [] },
         quantity: 1,
       }
     ],
@@ -340,7 +340,7 @@ const INITIAL_SEED_ORDERS: Order[] = [
     orderNumber: 'CR-GH-9844',
     items: [
       {
-        product: PRODUCTS[2] || { id: 'cosrx-snail-mucin', name: 'Advanced Snail 96 Mucin Essence', price: 165, brand: 'COSRX', image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80', inStock: true, stockCount: 18, rating: 5, reviewCount: 22, category: 'skincare', department: 'beauty', description: '', highlights: [] },
+        product: { id: 'cosrx-snail-mucin', name: 'Advanced Snail 96 Mucin Essence', price: 165, brand: 'COSRX', image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80', images: [], inStock: true, stockCount: 18, rating: 5, reviewCount: 22, category: 'skincare', categoryLabel: 'Skincare', unit: '100ml', department: 'beauty', description: '', highlights: [] },
         quantity: 1,
       }
     ],
@@ -767,15 +767,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const refreshVisibleCatalog = () => {
-      // The admin portal owns its own 15-second operations sync. Avoid issuing
-      // a second overlapping catalog request every 12 seconds on that route.
+      // The admin portal owns its own operations sync; public catalog data changes infrequently.
       if (window.location.pathname.startsWith('/admin')) return;
       if (document.visibilityState === 'visible') {
-        void fetchProducts({ includeUnpublished: Boolean(localStorage.getItem('admin_auth_token')) });
+        void fetchProducts({ published: true });
       }
     };
 
-    const interval = window.setInterval(refreshVisibleCatalog, 12000);
+    const interval = window.setInterval(refreshVisibleCatalog, 300000);
     document.addEventListener('visibilitychange', refreshVisibleCatalog);
     return () => {
       window.clearInterval(interval);

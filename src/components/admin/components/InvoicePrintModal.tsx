@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Printer, CheckCircle } from 'lucide-react';
 import { Order, StoreSettings } from '../../../types';
-import logoImg from '../../../assets/logo.jpeg';
+import logoImg from '../../../assets/logo-optimized.jpeg';
 
 interface InvoicePrintModalProps {
   order: Order | null;

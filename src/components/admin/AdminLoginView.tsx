@@ -14,7 +14,7 @@ import {
   Moon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 
 interface AdminLoginProps {
   onSuccess: () => void;

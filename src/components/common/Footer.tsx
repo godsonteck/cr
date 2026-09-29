@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaTiktok, FaWhatsapp } from 'react-icons/fa';
 import { useStore } from '../../context/StoreContext';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 import { getWhatsAppUrl } from '../../lib/whatsapp';
 
 export const Footer: React.FC = () => {

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 interface Toast {
@@ -65,14 +64,10 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
                                'bg-[#9E5A38]';
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 24, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 30 } }}
-      exit={{ opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.22, ease: 'easeIn' } }}
+    <div
       onMouseEnter={toast.persistent ? undefined : pauseTimer}
       onMouseLeave={toast.persistent ? undefined : resumeTimer}
-      className="relative overflow-hidden pointer-events-auto flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-[#1E1915] text-[#FAF7F2] border border-[#3E342B]/80 shadow-xl"
+      className="toast-enter relative overflow-hidden pointer-events-auto flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-[#1E1915] text-[#FAF7F2] border border-[#3E342B]/80 shadow-xl"
     >
       <div className="flex items-center gap-2">
         {toast.type === 'success' && <CheckCircle2 className={`w-4 h-4 ${iconColor} shrink-0`} />}
@@ -91,17 +86,15 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
 
       {/* Countdown progress bar */}
       {!toast.persistent && (
-        <motion.div
+        <div
           className={`absolute bottom-0 left-0 h-[3px] ${barColor} origin-left`}
-          initial={{ scaleX: 1 }}
-          animate={paused ? { scaleX: undefined } : { scaleX: 0 }}
-          transition={paused ? {} : {
-            duration: toast.duration / 1000,
-            ease: 'linear',
+          style={{
+            animation: `toast-countdown ${toast.duration}ms linear forwards`,
+            animationPlayState: paused ? 'paused' : 'running',
           }}
         />
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -126,11 +119,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
       <div className="fixed bottom-4 right-3 z-[9999] flex flex-col gap-1.5 max-w-[280px] pointer-events-none sm:right-5 sm:max-w-xs">
-        <AnimatePresence mode="sync">
-          {toasts.map(toast => (
-            <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
-          ))}
-        </AnimatePresence>
+        {toasts.map(toast => (
+          <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
       </div>
     </ToastContext.Provider>
   );

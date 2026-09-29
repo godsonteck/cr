@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, Info, X, AlertTriangle } from 'lucide-react';
 
 export type AlertType = 'success' | 'error' | 'info' | 'warning';
@@ -71,17 +70,13 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <AlertContext.Provider value={{ showAlert, removeAlert }}>
       {children}
       <div className="fixed inset-x-3 bottom-6 z-50 flex max-w-md flex-col gap-3 pointer-events-none sm:inset-x-auto sm:right-6 sm:w-full">
-        <AnimatePresence>
-          {alerts.map(alert => {
-            const colors = alertColors[alert.type];
-            return (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={`pointer-events-auto p-4 rounded-lg border ${colors.bg} ${colors.border} ${colors.text} shadow-lg backdrop-blur-sm`}
-              >
+        {alerts.map(alert => {
+          const colors = alertColors[alert.type];
+          return (
+            <div
+              key={alert.id}
+              className={`alert-enter pointer-events-auto p-4 rounded-lg border ${colors.bg} ${colors.border} ${colors.text} shadow-lg backdrop-blur-sm`}
+            >
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 pt-0.5">
                     {alert.type === 'success' && <CheckCircle2 className={`w-5 h-5 ${colors.icon}`} />}
@@ -110,10 +105,9 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     </button>
                   </div>
                 </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
     </AlertContext.Provider>
   );

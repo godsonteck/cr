@@ -1,0 +1,63 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "CR COSMETICS AND ESSENTIALS CR COSMETICS & ESSENTIALS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "CR COSMETICS AND ESSENTIALS" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: CR COSMETICS
+          - generic [ref=e11]: "& ESSENTIALS"
+      - generic [ref=e12]:
+        - link "Products" [ref=e13] [cursor=pointer]:
+          - /url: /shop
+        - link "Cart" [ref=e17] [cursor=pointer]:
+          - /url: /cart
+        - button "Sign in to view notifications" [ref=e22]
+        - link "Open account or sign in" [ref=e26] [cursor=pointer]:
+          - /url: /account
+          - generic [ref=e30]: Sign In
+  - main [ref=e31]:
+    - main [ref=e33]:
+      - region "Store hero" [ref=e34]:
+        - generic [ref=e36]:
+          - heading "Beauty essentials for a better you." [level=1] [ref=e37]
+          - paragraph [ref=e38]: A considered shop for skincare, beauty, fragrance, and the everyday essentials that make life a little easier.
+          - link "Shop now" [ref=e39] [cursor=pointer]:
+            - /url: /shop
+      - region "Featured products" [ref=e42]:
+        - combobox "Sort collection" [ref=e45]:
+          - option "Featured" [selected]
+          - option "Newest first"
+          - 'option "Price: low to high"'
+          - 'option "Price: high to low"'
+          - option "Top rated"
+  - contentinfo [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - link "CR COSMETICS AND ESSENTIALS CR COSMETICS AND ESSENTIALS" [ref=e50] [cursor=pointer]:
+          - /url: /
+          - img "CR COSMETICS AND ESSENTIALS" [ref=e51]
+          - generic [ref=e52]: CR COSMETICS AND ESSENTIALS
+        - navigation "Footer links" [ref=e53]:
+          - link "About" [ref=e54] [cursor=pointer]:
+            - /url: /about
+          - link "FAQs" [ref=e55] [cursor=pointer]:
+            - /url: /faq
+          - link "Feedback" [ref=e56] [cursor=pointer]:
+            - /url: /feedback
+          - link "Contact" [ref=e57] [cursor=pointer]:
+            - /url: /contact
+          - link "Delivery & returns" [ref=e58] [cursor=pointer]:
+            - /url: /delivery-returns
+          - link "WhatsApp" [ref=e59] [cursor=pointer]:
+            - /url: https://wa.me/233592153306
+          - link "Visit CR Cosmetics and Essentials on TikTok" [ref=e62] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@cr.cosmetics.andessenti3
+            - text: TikTok
+      - generic [ref=e65]:
+        - generic [ref=e66]: © 2026 CR COSMETICS AND ESSENTIALS
+        - generic [ref=e67]:
+          - link "Terms" [ref=e68] [cursor=pointer]:
+            - /url: /terms
+          - link "Privacy" [ref=e69] [cursor=pointer]:
+            - /url: /privacy

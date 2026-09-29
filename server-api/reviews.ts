@@ -51,6 +51,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (productId && typeof productId === 'string') {
+        if (approved === undefined || approved === 'true') {
+          res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+          res.removeHeader('Pragma');
+          res.removeHeader('Expires');
+        }
         const conditions = [eq(reviews.productId, productId)];
         if (approved !== undefined) {
           conditions.push(eq(reviews.isApproved, approved === 'true'));
@@ -92,6 +97,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (query.public === 'true') {
+        res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        res.removeHeader('Pragma');
+        res.removeHeader('Expires');
         const results = await db
           .select({
             id: reviews.id,

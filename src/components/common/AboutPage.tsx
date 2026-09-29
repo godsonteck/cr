@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 
 export const AboutPage: React.FC = () => {
   const { storeSettings } = useStore();

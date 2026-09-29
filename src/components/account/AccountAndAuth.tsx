@@ -52,7 +52,7 @@ import { useAlert } from '../../context/AlertContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { Button, Badge } from '../common/UIPrimitives';
 import { ShippingAddress, Order, OrderStatus, Product, AdminNotification } from '../../types';
-import logoImg from '../../assets/logo.jpeg';
+import logoImg from '../../assets/logo-optimized.jpeg';
 import { api } from '../../lib/api';
 import { SettingsView } from './SettingsView';
 import {
