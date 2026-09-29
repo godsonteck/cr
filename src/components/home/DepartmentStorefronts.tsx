@@ -58,9 +58,11 @@ export const HomePage: React.FC = () => {
       return a.index - b.index;
     }).map(item => item.product);
   }, [publishedProducts, catalogSort]);
-  const displayedCollection = fullCollection
-    .filter(product => !hotDeals.some(hotDeal => hotDeal.id === product.id))
-    .slice(0, 12);
+  const displayedCollection = useMemo(() => {
+    const hotDealIdSet = new Set(hotDeals.map(hotDeal => hotDeal.id));
+    const remaining = fullCollection.filter(product => !hotDealIdSet.has(product.id));
+    return remaining.length > 0 ? remaining : fullCollection;
+  }, [fullCollection, hotDeals]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -137,8 +139,16 @@ export const HomePage: React.FC = () => {
           </section>
         )}
 
-        <section className="space-y-3 border-t border-[var(--border-color)] pt-6" aria-label="Featured products">
+        <section className="space-y-4 border-t border-[var(--border-color)] pt-6" aria-label="Store products">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm sm:text-base font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
+                All Products
+              </h2>
+              <p className="text-xs text-[var(--text-muted)]">
+                {displayedCollection.length} {displayedCollection.length === 1 ? 'item' : 'items'}
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
               <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
                 <option value="featured">Featured</option>
@@ -152,11 +162,6 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
             {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
           </div>
-          {fullCollection.length > displayedCollection.length && (
-            <Link to="/shop" className="mx-auto inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:bg-[var(--bg-soft)]">
-              Browse all products <ArrowRight className="ml-1.5 h-3 w-3" />
-            </Link>
-          )}
         </section>
 
       </main>

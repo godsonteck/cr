@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'node:crypto';
-import { requireAdmin } from '../server-api/_auth.js';
+import { requireAdmin } from './_auth.js';
 
 function hmacSha256(key: Buffer | string, data: string): Buffer {
   return crypto.createHmac('sha256', key).update(data, 'utf8').digest();
