@@ -140,15 +140,10 @@ export const HomePage: React.FC = () => {
         )}
 
         <section className="space-y-4 border-t border-[var(--border-color)] pt-6" aria-label="Store products">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-sm sm:text-base font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
-                All Products
-              </h2>
-              <p className="text-xs text-[var(--text-muted)]">
-                {displayedCollection.length} {displayedCollection.length === 1 ? 'item' : 'items'}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm sm:text-base font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
+              All Products
+            </h2>
             <div className="flex flex-wrap gap-2">
               <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
                 <option value="featured">Featured</option>
