@@ -17,7 +17,7 @@ const getResponsiveImageSet = (image: string) => {
 };
 
 export const HomePage: React.FC = () => {
-  const { products, storeSettings, flashDeals } = useStore();
+  const { products, storeSettings, flashDeals, loading } = useStore();
   const publishedProducts = useMemo(() => storefrontListings(products), [products]);
   const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
   const homepageSections = storeSettings.homepageSections || {
@@ -154,9 +154,25 @@ export const HomePage: React.FC = () => {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
-            {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="space-y-3 animate-pulse">
+                  <div className="aspect-square rounded-2xl bg-stone-200 dark:bg-stone-800" />
+                  <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-800" />
+                  <div className="h-4 w-1/2 rounded bg-stone-200 dark:bg-stone-800" />
+                </div>
+              ))}
+            </div>
+          ) : displayedCollection.length > 0 ? (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
+              {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
+            </div>
+          ) : (
+            <div className="py-16 text-center text-sm text-[var(--text-subtle)]">
+              No products found in the catalog.
+            </div>
+          )}
         </section>
 
       </main>
