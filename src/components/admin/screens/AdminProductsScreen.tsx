@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, Check } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, Check, Tag } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
 import { Product } from '../../../types';
 import { isRenderableProductImage } from '../../../lib/productImages';
 import { AdminMetricCard, AdminPageHeader } from '../components/AdminPrimitives';
+import { BarcodeLabelsModal } from '../components/BarcodeLabelsModal';
 
 interface ProductsScreenProps {
   onAddProduct?: () => void;
@@ -26,6 +27,9 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
   const [migratingImages, setMigratingImages] = useState(false);
   // Per-product delete confirmation state
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  // Barcode labels modal
+  const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
+  const [barcodeInitialProductId, setBarcodeInitialProductId] = useState<string | undefined>(undefined);
 
   const filteredProducts = useMemo(() => {
     let products = store.products || [];
@@ -182,6 +186,13 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
               Export
             </button>
             <button
+              onClick={() => { setBarcodeInitialProductId(undefined); setBarcodeModalOpen(true); }}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#B27A52]/40 bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-[#8A5738] dark:text-[#E8B792] hover:bg-[#F2E3D7] dark:hover:bg-[#3d2a22] transition-colors"
+            >
+              <Tag className="w-4 h-4" />
+              Print Barcodes
+            </button>
+            <button
               onClick={onAddProduct}
               className="inline-flex items-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2 text-sm font-semibold text-white hover:bg-[#33282C] transition-colors"
             >
@@ -290,7 +301,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     <button
                       onClick={() => onViewProduct?.(product)}
                       className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium"
@@ -306,9 +317,17 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                       Edit
                     </button>
                     <button
+                      onClick={() => { setBarcodeInitialProductId(product.id); setBarcodeModalOpen(true); }}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-[#B27A52]/40 text-[#8A5738] dark:text-[#E8B792] hover:bg-[#F2E3D7] dark:hover:bg-[#3d2a22] transition-colors font-medium"
+                      title="Print barcode label"
+                    >
+                      <Tag className="w-3 h-3" />
+                      Barcode
+                    </button>
+                    <button
                       onClick={() => handleTogglePublish(product)}
                       disabled={loading}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-[#B27A52]/40 text-[#8A5738] dark:text-[#E8B792] hover:bg-[#F2E3D7] dark:hover:bg-[#3d2a22] transition-colors font-medium disabled:opacity-50"
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium disabled:opacity-50"
                     >
                       {product.isPublished ? 'Unpublish' : 'Publish'}
                     </button>
@@ -353,6 +372,15 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
           </div>
         )}
       </div>
+
+      {/* Barcode Labels Modal */}
+      {barcodeModalOpen && (
+        <BarcodeLabelsModal
+          isOpen={true}
+          initialProductId={barcodeInitialProductId}
+          onClose={() => setBarcodeModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
