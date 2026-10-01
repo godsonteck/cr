@@ -11,6 +11,14 @@ interface State {
   error: Error | null;
 }
 
+function isChunkLoadError(error: Error | null) {
+  return Boolean(error && (
+    error.message?.includes('Failed to fetch dynamically imported module') ||
+    error.message?.includes('Importing a module script failed') ||
+    error.name === 'ChunkLoadError'
+  ));
+}
+
 class ErrorBoundary extends Component<Props, State> {
   public state: State = { hasError: false, error: null };
   public static getDerivedStateFromError(error: Error): State {
@@ -21,11 +29,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('Error caught by boundary:', error, errorInfo);
     // If a lazy-loaded chunk fails (stale deployment), reload the page once.
     // Guard with sessionStorage so we don't loop if the chunk is truly gone.
-    const isChunkError =
-      error.message?.includes('Failed to fetch dynamically imported module') ||
-      error.message?.includes('Importing a module script failed') ||
-      error.name === 'ChunkLoadError';
-    if (isChunkError) {
+    if (isChunkLoadError(error)) {
       let reloaded: string | null = null;
       try { reloaded = sessionStorage.getItem('chunk_reload_attempted'); } catch {}
       if (!reloaded) {
@@ -41,6 +45,22 @@ class ErrorBoundary extends Component<Props, State> {
 
   private resetError = () => {
     this.setState({ hasError: false, error: null });
+  };
+
+  private retry = () => {
+    if (!isChunkLoadError(this.state.error)) {
+      this.resetError();
+      return;
+    }
+
+    try {
+      sessionStorage.removeItem('vite_preload_reload_attempted');
+      sessionStorage.removeItem('chunk_reload_attempted');
+    } catch {}
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('_reload', String(Date.now()));
+    window.location.replace(url.toString());
   };
 
   public render() {
@@ -71,11 +91,11 @@ class ErrorBoundary extends Component<Props, State> {
             )}
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <button
-                onClick={this.resetError}
+                onClick={this.retry}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E1719] dark:bg-stone-200 text-white dark:text-stone-900 px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition"
               >
                 <RefreshCw className="w-4 h-4" />
-                Try Again
+                {isChunkLoadError(this.state.error) ? 'Reload page' : 'Try Again'}
               </button>
               <button
                 onClick={() => { window.location.href = '/'; }}
