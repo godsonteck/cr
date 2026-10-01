@@ -29,35 +29,35 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
 
-  const [usernameOrEmail, setUsernameOrEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [pin, setPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usernameOrEmail.trim()) {
+    if (!email.trim()) {
       setError('Please enter your email address.');
       return;
     }
-    if (!password.trim()) {
-      setError('Please enter your password.');
+    if (!pin.trim()) {
+      setError('Please enter your admin PIN.');
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
-    const cleanUser = usernameOrEmail.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
 
     try {
-      const success = await loginAdmin(password.trim(), '', 'Super Admin', cleanUser);
+      const success = await loginAdmin(pin.trim(), '', 'Super Admin', cleanEmail);
       if (success) {
         showToast('Signed in successfully. Welcome back!');
         onSuccess();
       } else {
-        setError('Incorrect email or password. Please try again.');
+        setError('Incorrect email or PIN. Please try again.');
       }
     } catch {
       setError('Unable to sign in. Please check your details and try again.');
@@ -125,23 +125,24 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             
-            {/* Email / Username */}
+            {/* Email */}
             <div>
               <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
-                Email or Username
+                Email
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="text"
+                  type="email"
                   required
                   autoFocus
-                  value={usernameOrEmail}
+                  autoComplete="username"
+                  value={email}
                   onChange={e => {
-                    setUsernameOrEmail(e.target.value);
+                    setEmail(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="Enter your email or username"
+                  placeholder="Enter your admin email"
                   className="w-full pl-10 pr-4 py-3 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl text-xs sm:text-sm font-semibold text-[var(--text-primary)] placeholder-[var(--text-subtle)] focus:bg-[var(--bg-card)] focus:outline-none focus:border-[#C89B3C] focus:ring-2 focus:ring-[#C89B3C]/20 transition-all"
                 />
               </div>
@@ -150,19 +151,20 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
             {/* Password */}
             <div>
               <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
-                Password
+                Admin PIN
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  value={password}
+                  autoComplete="current-password"
+                  value={pin}
                   onChange={e => {
-                    setPassword(e.target.value);
+                    setPin(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="Enter your password"
+                  placeholder="Enter your admin PIN"
                   className="w-full pl-10 pr-11 py-3 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl text-sm font-mono tracking-wider text-[var(--text-primary)] placeholder-[var(--text-subtle)] focus:bg-[var(--bg-card)] focus:outline-none focus:border-[#C89B3C] focus:ring-2 focus:ring-[#C89B3C]/20 transition-all"
                 />
                 <button

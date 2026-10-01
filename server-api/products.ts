@@ -171,6 +171,22 @@ function variantStockTotal(variants: Array<{ stockCount?: number }> | undefined)
   return (variants || []).reduce((total, variant) => total + Math.max(0, Number(variant.stockCount ?? 0) || 0), 0);
 }
 
+function normalizeProductInventory<T extends {
+  stockCount: number;
+  inStock: boolean;
+  variants?: Array<{ stockCount?: number; inStock?: boolean }> | null;
+}>(product: T): T {
+  const stockCount = product.variants?.length
+    ? variantStockTotal(product.variants)
+    : Number(product.stockCount ?? 0);
+
+  return {
+    ...product,
+    stockCount,
+    inStock: hasAvailableInventory({ ...product, stockCount }),
+  };
+}
+
 async function uploadProductImage(dataUrl: unknown) {
   if (typeof dataUrl !== 'string') throw new Error('Image data is required.');
   const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -318,7 +334,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .where(and(eq(products.id, query.id), eq(products.isPublished, true)))
           .limit(1);
         if (!product) return res.status(404).json({ error: 'Product not found' });
-        const [liveProduct] = await attachLiveReviewStats([product]);
+        const [liveProduct] = await attachLiveReviewStats([normalizeProductInventory(product)]);
         return res.status(200).json(liveProduct);
       }
 
@@ -329,9 +345,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const { category, department, brand, search, barcode, scanCode, published, featured, includeUnpublished, limit, offset, sort } = parsed.data;
 
+      let adminRole: string | undefined;
       if (includeUnpublished) {
-        const auth = await requireAdmin(req, res);
+        const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher', 'Cashier']);
         if (!auth) return;
+        adminRole = auth.adminRole;
         // Admin inventory must always reflect the latest changes.
         res.setHeader('Cache-Control', 'private, no-store');
       } else {
@@ -344,6 +362,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Build WHERE conditions with explicit type so push() is always valid
       const conditions: SQL<unknown>[] = [];
 
+      if (includeUnpublished && adminRole === 'Cashier') {
+        conditions.push(eq(products.isPublished, true));
+      }
       if (!includeUnpublished && published !== undefined) {
         conditions.push(eq(products.isPublished, published));
       }
@@ -393,7 +414,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const paginatedQuery = sortedQuery.limit(limit).offset(offset);
 
       const results = await paginatedQuery;
-      const liveResults = await attachLiveReviewStats(results);
+      const liveResults = await attachLiveReviewStats(results.map(normalizeProductInventory));
 
       const totalQuery = conditions.length > 0
         ? db.select({ count: sql<number>`count(*)` }).from(products).where(and(...conditions))
@@ -409,7 +430,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── POST ─────────────────────────────────────────────────────────────────
     if (method === 'POST') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher']);
       if (!auth) return;
 
       if (query.imageUpload === 'true') {
@@ -465,7 +486,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── PATCH ─────────────────────────────────────────────────────────────────
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher']);
       if (!auth) return;
 
       const parsed = productUpdateSchema.safeParse(body);
@@ -530,7 +551,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── DELETE ────────────────────────────────────────────────────────────────
     if (method === 'DELETE') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher']);
       if (!auth) return;
 
       const { id } = query;

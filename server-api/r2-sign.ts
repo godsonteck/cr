@@ -96,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const auth = await requireAdmin(req, res);
+  const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher']);
   if (!auth) return;
 
   const { contentType, size } = req.body ?? {};

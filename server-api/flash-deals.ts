@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const parsed = flashDealCreateSchema.safeParse(body);
@@ -80,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { id } = query;
@@ -117,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'DELETE') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { id } = query;

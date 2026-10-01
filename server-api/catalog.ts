@@ -58,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(results);
     }
 
-    const auth = await requireAdmin(req, res);
+    const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
     if (!auth) return;
 
     if (method === 'POST') {

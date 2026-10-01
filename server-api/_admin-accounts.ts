@@ -32,6 +32,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (req.method === 'GET') {
+      if (session.adminRole !== 'Super Admin') {
+        return res.status(403).json({ error: 'Only Super Admins can view team accounts' });
+      }
       const accounts = await db.select().from(adminSessions);
       return res.status(200).json(accounts.map(safeAccount));
     }

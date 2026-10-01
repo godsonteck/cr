@@ -100,10 +100,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, orderNumber, userId, status, limit = '50', offset = '0' } = query;
       const auth = await requireAuth(req, res);
       if (!auth) return;
+      const isCashier = auth.role === 'admin' && auth.adminRole === 'Cashier';
 
       if (id && typeof id === 'string') {
         const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
-        if (!order) {
+        if (!order || (isCashier && order.orderSource !== 'pos')) {
           return res.status(404).json({ error: 'Order not found' });
         }
         if (auth.role !== 'admin' && order.userId !== auth.sub) {
@@ -114,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (orderNumber && typeof orderNumber === 'string') {
         const [order] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
-        if (!order) {
+        if (!order || (isCashier && order.orderSource !== 'pos')) {
           return res.status(404).json({ error: 'Order not found' });
         }
         if (auth.role !== 'admin' && order.userId !== auth.sub) {
@@ -127,6 +128,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (paymentReference && typeof paymentReference === 'string') {
         const [order] = await db.select().from(orders).where(eq(orders.paymentReference, paymentReference.trim())).limit(1);
         if (order) {
+          if (isCashier && order.orderSource !== 'pos') {
+            return res.status(404).json({ error: 'Order not found' });
+          }
           if (auth.role !== 'admin' && order.userId !== auth.sub) {
             return res.status(403).json({ error: 'You do not have access to this order' });
           }
@@ -135,6 +139,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const conditions = [];
+      if (isCashier) {
+        conditions.push(eq(orders.orderSource, 'pos'));
+      }
       const effectiveUserId = auth.role === 'admin' ? (typeof userId === 'string' ? userId : undefined) : auth.sub;
       if (effectiveUserId) {
         conditions.push(eq(orders.userId, effectiveUserId));
@@ -163,7 +170,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST' && query.action === 'refund') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
       if (!['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
         return res.status(403).json({ error: 'Only Store Managers and Super Admins can refund POS sales.' });
@@ -617,7 +624,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Inventory Dispatcher']);
       if (!auth) return;
 
       const { id } = query;

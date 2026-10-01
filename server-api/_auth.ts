@@ -99,7 +99,11 @@ export async function requireAuth(req: VercelRequest, res: VercelResponse): Prom
   }
 }
 
-export async function requireAdmin(req: VercelRequest, res: VercelResponse): Promise<AuthSession | null> {
+export async function requireAdmin(
+  req: VercelRequest,
+  res: VercelResponse,
+  allowedRoles?: readonly string[],
+): Promise<AuthSession | null> {
   const auth = await requireAuth(req, res);
   if (!auth) {
     return null;
@@ -107,6 +111,11 @@ export async function requireAdmin(req: VercelRequest, res: VercelResponse): Pro
 
   if (auth.role !== 'admin') {
     res.status(403).json({ error: 'Administrator access required' });
+    return null;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(auth.adminRole || '')) {
+    res.status(403).json({ error: 'Your administrator role does not allow this action' });
     return null;
   }
 

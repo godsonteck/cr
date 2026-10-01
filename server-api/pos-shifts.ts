@@ -30,7 +30,7 @@ function serializeShift(shift: typeof posShifts.$inferSelect) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const auth = await requireAdmin(req, res);
+    const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Cashier']);
     if (!auth) return;
     if (!['Super Admin', 'Store Manager', 'Cashier'].includes(auth.adminRole || '')) {
       return res.status(403).json({ error: 'Only Store Managers and Super Admins can manage POS shifts.' });

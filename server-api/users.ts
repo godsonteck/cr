@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/database.js';
 import { users, orders } from '../src/db/schema.js';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, ilike, or } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { requireAdmin, requireAuth, signToken } from './_auth.js';
@@ -72,9 +72,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, email, me } = query;
 
       if (query.admin === 'true') {
-        const auth = await requireAdmin(req, res);
+        const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager', 'Cashier']);
         if (!auth) return;
         const search = typeof query.search === 'string' ? query.search.trim().toLowerCase() : '';
+
+        if (auth.adminRole === 'Cashier') {
+          if (!search) return res.status(200).json([]);
+          const matches = await db.select({
+            id: users.id,
+            email: users.email,
+            fullName: users.fullName,
+            phone: users.phone,
+            savedAddresses: users.savedAddresses,
+            loyaltyPoints: users.loyaltyPoints,
+            isWholesale: users.isWholesale,
+          }).from(users).where(or(
+            ilike(users.fullName, `%${search}%`),
+            ilike(users.email, `%${search}%`),
+            ilike(users.phone, `%${search}%`),
+          )).orderBy(desc(users.createdAt)).limit(10);
+          return res.status(200).json(matches);
+        }
 
         // Fetch all registered customers with aggregate order stats
         const allUsers = await db.select({
@@ -166,6 +184,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (id && typeof id === 'string') {
         const auth = await requireAuth(req, res);
         if (!auth) return;
+        if (auth.role === 'admin' && !['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
+          return res.status(403).json({ error: 'Only Store Managers and Super Admins can view customer profiles' });
+        }
         if (auth.role !== 'admin' && auth.sub !== id) {
           return res.status(403).json({ error: 'You can only view your own profile' });
         }
@@ -179,6 +200,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (email && typeof email === 'string') {
         const auth = await requireAuth(req, res);
         if (!auth) return;
+        if (auth.role === 'admin' && !['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
+          return res.status(403).json({ error: 'Only Store Managers and Super Admins can view customer profiles' });
+        }
         if (auth.role !== 'admin' && auth.email.toLowerCase() !== email.toLowerCase()) {
           return res.status(403).json({ error: 'You can only view your own profile' });
         }
@@ -202,6 +226,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? auth.sub
         : auth.sub;
 
+      if (
+        auth.role === 'admin' &&
+        auth.sub !== targetId &&
+        !['Super Admin', 'Store Manager'].includes(auth.adminRole || '')
+      ) {
+        return res.status(403).json({ error: 'Only Store Managers and Super Admins can manage customer profiles' });
+      }
+
       // Only admins can modify other users
       if (auth.role !== 'admin' && auth.sub !== targetId) {
         return res.status(403).json({ error: 'You are not authorized to update this profile' });
@@ -215,13 +247,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const updates: Partial<typeof users.$inferInsert> = {
         updatedAt: new Date(),
       };
+      const isStoreManager = auth.role === 'admin' && ['Super Admin', 'Store Manager'].includes(auth.adminRole || '');
 
       if (parsed.data.fullName !== undefined) updates.fullName = parsed.data.fullName.trim();
       if (parsed.data.phone !== undefined) updates.phone = parsed.data.phone.trim();
       if (parsed.data.profileImage !== undefined) updates.profileImage = parsed.data.profileImage;
       if (parsed.data.adminNotes !== undefined) {
-        if (auth.role !== 'admin') {
-          return res.status(403).json({ error: 'Only admins can update customer notes' });
+        if (!isStoreManager) {
+          return res.status(403).json({ error: 'Only Store Managers and Super Admins can update customer notes' });
         }
         updates.adminNotes = parsed.data.adminNotes;
       }
@@ -236,16 +269,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Only admins may toggle isActive status
       if (parsed.data.isActive !== undefined) {
-        if (auth.role !== 'admin') {
-          return res.status(403).json({ error: 'Only admins can modify account status' });
+        if (!isStoreManager) {
+          return res.status(403).json({ error: 'Only Store Managers and Super Admins can modify account status' });
         }
         updates.isActive = parsed.data.isActive;
       }
 
       // Only admins may toggle wholesale status
       if (parsed.data.isWholesale !== undefined) {
-        if (auth.role !== 'admin') {
-          return res.status(403).json({ error: 'Only admins can modify wholesale status' });
+        if (!isStoreManager) {
+          return res.status(403).json({ error: 'Only Store Managers and Super Admins can modify wholesale status' });
         }
         updates.isWholesale = parsed.data.isWholesale;
       }
@@ -369,7 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const targetId = typeof query.id === 'string' && query.id ? query.id : auth.sub;
 
-      if (auth.role !== 'admin' && auth.sub !== targetId) {
+      if (auth.role !== 'customer' || auth.sub !== targetId) {
         return res.status(403).json({ error: 'You can only delete your own account' });
       }
 

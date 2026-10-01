@@ -38,6 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (isSensitiveSettingKey(key)) {
           const auth = await requireAdmin(req, res);
           if (!auth) return;
+          if (auth.adminRole !== 'Super Admin') {
+            return res.status(403).json({ error: 'Only Super Admins can read sensitive settings' });
+          }
         }
         return res.status(200).json({ key: setting.key, value: setting.value });
       }
@@ -48,7 +51,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const auth = await requireAdmin(req, res);
         if (!auth) return;
         const results = await db.select().from(storeSettings);
-        return res.status(200).json(results);
+        return res.status(200).json(
+          auth.adminRole === 'Super Admin'
+            ? results
+            : results.filter(setting => !isSensitiveSettingKey(setting.key)),
+        );
       }
 
       // Public: return store settings excluding any sensitive keys
@@ -58,12 +65,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const parsed = settingUpdateSchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: 'Invalid setting data', details: parsed.error.flatten() });
+      }
+      if (isSensitiveSettingKey(parsed.data.key) && auth.adminRole !== 'Super Admin') {
+        return res.status(403).json({ error: 'Only Super Admins can update sensitive settings' });
       }
 
       const [newSetting] = await db.insert(storeSettings).values({
@@ -78,12 +88,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { key } = query;
       if (!key || typeof key !== 'string') {
         return res.status(400).json({ error: 'Setting key is required' });
+      }
+      if (isSensitiveSettingKey(key) && auth.adminRole !== 'Super Admin') {
+        return res.status(403).json({ error: 'Only Super Admins can update sensitive settings' });
       }
 
       const parsed = z.object({ value: z.any() }).safeParse(body);

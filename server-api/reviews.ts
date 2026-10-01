@@ -133,7 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (query.admin === 'true') {
-        const auth = await requireAdmin(req, res);
+        const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
         if (!auth) return;
         const results = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
         return res.status(200).json({ reviews: results });
@@ -211,7 +211,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // If updating administrative fields (adminReply, isApproved), require admin
       if (parsed.data.adminReply !== undefined || parsed.data.isApproved !== undefined) {
-        const auth = await requireAdmin(req, res);
+        const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
         if (!auth) return;
       }
 
@@ -260,7 +260,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'DELETE') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { id } = query;

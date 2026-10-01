@@ -85,19 +85,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Admin: full listing with usage counts and all fields
-      const adminAuth = req.headers.authorization
-        ? await (async () => { try { return await requireAdmin(req, res); } catch { return null; } })()
-        : null;
-
-      if (adminAuth) {
-        const conditions = [];
-        if (active !== undefined) {
-          conditions.push(eq(promoCodes.isActive, active === 'true'));
+      if (req.headers.authorization) {
+        const adminAuth = await requireAdmin(req, res);
+        if (!adminAuth) return;
+        if (['Super Admin', 'Store Manager'].includes(adminAuth.adminRole || '')) {
+          const conditions = [];
+          if (active !== undefined) {
+            conditions.push(eq(promoCodes.isActive, active === 'true'));
+          }
+          const results = conditions.length > 0
+            ? await db.select().from(promoCodes).where(conditions[0]).orderBy(desc(promoCodes.createdAt))
+            : await db.select().from(promoCodes).orderBy(desc(promoCodes.createdAt));
+          return res.status(200).json(results);
         }
-        const results = conditions.length > 0
-          ? await db.select().from(promoCodes).where(conditions[0]).orderBy(desc(promoCodes.createdAt))
-          : await db.select().from(promoCodes).orderBy(desc(promoCodes.createdAt));
-        return res.status(200).json(results);
       }
 
       // Public: only active, non-expired codes — no usage counts exposed
@@ -124,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const parsed = promoCreateSchema.safeParse(body);
@@ -144,7 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'PATCH') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { id } = query;
@@ -181,7 +181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'DELETE') {
-      const auth = await requireAdmin(req, res);
+      const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
       if (!auth) return;
 
       const { id } = query;
