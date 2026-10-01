@@ -4,6 +4,7 @@ import {
   Printer,
   Barcode,
   Search,
+  Save,
   CheckSquare,
   Square,
   Sparkles,
@@ -84,6 +85,8 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
   // Items list
   const [items, setItems] = useState<BarcodeItem[]>([]);
   const [isGeneratingBarcodes, setIsGeneratingBarcodes] = useState(false);
+  const [isSavingBarcodes, setIsSavingBarcodes] = useState(false);
+  const productById = useMemo(() => new Map(products.map(product => [product.id, product])), [products]);
 
   // Initialize items from products and variants
   useEffect(() => {
@@ -139,6 +142,10 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
   const filteredItems = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
     return items.filter(item => {
+      const product = productById.get(item.productId);
+      const matchesDepartment = filterDepartment === 'all' || product?.department === filterDepartment;
+      if (!matchesDepartment) return false;
+
       // Search
       const matchSearch =
         !q ||
@@ -155,7 +162,7 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
 
       return true;
     });
-  }, [items, searchTerm, filterBarcodeStatus]);
+  }, [items, productById, searchTerm, filterDepartment, filterBarcodeStatus]);
 
   // Selected items & total labels to print
   const selectedItems = useMemo(() => items.filter(i => i.selected), [items]);
@@ -166,6 +173,13 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
   const missingBarcodeCount = useMemo(() => {
     return selectedItems.filter(i => !i.barcode.trim()).length;
   }, [selectedItems]);
+  const unsavedBarcodeItems = useMemo(() => items.filter(item => {
+    const product = productById.get(item.productId);
+    const savedBarcode = item.variantId
+      ? product?.variants?.find(variant => variant.id === item.variantId)?.barcode || ''
+      : product?.barcode || '';
+    return item.barcode.trim() !== savedBarcode.trim();
+  }), [items, productById]);
 
   // Selection toggles
   const handleToggleSelectAll = (select: boolean) => {
@@ -204,6 +218,52 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
     setItems(prev =>
       prev.map(item => (item.id === id ? { ...item, barcode: newBarcode.trim() } : item))
     );
+  };
+
+  const handleSaveBarcodeChanges = async () => {
+    if (unsavedBarcodeItems.length === 0) return;
+    if (unsavedBarcodeItems.some(item => !item.barcode.trim())) {
+      showAlert('Enter a barcode for each edited item before saving.', 'error');
+      return;
+    }
+
+    setIsSavingBarcodes(true);
+    let savedCount = 0;
+    try {
+      const updatesByProduct = new Map<string, BarcodeItem[]>();
+      unsavedBarcodeItems.forEach(item => {
+        const group = updatesByProduct.get(item.productId) || [];
+        group.push(item);
+        updatesByProduct.set(item.productId, group);
+      });
+
+      for (const [productId, changes] of updatesByProduct) {
+        const product = productById.get(productId);
+        if (!product) throw new Error('A product could not be found. Refresh the catalog and try again.');
+
+        const productChange = changes.find(item => !item.variantId);
+        const updates: Partial<Product> = {};
+        if (productChange) updates.barcode = productChange.barcode.trim();
+        if (product.variants?.length) {
+          updates.variants = product.variants.map(variant => {
+            const change = changes.find(item => item.variantId === variant.id);
+            return change ? { ...variant, barcode: change.barcode.trim() } : variant;
+          });
+        }
+
+        await updateProduct(productId, updates);
+        savedCount += changes.length;
+      }
+
+      showAlert(`Saved ${savedCount} barcode${savedCount === 1 ? '' : 's'} to the product catalog.`, 'success');
+    } catch (error: any) {
+      const detail = error?.message || 'Please try again.';
+      showAlert(savedCount
+        ? `Saved ${savedCount} barcode${savedCount === 1 ? '' : 's'}; some changes could not be saved. ${detail}`
+        : `Barcode changes could not be saved. ${detail}`, 'error');
+    } finally {
+      setIsSavingBarcodes(false);
+    }
   };
 
   // Preset batch quantity buttons
@@ -318,11 +378,25 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
     });
     return list;
   }, [selectedItems]);
+  const printPages = useMemo(() => {
+    const pageSize = Math.max(1, template.labelsPerPage);
+    return Array.from({ length: Math.ceil(flatLabels.length / pageSize) }, (_, pageIndex) =>
+      flatLabels.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
+    );
+  }, [flatLabels, template.labelsPerPage]);
+  const pageWidthMm = template.pageWidthMm ?? 210;
+  const pageHeightMm = template.pageHeightMm ?? 297;
+  const previewPageWidth = template.category === 'thermal' ? 340 : 720;
+  const previewScale = previewPageWidth / pageWidthMm;
 
   // Print execution
   const handlePrint = () => {
     if (flatLabels.length === 0) {
       showAlert('Please select at least one product label to print.', 'error');
+      return;
+    }
+    if (unsavedBarcodeItems.some(item => item.selected)) {
+      showAlert('Save edited barcodes before printing so the labels match the product catalog.', 'warning');
       return;
     }
     if (missingBarcodeCount > 0) {
@@ -358,8 +432,12 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
                 background: #ffffff !important;
               }
               @page {
-                margin: ${template.category === 'thermal' ? '1mm' : '8mm'};
-                size: ${template.category === 'thermal' ? `${template.labelWidthMm}mm ${template.labelHeightMm}mm` : 'A4 portrait'};
+                margin: 0;
+                size: ${pageWidthMm}mm ${pageHeightMm}mm;
+              }
+              .barcode-print-page {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
               }
               .barcode-label-item {
                 break-inside: avoid !important;
@@ -369,34 +447,47 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
           `
         }} />
 
-        <div
-          className="print:grid print:gap-1 print:p-2"
-          style={{
-            gridTemplateColumns: `repeat(${template.columns}, minmax(0, 1fr))`,
-            rowGap: `${template.gapYmm || 1}mm`,
-            columnGap: `${template.gapXmm || 1.5}mm`,
-          }}
-        >
-          {flatLabels.map((item, index) => (
-            <div
-              key={`${item.id}-${index}`}
-              className="barcode-label-item border border-black/80 rounded-md p-1.5 flex flex-col justify-between text-black bg-white"
-              style={{
-                width: `${template.labelWidthMm}mm`,
-                height: `${template.labelHeightMm}mm`,
-                boxSizing: 'border-box',
-                overflow: 'hidden',
-              }}
-            >
+        {printPages.map((pageItems, pageIndex) => (
+          <div
+            key={`print-page-${pageIndex}`}
+            className="barcode-print-page"
+            style={{
+              width: `${pageWidthMm}mm`,
+              height: `${pageHeightMm}mm`,
+              boxSizing: 'border-box',
+              paddingTop: template.category === 'thermal' ? 0 : `${template.pagePaddingTopMm}mm`,
+              paddingInline: template.category === 'thermal' ? 0 : `${template.pagePaddingSideMm}mm`,
+              display: 'grid',
+              gridTemplateColumns: `repeat(${template.columns}, ${template.labelWidthMm}mm)`,
+              gridTemplateRows: `repeat(${template.rows}, ${template.labelHeightMm}mm)`,
+              rowGap: `${template.gapYmm}mm`,
+              columnGap: `${template.gapXmm}mm`,
+              justifyContent: 'center',
+              alignContent: 'start',
+              breakAfter: pageIndex < printPages.length - 1 ? 'page' : 'auto',
+              pageBreakAfter: pageIndex < printPages.length - 1 ? 'always' : 'auto',
+            }}
+          >
+            {pageItems.map((item, index) => (
+              <div
+                key={`${pageIndex}-${item.id}-${index}`}
+                className={`barcode-label-item rounded-none p-1.5 flex flex-col justify-between text-black bg-white ${showCutBorders ? 'border border-dashed border-black/70' : ''}`}
+                style={{
+                  width: `${template.labelWidthMm}mm`,
+                  height: `${template.labelHeightMm}mm`,
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                }}
+              >
               {/* Header: Store Name & Price */}
-              <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-wider leading-none mb-0.5">
+              <div className="mb-0.5 flex items-center justify-between gap-1 border-b border-black/20 pb-0.5">
                 {showStoreName && (
-                  <span className="truncate max-w-[65%]">
+                  <span className="max-w-[65%] truncate text-[6px] font-bold uppercase tracking-wide">
                     {storeSettings.storeName || 'CR COSMETICS'}
                   </span>
                 )}
                 {showPrice && (
-                  <span className="ml-auto font-black text-[9px]">
+                  <span className="ml-auto whitespace-nowrap text-[10px] font-black">
                     GH₵ {Number(item.price).toFixed(2)}
                   </span>
                 )}
@@ -404,11 +495,14 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
 
               {/* Product & Variant Name */}
               {showProductName && (
-                <div className="text-[8.5px] font-bold leading-tight line-clamp-1 text-black">
-                  {item.productName}
-                  {showVariantName && item.variantName && (
-                    <span className="font-normal opacity-85 ml-1">· {item.variantName}</span>
-                  )}
+                <div className="min-w-0 py-0.5">
+                  <p className="truncate text-[6px] font-semibold uppercase tracking-wide text-stone-600">{item.brand}</p>
+                  <p className="line-clamp-2 text-[8px] font-bold leading-tight text-black">
+                    {item.productName}
+                    {showVariantName && item.variantName && (
+                      <span className="font-medium text-stone-700"> · {item.variantName}</span>
+                    )}
+                  </p>
                 </div>
               )}
 
@@ -416,13 +510,13 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
               <div className="my-auto flex flex-col items-center justify-center min-h-0 w-full overflow-hidden">
                 {item.barcode ? (
                   <div
-                    className="w-full max-h-8 flex items-center justify-center overflow-hidden"
+                    className="flex max-h-12 w-full items-center justify-center overflow-hidden"
                     dangerouslySetInnerHTML={{
                       __html: generateCode128Svg(item.barcode, {
-                        height: 28,
+                        height: 34,
                         showText: showBarcodeText,
-                        fontSize: 8,
-                        quietZone: 6,
+                        fontSize: 9,
+                        quietZone: 8,
                       }),
                     }}
                   />
@@ -433,8 +527,9 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
                 )}
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       {/* Interactive Modal (Screen Only) */}
@@ -595,11 +690,12 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
               </div>
 
               {/* Search & Filter Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="relative sm:col-span-2">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                   <input
                     type="text"
+                    aria-label="Search barcode items"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     placeholder="Search by product name, brand, variation, or barcode..."
@@ -618,6 +714,20 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
 
                 <div>
                   <select
+                    aria-label="Filter by department"
+                    value={filterDepartment}
+                    onChange={e => setFilterDepartment(e.target.value as typeof filterDepartment)}
+                    className="w-full px-3 py-2 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-white dark:bg-[#1e1719] text-xs font-bold text-stone-700 dark:text-stone-200 outline-none"
+                  >
+                    <option value="all">All Departments</option>
+                    <option value="beauty">Beauty</option>
+                    <option value="groceries">Groceries</option>
+                  </select>
+                </div>
+
+                <div>
+                  <select
+                    aria-label="Filter by barcode status"
                     value={filterBarcodeStatus}
                     onChange={e => setFilterBarcodeStatus(e.target.value as any)}
                     className="w-full px-3 py-2 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-white dark:bg-[#1e1719] text-xs font-bold text-stone-700 dark:text-stone-200 outline-none"
@@ -628,6 +738,23 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
                   </select>
                 </div>
               </div>
+
+              {unsavedBarcodeItems.length > 0 && (
+                <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/20">
+                  <span className="font-semibold text-amber-800 dark:text-amber-300">
+                    {unsavedBarcodeItems.length} barcode {unsavedBarcodeItems.length === 1 ? 'change is' : 'changes are'} not saved to the catalog.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveBarcodeChanges()}
+                    disabled={isSavingBarcodes}
+                    className="inline-flex items-center justify-center gap-1.5 self-start rounded-lg bg-amber-700 px-3 py-1.5 font-bold text-white transition hover:bg-amber-800 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+                  >
+                    {isSavingBarcodes ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                    {isSavingBarcodes ? 'Saving…' : 'Save barcodes'}
+                  </button>
+                </div>
+              )}
 
               {/* Items List Table */}
               <div className="rounded-xl border border-stone-200 dark:border-[#2e2326] overflow-hidden">
@@ -872,7 +999,7 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-                    Print Sheet Simulation ({flatLabels.length} total stickers ·{' '}
+                    Paper Preview ({flatLabels.length} labels ·{' '}
                     {Math.ceil(flatLabels.length / template.labelsPerPage)} sheet(s))
                   </h3>
                   <button
@@ -884,85 +1011,88 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
                   </button>
                 </div>
 
-                <div className="bg-stone-200 dark:bg-[#120d0f] p-4 sm:p-6 rounded-2xl overflow-x-auto max-h-[55vh] flex justify-center">
+                <div className="flex max-h-[55vh] justify-center overflow-auto rounded-2xl bg-stone-200 p-4 dark:bg-[#120d0f] sm:p-6">
                   <div
-                    className="bg-white text-black shadow-xl p-4 sm:p-6 transition-all"
+                    className="shrink-0 bg-white text-black shadow-xl"
                     style={{
-                      width: template.category === 'thermal' ? '340px' : '720px',
-                      minHeight: '400px',
+                      width: `${previewPageWidth}px`,
+                      aspectRatio: `${pageWidthMm} / ${pageHeightMm}`,
+                      boxSizing: 'border-box',
+                      paddingTop: template.category === 'thermal' ? 0 : `${template.pagePaddingTopMm * previewScale}px`,
+                      paddingInline: template.category === 'thermal' ? 0 : `${template.pagePaddingSideMm * previewScale}px`,
                     }}
                   >
                     <div
-                      className="grid gap-2"
+                      className="grid h-full w-full"
                       style={{
                         gridTemplateColumns: `repeat(${template.columns}, minmax(0, 1fr))`,
+                        gridTemplateRows: `repeat(${template.rows}, minmax(0, 1fr))`,
+                        columnGap: `${template.gapXmm * previewScale}px`,
+                        rowGap: `${template.gapYmm * previewScale}px`,
                       }}
                     >
-                      {flatLabels.slice(0, 36).map((item, index) => (
+                      {flatLabels.slice(0, template.labelsPerPage).map((item, index) => (
                         <div
                           key={`preview-${item.id}-${index}`}
-                          className={`p-2 rounded flex flex-col justify-between bg-white text-black ${
-                            showCutBorders ? 'border border-dashed border-stone-300' : ''
+                          className={`flex min-w-0 flex-col justify-between overflow-hidden bg-white px-2 py-1 text-black ${
+                            showCutBorders ? 'border border-dashed border-stone-400' : ''
                           }`}
-                          style={{
-                            height: template.category === 'thermal' ? '120px' : '100px',
-                          }}
+                          style={{ aspectRatio: `${template.labelWidthMm} / ${template.labelHeightMm}` }}
                         >
-                          {/* Store Name & Price */}
-                          <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider leading-none">
+                          <div className="flex items-center justify-between gap-1 border-b border-stone-200 pb-1">
                             {showStoreName && (
-                              <span className="truncate max-w-[65%] text-stone-700">
+                              <span className="truncate text-[8px] font-bold uppercase tracking-wide text-stone-600">
                                 {storeSettings.storeName || 'CR COSMETICS'}
                               </span>
                             )}
                             {showPrice && (
-                              <span className="ml-auto font-black text-[10px] text-stone-900">
+                              <span className="ml-auto whitespace-nowrap text-[11px] font-black text-stone-950">
                                 GH₵ {Number(item.price).toFixed(2)}
                               </span>
                             )}
                           </div>
 
-                          {/* Product Name */}
                           {showProductName && (
-                            <p className="text-[10px] font-bold leading-tight line-clamp-1 text-black mt-1">
-                              {item.productName}
-                              {showVariantName && item.variantName && (
-                                <span className="font-normal opacity-85 ml-1">· {item.variantName}</span>
-                              )}
-                            </p>
+                            <div className="min-w-0 py-1">
+                              <p className="truncate text-[7px] font-semibold uppercase tracking-wide text-stone-500">{item.brand}</p>
+                              <p className="line-clamp-2 text-[10px] font-bold leading-tight text-black">
+                                {item.productName}
+                                {showVariantName && item.variantName && (
+                                  <span className="font-medium text-stone-600"> · {item.variantName}</span>
+                                )}
+                              </p>
+                            </div>
                           )}
 
-                          {/* Barcode SVG */}
-                          <div className="my-auto flex flex-col items-center justify-center min-h-0 w-full overflow-hidden">
+                          <div className="flex min-h-0 w-full items-center justify-center overflow-hidden">
                             {item.barcode ? (
                               <div
-                                className="w-full max-h-10 flex items-center justify-center overflow-hidden"
+                                className="flex max-h-12 w-full items-center justify-center overflow-hidden"
                                 dangerouslySetInnerHTML={{
                                   __html: generateCode128Svg(item.barcode, {
-                                    height: 32,
+                                    height: 34,
                                     showText: showBarcodeText,
                                     fontSize: 9,
-                                    quietZone: 6,
+                                    quietZone: 8,
                                   }),
                                 }}
                               />
                             ) : (
-                              <div className="text-[9px] italic text-amber-700 bg-amber-50 px-2 py-1 rounded w-full text-center">
-                                Missing Barcode
+                              <div className="w-full rounded border border-amber-200 bg-amber-50 px-2 py-1 text-center text-[9px] font-semibold text-amber-800">
+                                Barcode needed
                               </div>
                             )}
                           </div>
                         </div>
                       ))}
                     </div>
-
-                    {flatLabels.length > 36 && (
-                      <p className="text-center text-xs text-stone-400 mt-6 pt-4 border-t border-stone-100">
-                        + {flatLabels.length - 36} more labels will be included when printing.
-                      </p>
-                    )}
                   </div>
                 </div>
+                {printPages.length > 0 && (
+                  <p className="text-center text-[11px] text-stone-500">
+                    Previewing sheet 1 of {printPages.length}. Printing includes all {flatLabels.length} selected labels.
+                  </p>
+                )}
               </div>
             </div>
           )}
