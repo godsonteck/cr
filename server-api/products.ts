@@ -333,7 +333,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from(products)
           .where(and(eq(products.id, query.id), eq(products.isPublished, true)))
           .limit(1);
-        if (!product) return res.status(404).json({ error: 'Product not found' });
+        if (!product || !hasAvailableInventory(product)) return res.status(404).json({ error: 'Product not found' });
         const [liveProduct] = await attachLiveReviewStats([normalizeProductInventory(product)]);
         return res.status(200).json(liveProduct);
       }
@@ -414,7 +414,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const paginatedQuery = sortedQuery.limit(limit).offset(offset);
 
       const results = await paginatedQuery;
-      const liveResults = await attachLiveReviewStats(results.map(normalizeProductInventory));
+      const availableResults = !includeUnpublished
+        ? results.filter((product: any) => hasAvailableInventory(product))
+        : results;
+      const liveResults = await attachLiveReviewStats(availableResults.map(normalizeProductInventory));
 
       const totalQuery = conditions.length > 0
         ? db.select({ count: sql<number>`count(*)` }).from(products).where(and(...conditions))

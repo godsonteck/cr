@@ -227,14 +227,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           accent={metrics.pendingOrders > 0 ? 'amber' : undefined}
         />
         <AdminMetricCard
-          label="Customers"
+          label="Customers with orders"
           value={metrics.totalCustomers}
-          detail="Unique by email"
+          detail="Unique by email or phone"
           icon={Users}
           accent="purple"
         />
         <AdminMetricCard
-          label="Live products"
+          label="Published products"
           value={metrics.published}
           detail={`${metrics.totalProducts} total in catalog`}
           icon={Package}
@@ -332,7 +332,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <span className="text-lg font-bold text-orange-600">{metrics.lowStock + metrics.outOfStock}</span>
           </button>
           <button onClick={() => onNavigate?.('products')} className="flex w-full items-center justify-between rounded-xl bg-stone-50 p-3 text-left transition hover:bg-stone-100 dark:bg-[#1a1316] dark:hover:bg-[#251b1e]">
-            <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Catalog live</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Published products</span></span>
+            <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Published catalog</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Published products</span></span>
             <span className="text-lg font-bold text-emerald-600">{metrics.published}</span>
           </button>
         </div>

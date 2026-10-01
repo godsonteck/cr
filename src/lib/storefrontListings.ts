@@ -1,9 +1,18 @@
 import { Product } from '../types';
 
+function hasAvailableInventory(product: Product): boolean {
+  if (product.variants?.length) {
+    return product.variants.some(variant => Boolean(variant.inStock) && Number(variant.stockCount ?? 0) > 0);
+  }
+
+  return Boolean(product.inStock) && Number(product.stockCount ?? 0) > 0;
+}
+
 /** Keep one inventory record, while making each sellable variation discoverable. */
 export function storefrontListings(products: Product[]): Product[] {
   return products.flatMap(product => {
-    if (product.isPublished === false) return [];
+    if (product.isPublished === false || !hasAvailableInventory(product)) return [];
+
     const variationCards = (product.variants || [])
       .filter(variant => variant.inStock && (variant.stockCount ?? 0) > 0)
       .map(variant => ({
@@ -19,6 +28,7 @@ export function storefrontListings(products: Product[]): Product[] {
         stockCount: Number(variant.stockCount ?? 0),
         inStock: Boolean(variant.inStock),
       }));
+
     return [product, ...variationCards];
   });
 }

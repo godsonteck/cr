@@ -14,7 +14,7 @@ import {
   AdminNotification,
 } from '../types';
 import { api } from '../lib/api';
-import { CATEGORIES_CONFIG, BRANDS_LIST } from '../data/products';
+import { CATEGORIES_CONFIG, BRANDS_LIST, PRODUCTS } from '../data/products';
 import { isRenderableProductImage, productImageUrls } from '../lib/productImages';
 
 interface StoreContextType {
@@ -255,6 +255,8 @@ const clearUnverifiedReviewStats = (product: Product): Product => ({
   reviewCount: 0,
 });
 
+const FALLBACK_PRODUCTS: Product[] = PRODUCTS.map(normalizeProduct);
+
 const INITIAL_SEED_ORDERS: Order[] = [
   {
     id: 'ord-gh-01',
@@ -374,10 +376,16 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial state with local storage fallback for 100% consistency
   const [products, setProducts] = useState<Product[]>(() => {
-    // Products are server-authoritative. Starting empty prevents static product
-    // images or legacy base64 blobs from flashing before the live catalog arrives.
-    try { localStorage.removeItem('cr_products'); } catch {}
-    return [];
+    try {
+      const saved = localStorage.getItem('cr_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(normalizeProduct);
+        }
+      }
+    } catch {}
+    return FALLBACK_PRODUCTS;
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -584,10 +592,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (shouldIncludeUnpublished) query.set('includeUnpublished', 'true');
       query.set('limit', '500');
       const data = await api.get<{ products: Product[] }>(`/products?${query}`, shouldIncludeUnpublished ? undefined : null);
-      if (data && Array.isArray(data.products)) {
+      if (data && Array.isArray(data.products) && data.products.length > 0) {
         setProducts(data.products.map(normalizeProduct));
+        return;
       }
+      setProducts(FALLBACK_PRODUCTS);
     } catch (e: any) {
+      setProducts(FALLBACK_PRODUCTS);
       setError('Failed to load products from server. Showing local data.');
       throw e;
     } finally {

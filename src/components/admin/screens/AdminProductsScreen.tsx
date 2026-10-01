@@ -206,7 +206,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <AdminMetricCard label="Products"      value={stats.total}          detail="In catalog"        icon={Package} />
-        <AdminMetricCard label="Live"          value={stats.published}      detail="Shown online"       icon={Check as any} />
+        <AdminMetricCard label="Published"     value={stats.published}      detail="Marked for online display" icon={Check as any} />
         <AdminMetricCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} />
         <AdminMetricCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} />
         <AdminMetricCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />

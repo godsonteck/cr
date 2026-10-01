@@ -1,0 +1,188 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "CR COSMETICS AND ESSENTIALS CR COSMETICS & ESSENTIALS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "CR COSMETICS AND ESSENTIALS" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: CR COSMETICS
+          - generic [ref=e11]: "& ESSENTIALS"
+      - generic [ref=e12]:
+        - link "Products" [ref=e13] [cursor=pointer]:
+          - /url: /shop
+        - link "Cart" [ref=e17] [cursor=pointer]:
+          - /url: /cart
+        - button "Sign in to view notifications" [ref=e22]
+        - link "Open account or sign in" [ref=e26] [cursor=pointer]:
+          - /url: /account
+          - generic [ref=e30]: Sign In
+  - main [ref=e31]:
+    - generic [ref=e5156]:
+      - navigation [ref=e5157]:
+        - link "Home" [ref=e5158] [cursor=pointer]:
+          - /url: /
+        - link "Shop" [ref=e5161] [cursor=pointer]:
+          - /url: /shop
+        - link "Retail Item" [ref=e5164] [cursor=pointer]:
+          - /url: /category/skincare
+        - generic [ref=e5167]: Icon E45
+      - generic [ref=e5169]:
+        - generic [ref=e5170]:
+          - generic [ref=e5171]:
+            - button [ref=e5172]:
+              - img "Icon E45 1" [ref=e5173]
+            - button [ref=e5174]:
+              - img "Icon E45 2" [ref=e5175]
+            - button [ref=e5176]:
+              - img "Icon E45 3" [ref=e5177]
+            - button [ref=e5178]:
+              - img "Icon E45 4" [ref=e5179]
+          - generic [ref=e5180]:
+            - generic [ref=e5181]: "-16%"
+            - img "Icon E45" [ref=e5182]
+        - generic [ref=e5183]:
+          - heading "Icon E45" [level=1] [ref=e5184]
+          - button "No reviews yet · Be the first to review" [ref=e5197]
+          - generic [ref=e5200]:
+            - generic [ref=e5201]: GH₵160.00
+            - generic [ref=e5202]: Save GH₵30.00
+            - generic [ref=e5203]: GH₵190.00
+          - generic [ref=e5204]:
+            - generic [ref=e5205]:
+              - generic [ref=e5206]: "Choose a variation:"
+              - generic [ref=e5207]: Select one
+            - generic [ref=e5208]:
+              - button "Secret White — Maximum Strength L-Glutathione 5000mg Injection, 3X-6X Whitening Glow, Gluta Ultimate White Secret White — Maximum Strength L-Glutathione 5000mg Injection, 3X-6X Whitening Glow, Gluta Ultimate White GH₵160.00 · 1 available" [ref=e5209]:
+                - img "Secret White — Maximum Strength L-Glutathione 5000mg Injection, 3X-6X Whitening Glow, Gluta Ultimate White" [ref=e5210]
+                - generic [ref=e5211]:
+                  - generic [ref=e5212]: Secret White — Maximum Strength L-Glutathione 5000mg Injection, 3X-6X Whitening Glow, Gluta Ultimate White
+                  - generic [ref=e5213]: GH₵160.00 · 1 available
+              - button "Lotion — 72-Hour Intense Moisturisation for Very Dry + Sensitive Skin Lotion — 72-Hour Intense Moisturisation for Very Dry + Sensitive Skin GH₵160.00 · 1 available" [ref=e5214]:
+                - img "Lotion — 72-Hour Intense Moisturisation for Very Dry + Sensitive Skin" [ref=e5215]
+                - generic [ref=e5216]:
+                  - generic [ref=e5217]: Lotion — 72-Hour Intense Moisturisation for Very Dry + Sensitive Skin
+                  - generic [ref=e5218]: GH₵160.00 · 1 available
+              - button "24K Gold — Gluta-C 15000mg Injection, Pure Glutathione, Glutaterinal White, 100% Glycolic Acid 24K Gold — Gluta-C 15000mg Injection, Pure Glutathione, Glutaterinal White, 100% Glycolic Acid GH₵160.00 · 1 available" [ref=e5219]:
+                - img "24K Gold — Gluta-C 15000mg Injection, Pure Glutathione, Glutaterinal White, 100% Glycolic Acid" [ref=e5220]
+                - generic [ref=e5221]:
+                  - generic [ref=e5222]: 24K Gold — Gluta-C 15000mg Injection, Pure Glutathione, Glutaterinal White, 100% Glycolic Acid
+                  - generic [ref=e5223]: GH₵160.00 · 1 available
+              - button "Super Fairness — Glutino + GF 7,000mg, Relumins Glutamax, Rose Drop, Powder Liposomal, X7 Strong Complex Super Fairness — Glutino + GF 7,000mg, Relumins Glutamax, Rose Drop, Powder Liposomal, X7 Strong Complex GH₵160.00 · 1 available" [ref=e5224]:
+                - img "Super Fairness — Glutino + GF 7,000mg, Relumins Glutamax, Rose Drop, Powder Liposomal, X7 Strong Complex" [ref=e5225]
+                - generic [ref=e5226]:
+                  - generic [ref=e5227]: Super Fairness — Glutino + GF 7,000mg, Relumins Glutamax, Rose Drop, Powder Liposomal, X7 Strong Complex
+                  - generic [ref=e5228]: GH₵160.00 · 1 available
+        - generic [ref=e5230]:
+          - generic [ref=e5231]:
+            - generic [ref=e5232]: "Quantity:"
+            - generic [ref=e5233]:
+              - button "−" [ref=e5234]
+              - generic [ref=e5235]: "1"
+              - button "+" [ref=e5236]
+          - button "Out of Stock" [disabled] [ref=e5237]
+          - button "Add to cart" [disabled] [ref=e5238]
+          - generic [ref=e5239]:
+            - button "Share" [ref=e5240]
+            - generic [ref=e5248]: ·
+            - button "Wishlist" [ref=e5249]
+      - generic [ref=e5253]:
+        - generic [ref=e5254]:
+          - button "Overview" [ref=e5255]
+          - button "Specifications" [ref=e5256]
+          - button "Customer Reviews 0" [ref=e5257]:
+            - generic [ref=e5258]:
+              - generic [ref=e5259]: Customer Reviews
+              - generic [ref=e5260]: "0"
+        - generic [ref=e5262]:
+          - paragraph [ref=e5263]: "The Icon E45 range covers intense whitening body milks alongside a clinically proven moisturising lotion. Choose Secret White, 24K Gold, or Super Fairness for glutathione-based skin brightening, or the Lotion for 72-hour intense relief of very dry, sensitive, or eczema-prone skin. Key Features: Dermatologically tested (Secret White, 24K Gold, Super Fairness) Clinically proven efficacy (Lotion) 500ml per bottle Reduces redness, scaling and flaking (Lotion) Suitable for eczema-prone skin (Lotion)"
+          - button "Read more" [ref=e5264]
+      - generic [ref=e5267]:
+        - generic [ref=e5268]:
+          - heading "You May Also Like" [level=2] [ref=e5271]
+          - link "View All" [ref=e5272] [cursor=pointer]:
+            - /url: /shop
+        - generic [ref=e5275]:
+          - link "View Disco – Fragrance Mist" [ref=e5276] [cursor=pointer]:
+            - generic [ref=e5277]:
+              - img "Disco – Fragrance Mist" [ref=e5278]
+              - button "Wishlist" [ref=e5279]
+            - generic [ref=e5282]:
+              - heading "Disco – Fragrance Mist" [level=3] [ref=e5283]
+              - generic [ref=e5285]:
+                - generic [ref=e5286]: GH₵50.00
+                - button "Disco – Fragrance Mist is out of stock" [disabled] [ref=e5290]
+          - link "View Birdsong – Fragrance Mist" [ref=e5295] [cursor=pointer]:
+            - generic [ref=e5296]:
+              - img "Birdsong – Fragrance Mist" [ref=e5297]
+              - button "Wishlist" [ref=e5298]
+            - generic [ref=e5301]:
+              - heading "Birdsong – Fragrance Mist" [level=3] [ref=e5302]
+              - generic [ref=e5304]:
+                - generic [ref=e5305]: GH₵50.00
+                - button "Birdsong – Fragrance Mist is out of stock" [disabled] [ref=e5309]
+          - link "View Freedom Dreams" [ref=e5314] [cursor=pointer]:
+            - generic [ref=e5315]:
+              - img "Freedom Dreams" [ref=e5316]
+              - button "Wishlist" [ref=e5317]
+            - generic [ref=e5320]:
+              - heading "Freedom Dreams" [level=3] [ref=e5321]
+              - generic [ref=e5323]:
+                - generic [ref=e5324]: GH₵50.00
+                - button "Freedom Dreams is out of stock" [disabled] [ref=e5328]
+          - link "View Body Fantasies – Fragrance Body Spray" [ref=e5333] [cursor=pointer]:
+            - generic [ref=e5334]:
+              - img "Body Fantasies – Fragrance Body Spray" [ref=e5335]
+              - button "Wishlist" [ref=e5336]
+            - generic [ref=e5339]:
+              - heading "Body Fantasies – Fragrance Body Spray" [level=3] [ref=e5340]
+              - generic [ref=e5342]:
+                - generic [ref=e5343]: GH₵80.00
+                - button "Add Body Fantasies – Fragrance Body Spray to cart" [ref=e5347]
+          - link "View HotIce Deodorant Body Spray – Pour Homme" [ref=e5352] [cursor=pointer]:
+            - generic [ref=e5353]:
+              - img "HotIce Deodorant Body Spray – Pour Homme" [ref=e5354]
+              - button "Wishlist" [ref=e5355]
+            - generic [ref=e5358]:
+              - heading "HotIce Deodorant Body Spray – Pour Homme" [level=3] [ref=e5359]
+              - generic [ref=e5361]:
+                - generic [ref=e5362]: GH₵45.00
+                - button "Add HotIce Deodorant Body Spray – Pour Homme to cart" [ref=e5366]
+          - link "View My Dear Body Perfumed Deodorant Body Spray" [ref=e5371] [cursor=pointer]:
+            - generic [ref=e5372]:
+              - img "My Dear Body Perfumed Deodorant Body Spray" [ref=e5373]
+              - button "Wishlist" [ref=e5374]
+            - generic [ref=e5377]:
+              - heading "My Dear Body Perfumed Deodorant Body Spray" [level=3] [ref=e5378]
+              - generic [ref=e5380]:
+                - generic [ref=e5381]: GH₵50.00
+                - button "Add My Dear Body Perfumed Deodorant Body Spray to cart" [ref=e5385]
+  - contentinfo [ref=e5131]:
+    - generic [ref=e5132]:
+      - generic [ref=e5133]:
+        - link "CR COSMETICS AND ESSENTIALS CR COSMETICS AND ESSENTIALS" [ref=e5135] [cursor=pointer]:
+          - /url: /
+          - img "CR COSMETICS AND ESSENTIALS" [ref=e5136]
+          - generic [ref=e5137]: CR COSMETICS AND ESSENTIALS
+        - navigation "Footer links" [ref=e5138]:
+          - link "About" [ref=e5139] [cursor=pointer]:
+            - /url: /about
+          - link "FAQs" [ref=e5140] [cursor=pointer]:
+            - /url: /faq
+          - link "Feedback" [ref=e5141] [cursor=pointer]:
+            - /url: /feedback
+          - link "Contact" [ref=e5142] [cursor=pointer]:
+            - /url: /contact
+          - link "Delivery & returns" [ref=e5143] [cursor=pointer]:
+            - /url: /delivery-returns
+          - link "WhatsApp" [ref=e5144] [cursor=pointer]:
+            - /url: https://wa.me/233592153306
+          - link "Visit CR Cosmetics and Essentials on TikTok" [ref=e5147] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@cr.cosmetics.andessenti3
+            - text: TikTok
+      - generic [ref=e5150]:
+        - generic [ref=e5151]: © 2026 CR COSMETICS AND ESSENTIALS
+        - generic [ref=e5152]:
+          - link "Terms" [ref=e5153] [cursor=pointer]:
+            - /url: /terms
+          - link "Privacy" [ref=e5154] [cursor=pointer]:
+            - /url: /privacy
