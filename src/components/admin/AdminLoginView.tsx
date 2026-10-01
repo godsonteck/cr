@@ -3,7 +3,6 @@ import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
 import { 
-  ShieldCheck, 
   Lock, 
   ArrowLeft,
   ArrowRight, 
@@ -78,7 +77,7 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           <span>Back to Online Shop</span>
         </Link>
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={toggleTheme}
@@ -88,10 +87,6 @@ export const AdminLoginView: React.FC<AdminLoginProps> = ({ onSuccess, mode = 'a
             {isDark ? <Sun className="w-3.5 h-3.5 text-[#E0B554]" /> : <Moon className="w-3.5 h-3.5 text-stone-600" />}
             <span className="hidden sm:inline capitalize">{theme} Mode</span>
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-muted)] text-[11px] font-medium shadow-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">{mode === 'pos' ? 'Secure POS Login' : 'Secure Store Login'}</span>
-          </div>
         </div>
       </header>
 

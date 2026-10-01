@@ -1610,9 +1610,12 @@ export function AdminSettingsScreen() {
   };
 
   // Toggle switch component
-  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) => (
+  const Toggle = ({ checked, label, onChange }: { checked: boolean; label: string; onChange: (value: boolean) => void }) => (
     <button
       type="button"
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
         checked ? 'bg-[#1E1719]' : 'bg-stone-300'
@@ -1634,7 +1637,7 @@ export function AdminSettingsScreen() {
         description="Control what customers see on your website."
       />
 
-      <form onSubmit={save} className="space-y-5 pb-32">
+      <form onSubmit={save} className="space-y-5">
         {/* STORE LOGO */}
         <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100 mb-1">Store logo</h2>
@@ -1699,7 +1702,7 @@ export function AdminSettingsScreen() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-stone-900 dark:text-stone-100">Top announcement</h3>
-                <Toggle checked={form.announcementVisible} onChange={v => update('announcementVisible', v)} />
+                <Toggle label="Show top announcement" checked={form.announcementVisible} onChange={v => update('announcementVisible', v)} />
               </div>
               <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
                 {form.announcementVisible ? 'Showing on your website' : 'Hidden from customers'}
@@ -1968,7 +1971,7 @@ export function AdminSettingsScreen() {
             ] as const).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2.5">
                 <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">{label}</span>
-                <Toggle checked={form.homepageSections[key]} onChange={v => updateNested('homepageSections', key, v)} />
+                <Toggle label={`Show ${label.toLowerCase()}`} checked={form.homepageSections[key]} onChange={v => updateNested('homepageSections', key, v)} />
               </div>
             ))}
           </div>
@@ -1994,7 +1997,7 @@ export function AdminSettingsScreen() {
             ] as const).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between rounded-lg border border-stone-100 dark:border-stone-800 px-3 py-2.5">
                 <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">{label}</span>
-                <Toggle checked={Boolean(form.pageVisibility[key as keyof typeof form.pageVisibility])} onChange={v => updateNested('pageVisibility', key as any, v)} />
+                <Toggle label={label} checked={Boolean(form.pageVisibility[key as keyof typeof form.pageVisibility])} onChange={v => updateNested('pageVisibility', key as any, v)} />
               </div>
             ))}
           </div>
@@ -2009,12 +2012,12 @@ export function AdminSettingsScreen() {
                 {form.maintenanceMode ? 'Website is closed to customers' : 'Website is live and accepting orders'}
               </p>
             </div>
-            <Toggle checked={form.maintenanceMode} onChange={v => update('maintenanceMode', v)} />
+            <Toggle label="Maintenance mode" checked={form.maintenanceMode} onChange={v => update('maintenanceMode', v)} />
           </div>
         </section>
 
         {/* SAVE BUTTON */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#1a1515] px-4 py-4 sm:px-6">
+        <div className="sticky bottom-0 z-20 -mx-8 border-t border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#1a1515] px-4 py-4 sm:px-6">
           <button
             type="submit"
             disabled={isSaving}
