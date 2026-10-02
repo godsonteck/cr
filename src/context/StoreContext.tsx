@@ -385,7 +385,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
     } catch {}
-    return FALLBACK_PRODUCTS;
+    return [];
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -592,14 +592,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (shouldIncludeUnpublished) query.set('includeUnpublished', 'true');
       query.set('limit', '500');
       const data = await api.get<{ products: Product[] }>(`/products?${query}`, shouldIncludeUnpublished ? undefined : null);
-      if (data && Array.isArray(data.products) && data.products.length > 0) {
+      if (data && Array.isArray(data.products)) {
         setProducts(data.products.map(normalizeProduct));
         return;
       }
-      setProducts(FALLBACK_PRODUCTS);
+      setProducts([]);
     } catch (e: any) {
-      setProducts(FALLBACK_PRODUCTS);
-      setError('Failed to load products from server. Showing local data.');
+      setProducts([]);
+      setError('Failed to load products from server.');
       throw e;
     } finally {
       setLoading(false);
