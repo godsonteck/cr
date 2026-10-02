@@ -116,7 +116,7 @@ export function generateCode128Svg(text: string, options: BarcodeRenderOptions =
     : '';
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth.toFixed(1)} ${svgTotalHeight.toFixed(1)}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth.toFixed(1)} ${svgTotalHeight.toFixed(1)}" width="100%" height="${svgTotalHeight}px" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">
       ${rectsSvg}
       ${textSvg}
     </svg>

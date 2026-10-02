@@ -1,0 +1,12 @@
+node_modules/
+release/
+dist/
+.git/
+.vercel/
+.playwright-mcp/
+screenshots/
+audit-screens/
+/*.png
+temp-live-products.json
+network-check.txt
+network.txt
