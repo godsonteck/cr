@@ -52,6 +52,13 @@ interface BarcodeLabelsModalProps {
   initialProductId?: string; // If opened for a specific product
 }
 
+const escapeHtml = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
 export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
   isOpen,
   onClose,
@@ -408,7 +415,53 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
         return;
       }
     }
-    window.print();
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      showAlert('Allow pop-ups for this site, then try printing again.', 'error');
+      return;
+    }
+
+    const storeName = escapeHtml(storeSettings.storeName || 'CR COSMETICS');
+    const pagesHtml = printPages.map((pageItems, pageIndex) => `
+      <section class="print-page${pageIndex < printPages.length - 1 ? ' page-break' : ''}">
+        ${pageItems.map(item => `
+          <article class="label${showCutBorders ? ' cut-border' : ''}">
+            <header>
+              ${showStoreName ? `<span class="store-name">${storeName}</span>` : '<span></span>'}
+              ${showPrice ? `<strong class="price">GH&#8373; ${Number(item.price).toFixed(2)}</strong>` : ''}
+            </header>
+            ${showProductName ? `<div class="product"><span class="brand">${escapeHtml(item.brand)}</span><strong>${escapeHtml(item.productName)}${showVariantName && item.variantName ? ` · ${escapeHtml(item.variantName)}` : ''}</strong></div>` : ''}
+            <div class="barcode">${item.barcode ? generateCode128Svg(item.barcode, { height: 34, showText: showBarcodeText, fontSize: 9, quietZone: 8 }) : '<span class="missing">[No Barcode Assigned]</span>'}</div>
+          </article>
+        `).join('')}
+      </section>
+    `).join('');
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
+      <html><head><meta charset="utf-8"><title>Barcode Labels</title>
+      <style>
+        @page { size: ${pageWidthMm}mm ${pageHeightMm}mm; margin: 0; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; color: #000; background: #fff; font-family: Arial, sans-serif; }
+        .print-page { width: ${pageWidthMm}mm; height: ${pageHeightMm}mm; padding: ${template.category === 'thermal' ? '0' : `${template.pagePaddingTopMm}mm ${template.pagePaddingSideMm}mm 0`}; display: grid; grid-template-columns: repeat(${template.columns}, ${template.labelWidthMm}mm); grid-template-rows: repeat(${template.rows}, ${template.labelHeightMm}mm); column-gap: ${template.gapXmm}mm; row-gap: ${template.gapYmm}mm; justify-content: center; align-content: start; overflow: hidden; }
+        .page-break { break-after: page; page-break-after: always; }
+        .label { width: ${template.labelWidthMm}mm; height: ${template.labelHeightMm}mm; padding: 1.5mm; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #fff; break-inside: avoid; page-break-inside: avoid; }
+        .cut-border { border: 0.2mm dashed #555; }
+        header { min-height: 3mm; display: flex; align-items: center; justify-content: space-between; gap: 1mm; border-bottom: 0.2mm solid #ddd; padding-bottom: 0.5mm; }
+        .store-name { max-width: 65%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 6pt; font-weight: 700; text-transform: uppercase; }
+        .price { margin-left: auto; white-space: nowrap; font-size: 10pt; }
+        .product { min-width: 0; padding: 0.5mm 0; }
+        .brand { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #555; font-size: 6pt; font-weight: 600; text-transform: uppercase; }
+        .product strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 8pt; line-height: 1.1; }
+        .barcode { width: 100%; min-height: 0; margin: auto 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .barcode svg { display: block; width: 100%; max-height: 12mm; }
+        .missing { color: #555; font-size: 8pt; font-style: italic; }
+        @media screen { body { padding: 12px; } .print-page { margin: 0 auto 12px; box-shadow: 0 1px 8px #999; } }
+      </style></head><body>${pagesHtml}
+      <script>window.addEventListener('load', function () { setTimeout(function () { window.focus(); window.print(); }, 250); });</script>
+      </body></html>`);
+    printWindow.document.close();
   };
 
   if (!isOpen) return null;
