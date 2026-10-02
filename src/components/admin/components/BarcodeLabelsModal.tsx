@@ -454,8 +454,8 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
         .product { min-width: 0; padding: 0.5mm 0; }
         .brand { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #555; font-size: 6pt; font-weight: 600; text-transform: uppercase; }
         .product strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 8pt; line-height: 1.1; }
-        .barcode { width: 100%; min-height: 0; margin: auto 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .barcode svg { display: block; width: 100%; max-height: 12mm; }
+        .barcode { width: 100%; height: 12mm; min-height: 12mm; margin: auto 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .barcode svg { display: block; width: 100%; height: 100%; max-height: 12mm; }
         .missing { color: #555; font-size: 8pt; font-style: italic; }
         @media screen { body { padding: 12px; } .print-page { margin: 0 auto 12px; box-shadow: 0 1px 8px #999; } }
       </style></head><body>${pagesHtml}
@@ -563,7 +563,7 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
               <div className="my-auto flex flex-col items-center justify-center min-h-0 w-full overflow-hidden">
                 {item.barcode ? (
                   <div
-                    className="flex max-h-12 w-full items-center justify-center overflow-hidden"
+                    className="flex h-12 w-full shrink-0 items-center justify-center overflow-hidden"
                     dangerouslySetInnerHTML={{
                       __html: generateCode128Svg(item.barcode, {
                         height: 34,
@@ -1117,10 +1117,10 @@ export const BarcodeLabelsModal: React.FC<BarcodeLabelsModalProps> = ({
                             </div>
                           )}
 
-                          <div className="flex min-h-0 w-full items-center justify-center overflow-hidden">
+                          <div className="flex h-12 w-full shrink-0 items-center justify-center overflow-hidden">
                             {item.barcode ? (
                               <div
-                                className="flex max-h-12 w-full items-center justify-center overflow-hidden"
+                                className="flex h-12 w-full shrink-0 items-center justify-center overflow-hidden"
                                 dangerouslySetInnerHTML={{
                                   __html: generateCode128Svg(item.barcode, {
                                     height: 34,
