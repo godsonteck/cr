@@ -94,7 +94,7 @@ const productCreateSchema = z.object({
   badge: z.string().max(50).optional().nullable(),
   inStock: z.boolean().default(true),
   isPublished: z.boolean().default(true),
-  stockCount: z.number().int().min(0).default(0),
+  stockCount: z.number().int().min(0).default(2),
   options: z.array(z.object({ name: z.string().min(1), values: z.array(z.string().min(1)).min(1) })).default([]),
   rating: z.union([z.string(), z.number()]).default('5.0').transform(v => String(v)),
   reviewCount: z.number().int().min(0).default(0),

@@ -93,7 +93,7 @@ export const products = pgTable('products', {
   badge: varchar('badge', { length: 50 }),
   inStock: boolean('in_stock').notNull().default(true),
   isPublished: boolean('is_published').notNull().default(true),
-  stockCount: integer('stock_count').notNull().default(0),
+  stockCount: integer('stock_count').notNull().default(2),
   options: jsonb('options').$type<Array<{ name: string; values: string[] }>>().default([]),
   rating: decimal('rating', { precision: 3, scale: 1 }).notNull().default('5.0'),
   reviewCount: integer('review_count').notNull().default(0),
