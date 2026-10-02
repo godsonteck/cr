@@ -527,17 +527,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updatedAt: new Date(),
       };
 
-      // Stock can be changed by any admin screen, so enforce the visibility rule
-      // here at the source of truth rather than depending on a particular UI.
+      const incomingVariants = mediaSafeRest.variants;
+      const existingVariants = existing.variants || [];
+      const variantInventoryChanged = incomingVariants !== undefined && (
+        incomingVariants.length !== existingVariants.length ||
+        incomingVariants.some(variant => {
+          const previous = existingVariants.find(item => item.id === variant.id);
+          return !previous ||
+            Number(variant.stockCount ?? 0) !== Number(previous.stockCount ?? 0) ||
+            Boolean(variant.inStock) !== Boolean(previous.inStock);
+        })
+      );
+      const inventoryChanged = mediaSafeRest.stockCount !== undefined ||
+        mediaSafeRest.inStock !== undefined ||
+        variantInventoryChanged;
+
+      // Only recalculate availability when the stock values themselves change.
+      // A normal save that edits text, images, barcode, notes, or publication
+      // flags must not silently push a product in or out of stock without a
+      // corresponding inventory adjustment.
       const nextInventory = {
         stockCount: mediaSafeRest.stockCount ?? existing.stockCount,
         inStock: mediaSafeRest.inStock ?? existing.inStock,
         variants: mediaSafeRest.variants ?? existing.variants,
       };
-      if (mediaSafeRest.variants !== undefined || mediaSafeRest.stockCount !== undefined || mediaSafeRest.inStock !== undefined || mediaSafeRest.isPublished === true) {
+      if (inventoryChanged) {
         const available = hasAvailableInventory(nextInventory);
-        if (mediaSafeRest.variants !== undefined) {
-          updateData.stockCount = variantStockTotal(mediaSafeRest.variants);
+        if (variantInventoryChanged && incomingVariants) {
+          updateData.stockCount = variantStockTotal(incomingVariants);
         }
         updateData.inStock = available;
         if (!available) updateData.isPublished = false;
