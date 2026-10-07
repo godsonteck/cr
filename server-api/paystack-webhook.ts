@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../src/database.js';
 import { orders, notifications } from '../src/db/schema.js';
-import { orderNotificationRows } from './_order-notifications.js';
+import { orderNotificationRows, scheduleOrderConfirmationEmails } from './_order-notifications.js';
 import { getPaystackSecretKey } from './_paystack.js';
 
 type PaystackEvent = {
@@ -91,5 +91,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ received: true, alreadyProcessed: true });
   }
 
+  scheduleOrderConfirmationEmails(result[0]);
   return res.status(200).json({ received: true, matched: true });
 }

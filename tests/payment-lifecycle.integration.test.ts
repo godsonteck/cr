@@ -15,6 +15,9 @@ if (!/test/i.test(`${parsedDatabaseUrl.hostname}/${parsedDatabaseUrl.pathname}`)
 process.env.DATABASE_URL = paymentTestDatabaseUrl;
 process.env.PAYSTACK_SECRET_KEY = `sk_test_${randomBytes(24).toString('hex')}`;
 process.env.VERCEL_ENV = 'preview';
+process.env.RESEND_API_KEY = '';
+process.env.EMAIL_FROM = '';
+process.env.STORE_NOTIFICATION_EMAIL = '';
 process.env.JWT_SECRET = randomBytes(32).toString('hex');
 process.env.CRON_SECRET = randomBytes(24).toString('hex');
 

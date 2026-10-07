@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
 import { getPaystackSecretKey } from './_paystack.js';
 import { escapeHtml, sendEmail } from './_email.js';
-import { orderNotificationRows } from './_order-notifications.js';
+import { orderNotificationRows, scheduleOrderConfirmationEmails } from './_order-notifications.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 import { randomBytes } from 'crypto';
@@ -264,7 +264,10 @@ async function reconcilePaystackOrders(req: VercelRequest, res: VercelResponse) 
           if (updated) await tx.insert(notifications).values(orderNotificationRows(updated));
           return updated;
         });
-        if (changed) confirmed += 1;
+        if (changed) {
+          scheduleOrderConfirmationEmails(changed, owner?.email);
+          confirmed += 1;
+        }
       } else if (payload.data?.status === 'failed' || payload.data?.status === 'abandoned') {
         if (await releaseFailedPaystackOrder(order.id)) released += 1;
       }
@@ -438,7 +441,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (updated) await tx.insert(notifications).values(orderNotificationRows(updated));
         return updated;
       });
-      if (confirmedOrder) return res.status(200).json(confirmedOrder);
+      if (confirmedOrder) {
+        scheduleOrderConfirmationEmails(confirmedOrder, auth.email);
+        return res.status(200).json(confirmedOrder);
+      }
 
       const [latestOrder] = await db.select().from(orders).where(eq(orders.id, order.id)).limit(1);
       if (latestOrder?.paymentStatus === 'paid') return res.status(200).json(latestOrder);
