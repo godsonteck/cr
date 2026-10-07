@@ -416,10 +416,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(402).json({ error: 'Payment could not be verified with Paystack. Please try again.' });
         }
         const paidAmount = paystackPayload.data?.amount;
-        const expectedTotalPesewas = Math.round(parsed.data.total * 100);
         const calculatedTotalPesewas = Math.round(calculatedTotal * 100);
-        if (paidAmount !== expectedTotalPesewas && paidAmount !== calculatedTotalPesewas) {
-          return res.status(402).json({ error: 'Paid amount does not match order total.' });
+        if (paidAmount !== calculatedTotalPesewas) {
+          return res.status(402).json({ error: 'Paid amount does not match the calculated order total.' });
         }
         isPaystackVerified = true;
       }
