@@ -253,6 +253,7 @@ export const orders = pgTable('orders', {
   statusIdx: index('orders_status_idx').on(table.status),
   createdAtIdx: index('orders_created_at_idx').on(table.createdAt),
   orderNumberIdx: uniqueIndex('orders_order_number_idx').on(table.orderNumber),
+  paymentReferenceIdx: uniqueIndex('orders_payment_reference_idx').on(table.paymentReference),
   idempotencyKeyIdx: uniqueIndex('orders_idempotency_key_idx').on(table.idempotencyKey),
 }));
 
