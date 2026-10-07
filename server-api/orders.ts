@@ -643,6 +643,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(404).json({ error: 'Order not found' });
       }
 
+      if (parsed.data.paymentStatus === 'pending' && existingOrder.paymentStatus === 'paid') {
+        return res.status(409).json({ error: 'A paid order cannot be returned to pending.' });
+      }
+      if (parsed.data.paymentStatus === 'paid' && existingOrder.paymentStatus === 'pending' && existingOrder.paymentMethod === 'paystack') {
+        return res.status(403).json({ error: 'Paystack payments can only be confirmed by Paystack verification.' });
+      }
+
       const mergedRiderInfo = parsed.data.riderInfo !== undefined
         ? { ...((existingOrder.riderInfo as Record<string, any>) || {}), ...(parsed.data.riderInfo || {}) }
         : existingOrder.riderInfo;
@@ -668,11 +675,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ];
       }
 
+      const updateConditions = [eq(orders.id, id)];
+      if (parsed.data.paymentStatus !== undefined) {
+        updateConditions.push(eq(orders.paymentStatus, existingOrder.paymentStatus));
+      }
       const [updated] = await db
         .update(orders)
         .set(updateData)
-        .where(eq(orders.id, id))
+        .where(and(...updateConditions))
         .returning();
+      if (!updated) {
+        return res.status(409).json({ error: 'Order payment status changed. Refresh and try again.' });
+      }
       if (parsed.data.status && updated.userId) {
         await db.insert(notifications).values({
           userId: updated.userId,

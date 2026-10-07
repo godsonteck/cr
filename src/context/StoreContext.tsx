@@ -978,10 +978,14 @@ const addOrder = async (order: Order) => {
   };
 
   const updatePaymentStatus = async (orderId: string, paymentStatus: 'paid' | 'pending') => {
+    const previousOrder = orders.find(order => order.id === orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus } : o));
     try {
       await api.patch(`/orders?id=${encodeURIComponent(orderId)}`, { paymentStatus });
-    } catch (e: any) { setError(e.message || "Operation failed"); }
+    } catch (e: any) {
+      if (previousOrder) setOrders(prev => prev.map(order => order.id === orderId ? previousOrder : order));
+      setError(e.message || "Operation failed");
+    }
   };
 
   const deleteOrder = async (orderId: string) => {
