@@ -10,9 +10,9 @@ async function runMigration() {
     `CREATE TYPE "public"."delivery_method" AS ENUM('accra-express', 'standard-delivery', 'intercity', 'store-pickup')`,
     `CREATE TYPE "public"."department" AS ENUM('beauty', 'groceries')`,
     `CREATE TYPE "public"."discount_type" AS ENUM('percentage', 'fixed')`,
-    `CREATE TYPE "public"."order_status" AS ENUM('Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered')`,
+    `CREATE TYPE "public"."order_status" AS ENUM('Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered', 'Cancelled')`,
     `CREATE TYPE "public"."payment_method" AS ENUM('paystack', 'momo-mtn', 'momo-telecel', 'momo-at', 'cash-on-delivery', 'card', 'apple-pay')`,
-    `CREATE TYPE "public"."payment_status" AS ENUM('paid', 'pending')`,
+    `CREATE TYPE "public"."payment_status" AS ENUM('paid', 'pending', 'failed')`,
     `CREATE TYPE "public"."routine_step" AS ENUM('cleanse', 'treat', 'hydrate', 'protect')`,
   ];
 
@@ -119,6 +119,8 @@ async function runMigration() {
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "is_wholesale" boolean NOT NULL DEFAULT false`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "wholesale_price" numeric(10, 2)`,
     `ALTER TYPE "order_status" ADD VALUE IF NOT EXISTS 'Refunded'`,
+    `ALTER TYPE "order_status" ADD VALUE IF NOT EXISTS 'Cancelled'`,
+    `ALTER TYPE "payment_status" ADD VALUE IF NOT EXISTS 'failed'`,
     `ALTER TYPE "admin_role" ADD VALUE IF NOT EXISTS 'Cashier'`,
     `ALTER TABLE "reviews" ADD COLUMN IF NOT EXISTS "images" jsonb DEFAULT '[]'::jsonb`,
   ];

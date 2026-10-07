@@ -1,10 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { db } from '../src/database.js';
-import { adminSessions, users, products } from '../src/db/schema.js';
+import { adminSessions, users, orders } from '../src/db/schema.js';
 import { requireAuth, signToken } from './_auth.js';
+import { getPaystackSecretKey } from './_paystack.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 const loginSchema = z.object({
@@ -21,16 +22,8 @@ const adminLoginSchema = z.object({
 
 const googleLoginSchema = z.object({ credential: z.string().min(20) });
 const paystackInitializeSchema = z.object({
-  amount: z.number().int().positive(),
-  email: z.string().email(),
-  name: z.string().min(1).max(100),
-  reference: z.string().min(10).max(100),
+  orderId: z.string().uuid(),
   callbackUrl: z.string().url(),
-  items: z.array(z.object({
-    productId: z.string(),
-    price: z.number(),
-    variantId: z.string().optional(),
-  })).optional(),
 });
 function stripPassword(user: typeof users.$inferSelect) {
   const { passwordHash, ...safeUser } = user;
@@ -159,87 +152,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ token, user: stripPassword(user) });
       }
 
-      if (action === 'paystack-verify') {
-        const auth = await requireAuth(req, res);
-        if (!auth) return;
-
-        const reference = typeof body?.reference === 'string' ? body.reference.trim() : '';
-        const expectedAmount = typeof body?.amount === 'number' ? body.amount : 0;
-        // Strip BOM (U+FEFF) and whitespace that PowerShell stdin may inject
-        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
-        if (!reference || !expectedAmount || !secretKey) {
-          return res.status(400).json({ error: 'Paystack payment details are incomplete' });
-        }
-
-        const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-          headers: { Authorization: `Bearer ${secretKey}` },
-        });
-        const payload = await paystackResponse.json() as {
-          status?: boolean;
-          message?: string;
-          data?: { status?: string; reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
-        };
-        if (!paystackResponse.ok || !payload.status || payload.data?.status !== 'success' || payload.data.amount !== expectedAmount || payload.data.currency !== 'GHS') {
-          return res.status(402).json({ error: payload.message || 'Payment could not be verified' });
-        }
-        const paystackEmail = payload.data.customer?.email?.toLowerCase();
-        if (paystackEmail && paystackEmail !== auth.email.toLowerCase()) {
-          return res.status(403).json({ error: 'Payment customer does not match this account' });
-        }
-        return res.status(200).json({ verified: true, reference: payload.data.reference || reference });
-      }
-
       if (action === 'paystack-initialize') {
         const auth = await requireAuth(req, res);
         if (!auth) return;
         const parsed = paystackInitializeSchema.safeParse(body);
         // Strip BOM (U+FEFF) and whitespace that PowerShell stdin may inject
-        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
-        if (!parsed.success || !secretKey) return res.status(500).json({ error: 'Paystack is not configured on the server' });
-        if (parsed.data.email.toLowerCase() !== auth.email.toLowerCase()) return res.status(403).json({ error: 'Payment email must match the signed-in account' });
-
-        if (parsed.data.items && parsed.data.items.length > 0) {
-          const productIds = parsed.data.items.map(i => i.productId);
-          const productRows = await db.select().from(products).where(inArray(products.id, productIds));
-          const productMap = new Map(productRows.map(p => [p.id, p]));
-
-          // Check if this customer is a wholesale buyer
-          const [authUser] = await db.select({ isWholesale: users.isWholesale })
-            .from(users).where(eq(users.id, auth.sub)).limit(1);
-          const isWholesaleUser = authUser?.isWholesale ?? false;
-
-          for (const item of parsed.data.items) {
-            const prod = productMap.get(item.productId);
-            if (!prod) {
-              return res.status(400).json({ error: `Product no longer exists: ${item.productId}. Please refresh your cart.` });
-            }
-            const variant = item.variantId ? prod.variants?.find(v => v.id === item.variantId) : undefined;
-            const retailPrice = Number(variant?.price ?? prod.price);
-            const rawWholesale = variant?.wholesalePrice != null ? Number(variant.wholesalePrice) : (prod.wholesalePrice ? Number(prod.wholesalePrice) : null);
-            // Accept either retail or, for wholesale users, the wholesale price
-            const validPrice = isWholesaleUser && rawWholesale !== null ? rawWholesale : retailPrice;
-            if (Math.abs(item.price - validPrice) > 0.01) {
-              return res.status(400).json({
-                error: `Cannot start payment: The price for "${prod.name}" in the store catalog is GHS ${validPrice.toFixed(2)}, but your cart has GHS ${item.price.toFixed(2)}. Please refresh your cart before proceeding to checkout.`
-              });
-            }
-          }
+        const secretKey = getPaystackSecretKey();
+        if (!parsed.success) return res.status(400).json({ error: 'A valid pending order is required for Paystack checkout.' });
+        if (!secretKey) return res.status(503).json({ error: 'Paystack is not configured on the server.' });
+        const [order] = await db.select().from(orders)
+          .where(eq(orders.id, parsed.data.orderId))
+          .limit(1);
+        if (!order || order.userId !== auth.sub) return res.status(404).json({ error: 'Order not found' });
+        if (order.paymentMethod !== 'paystack' || !order.paymentReference) {
+          return res.status(400).json({ error: 'This order is not ready for Paystack payment.' });
         }
+        if (order.paymentStatus !== 'pending') return res.status(409).json({ error: 'This order is no longer awaiting payment.' });
 
         const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
           method: 'POST',
           headers: { Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: parsed.data.amount,
-            email: parsed.data.email,
-            reference: parsed.data.reference,
+            amount: Math.round(Number(order.total) * 100),
+            currency: 'GHS',
+            email: auth.email,
+            reference: order.paymentReference,
             callback_url: parsed.data.callbackUrl,
-            metadata: { customer_name: parsed.data.name, user_id: auth.sub },
+            metadata: { order_id: order.id, user_id: auth.sub },
           }),
+          signal: AbortSignal.timeout(8000),
         });
         const payload = await paystackResponse.json() as { status?: boolean; message?: string; data?: { authorization_url?: string; reference?: string } };
         if (!paystackResponse.ok || !payload.status || !payload.data?.authorization_url) return res.status(502).json({ error: payload.message || 'Paystack checkout could not be started' });
-        return res.status(200).json({ checkoutUrl: payload.data.authorization_url, reference: payload.data.reference || parsed.data.reference });
+        return res.status(200).json({ checkoutUrl: payload.data.authorization_url, reference: payload.data.reference || order.paymentReference });
       }
 
       const parsed = loginSchema.safeParse(body);

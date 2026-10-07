@@ -37,6 +37,7 @@ const statusStyles: Record<OrderStatus, string> = {
   'Out for Delivery': 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
   Delivered: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
   Refunded: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
+  Cancelled: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
 };
 
 const money = (value: number) => `GHS ${value.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -81,7 +82,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
   const metrics = useMemo(() => {
     const targetOrders = dateFilteredOrders;
     const paidOrders = targetOrders.filter(order => order.paymentStatus === 'paid');
-    const pendingPayments = targetOrders.filter(order => order.paymentStatus !== 'paid');
+    const pendingPayments = targetOrders.filter(order => order.paymentStatus === 'pending');
     const openOrders = targetOrders.filter(order => order.status !== 'Delivered');
     const deliveryOrders = targetOrders.filter(order => order.status === 'Out for Delivery');
     const grossSales = targetOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
@@ -583,7 +584,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
                               : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
                           }`}
                         >
-                          {o.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                          {o.paymentStatus === 'paid' ? 'Paid' : o.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-bold text-stone-900 dark:text-stone-100">

@@ -4,7 +4,9 @@ import { orders, products, storeSettings, promoCodes, flashDeals, notifications,
 import { eq, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
+import { getPaystackSecretKey } from './_paystack.js';
 import { escapeHtml, sendEmail } from './_email.js';
+import { orderNotificationRows } from './_order-notifications.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 import { randomBytes } from 'crypto';
@@ -92,10 +94,193 @@ function describeValidationError(error: z.ZodError) {
   return error.issues.map(issue => `${issue.path.join('.') || 'order'}: ${issue.message}`).join('; ');
 }
 
+const paystackConfirmSchema = z.object({ orderId: z.string().uuid(), reference: z.string().min(10).max(100) });
+
+async function releaseFailedPaystackOrder(orderId: string): Promise<boolean> {
+  return db.transaction(async tx => {
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).for('update').limit(1);
+    if (!order || order.paymentMethod !== 'paystack' || order.paymentStatus !== 'pending') return false;
+
+    const quantities = new Map<string, { product: number; variants: Map<string, number> }>();
+    for (const item of order.items) {
+      const productId = item.product.id;
+      const entry = quantities.get(productId) || { product: 0, variants: new Map<string, number>() };
+      const variantId = item.selectedVariant?.id;
+      if (variantId) entry.variants.set(variantId, (entry.variants.get(variantId) || 0) + item.quantity);
+      else entry.product += item.quantity;
+      quantities.set(productId, entry);
+    }
+
+    const productIds = [...quantities.keys()].sort();
+    const lockedProducts = await tx.select().from(products)
+      .where(inArray(products.id, productIds))
+      .orderBy(asc(products.id))
+      .for('update');
+    const productMap = new Map(lockedProducts.map(product => [product.id, product]));
+
+    for (const [productId, quantity] of quantities) {
+      const product = productMap.get(productId);
+      if (!product) throw new Error(`Cannot release stock for missing product ${productId}`);
+      if (quantity.product > 0) {
+        const stockAfter = product.stockCount + quantity.product;
+        await tx.update(products).set({
+          stockCount: stockAfter,
+          inStock: stockAfter > 0,
+          isPublished: stockAfter > 0 || product.isPublished,
+          updatedAt: new Date(),
+        }).where(eq(products.id, productId));
+        await tx.insert(inventoryMovements).values({
+          productId,
+          orderId: order.id,
+          movementType: 'PAYMENT_RELEASE',
+          quantity: quantity.product,
+          quantityBefore: product.stockCount,
+          quantityAfter: stockAfter,
+          reason: `Failed Paystack payment ${order.paymentReference || order.orderNumber}`,
+        });
+      }
+      if (quantity.variants.size > 0) {
+        const currentVariants = product.variants || [];
+        for (const variantId of quantity.variants.keys()) {
+          if (!currentVariants.some(variant => variant.id === variantId)) {
+            throw new Error(`Cannot release stock for missing variation ${variantId}`);
+          }
+        }
+        const updatedVariants = currentVariants.map(variant => {
+          const restoreQuantity = quantity.variants.get(variant.id) || 0;
+          return restoreQuantity > 0 ? {
+            ...variant,
+            stockCount: Number(variant.stockCount || 0) + restoreQuantity,
+            inStock: true,
+          } : variant;
+        });
+        const stockAfter = updatedVariants.reduce((sum, variant) => sum + Number(variant.stockCount || 0), 0) + quantity.product;
+        await tx.update(products).set({
+          variants: updatedVariants,
+          stockCount: stockAfter,
+          inStock: stockAfter > 0,
+          isPublished: stockAfter > 0 || product.isPublished,
+          updatedAt: new Date(),
+        }).where(eq(products.id, productId));
+        for (const [variantId, restoreQuantity] of quantity.variants) {
+          const currentVariant = currentVariants.find(variant => variant.id === variantId)!;
+          const quantityBefore = Number(currentVariant.stockCount || 0);
+          await tx.insert(inventoryMovements).values({
+            productId,
+            variantId,
+            orderId: order.id,
+            movementType: 'PAYMENT_RELEASE',
+            quantity: restoreQuantity,
+            quantityBefore,
+            quantityAfter: quantityBefore + restoreQuantity,
+            reason: `Failed Paystack payment ${order.paymentReference || order.orderNumber}`,
+          });
+        }
+      }
+    }
+
+    await tx.update(orders).set({
+      paymentStatus: 'failed',
+      status: 'Cancelled',
+      updatedAt: new Date(),
+    }).where(eq(orders.id, order.id));
+    if (order.appliedPromoCode) {
+      await tx.update(promoCodes).set({
+        usageCount: sql`GREATEST(${promoCodes.usageCount} - 1, 0)`,
+        updatedAt: new Date(),
+      }).where(eq(promoCodes.code, order.appliedPromoCode));
+    }
+    await tx.insert(notifications).values([
+      {
+        userId: order.userId || null,
+        type: 'order',
+        title: 'Payment not completed',
+        message: `Order #${order.orderNumber} was cancelled and reserved stock was released.`,
+        actionUrl: '/account/orders',
+      },
+      {
+        userId: null,
+        type: 'order',
+        title: 'Unpaid order cancelled',
+        message: `Order #${order.orderNumber} was cancelled after Paystack confirmed the payment did not complete.`,
+        actionUrl: '/admin?tab=orders',
+      },
+    ]);
+    return true;
+  });
+}
+
+async function reconcilePaystackOrders(req: VercelRequest, res: VercelResponse) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || req.headers.authorization !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const secretKey = getPaystackSecretKey();
+  if (!secretKey) return res.status(503).json({ error: 'Payment verification is unavailable.' });
+
+  const reconciliationConditions = [
+    eq(orders.paymentMethod, 'paystack'),
+    eq(orders.paymentStatus, 'pending'),
+    sql`${orders.createdAt} <= NOW() - INTERVAL '15 minutes'`,
+  ];
+  if (typeof req.query.orderId === 'string') reconciliationConditions.push(eq(orders.id, req.query.orderId));
+  const staleOrders = await db.select().from(orders).where(and(...reconciliationConditions))
+    .orderBy(asc(orders.createdAt)).limit(3);
+
+  let confirmed = 0;
+  let released = 0;
+  for (const order of staleOrders) {
+    const reference = order.paymentReference;
+    if (!reference) continue;
+    try {
+      const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+        headers: { Authorization: `Bearer ${secretKey}` },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (response.status === 404) {
+        if (await releaseFailedPaystackOrder(order.id)) released += 1;
+        continue;
+      }
+      if (!response.ok) continue;
+      const payload = await response.json() as {
+        status?: boolean;
+        data?: { status?: string; reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
+      };
+      if (payload.status && payload.data?.status === 'success') {
+        const [owner] = order.userId
+          ? await db.select({ email: users.email }).from(users).where(eq(users.id, order.userId)).limit(1)
+          : [];
+        if (payload.data.reference !== reference
+          || payload.data.amount !== Math.round(Number(order.total) * 100)
+          || payload.data.currency !== 'GHS'
+          || payload.data.customer?.email?.toLowerCase() !== owner?.email.toLowerCase()) {
+          console.error(JSON.stringify({ event: 'paystack_reconciliation_mismatch', orderId: order.id, reference }));
+          continue;
+        }
+        const changed = await db.transaction(async tx => {
+          const [updated] = await tx.update(orders).set({ paymentStatus: 'paid', updatedAt: new Date() })
+            .where(and(eq(orders.id, order.id), eq(orders.paymentStatus, 'pending')))
+            .returning();
+          if (updated) await tx.insert(notifications).values(orderNotificationRows(updated));
+          return updated;
+        });
+        if (changed) confirmed += 1;
+      } else if (payload.data?.status === 'failed' || payload.data?.status === 'abandoned') {
+        if (await releaseFailedPaystackOrder(order.id)) released += 1;
+      }
+    } catch (error) {
+      console.error(JSON.stringify({ event: 'paystack_reconciliation_error', orderId: order.id, reference, message: error instanceof Error ? error.message : 'Unknown error' }));
+    }
+  }
+  return res.status(200).json({ checked: staleOrders.length, confirmed, released });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method, query, body } = req;
 
   try {
+    if (method === 'GET' && query.action === 'reconcile') return await reconcilePaystackOrders(req, res);
+
     if (method === 'GET') {
       const { id, orderNumber, userId, status, limit = '50', offset = '0' } = query;
       const auth = await requireAuth(req, res);
@@ -211,7 +396,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(refundedOrder);
     }
 
+    if (method === 'POST' && query.action === 'confirm-paystack') {
+      const auth = await requireAuth(req, res);
+      if (!auth) return;
+      const parsed = paystackConfirmSchema.safeParse(body);
+      if (!parsed.success) return res.status(400).json({ error: 'A valid order and Paystack reference are required.' });
+
+      const [order] = await db.select().from(orders).where(eq(orders.id, parsed.data.orderId)).limit(1);
+      if (!order || order.userId !== auth.sub || order.paymentMethod !== 'paystack' || order.paymentReference !== parsed.data.reference) {
+        return res.status(404).json({ error: 'Order not found for this Paystack reference.' });
+      }
+      if (order.paymentStatus === 'paid') return res.status(200).json(order);
+      if (order.paymentStatus !== 'pending') return res.status(409).json({ error: 'This order is no longer awaiting payment.' });
+
+      const secretKey = getPaystackSecretKey();
+      if (!secretKey) return res.status(503).json({ error: 'Payment verification is unavailable.' });
+      const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(parsed.data.reference)}`, {
+        headers: { Authorization: `Bearer ${secretKey}` },
+        signal: AbortSignal.timeout(8000),
+      });
+      const payload = await paystackRes.json() as {
+        status?: boolean;
+        message?: string;
+        data?: { status?: string; reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
+      };
+      if (!paystackRes.ok || !payload.status || payload.data?.status !== 'success'
+        || payload.data.reference !== order.paymentReference
+        || payload.data.amount !== Math.round(Number(order.total) * 100)
+        || payload.data.currency !== 'GHS') {
+        return res.status(402).json({ error: payload.message || 'Payment could not be verified against this order.' });
+      }
+      if (payload.data.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+        return res.status(403).json({ error: 'Payment customer does not match this account.' });
+      }
+
+      const confirmedOrder = await db.transaction(async tx => {
+        const [updated] = await tx.update(orders)
+          .set({ paymentStatus: 'paid', updatedAt: new Date() })
+          .where(and(eq(orders.id, order.id), eq(orders.paymentStatus, 'pending')))
+          .returning();
+        if (updated) await tx.insert(notifications).values(orderNotificationRows(updated));
+        return updated;
+      });
+      if (confirmedOrder) return res.status(200).json(confirmedOrder);
+
+      const [latestOrder] = await db.select().from(orders).where(eq(orders.id, order.id)).limit(1);
+      if (latestOrder?.paymentStatus === 'paid') return res.status(200).json(latestOrder);
+      return res.status(409).json({ error: 'Order payment status changed. Refresh and try again.' });
+    }
+
     if (method === 'POST') {
+      const isPaystackPrepare = query.action === 'prepare-paystack';
       const isWhatsAppOrder = query.channel === 'whatsapp';
       const isPosOrder = query.channel === 'pos';
       const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : await requireAuth(req, res);
@@ -223,6 +458,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const rateLimit = checkRateLimit(`whatsapp-order:${getClientIp(req.headers)}`, 10, 60 * 60 * 1000);
         if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many order attempts. Please try again later.' });
       }
+      if (isPaystackPrepare) {
+        const rateLimit = checkRateLimit(`checkout:${auth?.sub}`, 5, 15 * 60 * 1000);
+        if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many checkout attempts. Please try again later.' });
+      }
       const parsed = orderCreateSchema.safeParse(body);
       if (!parsed.success) {
         const validationMessage = describeValidationError(parsed.error);
@@ -232,13 +471,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (isWhatsAppOrder && parsed.data.paymentMethod !== 'cash-on-delivery') {
         return res.status(400).json({ error: 'WhatsApp orders must be confirmed with the store before payment.' });
       }
+      if (isPaystackPrepare && (parsed.data.paymentMethod !== 'paystack' || !parsed.data.idempotencyKey)) {
+        return res.status(400).json({ error: 'A Paystack checkout key is required to prepare this order.' });
+      }
       if (isPosOrder && parsed.data.orderSource !== 'pos') {
         return res.status(400).json({ error: 'POS sales must use the POS order source.' });
       }
       if (isPosOrder && !parsed.data.idempotencyKey) return res.status(400).json({ error: 'POS sale identifier is required. Please retry the sale.' });
-      if (isPosOrder && parsed.data.idempotencyKey) {
+      if ((isPosOrder || isPaystackPrepare) && parsed.data.idempotencyKey) {
         const [existingOrder] = await db.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
-        if (existingOrder) return res.status(200).json(existingOrder);
+        if (existingOrder) {
+          if (isPaystackPrepare && existingOrder.userId !== auth?.sub) {
+            return res.status(409).json({ error: 'This checkout key is already in use.' });
+          }
+          return res.status(200).json(existingOrder);
+        }
       }
       if (isPosOrder && parsed.data.userId) {
         const [posCustomer] = await db.select({ id: users.id, isActive: users.isActive }).from(users).where(eq(users.id, parsed.data.userId)).limit(1);
@@ -397,6 +644,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const finalShippingFee = isFreeDelivery ? 0 : baseShippingFee;
       const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount + finalShippingFee);
+      const paymentReference = isPaystackPrepare
+        ? `CR-${Date.now()}-${randomBytes(8).toString('hex')}`
+        : parsed.data.paymentReference?.trim();
 
       if (isPosOrder && parsed.data.paymentMethod === 'cash-on-delivery' && (parsed.data.cashReceived == null || parsed.data.cashReceived < calculatedTotal)) {
         return res.status(400).json({ error: 'Cash received must cover the final sale total.' });
@@ -406,9 +656,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // terminal. Only customer checkout payments are verified with Paystack.
       const onlinePaymentMethods = isPosOrder ? [] : ['paystack', 'card'];
       let isPaystackVerified = false;
-      if (onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
+      if (!isPaystackPrepare && onlinePaymentMethods.includes(parsed.data.paymentMethod)) {
         const reference = parsed.data.paymentReference?.trim();
-        const secretKey = process.env.PAYSTACK_SECRET_KEY?.replace(/^\uFEFF/, '').trim();
+        const secretKey = getPaystackSecretKey();
         if (!reference || !secretKey) return res.status(402).json({ error: 'A valid Paystack payment reference is required to complete this order' });
         const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { headers: { Authorization: `Bearer ${secretKey}` } });
         const paystackPayload = await paystackRes.json() as { status?: boolean; data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } } };
@@ -423,7 +673,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         isPaystackVerified = true;
       }
 
-      if (!isPaystackVerified) {
+      if (!isPaystackVerified && !isPaystackPrepare) {
         if (Math.abs(parsed.data.total - calculatedTotal) > 0.01 || Math.abs(parsed.data.subtotal - calculatedSubtotal) > 0.01 || Math.abs(parsed.data.discount - calculatedDiscount) > 0.01) {
           console.error('Order price mismatch:', {
             received: { total: parsed.data.total, subtotal: parsed.data.subtotal, discount: parsed.data.discount, shipping: parsed.data.shippingFee },
@@ -442,14 +692,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...{
           ...parsed.data,
           items: verifiedItems,
+          paymentReference,
           appliedPromoCode,
           userId: isPosOrder ? parsed.data.userId || null : auth?.sub || null,
           orderNumber,
+          paymentStatus: !isPaystackPrepare && (isPosOrder || isPaystackVerified) ? 'paid' as const : 'pending' as const,
           subtotal: calculatedSubtotal.toString(),
           shippingFee: finalShippingFee.toString(),
           discount: calculatedDiscount.toString(),
           total: calculatedTotal.toString(),
-          ...(isPosOrder ? { status: 'Delivered' as const, paymentStatus: 'paid' as const } : {}),
+          ...(isPosOrder ? { status: 'Delivered' as const } : {}),
           ...(isPosOrder ? { idempotencyKey: parsed.data.idempotencyKey, cashierName: auth?.adminName || auth?.name || 'POS cashier' } : {}),
         },
         orderSource: isWhatsAppOrder ? 'whatsapp' as const : isPosOrder ? 'pos' as const : parsed.data.orderSource,
@@ -459,7 +711,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // create the order and reduce stock together. This prevents two shoppers
       // from both buying the final unit during concurrent checkouts.
       const transactionResult = await db.transaction(async tx => {
-        if (isPosOrder && parsed.data.idempotencyKey) {
+        if ((isPosOrder || isPaystackPrepare) && parsed.data.idempotencyKey) {
           await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${parsed.data.idempotencyKey}))`);
           const [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
           if (existing) return { order: existing, replayed: true };
@@ -581,8 +833,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return { order, replayed: false };
       });
       const createdOrder = transactionResult.order;
+      if (isPaystackPrepare && createdOrder.userId !== auth?.sub) {
+        return res.status(409).json({ error: 'This checkout key is already in use.' });
+      }
 
-      if (!transactionResult.replayed) {
+      if (!transactionResult.replayed && !isPaystackPrepare) {
         await db.insert(notifications).values([
           {
             userId: createdOrder.userId || null,
@@ -603,23 +858,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const newOrder = createdOrder;
 
-      const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth?.email;
-      const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1];
-      const orderLink = `${process.env.PUBLIC_SITE_URL || ''}/account/orders`;
-      await Promise.all([
-        customerEmail ? sendEmail({
-          to: customerEmail,
-          subject: `Order received: ${newOrder.orderNumber}`,
-          html: `<p>Hi ${escapeHtml(parsed.data.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(newOrder.orderNumber)}</strong> and are preparing it now.</p><p>You can track your order in your account.</p><p><a href="${escapeHtml(orderLink)}">View order</a></p>`,
-        }) : Promise.resolve(false),
-        storeEmail ? sendEmail({
-          to: storeEmail,
-          subject: `New order: ${newOrder.orderNumber}`,
-          html: `<p>A new order has been placed.</p><p><strong>${escapeHtml(newOrder.orderNumber)}</strong> from ${escapeHtml(parsed.data.shippingAddress.fullName)} for GHS ${escapeHtml(newOrder.total)}.</p>`,
-        }) : Promise.resolve(false),
-      ]);
+      if (!isPaystackPrepare && !transactionResult.replayed) {
+        const customerEmail = parsed.data.shippingAddress.email?.trim().toLowerCase() || auth?.email;
+        const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1];
+        const orderLink = `${process.env.PUBLIC_SITE_URL || ''}/account/orders`;
+        await Promise.all([
+          customerEmail ? sendEmail({
+            to: customerEmail,
+            subject: `Order received: ${newOrder.orderNumber}`,
+            html: `<p>Hi ${escapeHtml(parsed.data.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(newOrder.orderNumber)}</strong> and are preparing it now.</p><p>You can track your order in your account.</p><p><a href="${escapeHtml(orderLink)}">View order</a></p>`,
+          }) : Promise.resolve(false),
+          storeEmail ? sendEmail({
+            to: storeEmail,
+            subject: `New order: ${newOrder.orderNumber}`,
+            html: `<p>A new order has been placed.</p><p><strong>${escapeHtml(newOrder.orderNumber)}</strong> from ${escapeHtml(parsed.data.shippingAddress.fullName)} for GHS ${escapeHtml(newOrder.total)}.</p>`,
+          }) : Promise.resolve(false),
+        ]);
+      }
 
-      return res.status(201).json(newOrder);
+      return res.status(transactionResult.replayed ? 200 : 201).json(newOrder);
     }
 
     if (method === 'PATCH') {
@@ -642,12 +899,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!existingOrder) {
         return res.status(404).json({ error: 'Order not found' });
       }
-
-      if (parsed.data.paymentStatus === 'pending' && existingOrder.paymentStatus === 'paid') {
-        return res.status(409).json({ error: 'A paid order cannot be returned to pending.' });
+      if (parsed.data.paymentStatus !== undefined && !['Super Admin', 'Store Manager'].includes(auth.adminRole || '')) {
+        return res.status(403).json({ error: 'Only Store Managers and Super Admins can adjust payment status.' });
       }
-      if (parsed.data.paymentStatus === 'paid' && existingOrder.paymentStatus === 'pending' && existingOrder.paymentMethod === 'paystack') {
+
+      if (parsed.data.paymentStatus === 'pending' && existingOrder.paymentStatus !== 'pending') {
+        return res.status(409).json({ error: 'A terminal payment status cannot be returned to pending.' });
+      }
+      if (parsed.data.paymentStatus === 'paid' && existingOrder.paymentStatus !== 'paid' && existingOrder.paymentMethod === 'paystack') {
         return res.status(403).json({ error: 'Paystack payments can only be confirmed by Paystack verification.' });
+      }
+      if (parsed.data.status && parsed.data.status !== existingOrder.status
+        && existingOrder.paymentMethod === 'paystack' && existingOrder.paymentStatus !== 'paid') {
+        return res.status(409).json({ error: 'A Paystack order cannot enter fulfillment before payment is confirmed.' });
       }
 
       const mergedRiderInfo = parsed.data.riderInfo !== undefined

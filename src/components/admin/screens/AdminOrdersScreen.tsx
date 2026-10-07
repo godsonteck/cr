@@ -34,6 +34,7 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
   'Out for Delivery': 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
   'Delivered':        'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
   'Refunded':         'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+  'Cancelled':        'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
 };
 
 const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
@@ -43,6 +44,7 @@ const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   'Out for Delivery': Truck,
   'Delivered':        CheckCircle2,
   'Refunded':         RotateCcw,
+  'Cancelled':        RotateCcw,
 };
 
 export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) => {
@@ -55,7 +57,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
   const [customEnd, setCustomEnd] = useState('');
   const [sortOrder, setSortOrder] = useState<DateSortOrder>('date-desc');
 
-  const statuses: (OrderStatus | 'all')[] = ['all', 'Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered', 'Refunded'];
+  const statuses: (OrderStatus | 'all')[] = ['all', 'Confirmed', 'Processing', 'Packing Order', 'Out for Delivery', 'Delivered', 'Refunded', 'Cancelled'];
 
   const filteredOrders = useMemo(() => {
     let orders = store.orders || [];
@@ -383,7 +385,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                               : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
                           }`}
                         >
-                          {order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                          {order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs text-stone-500 dark:text-stone-400">

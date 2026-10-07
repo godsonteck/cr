@@ -292,7 +292,7 @@ export interface ShippingAddress {
   tag?: 'Home' | 'Work' | 'Other';
 }
 
-export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered' | 'Refunded';
+export type OrderStatus = 'Confirmed' | 'Processing' | 'Packing Order' | 'Out for Delivery' | 'Delivered' | 'Refunded' | 'Cancelled';
 
 export interface Order {
   id: string;
@@ -305,7 +305,7 @@ export interface Order {
   discount: number;
   total: number;
   paymentMethod: PaymentMethod;
-  paymentStatus: 'paid' | 'pending';
+  paymentStatus: 'paid' | 'pending' | 'failed';
   orderSource?: 'website' | 'whatsapp' | 'pos';
   deliveryMethod: DeliveryMethod;
   shippingAddress: ShippingAddress;

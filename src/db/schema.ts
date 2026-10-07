@@ -40,6 +40,7 @@ export const orderStatusEnum = pgEnum('order_status', [
   'Out for Delivery',
   'Delivered',
   'Refunded',
+  'Cancelled',
 ]);
 export const paymentMethodEnum = pgEnum('payment_method', [
   'paystack',
@@ -50,7 +51,7 @@ export const paymentMethodEnum = pgEnum('payment_method', [
   'card',
   'apple-pay',
 ]);
-export const paymentStatusEnum = pgEnum('payment_status', ['paid', 'pending']);
+export const paymentStatusEnum = pgEnum('payment_status', ['paid', 'pending', 'failed']);
 export const deliveryMethodEnum = pgEnum('delivery_method', [
   'accra-express',
   'standard-delivery',

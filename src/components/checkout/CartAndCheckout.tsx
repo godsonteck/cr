@@ -329,54 +329,32 @@ export const MultiStepCheckoutPage: React.FC = () => {
       const customerToken = localStorage.getItem('auth_token');
       if (!customerToken) throw new ApiError(401, 'Authentication required');
 
-      // 1. Check if the order was already created in the database (idempotent recovery)
+      let existingOrder: Order | undefined;
       try {
-        const existing = await api.get<Order>(`/orders?paymentReference=${encodeURIComponent(returnedReference)}`, customerToken);
-        if (existing?.id) {
-          sessionStorage.removeItem('paystack_pending_order');
-          await addStoreOrder(existing);
-          addOrder(existing);
-          await fetchProducts();
-          if (existing.shippingAddress) await saveAddress(existing.shippingAddress);
-          await clearCart();
-          window.history.replaceState({}, '', '/checkout');
-          navigate(`/order-confirmation/${existing.id}`, { state: { order: existing }, replace: true });
-          return;
-        }
+        existingOrder = await api.get<Order>(`/orders?paymentReference=${encodeURIComponent(returnedReference)}`, customerToken);
       } catch {
-        // Not yet created, continue with verification
+        existingOrder = undefined;
+      }
+      if (!existingOrder?.id) {
+        throw new Error(`No saved order was found for payment reference ${returnedReference}. If your account was charged, contact support with this reference.`);
       }
 
-      const pendingOrder = sessionStorage.getItem('paystack_pending_order');
-      if (!pendingOrder) {
-        throw new Error(`Payment return received for reference ${returnedReference}, but pending order details were not found in this session. If your account was charged, your order may already be saved under your account.`);
-      }
+      const confirmedOrder = existingOrder.paymentStatus === 'paid'
+        ? existingOrder
+        : await api.post<Order>('/orders?action=confirm-paystack', {
+          orderId: existingOrder.id,
+          reference: returnedReference,
+        }, customerToken);
+      if (confirmedOrder.paymentStatus !== 'paid') throw new Error('Payment is still awaiting confirmation.');
 
-      const orderPayload = JSON.parse(pendingOrder) as Order;
-
-      // 2. Verify payment with server-side Paystack verification
-      const verification = await api.post<{ verified: boolean; reference: string }>('/auth?action=paystack-verify', {
-        reference: returnedReference,
-        amount: Math.round(orderPayload.total * 100),
-      }, customerToken);
-      if (!verification.verified) throw new Error('Paystack payment could not be verified');
-
-      // 3. Create or receive the confirmed order
-      const createdOrder = await api.post<Order>('/orders', {
-        ...orderPayload,
-        paymentMethod: 'paystack',
-        paymentStatus: 'paid',
-        paymentReference: verification.reference,
-      }, customerToken);
-
-      sessionStorage.removeItem('paystack_pending_order');
-      await addStoreOrder(createdOrder);
-      addOrder(createdOrder);
+      sessionStorage.removeItem('paystack_prepare_key');
+      await addStoreOrder(confirmedOrder);
+      addOrder(confirmedOrder);
       await fetchProducts();
-      if (createdOrder.shippingAddress) await saveAddress(createdOrder.shippingAddress);
+      if (confirmedOrder.shippingAddress) await saveAddress(confirmedOrder.shippingAddress);
       await clearCart();
       window.history.replaceState({}, '', '/checkout');
-      navigate(`/order-confirmation/${createdOrder.id}`, { state: { order: createdOrder }, replace: true });
+      navigate(`/order-confirmation/${confirmedOrder.id}`, { state: { order: confirmedOrder }, replace: true });
     } catch (error: any) {
       console.error('Paystack return error:', error);
       hasHandledReturn.current = false;
@@ -459,23 +437,22 @@ export const MultiStepCheckoutPage: React.FC = () => {
         status: 'Confirmed', estimatedDeliveryTime: '24 Hours', appliedPromoCode: promoCode || undefined,
         createdAt: new Date().toISOString(),
       };
-      sessionStorage.setItem('paystack_pending_order', JSON.stringify(orderPayload));
-      const reference = `CR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const idempotencyKey = sessionStorage.getItem('paystack_prepare_key') || `checkout-${crypto.randomUUID()}`;
+      sessionStorage.setItem('paystack_prepare_key', idempotencyKey);
+      const preparedOrder = await api.post<Order>('/orders?action=prepare-paystack', {
+        ...orderPayload,
+        idempotencyKey,
+      }, customerToken);
+      if (preparedOrder.paymentStatus !== 'pending' || preparedOrder.status === 'Cancelled') {
+        sessionStorage.removeItem('paystack_prepare_key');
+        throw new Error('This checkout attempt has ended. Please retry your payment.');
+      }
       const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
-        amount: Math.round(orderPayload.total * 100),
-        email,
-        name: fullName,
-        reference,
+        orderId: preparedOrder.id,
         callbackUrl: `${window.location.origin}/checkout`,
-        items: orderPayload.items.map(item => ({
-          productId: item.product.id,
-          price: item.product.price,
-          variantId: item.selectedVariant?.id,
-        })),
       }, customerToken);
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {
-      sessionStorage.removeItem('paystack_pending_order');
       showAlert(error?.message || 'Paystack checkout could not be started. Please try again.', 'error', { persistent: true });
       setIsProcessing(false);
     }
@@ -913,10 +890,12 @@ export const OrderConfirmationPage: React.FC = () => {
 
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">
-              {order?.paymentStatus === 'pending' ? 'Order Received!' : 'Order Confirmed!'}
+              {order?.paymentStatus === 'failed' ? 'Order Cancelled' : order?.paymentStatus === 'pending' ? 'Order Received!' : 'Order Confirmed!'}
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[var(--text-muted)] max-w-md mx-auto">
-              {order?.paymentStatus === 'paid'
+              {order?.paymentStatus === 'failed'
+                ? 'Payment was not completed and the reserved stock has been released.'
+                : order?.paymentStatus === 'paid'
                 ? 'Thank you for your purchase! We are preparing your order right now.'
                 : 'Thank you! We have received your order and our team is preparing it.'}
             </p>
@@ -1124,7 +1103,7 @@ export const OrderConfirmationPage: React.FC = () => {
                     )}
                     <div className="flex justify-between text-sm font-black pt-2 border-t border-[var(--border-color)]">
                       <span className="text-[var(--text-primary)]">
-                        {order.paymentStatus === 'pending' ? 'Amount Due' : 'Total Paid'}
+                        {order.paymentStatus === 'failed' ? 'Payment Failed' : order.paymentStatus === 'pending' ? 'Amount Due' : 'Total Paid'}
                       </span>
                       <span className="text-[#C86D51]">GHS {Number(order.total).toFixed(2)}</span>
                     </div>
@@ -1139,7 +1118,7 @@ export const OrderConfirmationPage: React.FC = () => {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[var(--text-muted)]">Payment:</span>
                     <Badge variant={order.paymentStatus === 'paid' ? 'botanical' : 'warm'} size="sm">
-                      {order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                      {order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                     </Badge>
                   </div>
                 </div>

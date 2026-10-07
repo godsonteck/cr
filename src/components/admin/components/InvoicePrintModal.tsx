@@ -68,7 +68,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
 
             <div className="text-right">
               <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold uppercase">
-                {order.paymentStatus === 'paid' ? 'Paid & Confirmed' : 'Payment Pending'}
+                {order.paymentStatus === 'paid' ? 'Paid & Confirmed' : order.paymentStatus === 'failed' ? 'Payment Failed' : 'Payment Pending'}
               </span>
               <p className="font-mono font-bold text-base text-stone-900 mt-2">
                 Invoice #{order.orderNumber}

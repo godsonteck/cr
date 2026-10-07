@@ -84,6 +84,7 @@ export const STATUS_INDEX: Record<OrderStatus, number> = {
   'Out for Delivery': 4,
   'Delivered': 5,
   'Refunded': 0,
+  'Cancelled': 0,
 };
 
 export const STATUS_MESSAGE: Record<OrderStatus, string> = {
@@ -93,6 +94,7 @@ export const STATUS_MESSAGE: Record<OrderStatus, string> = {
   'Out for Delivery': 'Your order is on its way to you.',
   'Delivered': 'Delivered. We hope you love your purchase.',
   'Refunded': 'This order has been refunded by the store.',
+  'Cancelled': 'Payment was not completed and reserved stock has been released.',
 };
 
 // ============================================================================

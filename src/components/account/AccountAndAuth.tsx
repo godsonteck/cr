@@ -1420,6 +1420,9 @@ export const AccountPage: React.FC = () => {
                               {ord.paymentStatus === 'paid' && (
                                 <Badge variant="botanical" size="sm">Paid</Badge>
                               )}
+                              {ord.paymentStatus === 'failed' && (
+                                <Badge variant="warm" size="sm">Payment Failed</Badge>
+                              )}
                             </div>
                             <p className="text-xs text-stone-400 mt-0.5">
                               Placed {ord.createdAt

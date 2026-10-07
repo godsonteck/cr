@@ -401,13 +401,14 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => onUpdatePayment(order.id, order.paymentStatus === 'paid' ? 'pending' : 'paid')}
+                disabled={order.paymentMethod === 'paystack' || order.paymentStatus === 'failed'}
                 className={`px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer transition-colors ${
                   order.paymentStatus === 'paid' 
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                     : 'bg-amber-100 text-amber-800 border border-amber-300'
-                }`}
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                {order.paymentStatus === 'paid' ? '✓ Paid & Received' : '⚠ Payment Pending'}
+                {order.paymentStatus === 'paid' ? '✓ Paid & Received' : order.paymentStatus === 'failed' ? 'Payment Failed' : '⚠ Payment Pending'}
               </button>
             </div>
           </div>
@@ -424,7 +425,7 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
-            {order.status !== 'Delivered' && (
+            {!['Delivered', 'Refunded', 'Cancelled'].includes(order.status) && (
               <button
                 disabled={isMovingStep}
                 onClick={async () => {
@@ -434,7 +435,8 @@ export const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
                     'Packing Order': 'Out for Delivery',
                     'Out for Delivery': 'Delivered',
                     'Delivered': 'Delivered',
-                    'Refunded': 'Refunded'
+                    'Refunded': 'Refunded',
+                    'Cancelled': 'Cancelled'
                   };
                   const next = nextStageMap[order.status];
                   if (!next) return;
