@@ -5,7 +5,7 @@ const ENV_VARS = [
   {
     key: 'DATABASE_URL',
     value: process.env.DATABASE_URL || '',
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'APP_URL',
@@ -25,17 +25,17 @@ const ENV_VARS = [
   {
     key: 'GEMINI_API_KEY',
     value: '', // Add your Gemini API key
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'JWT_SECRET',
     value: '', // Generate: openssl rand -base64 32
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'SESSION_SECRET',
     value: '', // Generate: openssl rand -base64 32
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'MOMO_MTN_API_KEY',
@@ -105,12 +105,12 @@ const ENV_VARS = [
   {
     key: 'AWS_ACCESS_KEY_ID',
     value: '', // Add AWS access key
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'AWS_SECRET_ACCESS_KEY',
     value: '', // Add AWS secret key
-    target: ['production', 'preview', 'development']
+    target: ['production']
   },
   {
     key: 'AWS_CLOUDFRONT_URL',

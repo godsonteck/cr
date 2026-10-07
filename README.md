@@ -42,6 +42,7 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
 
    - DATABASE_URL
    - JWT_SECRET
+   - CRON_SECRET (random secret used to authenticate Vercel Cron)
    - ADMIN_EMAIL
    - ADMIN_INITIAL_PIN
    - APP_URL (for local or production URLs)
@@ -50,7 +51,7 @@ A Vite + React storefront for beauty and grocery essentials with a secure admin 
    - PAYSTACK_SECRET_KEY (server-side Paystack secret key)
    - VITE_PAYSTACK_PUBLIC_KEY (Paystack public key exposed to the Vite frontend)
 
-4. Apply the non-destructive schema migration to your database:
+4. Review the payment-reference duplicate preflight, then apply the additive schema migrations to your database:
 
    npm run db:push
 
@@ -89,10 +90,13 @@ Configure this URL in the Paystack Dashboard under **Settings → API Keys & Web
 
 The endpoint accepts `charge.success` events, validates the `x-paystack-signature` HMAC with `PAYSTACK_SECRET_KEY`, checks the GHS amount against the matching order, and safely ignores duplicate events. The order must already contain the Paystack transaction reference in `paymentReference`.
 
+Vercel Cron runs `/api/orders?action=reconcile` every 15 minutes. Set `CRON_SECRET` in the production Vercel environment; the route verifies stale orders directly with Paystack and releases reservations only for confirmed failed, abandoned, or not-found transactions.
+
 ## Useful scripts
 
 - `npm run build` — TypeScript check and production build
 - `npm run lint` — strict TypeScript validation
+- `npm run test:payments` — payment lifecycle integration tests; requires `PAYMENT_TEST_DATABASE_URL` pointing to a dedicated migrated test database with `test` in its hostname/database name, or `application_name=payment-lifecycle-test`. Paystack requests are mocked and a test key is generated in-process.
 - `npm run db:generate` — generate Drizzle migrations
 - `npm run db:push` — apply the idempotent, non-destructive schema migration
 - `npm run db:seed` — populate products, settings, promo codes, and admin session
@@ -131,10 +135,14 @@ Windows Smart App Control will block unsigned `.exe` installers even when the ap
 ## Vercel deployment
 
 1. Import the repository into Vercel.
-2. Add the same environment variables used in `.env.local` to the Vercel project settings.
-3. Set `APP_URL` to your production domain such as `https://your-app.vercel.app`.
-4. Set `DATABASE_URL` to the Supabase transaction pooler connection string. Keep `prepare: false` enabled for Supabase's PgBouncer pooler.
-5. Redeploy.
+2. Add production secrets and production `DATABASE_URL` only to the Production environment. Do not reuse production database credentials or the live Paystack secret in Preview or Development.
+3. Set Preview and Development `DATABASE_URL` values to isolated non-production databases, and use Paystack test keys there.
+4. Set `CRON_SECRET` in Production and `PAYSTACK_SECRET_KEY` to the live key in Production only.
+5. Set `APP_URL` to your production domain such as `https://your-app.vercel.app`.
+6. Use the Supabase transaction pooler connection string for each environment's `DATABASE_URL`. Keep `prepare: false` enabled for Supabase's PgBouncer pooler.
+7. Remove any existing Preview/Development values that point to Production, then redeploy.
+
+Before applying the payment reference migration, check for duplicate non-null `orders.payment_reference` values and resolve any duplicates manually. The migration deliberately fails without modifying existing rows if duplicates are present. Take a database backup before applying either payment lifecycle migration.
 
 The project includes a Vercel rewrite for `/sitemap.xml` to the API route `/api/sitemap`.
 

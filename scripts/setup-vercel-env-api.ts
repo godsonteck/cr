@@ -24,7 +24,7 @@ const client = createClient({ token: VERCEL_TOKEN });
 
 const ENV_VARS = [
   // Required - Core
-  { key: 'DATABASE_URL', value: process.env.DATABASE_URL || '', target: ['production', 'preview', 'development'] },
+  { key: 'DATABASE_URL', value: process.env.DATABASE_URL || '', target: ['production'] },
   { key: 'APP_URL', value: 'https://cosmeticse.vercel.app', target: ['production'] },
   { key: 'APP_URL', value: 'https://cosmeticse-git-preview.vercel.app', target: ['preview'] },
   { key: 'APP_URL', value: 'http://localhost:3000', target: ['development'] },
@@ -32,9 +32,9 @@ const ENV_VARS = [
   { key: 'NODE_ENV', value: 'development', target: ['preview', 'development'] },
 
   // Required - Secrets (FILL THESE IN)
-  { key: 'GEMINI_API_KEY', value: process.env.GEMINI_API_KEY || '', target: ['production', 'preview', 'development'] },
-  { key: 'JWT_SECRET', value: process.env.JWT_SECRET || '', target: ['production', 'preview', 'development'] },
-  { key: 'SESSION_SECRET', value: process.env.SESSION_SECRET || '', target: ['production', 'preview', 'development'] },
+  { key: 'GEMINI_API_KEY', value: process.env.GEMINI_API_KEY || '', target: ['production'] },
+  { key: 'JWT_SECRET', value: process.env.JWT_SECRET || '', target: ['production'] },
+  { key: 'SESSION_SECRET', value: process.env.SESSION_SECRET || '', target: ['production'] },
 
   // Optional - Mobile Money (Production only)
   { key: 'MOMO_MTN_API_KEY', value: process.env.MOMO_MTN_API_KEY || '', target: ['production'] },
@@ -54,14 +54,39 @@ const ENV_VARS = [
   // Optional - AWS
   { key: 'AWS_S3_BUCKET', value: 'cr-cosmetics-images', target: ['production', 'preview', 'development'] },
   { key: 'AWS_S3_REGION', value: 'us-east-1', target: ['production', 'preview', 'development'] },
-  { key: 'AWS_ACCESS_KEY_ID', value: process.env.AWS_ACCESS_KEY_ID || '', target: ['production', 'preview', 'development'] },
-  { key: 'AWS_SECRET_ACCESS_KEY', value: process.env.AWS_SECRET_ACCESS_KEY || '', target: ['production', 'preview', 'development'] },
+  { key: 'AWS_ACCESS_KEY_ID', value: process.env.AWS_ACCESS_KEY_ID || '', target: ['production'] },
+  { key: 'AWS_SECRET_ACCESS_KEY', value: process.env.AWS_SECRET_ACCESS_KEY || '', target: ['production'] },
   { key: 'AWS_CLOUDFRONT_URL', value: 'https://cdn.crcosmetics.com', target: ['production', 'preview'] },
   { key: 'AWS_CLOUDFRONT_URL', value: 'http://localhost:3000', target: ['development'] },
 
   // Optional - Analytics
   { key: 'GA_MEASUREMENT_ID', value: process.env.GA_MEASUREMENT_ID || '', target: ['production'] },
 ];
+
+if (process.env.PAYSTACK_SECRET_KEY) {
+  ENV_VARS.push({ key: 'PAYSTACK_SECRET_KEY', value: process.env.PAYSTACK_SECRET_KEY, target: ['production'] });
+}
+if (process.env.CRON_SECRET) {
+  ENV_VARS.push({ key: 'CRON_SECRET', value: process.env.CRON_SECRET, target: ['production'] });
+}
+if (process.env.PREVIEW_DATABASE_URL) {
+  ENV_VARS.push({ key: 'DATABASE_URL', value: process.env.PREVIEW_DATABASE_URL, target: ['preview'] });
+}
+if (process.env.DEVELOPMENT_DATABASE_URL) {
+  ENV_VARS.push({ key: 'DATABASE_URL', value: process.env.DEVELOPMENT_DATABASE_URL, target: ['development'] });
+}
+if (process.env.PREVIEW_JWT_SECRET) {
+  ENV_VARS.push({ key: 'JWT_SECRET', value: process.env.PREVIEW_JWT_SECRET, target: ['preview'] });
+}
+if (process.env.DEVELOPMENT_JWT_SECRET) {
+  ENV_VARS.push({ key: 'JWT_SECRET', value: process.env.DEVELOPMENT_JWT_SECRET, target: ['development'] });
+}
+if (process.env.PREVIEW_PAYSTACK_SECRET_KEY) {
+  ENV_VARS.push({ key: 'PAYSTACK_SECRET_KEY', value: process.env.PREVIEW_PAYSTACK_SECRET_KEY, target: ['preview'] });
+}
+if (process.env.DEVELOPMENT_PAYSTACK_SECRET_KEY) {
+  ENV_VARS.push({ key: 'PAYSTACK_SECRET_KEY', value: process.env.DEVELOPMENT_PAYSTACK_SECRET_KEY, target: ['development'] });
+}
 
 async function getProjectId() {
   const projects = await client.projects.list();

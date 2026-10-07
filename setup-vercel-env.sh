@@ -15,8 +15,13 @@ if [ -z "${DATABASE_URL:-}" ]; then
 	exit 1
 fi
 vercel env add DATABASE_URL production <<< "$DATABASE_URL"
-vercel env add DATABASE_URL preview <<< "$DATABASE_URL"
-vercel env add DATABASE_URL development <<< "$DATABASE_URL"
+if [ -n "${PREVIEW_DATABASE_URL:-}" ]; then
+	vercel env add DATABASE_URL preview <<< "$PREVIEW_DATABASE_URL"
+fi
+if [ -n "${DEVELOPMENT_DATABASE_URL:-}" ]; then
+	vercel env add DATABASE_URL development <<< "$DEVELOPMENT_DATABASE_URL"
+fi
+echo "Preview and development require separate non-production DATABASE_URL values."
 
 # App URL - UPDATE AFTER FIRST DEPLOY
 vercel env add APP_URL production <<< "https://cosmeticse.vercel.app"
