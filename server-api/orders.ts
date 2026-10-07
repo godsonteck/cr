@@ -507,6 +507,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const productIds = parsed.data.items.map((item) => item.product.id);
       const productRows = await db.select().from(products).where(inArray(products.id, productIds));
       const productMap = new Map(productRows.map((product) => [product.id, product]));
+      const [checkoutFlashDeal] = await db.select().from(flashDeals)
+        .where(and(eq(flashDeals.isActive, true), sql`${flashDeals.expiresAt} > NOW()`))
+        .orderBy(desc(flashDeals.createdAt)).limit(1);
       const quantities = new Map<string, number>();
       const variantQuantities = new Map<string, number>();
       for (const item of parsed.data.items) {
@@ -551,7 +554,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Wholesale price applies if customer is marked wholesale OR if cashier applied wholesale price in POS
         const isWholesaleAllowed = isWholesaleBuyer || (isPosOrder && rawWholesale !== null && Math.abs(item.product.price - rawWholesale) <= 0.01);
-        const price = (isWholesaleAllowed && rawWholesale !== null) ? rawWholesale : retailPrice;
+        const basePrice = (isWholesaleAllowed && rawWholesale !== null) ? rawWholesale : retailPrice;
+        const price = (!isWholesaleAllowed && checkoutFlashDeal?.productIds?.includes(product.id))
+          ? Math.max(0.01, basePrice * (1 - checkoutFlashDeal.discountPercentage / 100))
+          : basePrice;
 
         return {
           ...item,
@@ -771,6 +777,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             selectedVariant: selectedVariant ? { ...selectedVariant, price } : item.selectedVariant,
           };
         });
+        const txCalculatedSubtotal = txVerifiedItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+        if (Math.abs(txCalculatedSubtotal - calculatedSubtotal) > 0.01) {
+          throw new Error('Product pricing changed during checkout. Please review your cart and try again.');
+        }
         // Use tx-verified items for the final insert
         const finalInsertData = { ...insertOrderData, items: txVerifiedItems };
 
@@ -1039,7 +1049,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
     console.error('Orders API error:', error);
-    if (typeof error?.message === 'string' && /just sold out/i.test(error.message)) {
+    if (typeof error?.message === 'string' && /just sold out|pricing changed during checkout/i.test(error.message)) {
       return res.status(409).json({ error: error.message });
     }
     return res.status(500).json({ error: error?.message || 'Internal server error' });
