@@ -90,7 +90,7 @@ Configure this URL in the Paystack Dashboard under **Settings → API Keys & Web
 
 The endpoint accepts `charge.success` events, validates the `x-paystack-signature` HMAC with `PAYSTACK_SECRET_KEY`, checks the GHS amount against the matching order, and safely ignores duplicate events. The order must already contain the Paystack transaction reference in `paymentReference`.
 
-Vercel Cron runs `/api/orders?action=reconcile` every 15 minutes. Set `CRON_SECRET` in the production Vercel environment; the route verifies stale orders directly with Paystack and releases reservations only for confirmed failed, abandoned, or not-found transactions.
+Vercel Cron runs `/api/orders?action=reconcile` once daily at midnight UTC. Set `CRON_SECRET` in the production Vercel environment; the route verifies stale orders directly with Paystack and releases reservations only for confirmed failed, abandoned, or not-found transactions.
 
 ## Useful scripts
 
