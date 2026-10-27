@@ -6,7 +6,7 @@ import flashDeals from '../server-api/flash-deals.js';
 import notifications from '../server-api/notifications.js';
 import orders from '../server-api/orders.js';
 import paystackWebhook from '../server-api/paystack-webhook.js';
-import posShifts from '../server-api/pos-shifts.js';
+import posShifts from '../POS/server-api/pos-shifts.js';
 import products from '../server-api/products.js';
 import promoCodes from '../server-api/promo-codes.js';
 import r2Sign from '../server-api/r2-sign.js';

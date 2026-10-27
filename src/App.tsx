@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { SEO } from './components/common/SEO';
@@ -34,10 +34,22 @@ const FullCartPage = lazy(() => import('./components/checkout/CartAndCheckout').
 const MultiStepCheckoutPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.MultiStepCheckoutPage })));
 const OrderConfirmationPage = lazy(() => import('./components/checkout/CartAndCheckout').then(module => ({ default: module.OrderConfirmationPage })));
 const AdminLoginView = lazy(() => import('./components/admin/AdminLoginView').then(module => ({ default: module.AdminLoginView })));
-const AdminPOSWorkspace = lazy(() => import('./components/admin/screens/AdminPOSWorkspace').then(module => ({ default: module.AdminPOSWorkspace })));
+const AdminPOSWorkspace = lazy(() => import('../POS/components/AdminPOSWorkspace').then(module => ({ default: module.AdminPOSWorkspace })));
 
 // Lazy-loaded Admin Command Center
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
+
+function NotFoundPage() {
+  return (
+    <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-6 text-center">
+      <p className="text-xs font-bold uppercase tracking-[.2em] text-[#8A3D52]">Error 404</p>
+      <h1 className="mt-4 font-serif text-4xl">Page not found</h1>
+      <p className="mt-4 text-sm leading-6 text-stone-500">
+        The page you requested does not exist or is no longer available.
+      </p>
+    </div>
+  );
+}
 
 function AppLayout() {
   const { storeSettings, adminSession, loadingAdmin } = useStore();
@@ -195,7 +207,7 @@ function AppLayout() {
                 <Route path="/delivery-returns" element={<DeliveryReturnsPage />} />
                 <Route path="/offers" element={pageVisibility.offers ? <ShopCatalogPage /> : renderUnavailable('Offers are currently closed')} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
             )}

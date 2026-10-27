@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "main": "electron/main.cjs",
+  "main": "POS/electron/main.cjs",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
@@ -16,8 +16,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
     "sitemap:generate": "tsx scripts/generate-sitemap.ts",
-    "pos:desktop": "electron electron/main.cjs",
-    "pos:desktop:build": "node scripts/build-win-installer.js"
+    "pos:desktop": "electron POS/electron/main.cjs",
+    "pos:desktop:build": "node POS/scripts/build-win-installer.js"
   },
   "dependencies": {
     "@vercel/functions": "^3.9.11",
@@ -63,12 +63,12 @@
       "output": "release"
     },
     "files": [
-      "electron/**/*",
+      "POS/electron/**/*",
       "package.json",
       "!node_modules/**/*"
     ],
     "win": {
-      "icon": "electron/icon.ico",
+      "icon": "POS/electron/icon.ico",
       "target": [
         "nsis"
       ]
@@ -76,8 +76,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "electron/icon.ico",
-      "uninstallerIcon": "electron/icon.ico"
+      "installerIcon": "POS/electron/icon.ico",
+      "uninstallerIcon": "POS/electron/icon.ico"
     },
     "publish": {
       "provider": "generic",

@@ -278,7 +278,7 @@ function sitemapDate(date: Date | null | undefined) {
 
 async function sendSitemap(res: VercelResponse) {
   const [allProducts, allCategories] = await Promise.all([
-    db.select({ id: products.id, updatedAt: products.updatedAt }).from(products).where(eq(products.isPublished, true)),
+    db.select({ id: products.id, updatedAt: products.updatedAt, inStock: products.inStock, stockCount: products.stockCount, variants: products.variants }).from(products).where(eq(products.isPublished, true)),
     db.select({ id: categories.id, updatedAt: categories.updatedAt }).from(categories).where(eq(categories.isActive, true)),
   ]);
 
@@ -288,7 +288,8 @@ async function sendSitemap(res: VercelResponse) {
     ['/about', 'monthly', 0.5], ['/contact', 'monthly', 0.5], ['/support', 'monthly', 0.5],
     ['/offers', 'daily', 0.7],
   ].map(([url, changefreq, priority]) => ({ url, lastmod: sitemapDate(new Date()), changefreq, priority }));
-  const productRoutes = allProducts.map(p => ({ url: `/product/${p.id}`, lastmod: sitemapDate(p.updatedAt), changefreq: 'weekly', priority: 0.8 }));
+  // Do not publish URLs that the public product endpoint correctly treats as unavailable.
+  const productRoutes = allProducts.filter(hasAvailableInventory).map(p => ({ url: `/product/${p.id}`, lastmod: sitemapDate(p.updatedAt), changefreq: 'weekly', priority: 0.8 }));
   const categoryRoutes = allCategories.map(c => ({ url: `/category/${c.id}`, lastmod: sitemapDate(c.updatedAt), changefreq: 'weekly', priority: 0.7 }));
   const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

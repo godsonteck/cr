@@ -69,7 +69,31 @@
       "destination": "/api/products?sitemap=1"
     },
     {
-      "source": "/(.*)",
+      "source": "/admin/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/pos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/product/:productId",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/category/:categorySlug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/order-confirmation/:orderId",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/account/orders",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(beauty|groceries|shop|search|routine-builder|cart|checkout|account|settings|signin|signup|about|support|faq|contact|feedback|terms|privacy|delivery-returns|offers)",
       "destination": "/index.html"
     }
   ],

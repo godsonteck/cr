@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import {
   Heart,
   ShoppingCart,
@@ -321,6 +322,10 @@ export const ProductDetailPage: React.FC = () => {
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
+        <Helmet>
+          <title>Product not found | CR COSMETICS AND ESSENTIALS</title>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
         <h2 className="text-2xl font-bold">Product Not Found</h2>
         <p className="text-xs text-stone-500">The product you are looking for does not exist in our catalog.</p>
         <Link to="/shop"><Button variant="primary">Return to Shop</Button></Link>

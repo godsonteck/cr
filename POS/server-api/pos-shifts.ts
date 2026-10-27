@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { db } from '../src/database.js';
-import { orders, posShifts } from '../src/db/schema.js';
-import { requireAdmin } from './_auth.js';
+import { db } from '../../src/database.js';
+import { orders, posShifts } from '../../src/db/schema.js';
+import { requireAdmin } from '../../server-api/_auth.js';
 
 const openShiftSchema = z.object({
   deviceId: z.string().trim().min(1).max(100),

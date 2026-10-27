@@ -29,12 +29,12 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useStore } from '../../../context/StoreContext';
-import { useAlert } from '../../../context/AlertContext';
-import { api, ApiError } from '../../../lib/api';
-import type { FlashDeal, Order, PaymentMethod, Product, ProductVariant } from '../../../types';
-import logoImg from '../../../assets/logo-optimized.jpeg';
-import { AdminMyProfilePanel } from '../components/AdminMyProfilePanel';
+import { useStore } from '../../src/context/StoreContext';
+import { useAlert } from '../../src/context/AlertContext';
+import { api, ApiError } from '../../src/lib/api';
+import type { FlashDeal, Order, PaymentMethod, Product, ProductVariant } from '../../src/types';
+import logoImg from '../../src/assets/logo-optimized.jpeg';
+import { AdminMyProfilePanel } from '../../src/components/admin/components/AdminMyProfilePanel';
 
 type PosLine = { product: Product; variant?: ProductVariant; quantity: number };
 type PosItem = { product: Product; variant?: ProductVariant; title: string; stock: number; barcode?: string };

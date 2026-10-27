@@ -77,6 +77,12 @@ export const SEO: React.FC<SEOProps> = ({
       : `${window.location.origin}${pageImage.startsWith('/') ? '' : '/'}${pageImage}`;
   const pageUrl = url || `${window.location.origin}${location.pathname}`;
   const isPrivatePage = ['/account', '/cart', '/checkout', '/signin', '/signup'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`));
+  const isKnownPublicRoute = [
+    '/', '/beauty', '/groceries', '/shop', '/search', '/routine-builder', '/cart', '/checkout',
+    '/account', '/account/orders', '/settings', '/signin', '/signup', '/about', '/support', '/faq',
+    '/contact', '/feedback', '/terms', '/privacy', '/delivery-returns', '/offers',
+  ].includes(location.pathname) || location.pathname.startsWith('/product/') || location.pathname.startsWith('/category/') || location.pathname.startsWith('/order-confirmation/');
+  const shouldNoindex = isPrivatePage || !isKnownPublicRoute;
 
   const breadcrumbItems = [
     { name: 'Home', url: `${window.location.origin}/` },
@@ -108,7 +114,7 @@ export const SEO: React.FC<SEOProps> = ({
     <>
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
-      <meta name="robots" content={isPrivatePage ? 'noindex, nofollow' : 'index, follow'} />
+      <meta name="robots" content={shouldNoindex ? 'noindex, nofollow' : 'index, follow'} />
       <meta name="theme-color" content="#8A3D52" />
       <link rel="canonical" href={pageUrl} />
       <meta name="referrer" content="strict-origin-when-cross-origin" />

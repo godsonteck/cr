@@ -21,15 +21,15 @@ import {
   Settings2,
   Package,
 } from 'lucide-react';
-import { Product, ProductVariant } from '../../../types';
-import { useStore } from '../../../context/StoreContext';
-import { useAlert } from '../../../context/AlertContext';
+import { Product, ProductVariant } from '../../src/types';
+import { useStore } from '../../src/context/StoreContext';
+import { useAlert } from '../../src/context/AlertContext';
 import {
   generateCode128Svg,
   generateUniqueRetailBarcode,
   LABEL_TEMPLATES,
   LabelSheetTemplate,
-} from '../../../lib/barcodeGenerator';
+} from '../lib/barcodeGenerator';
 
 interface BarcodeItem {
   id: string; // product-id or product-id__variant-id

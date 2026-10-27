@@ -5,7 +5,7 @@ import { useAlert } from '../../../context/AlertContext';
 import { Product } from '../../../types';
 import { isRenderableProductImage } from '../../../lib/productImages';
 import { AdminMetricCard, AdminPageHeader } from '../components/AdminPrimitives';
-import { BarcodeLabelsModal } from '../components/BarcodeLabelsModal';
+import { BarcodeLabelsModal } from '../../../../POS/components/BarcodeLabelsModal';
 
 interface ProductsScreenProps {
   onAddProduct?: () => void;
