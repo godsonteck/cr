@@ -184,7 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             };
             const Icon = alert.type === 'warning' ? AlertTriangle : AlertCircle;
             return (
-              <div key={idx} className={`p-4 rounded-xl border flex items-start gap-3 ${alertStyles[alert.type]}`}>
+              <div key={idx} className={`flex flex-col items-start gap-3 rounded-xl border p-4 sm:flex-row ${alertStyles[alert.type]}`}>
                 <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm">{alert.title}</p>
@@ -193,7 +193,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 <button
                   type="button"
                   onClick={() => onNavigate?.(alert.tab)}
-                  className="text-xs font-bold underline whitespace-nowrap ml-2 opacity-90 hover:opacity-100"
+                  className="ml-7 text-xs font-bold underline opacity-90 hover:opacity-100 sm:ml-2 sm:whitespace-nowrap"
                 >
                   {alert.actionLabel}
                 </button>

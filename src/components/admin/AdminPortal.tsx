@@ -190,7 +190,7 @@ export const AdminPortal: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try {
       const saved = localStorage.getItem('cr_admin_sidebar_open');
-      return saved === null ? window.innerWidth >= 768 : saved === 'true';
+      return window.innerWidth >= 768 && (saved === null || saved === 'true');
     } catch {
       return window.innerWidth >= 768;
     }
@@ -326,7 +326,7 @@ export const AdminPortal: React.FC = () => {
   const toggleSidebar = () => {
     setSidebarOpen(previous => {
       const next = !previous;
-      localStorage.setItem('cr_admin_sidebar_open', String(next));
+      if (window.innerWidth >= 768) localStorage.setItem('cr_admin_sidebar_open', String(next));
       return next;
     });
   };
@@ -390,6 +390,16 @@ export const AdminPortal: React.FC = () => {
                 <p className="mt-1 truncate text-xs font-bold text-stone-700 dark:text-stone-200">{store.adminSession.adminName}</p>
                 <p className="truncate text-[10px] font-medium uppercase tracking-wider text-stone-500 dark:text-stone-500">{store.adminSession.adminRole}</p>
               </div>
+            )}
+            {sidebarOpen && (
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-[#1f1a1a] md:hidden"
+                aria-label="Close navigation"
+              >
+                <X className="h-5 w-5" />
+              </button>
             )}
           </div>
 
@@ -494,8 +504,8 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="bg-white dark:bg-[#131010] border-b border-stone-200 dark:border-[#1f1a1a] px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-4 min-w-0">
+        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-3 border-b border-stone-200 bg-white px-4 py-3 shadow-sm dark:border-[#1f1a1a] dark:bg-[#131010] sm:flex-nowrap sm:px-8 sm:py-4">
+          <div className="flex min-w-0 w-full items-center gap-3 sm:w-auto sm:gap-4">
             {/* Sidebar toggle */}
             <button
               onClick={toggleSidebar}
@@ -514,7 +524,7 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+          <div className="ml-auto flex w-full flex-shrink-0 items-center justify-end gap-1.5 sm:w-auto sm:gap-2">
             {currentTab === 'products' && (
               <button
                 onClick={handleAddProduct}
@@ -578,7 +588,7 @@ export const AdminPortal: React.FC = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 min-w-0 overflow-auto p-8">
+        <div className="min-w-0 flex-1 overflow-auto p-4 sm:p-8">
           <div className="max-w-[1500px] mx-auto">
             <AdminTabErrorBoundary
               key={currentTab}
