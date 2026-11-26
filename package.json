@@ -10,6 +10,7 @@
     "build:check": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test:payments": "tsx --test tests/payment-lifecycle.integration.test.ts",
+    "test:product-ai": "tsx --test tests/product-ai.test.ts",
     "lint": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "tsx scripts/migrate.ts",

@@ -99,9 +99,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       setSeoDescription(suggestion.seoDescription);
       setSeoSlug(suggestion.seoSlug);
       setOrigin(suggestion.origin);
-      setHowToUse(suggestion.details.howToUse);
-      setIngredients(suggestion.details.ingredients);
-      setBenefits(suggestion.details.benefits);
+      setHowToUse(suggestion.details.howToUse || '');
+      setIngredients(suggestion.details.ingredients || '');
+      setBenefits(suggestion.details.benefits || '');
 
       if (suggestion.brand) {
         const existingBrand = brands.find(value => value.toLowerCase() === suggestion.brand.toLowerCase());

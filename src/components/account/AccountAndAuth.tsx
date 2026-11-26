@@ -160,7 +160,7 @@ const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode
               className="h-11 w-11 rounded-full border border-[var(--border-color)] bg-white p-1 object-contain"
             />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
-              {mode === 'signin' ? 'Welcome back' : 'Join the store'}
+              Join the store
             </span>
           </div>
           {children}
