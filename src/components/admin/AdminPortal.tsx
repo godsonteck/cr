@@ -331,6 +331,25 @@ export const AdminPortal: React.FC = () => {
   };
 
   React.useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const syncBodyScroll = () => {
+      document.body.style.overflow = sidebarOpen && window.innerWidth < 768 ? 'hidden' : previousOverflow;
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && window.innerWidth < 768 && sidebarOpen) setSidebarOpen(false);
+    };
+
+    syncBodyScroll();
+    window.addEventListener('resize', syncBodyScroll);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('resize', syncBodyScroll);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [sidebarOpen]);
+
+  React.useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
@@ -365,6 +384,7 @@ export const AdminPortal: React.FC = () => {
     <div className="admin-portal-canvas min-h-screen flex selection:bg-[#B27A52] selection:text-white">
       {/* Sidebar */}
       <aside
+        aria-label="Admin sidebar"
         className={`admin-sidebar fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-[#f7f2f0] dark:bg-[#151012] border-r border-white/60 dark:border-white/5 shadow-[8px_0_30px_rgba(45,30,35,0.05)] dark:shadow-[8px_0_30px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col ${
           sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-20 md:translate-x-0'
         }`}
@@ -403,7 +423,7 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-5 px-3 space-y-1">
+          <nav aria-label="Admin navigation" className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-5 px-3 space-y-1">
             {navGroups.map(group => {
               const groupItems = visibleNavItems.filter(item => item.group === group.key);
               return (
@@ -686,8 +706,10 @@ export const AdminPortal: React.FC = () => {
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="fixed inset-0 z-30 bg-[#102e37]/35 backdrop-blur-[2px] md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

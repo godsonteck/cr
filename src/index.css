@@ -573,10 +573,20 @@ html.dark .admin-product-modal [contenteditable="true"]:empty::before { color: #
   border-color: rgba(255, 255, 255, 0.95);
   box-shadow: 0 4px 12px -2px rgba(28, 76, 86, 0.09), inset 1.5px 1.5px 2px #fff, inset -1.5px -1.5px 3px rgba(28, 76, 86, 0.06);
 }
-.admin-portal-canvas nav button[aria-current="page"] {
-  background: linear-gradient(135deg, #248da0 0%, #176b84 100%);
-  color: #fff;
-  box-shadow: 0 7px 18px rgba(23, 107, 132, 0.24), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.3), inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+.admin-sidebar nav button {
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
+  transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.admin-sidebar nav button:not([aria-current="page"]):hover {
+  background-color: rgba(36, 141, 160, 0.07);
+  box-shadow: 2px 3px 8px rgba(28, 76, 86, 0.08), inset 1px 1px 1px rgba(255, 255, 255, 0.92);
+}
+.admin-sidebar nav button[aria-current="page"] {
+  border-color: #c9dfe3;
+  background: #deedf0;
+  color: #176b84;
+  box-shadow: inset 3px 3px 6px rgba(28, 76, 86, 0.12), inset -3px -3px 6px rgba(255, 255, 255, 0.94);
 }
 .admin-portal-canvas [class~="text-[#B27A52]"],
 .admin-portal-canvas [class~="text-[#d49970]"],
@@ -628,6 +638,16 @@ html.dark .admin-sidebar {
   background: linear-gradient(160deg, #1d3034 0%, #16272b 100%);
   border-color: rgba(214, 242, 245, 0.08);
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.28);
+}
+html.dark .admin-sidebar nav button:not([aria-current="page"]):hover {
+  background-color: rgba(116, 200, 211, 0.08);
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.22), inset 1px 1px 1px rgba(255, 255, 255, 0.06);
+}
+html.dark .admin-sidebar nav button[aria-current="page"] {
+  border-color: #36545b;
+  background: #1a3035;
+  color: #91d4dc;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.38), inset -3px -3px 6px rgba(255, 255, 255, 0.06);
 }
 html.dark .admin-topbar {
   background: rgba(22, 38, 42, 0.92);
