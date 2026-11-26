@@ -34,6 +34,34 @@ const suggestionSchema = z.object({
 });
 
 type Suggestion = z.infer<typeof suggestionSchema>;
+type GeminiModel = { name?: string; supportedGenerationMethods?: string[] };
+
+let cachedFlashModels: { names: string[]; expiresAt: number } | null = null;
+
+async function getAvailableFlashModels(apiKey: string) {
+  if (cachedFlashModels && cachedFlashModels.expiresAt > Date.now()) return cachedFlashModels.names;
+
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+    headers: { 'x-goog-api-key': apiKey },
+    signal: AbortSignal.timeout(6000),
+  });
+  if (!response.ok) throw new Error(`Gemini model discovery failed with status ${response.status}`);
+
+  const payload = await response.json() as { models?: GeminiModel[] };
+  const names = (payload.models || [])
+    .filter(model => model.name && model.supportedGenerationMethods?.includes('generateContent') && /flash/i.test(model.name))
+    .map(model => model.name!.replace(/^models\//, ''))
+    .sort((left, right) => {
+      const priority = (name: string) => name === 'gemini-2.5-flash' ? 0
+        : name === 'gemini-2.5-flash-lite' ? 1
+          : /preview|experimental/i.test(name) ? 3 : 2;
+      return priority(left) - priority(right) || left.localeCompare(right);
+    });
+  if (!names.length) throw new Error('Gemini has no available Flash model with image generation support.');
+
+  cachedFlashModels = { names, expiresAt: Date.now() + 15 * 60 * 1000 };
+  return names;
+}
 
 function getAllowedImageUrl(value: string) {
   let url: URL;
@@ -145,11 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(415).json({ error: 'The uploaded file is not a supported image.' });
     }
     const bytes = await readImage(imageResponse);
-    const model = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({
+    const requestBody = JSON.stringify({
         contents: [{
           parts: [
             { text: createPrompt() },
@@ -189,9 +213,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             required: ['name', 'brand', 'department', 'category', 'categoryLabel', 'unit', 'packSize', 'description', 'highlights', 'seoTitle', 'seoDescription', 'seoSlug', 'origin', 'details'],
           },
         },
-      }),
+      });
+    const requestModel = (model: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: requestBody,
       signal: AbortSignal.timeout(18_000),
     });
+    const configuredModel = process.env.GEMINI_MODEL?.trim().replace(/^models\//, '');
+    let model = configuredModel || 'gemini-2.5-flash';
+    let geminiResponse = await requestModel(model);
+    if (geminiResponse.status === 404) {
+      try {
+        const availableModels = await getAvailableFlashModels(apiKey);
+        const fallbackModel = availableModels.find(name => name !== model);
+        if (fallbackModel) {
+          model = fallbackModel;
+          geminiResponse = await requestModel(model);
+          console.info('Product image analysis used an available Gemini Flash fallback model.');
+        }
+      } catch (error) {
+        console.error('Could not discover an available Gemini model:', error);
+      }
+    }
 
     if (!geminiResponse.ok) {
       if (geminiResponse.status === 429) return res.status(429).json({ error: 'The image assistant is busy. Try again shortly.' });
@@ -205,7 +249,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(502).json({ error: providerMessage ? `Gemini rejected the request: ${providerMessage}` : 'Gemini rejected the image request. Check the image format and model settings.' });
       }
       if (geminiResponse.status === 404) {
-        return res.status(502).json({ error: 'The configured Gemini model is not available. Check GEMINI_MODEL.' });
+        return res.status(502).json({ error: 'No available Gemini Flash model could read the product photo. Check the key’s model access in Google AI Studio.' });
       }
       return res.status(502).json({ error: 'Could not read the product details from this photo.' });
     }
