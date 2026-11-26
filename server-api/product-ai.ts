@@ -65,6 +65,13 @@ async function getAvailableFreeTierModels(apiKey: string) {
   return names;
 }
 
+async function needsImageModelFallback(response: Response) {
+  if (response.status === 404) return true;
+  if (response.status !== 400) return false;
+  const payload = await response.clone().json().catch(() => null) as { error?: { message?: string } } | null;
+  return /image input modality is not enabled|does not support image input|image input.*not supported/i.test(payload?.error?.message || '');
+}
+
 function getAllowedImageUrl(value: string) {
   let url: URL;
   try {
@@ -225,7 +232,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const configuredModel = process.env.GEMINI_MODEL?.trim().replace(/^models\//, '');
     let model = configuredModel && /flash-lite/i.test(configuredModel) ? configuredModel : 'gemini-2.5-flash-lite';
     let geminiResponse = await requestModel(model);
-    if (geminiResponse.status === 404) {
+    let noImageCapableModel = false;
+    if (await needsImageModelFallback(geminiResponse)) {
       const fallbackModels = new Set<string>();
       let modelDiscoveryError = '';
       try {
@@ -238,14 +246,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'].forEach(name => fallbackModels.add(name));
       fallbackModels.delete(model);
       for (const fallbackModel of fallbackModels) {
+        const fallbackResponse = await requestModel(fallbackModel);
+        if (await needsImageModelFallback(fallbackResponse)) continue;
         model = fallbackModel;
-        geminiResponse = await requestModel(model);
-        if (geminiResponse.status === 404) continue;
+        geminiResponse = fallbackResponse;
         console.info('Product image analysis used an available Gemini fallback model.');
         break;
       }
 
-      if (!geminiResponse.ok && geminiResponse.status === 404 && modelDiscoveryError) {
+      noImageCapableModel = await needsImageModelFallback(geminiResponse);
+      if (noImageCapableModel && modelDiscoveryError) {
         console.error('Gemini model discovery detail:', modelDiscoveryError);
       }
     }
@@ -270,10 +280,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(502).json({ error: 'Gemini rejected the server key. Check that the key is active and the Generative Language API is enabled.' });
       }
       if (geminiResponse.status === 400) {
+        if (noImageCapableModel) {
+          return res.status(502).json({ error: 'No free Flash-Lite model available to this key supports image input. Check Google AI Studio model access.' });
+        }
         return res.status(502).json({ error: providerMessage ? `Gemini rejected the request: ${providerMessage}` : 'Gemini rejected the image request. Check the image format and model settings.' });
       }
       if (geminiResponse.status === 404) {
-        return res.status(502).json({ error: 'No Flash-Lite model is available to this key. Check Google AI Studio model access and the project quota.' });
+        return res.status(502).json({ error: 'No free Flash-Lite model available to this key supports image input. Check Google AI Studio model access.' });
       }
       return res.status(502).json({ error: 'Could not read the product details from this photo.' });
     }
