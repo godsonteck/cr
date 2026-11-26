@@ -489,6 +489,84 @@ html.dark .admin-portal-canvas {
   border-color: rgba(36, 141, 160, 0.48);
   box-shadow: var(--admin-neu-inset), 0 0 0 3px rgba(36, 141, 160, 0.14);
 }
+
+.admin-product-modal {
+  --admin-card-bg: linear-gradient(145deg, #fbfeff 0%, #eaf3f5 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.92);
+  --admin-clay-shadow-lg: 0 22px 44px -6px rgba(28, 76, 86, 0.2), 0 8px 18px -3px rgba(28, 76, 86, 0.1), inset 2px 2px 3px rgba(255, 255, 255, 0.98), inset -2.5px -2.5px 5px rgba(28, 76, 86, 0.06);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(28, 76, 86, 0.1), inset -2.5px -2.5px 6px rgba(255, 255, 255, 0.98);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(28, 76, 86, 0.08), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.95);
+  background: rgba(18, 49, 56, 0.62);
+}
+.admin-product-modal .neu-input,
+.admin-product-modal input:not([type="file"]),
+.admin-product-modal textarea,
+.admin-product-modal select {
+  background-color: #e2eef0;
+  border-color: #c5dce0;
+  color: #17383e;
+}
+.admin-product-modal input::placeholder,
+.admin-product-modal textarea::placeholder { color: #6b858b; }
+.admin-product-modal [contenteditable="true"] {
+  background-color: #f3fafb;
+  color: #17383e;
+}
+.admin-product-modal [class~="bg-white"] { background-color: #f7fcfd; }
+.admin-product-modal [class~="bg-stone-50"],
+.admin-product-modal [class~="bg-stone-50/70"] { background-color: #edf5f6; }
+.admin-product-modal [class~="bg-stone-100"] { background-color: #e4f0f2; }
+.admin-product-modal [class~="text-[#B27A52]"],
+.admin-product-modal [class~="text-[#8A3D52]"],
+.admin-product-modal [class~="text-[#8A5738]"] { color: #176b84; }
+.admin-product-modal [class~="bg-[#B27A52]"],
+.admin-product-modal [class~="bg-[#1E1719]"],
+.admin-product-modal [class~="bg-stone-900"] { background-color: #176b84; }
+.admin-product-modal [class~="border-stone-200"],
+.admin-product-modal [class~="border-stone-300"] { border-color: #c7dce0; }
+.admin-product-modal footer { background-color: rgba(239, 248, 249, 0.96); }
+
+html.dark .admin-product-modal {
+  --admin-card-bg: linear-gradient(145deg, #223438 0%, #1a2a2e 100%);
+  --admin-card-border: rgba(214, 242, 245, 0.12);
+  --admin-clay-shadow-lg: 0 24px 50px -8px rgba(0, 0, 0, 0.58), 0 10px 22px -4px rgba(0, 0, 0, 0.34), inset 2px 2px 3px rgba(255, 255, 255, 0.12), inset -3px -3px 6px rgba(0, 0, 0, 0.38);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(0, 0, 0, 0.42), inset -2px -2px 5px rgba(255, 255, 255, 0.05);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(0, 0, 0, 0.35), inset -1px -1px 3px rgba(255, 255, 255, 0.04);
+  background: rgba(5, 15, 17, 0.76);
+}
+html.dark .admin-product-modal .neu-input,
+html.dark .admin-product-modal input:not([type="file"]),
+html.dark .admin-product-modal textarea,
+html.dark .admin-product-modal select {
+  background-color: #17282c;
+  border-color: #38545a;
+  color: #e4f2f4;
+  box-shadow: var(--admin-neu-inset);
+}
+html.dark .admin-product-modal input::placeholder,
+html.dark .admin-product-modal textarea::placeholder { color: #9db8bd; }
+html.dark .admin-product-modal select option { background-color: #17282c; color: #e4f2f4; }
+html.dark .admin-product-modal [contenteditable="true"] {
+  background-color: #17282c;
+  color: #e4f2f4;
+}
+html.dark .admin-product-modal [class~="bg-white"] { background-color: #223438; }
+html.dark .admin-product-modal [class~="bg-stone-50"],
+html.dark .admin-product-modal [class~="bg-stone-50/70"] { background-color: #1a2e32; }
+html.dark .admin-product-modal [class~="bg-stone-100"] { background-color: #294147; }
+html.dark .admin-product-modal [class~="text-[#B27A52]"],
+html.dark .admin-product-modal [class~="text-[#8A3D52]"],
+html.dark .admin-product-modal [class~="text-[#8A5738]"],
+html.dark .admin-product-modal [class~="text-[#6B3B2E]"] { color: #82ccd5; }
+html.dark .admin-product-modal [class~="bg-[#B27A52]"],
+html.dark .admin-product-modal [class~="bg-[#1E1719]"],
+html.dark .admin-product-modal [class~="bg-stone-900"] { background-color: #176b84; }
+html.dark .admin-product-modal [class~="bg-[#fbf3ec]"] { background-color: #24434a; }
+html.dark .admin-product-modal [class~="border-stone-200"],
+html.dark .admin-product-modal [class~="border-stone-300"] { border-color: #38545a; }
+html.dark .admin-product-modal footer { background-color: rgba(22, 38, 42, 0.97); }
+.admin-product-modal [contenteditable="true"]:empty::before { color: #6b858b; }
+html.dark .admin-product-modal [contenteditable="true"]:empty::before { color: #9db8bd; }
 .admin-portal-canvas .clay-btn-secondary {
   background: linear-gradient(145deg, #fbfeff 0%, #e6f0f2 100%);
   color: #24434a;
@@ -502,12 +580,18 @@ html.dark .admin-portal-canvas {
 }
 .admin-portal-canvas [class~="text-[#B27A52]"],
 .admin-portal-canvas [class~="text-[#d49970]"],
-.admin-portal-canvas [class~="text-[#E8B792]"] { color: #176b84; }
+.admin-portal-canvas [class~="text-[#E8B792]"],
+.admin-portal-canvas [class~="text-[#8A5738]"],
+.admin-portal-canvas [class~="text-[#8A3D52]"],
+.admin-portal-canvas [class~="text-[#6B3B2E]"] { color: #176b84; }
 .admin-portal-canvas [class~="bg-[#B27A52]"] { background-color: #248da0; }
 
 html.dark .admin-portal-canvas [class~="text-[#B27A52]"],
 html.dark .admin-portal-canvas [class~="text-[#d49970]"],
-html.dark .admin-portal-canvas [class~="text-[#E8B792]"] { color: #74c8d3; }
+html.dark .admin-portal-canvas [class~="text-[#E8B792]"],
+html.dark .admin-portal-canvas [class~="text-[#8A5738]"],
+html.dark .admin-portal-canvas [class~="text-[#8A3D52]"],
+html.dark .admin-portal-canvas [class~="text-[#6B3B2E]"] { color: #82ccd5; }
 html.dark .admin-portal-canvas .neu-input {
   background-color: #17282c;
   color: #e4f2f4;
@@ -524,6 +608,14 @@ html.dark .admin-portal-canvas .clay-btn-secondary {
   border-color: rgba(255, 255, 255, 0.9);
   box-shadow: 8px 0 30px rgba(28, 76, 86, 0.07);
 }
+
+html.dark .admin-portal-canvas [class~="bg-white"] { background-color: #223438; }
+html.dark .admin-portal-canvas [class~="bg-stone-50"],
+html.dark .admin-portal-canvas [class~="bg-stone-50/50"],
+html.dark .admin-portal-canvas [class~="bg-stone-50/70"] { background-color: #1a2e32; }
+html.dark .admin-portal-canvas [class~="bg-stone-100"] { background-color: #294147; }
+html.dark .admin-portal-canvas [class~="border-stone-200"],
+html.dark .admin-portal-canvas [class~="border-stone-300"] { border-color: #38545a; }
 
 .admin-topbar {
   background: rgba(239, 248, 249, 0.9);
@@ -905,6 +997,11 @@ html.dark .neu-pill-active {
 
 /* Clay Modal & Drawer Surfaces */
 .clay-modal {
+  --admin-card-bg: linear-gradient(145deg, #fbfeff 0%, #eaf3f5 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.92);
+  --admin-clay-shadow-lg: 0 22px 44px -6px rgba(28, 76, 86, 0.2), 0 8px 18px -3px rgba(28, 76, 86, 0.1), inset 2px 2px 3px rgba(255, 255, 255, 0.98), inset -2.5px -2.5px 5px rgba(28, 76, 86, 0.06);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(28, 76, 86, 0.1), inset -2.5px -2.5px 6px rgba(255, 255, 255, 0.98);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(28, 76, 86, 0.08), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.95);
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-card-border);
   box-shadow: var(--admin-clay-shadow-lg);
@@ -912,9 +1009,30 @@ html.dark .neu-pill-active {
 }
 
 .clay-drawer {
+  --admin-card-bg: linear-gradient(145deg, #fbfeff 0%, #eaf3f5 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.92);
+  --admin-clay-shadow-lg: 0 22px 44px -6px rgba(28, 76, 86, 0.2), 0 8px 18px -3px rgba(28, 76, 86, 0.1), inset 2px 2px 3px rgba(255, 255, 255, 0.98), inset -2.5px -2.5px 5px rgba(28, 76, 86, 0.06);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(28, 76, 86, 0.1), inset -2.5px -2.5px 6px rgba(255, 255, 255, 0.98);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(28, 76, 86, 0.08), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.95);
   background: var(--admin-card-bg);
   border-left: 1px solid var(--admin-card-border);
   box-shadow: -12px 0 40px -4px rgba(45, 30, 35, 0.15), inset 1.5px 0 2px rgba(255, 255, 255, 0.6);
+}
+
+html.dark .clay-modal,
+html.dark .clay-drawer {
+  --admin-card-bg: linear-gradient(145deg, #223438 0%, #1a2a2e 100%);
+  --admin-card-border: rgba(214, 242, 245, 0.12);
+  --admin-clay-shadow-lg: 0 24px 50px -8px rgba(0, 0, 0, 0.58), 0 10px 22px -4px rgba(0, 0, 0, 0.34), inset 2px 2px 3px rgba(255, 255, 255, 0.12), inset -3px -3px 6px rgba(0, 0, 0, 0.38);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(0, 0, 0, 0.42), inset -2px -2px 5px rgba(255, 255, 255, 0.05);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(0, 0, 0, 0.35), inset -1px -1px 3px rgba(255, 255, 255, 0.04);
+}
+html.dark .clay-modal .neu-input,
+html.dark .clay-drawer .neu-input {
+  background-color: #17282c;
+  border-color: #38545a;
+  color: #e4f2f4;
+  box-shadow: var(--admin-neu-inset);
 }
 
 html.dark .clay-drawer {
