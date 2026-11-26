@@ -3,6 +3,7 @@ import auth from '../server-api/auth.js';
 import cart from '../server-api/cart.js';
 import catalog from '../server-api/catalog.js';
 import flashDeals from '../server-api/flash-deals.js';
+import productAi from '../server-api/product-ai.js';
 import notifications from '../server-api/notifications.js';
 import orders from '../server-api/orders.js';
 import paystackWebhook from '../server-api/paystack-webhook.js';
@@ -15,7 +16,7 @@ import settings from '../server-api/settings.js';
 import users from '../server-api/users.js';
 
 type Handler = (req: VercelRequest, res: VercelResponse) => unknown;
-const handlers: Record<string, Handler> = { auth, cart, catalog, 'flash-deals': flashDeals, notifications, orders, 'paystack-webhook': paystackWebhook, 'pos-shifts': posShifts, products, 'promo-codes': promoCodes, 'r2-sign': r2Sign, reviews, settings, users };
+const handlers: Record<string, Handler> = { auth, cart, catalog, 'flash-deals': flashDeals, 'product-ai': productAi, notifications, orders, 'paystack-webhook': paystackWebhook, 'pos-shifts': posShifts, products, 'promo-codes': promoCodes, 'r2-sign': r2Sign, reviews, settings, users };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rawRoute = req.query.route;

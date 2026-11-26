@@ -3,10 +3,26 @@ import { Product, CategoryConfig, CategoryType, DepartmentType, ProductOption, P
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { isValidProductImageUrl, uploadImageToR2 } from '../../lib/r2Upload';
-import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Sparkles, Trash2, Upload, X } from 'lucide-react';
+import { api } from '../../lib/api';
 
 interface ProductModalProps { isOpen: boolean; onClose: () => void; productToEdit?: Product | null; }
 type VariantDraft = ProductVariant & { optionValues: Record<string, string> };
+type ProductImageSuggestion = {
+  name: string;
+  brand: string;
+  department: DepartmentType;
+  category: CategoryType;
+  categoryLabel: string;
+  unit: string;
+  description: string;
+  highlights: string[];
+  seoTitle: string;
+  seoDescription: string;
+  seoSlug: string;
+  origin: string;
+  details: NonNullable<Product['details']>;
+};
 
 const categoriesByDepartment: Record<DepartmentType, { value: CategoryType; label: string }[]> = {
   beauty: [
@@ -16,7 +32,8 @@ const categoriesByDepartment: Record<DepartmentType, { value: CategoryType; labe
   groceries: [
     { value: 'rice-grains', label: 'Rice and grains' }, { value: 'cooking-oils', label: 'Cooking oils' },
     { value: 'seasoning-spices', label: 'Seasoning and spices' }, { value: 'beverages', label: 'Drinks' },
-    { value: 'household-care', label: 'Household care' }, { value: 'daily-essentials', label: 'Daily essentials' },
+    { value: 'snacks-sweets', label: 'Snacks and sweets' }, { value: 'household-care', label: 'Household care' },
+    { value: 'daily-essentials', label: 'Daily essentials' },
   ],
 };
 const fieldClass = 'neu-input mt-1.5';
@@ -38,7 +55,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const [categoryLabel, setCategoryLabel] = useState(''); const [price, setPrice] = useState(0); const [wholesalePrice, setWholesalePrice] = useState<number | undefined>(); const [deliveryPrice, setDeliveryPrice] = useState<number | undefined>(); const [originalPrice, setOriginalPrice] = useState<number | undefined>();
   const [catalogOpen, setCatalogOpen] = useState(false); const [newBrandName, setNewBrandName] = useState(''); const [newCategoryId, setNewCategoryId] = useState(''); const [newCategoryName, setNewCategoryName] = useState(''); const [newCategoryImage, setNewCategoryImage] = useState('');
   const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [barcode, setBarcode] = useState(''); const [serialNumber, setSerialNumber] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false); const [isGeneratingDetails, setIsGeneratingDetails] = useState(false);
   const [description, setDescription] = useState(''); const [highlights, setHighlights] = useState<string[]>([]); const [badge, setBadge] = useState<Product['badge']>(); const [inStock, setInStock] = useState(true); const [isPublished, setIsPublished] = useState(true); const [stockCount, setStockCount] = useState(2);
   const [seoTitle, setSeoTitle] = useState(''); const [seoDescription, setSeoDescription] = useState(''); const [seoSlug, setSeoSlug] = useState('');
   const [options, setOptions] = useState<ProductOption[]>([]); const [variants, setVariants] = useState<VariantDraft[]>([]); const [origin, setOrigin] = useState(''); const [howToUse, setHowToUse] = useState(''); const [ingredients, setIngredients] = useState(''); const [benefits, setBenefits] = useState(''); const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +66,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       const product = productToEdit;
       setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setSeoTitle(product.seoTitle || ''); setSeoDescription(product.seoDescription || ''); setSeoSlug(product.seoSlug || ''); setPrice(product.price); setWholesalePrice(product.wholesalePrice); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
     } else {
-      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setSeoTitle(''); setSeoDescription(''); setSeoSlug(''); setPrice(0); setWholesalePrice(undefined); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(2); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
+      setName(''); setDepartment('beauty'); setBrand(''); setNewBrandInput(''); setNewBrandName(''); setCategory('skincare'); setCategoryLabel(''); setSeoTitle(''); setSeoDescription(''); setSeoSlug(''); setPrice(0); setWholesalePrice(undefined); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(2); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits(''); setIsGeneratingDetails(false);
     }
   }, [isOpen, productToEdit, brands]);
 
@@ -64,7 +81,52 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
 
   if (!isOpen) return null;
 
+  const fillDetailsFromPhoto = async (imageUrl: string) => {
+    setIsGeneratingDetails(true);
+    try {
+      const response = await api.post<{ details: ProductImageSuggestion }>('/product-ai', { imageUrl });
+      const suggestion = response.details;
+      if (!suggestion?.name?.trim()) throw new Error('Could not read the product name. Please enter it manually.');
 
+      setName(suggestion.name);
+      setDepartment(suggestion.department);
+      setCategory(suggestion.category);
+      setCategoryLabel(suggestion.categoryLabel);
+      setUnit(suggestion.unit);
+      setDescription(suggestion.description);
+      setHighlights(suggestion.highlights);
+      setSeoTitle(suggestion.seoTitle);
+      setSeoDescription(suggestion.seoDescription);
+      setSeoSlug(suggestion.seoSlug);
+      setOrigin(suggestion.origin);
+      setHowToUse(suggestion.details.howToUse);
+      setIngredients(suggestion.details.ingredients);
+      setBenefits(suggestion.details.benefits);
+
+      if (suggestion.brand) {
+        const existingBrand = brands.find(value => value.toLowerCase() === suggestion.brand.toLowerCase());
+        if (existingBrand) {
+          setBrand(existingBrand);
+          setNewBrandName('');
+          setNewBrandInput('');
+        } else {
+          setBrand('__NEW__');
+          setNewBrandName(suggestion.brand);
+          setNewBrandInput(suggestion.brand);
+        }
+      } else {
+        setBrand('');
+        setNewBrandName('');
+        setNewBrandInput('');
+      }
+
+      showToast('Details filled from photo. Review them and enter the price.');
+    } catch (error: any) {
+      showToast(error?.data?.error || error?.message || 'Could not read this photo. You can enter the details manually.');
+    } finally {
+      setIsGeneratingDetails(false);
+    }
+  };
 
   const processFiles = async (files: FileList | File[]) => {
     const valid = Array.from(files).filter(file => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024);
@@ -84,7 +146,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
         return next;
       });
       setImage(previous => previous || images[0]);
-      showToast(valid.length === 1 ? '1 photo added' : `${valid.length} photos added successfully`);
+      showToast(valid.length === 1 ? 'Photo uploaded' : `${valid.length} photos uploaded`);
+      if (!productToEdit && images[0]) await fillDetailsFromPhoto(images[0]);
     } catch (error: any) {
       showToast(error?.message || 'Could not upload photos. Please try again.');
     } finally {
@@ -103,7 +166,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     setImage(previous => previous || url);
     setImageUrlInput('');
     setShowUrlInput(false);
-    showToast('Photo added from URL');
+    showToast('Photo added');
+    if (!productToEdit) void fillDetailsFromPhoto(url);
   };
 
   const removeImage = (index: number) => {
@@ -283,6 +347,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
               <label className="font-bold text-stone-800">
                 Brand
                 <select value={brand} onChange={event => setBrand(event.target.value)} className={`${fieldClass} font-normal`}>
+                  <option value="">Select a brand</option>
                   {brands.map(value => <option key={value} value={value}>{value}</option>)}
                   <option value="__NEW__">Add a new brand</option>
                 </select>
@@ -371,7 +436,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                 )}
               </div>
               <p className="mt-1 text-xs text-stone-500">
-                Upload multiple photos to show front, back, texture, packaging, or sizes. Click any photo to make it the main cover.
+                Upload a clear product photo to fill in its details automatically. Review the suggestions before saving.
               </p>
             </div>
 
@@ -391,6 +456,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
               >
                 <LinkIcon className="h-3.5 w-3.5" /> Paste Image Link
               </button>
+              {!productToEdit && uploadedImages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void fillDetailsFromPhoto(image || uploadedImages[0])}
+                  disabled={isGeneratingDetails}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#248da0]/30 bg-[#e6f3f5] px-3 py-2 text-xs font-bold text-[#176b84] transition hover:bg-[#d9edf0] disabled:opacity-60"
+                >
+                  {isGeneratingDetails ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {isGeneratingDetails ? 'Reading photo…' : 'Fill details from photo'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -542,7 +618,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
 
               {isProcessingPhotos && (
                 <div className="rounded-lg bg-amber-50 p-2 text-center text-xs font-semibold text-amber-800">
-                  Processing and optimizing photos...
+                  {isGeneratingDetails ? 'Reading product details from the photo…' : 'Uploading and optimizing photos…'}
                 </div>
               )}
             </div>
