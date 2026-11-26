@@ -94,7 +94,6 @@ const navItems: NavItem[] = [
   { id: 'categories',     label: 'Categories', icon: Layers,         group: 'shop'   },
   { id: 'analytics',      label: 'Analytics',  icon: TrendingUp,     group: 'main'   },
   { id: 'accounts',       label: 'Team',       icon: UserCheck,      group: 'system' },
-  { id: 'notifications',  label: 'Alerts',     icon: Bell,           group: 'system' },
   { id: 'reviews',        label: 'Reviews',    icon: MessageSquare,  group: 'system' },
   { id: 'settings',       label: 'Settings',   icon: Settings,       group: 'system' },
 ];
@@ -524,7 +523,7 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="ml-auto flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto sm:gap-2.5">
+          <div className="ml-auto flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap sm:gap-2.5">
             {currentTab === 'products' && (
               <button
                 onClick={handleAddProduct}
@@ -535,21 +534,37 @@ export const AdminPortal: React.FC = () => {
               </button>
             )}
             <button
-              onClick={() => void refreshAdminData()}
-              disabled={isRefreshing}
-              className="clay-btn-secondary"
-              title="Refresh portal data"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-            <button
               onClick={() => setSearchOpen(true)}
               className="clay-card-sm p-2.5 text-stone-600 dark:text-stone-400 hover:scale-105 transition-transform"
               title="Search (Ctrl+K)"
               aria-label="Search products, orders, and customers"
             >
               <Search className="w-4 h-4" />
+            </button>
+            {accessibleTabs.includes('notifications') && (
+              <button
+                onClick={() => handleTabChange('notifications')}
+                aria-label={unreadNotifications ? `Alerts, ${unreadNotifications} unread` : 'Alerts'}
+                aria-current={currentTab === 'notifications' ? 'page' : undefined}
+                className={`clay-card-sm relative p-2.5 text-stone-600 dark:text-stone-300 hover:scale-105 transition-transform ${currentTab === 'notifications' ? 'ring-2 ring-cyan-700/25 dark:ring-cyan-300/25' : ''}`}
+                title={unreadNotifications ? `${unreadNotifications} unread alerts` : 'Alerts'}
+              >
+                <Bell className="w-4 h-4" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] font-bold leading-none text-white shadow-sm">
+                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                  </span>
+                )}
+              </button>
+            )}
+            <button
+              onClick={() => void refreshAdminData()}
+              disabled={isRefreshing}
+              className="clay-card-sm p-2.5 text-stone-600 dark:text-stone-300 hover:scale-105 transition-transform disabled:cursor-not-allowed disabled:opacity-60"
+              title="Refresh portal data"
+              aria-label="Refresh portal data"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
             <div className="neu-sunken-sm p-1 flex items-center">
               <button
