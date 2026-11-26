@@ -660,6 +660,100 @@ html.dark .admin-dashboard-hero .neu-sunken-sm {
   color: #86d0d9;
 }
 
+.pos-app-frame {
+  background-color: #eaf3f5 !important;
+  color: #17383e !important;
+}
+html.dark .pos-app-frame {
+  background-color: #142326 !important;
+  color: #e4f2f4 !important;
+}
+
+.pos-reference {
+  --pos-canvas: #eaf3f5;
+  --pos-card: linear-gradient(145deg, #fbfeff 0%, #edf5f6 100%);
+  --pos-border: #cfdee1;
+  --pos-raised: 0 10px 24px -8px rgba(28, 76, 86, 0.13), inset 1px 1px 1.5px rgba(255, 255, 255, 0.95), inset -1px -1px 2px rgba(28, 76, 86, 0.04);
+  --pos-sunken: inset 2px 2px 5px rgba(28, 76, 86, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.95);
+  --pos-primary: #176b84;
+  --pos-primary-hover: #11596f;
+  --pos-accent-soft: #dcecef;
+  min-height: 100vh;
+  background: var(--pos-canvas);
+  background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.28), transparent 58%);
+  color: #17383e;
+}
+
+html.dark .pos-reference {
+  --pos-canvas: #142326;
+  --pos-card: linear-gradient(145deg, #223438 0%, #1a2a2e 100%);
+  --pos-border: #38545a;
+  --pos-raised: 0 12px 26px -8px rgba(0, 0, 0, 0.42), inset 1px 1px 1.5px rgba(255, 255, 255, 0.08), inset -1px -1px 2px rgba(0, 0, 0, 0.24);
+  --pos-sunken: inset 2px 2px 5px rgba(0, 0, 0, 0.38), inset -2px -2px 5px rgba(255, 255, 255, 0.04);
+  --pos-primary: #26849a;
+  --pos-primary-hover: #3199ae;
+  --pos-accent-soft: #24434a;
+  background: var(--pos-canvas);
+  color: #e4f2f4;
+}
+
+.pos-reference [class~="rounded-[24px]"],
+.pos-reference [class~="rounded-2xl"] { border-radius: 1rem !important; }
+.pos-reference [class~="rounded-xl"] { border-radius: 0.75rem !important; }
+.pos-reference section,
+.pos-reference aside,
+.pos-reference .pos-action-strip,
+.pos-reference > div:first-child {
+  border-color: var(--pos-border) !important;
+  box-shadow: var(--pos-raised) !important;
+}
+.pos-reference section,
+.pos-reference aside,
+.pos-reference .pos-action-strip { background: var(--pos-card) !important; }
+.pos-reference [class~="bg-white"] { background: var(--pos-card) !important; }
+.pos-reference [class~="bg-[#fffdfb]"],
+.pos-reference [class~="bg-[#fff8f3]"],
+.pos-reference [class~="bg-[#f5ebe5]"],
+.pos-reference [class~="bg-stone-50"] { background-color: var(--pos-accent-soft) !important; }
+.pos-reference input:not([type="checkbox"]),
+.pos-reference select,
+.pos-reference textarea {
+  border-color: var(--pos-border);
+  background-color: var(--pos-canvas);
+  color: inherit;
+  box-shadow: var(--pos-sunken);
+}
+.pos-reference input::placeholder,
+.pos-reference textarea::placeholder { color: #71878c; }
+.pos-reference input:focus,
+.pos-reference select:focus,
+.pos-reference textarea:focus {
+  border-color: #26849a;
+  outline: 2px solid rgba(38, 132, 154, 0.22);
+  outline-offset: 1px;
+}
+.pos-reference [class~="bg-[#24191b]"] {
+  background-color: var(--pos-primary) !important;
+}
+.pos-reference [class~="hover:bg-[#3b292c]"]:hover {
+  background-color: var(--pos-primary-hover) !important;
+}
+.pos-reference [class~="text-[#a85e35]"],
+.pos-reference [class~="text-[#8e4d2d]"],
+.pos-reference [class~="text-[#b9774c]"] { color: var(--pos-primary) !important; }
+.pos-reference [class~="bg-[#f5ebe5]"] { color: var(--pos-primary) !important; }
+
+html.dark .pos-reference [class~="bg-white"] { background: var(--pos-card) !important; }
+html.dark .pos-reference [class~="bg-stone-50"],
+html.dark .pos-reference [class~="bg-[#fffdfb]"],
+html.dark .pos-reference [class~="bg-[#fff8f3]"],
+html.dark .pos-reference [class~="bg-[#f5ebe5]"] { background-color: var(--pos-accent-soft) !important; }
+html.dark .pos-reference input::placeholder,
+html.dark .pos-reference textarea::placeholder { color: #9db8bd; }
+html.dark .pos-reference [class~="text-[#a85e35]"],
+html.dark .pos-reference [class~="text-[#8e4d2d]"],
+html.dark .pos-reference [class~="text-[#b9774c]"] { color: #82ccd5 !important; }
+
 /* Clay Cards & Surfaces */
 .clay-card {
   background: var(--admin-card-bg);
