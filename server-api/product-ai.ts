@@ -38,7 +38,7 @@ type GeminiModel = { name?: string; supportedGenerationMethods?: string[] };
 
 let cachedContentModels: { names: string[]; expiresAt: number } | null = null;
 
-async function getAvailableContentModels(apiKey: string) {
+async function getAvailableFreeTierModels(apiKey: string) {
   if (cachedContentModels && cachedContentModels.expiresAt > Date.now()) return cachedContentModels.names;
 
   const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
@@ -49,16 +49,17 @@ async function getAvailableContentModels(apiKey: string) {
 
   const payload = await response.json() as { models?: GeminiModel[] };
   const names = (payload.models || [])
-    .filter(model => model.name && model.supportedGenerationMethods?.includes('generateContent'))
+    .filter(model => model.name && model.supportedGenerationMethods?.includes('generateContent') && /flash-lite/i.test(model.name))
     .map(model => model.name!.replace(/^models\//, ''))
     .sort((left, right) => {
-      const priority = (name: string) => /flash/i.test(name) ? 0
-        : /pro/i.test(name) ? 1
-          : 2;
       const stability = (name: string) => /preview|experimental/i.test(name) ? 1 : 0;
-      return priority(left) - priority(right) || stability(left) - stability(right) || left.localeCompare(right);
+      const version = (name: string) => {
+        const match = name.match(/gemini-(\d+)(?:\.(\d+))?/i);
+        return match ? Number(match[1]) * 100 + Number(match[2] || 0) : 0;
+      };
+      return stability(left) - stability(right) || version(right) - version(left) || left.localeCompare(right);
     });
-  if (!names.length) throw new Error('Gemini returned no models that support generateContent.');
+  if (!names.length) throw new Error('Gemini returned no Flash-Lite models that support generateContent.');
 
   cachedContentModels = { names, expiresAt: Date.now() + 15 * 60 * 1000 };
   return names;
@@ -222,19 +223,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       signal: AbortSignal.timeout(18_000),
     });
     const configuredModel = process.env.GEMINI_MODEL?.trim().replace(/^models\//, '');
-    let model = configuredModel || 'gemini-2.5-flash';
+    let model = configuredModel && /flash-lite/i.test(configuredModel) ? configuredModel : 'gemini-2.5-flash-lite';
     let geminiResponse = await requestModel(model);
     if (geminiResponse.status === 404) {
       const fallbackModels = new Set<string>();
       let modelDiscoveryError = '';
       try {
-        (await getAvailableContentModels(apiKey)).forEach(name => fallbackModels.add(name));
+        (await getAvailableFreeTierModels(apiKey)).forEach(name => fallbackModels.add(name));
       } catch (error) {
         modelDiscoveryError = error instanceof Error ? error.message : 'Model discovery failed.';
         console.error('Could not discover an available Gemini model:', error);
       }
 
-      ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro'].forEach(name => fallbackModels.add(name));
+      ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'].forEach(name => fallbackModels.add(name));
       fallbackModels.delete(model);
       for (const fallbackModel of fallbackModels) {
         model = fallbackModel;
@@ -272,7 +273,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(502).json({ error: providerMessage ? `Gemini rejected the request: ${providerMessage}` : 'Gemini rejected the image request. Check the image format and model settings.' });
       }
       if (geminiResponse.status === 404) {
-        return res.status(502).json({ error: 'Gemini could not find a model available to this key. In Google AI Studio, enable the Generative Language API and check model access, then set GEMINI_MODEL to an available model.' });
+        return res.status(502).json({ error: 'No Flash-Lite model is available to this key. Check Google AI Studio model access and the project quota.' });
       }
       return res.status(502).json({ error: 'Could not read the product details from this photo.' });
     }
