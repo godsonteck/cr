@@ -307,7 +307,7 @@ export const AdminPortal: React.FC = () => {
   };
 
   const handleViewProduct = (product: Product) => {
-    navigate(`/product/${product.id}`);
+    navigate(`/product/${product.seoSlug || product.id}`);
   };
 
   const handleViewOrder = (order: Order) => {

@@ -2105,7 +2105,7 @@ export const AccountPage: React.FC = () => {
                         </div>
                         <div className="p-2.5 sm:p-4 space-y-1 sm:space-y-2">
                           <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-[var(--accent)]">{p.brand}</p>
-                          <Link to={`/product/${p.id}`} className="block font-bold text-xs hover:text-[var(--accent)] line-clamp-1 sm:line-clamp-2">
+                          <Link to={`/product/${p.seoSlug || p.id}`} className="block font-bold text-xs hover:text-[var(--accent)] line-clamp-1 sm:line-clamp-2">
                             {p.name}
                           </Link>
                           <p className="text-xs sm:text-sm font-black text-[var(--text-primary)]">

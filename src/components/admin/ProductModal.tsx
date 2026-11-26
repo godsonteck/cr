@@ -40,15 +40,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
   const [discountBadge, setDiscountBadge] = useState(''); const [unit, setUnit] = useState(''); const [barcode, setBarcode] = useState(''); const [serialNumber, setSerialNumber] = useState(''); const [image, setImage] = useState(''); const [uploadedImages, setUploadedImages] = useState<string[]>([]); const [isDragging, setIsDragging] = useState(false); const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrlInput, setImageUrlInput] = useState(''); const [showUrlInput, setShowUrlInput] = useState(false); const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [description, setDescription] = useState(''); const [highlights, setHighlights] = useState<string[]>([]); const [badge, setBadge] = useState<Product['badge']>(); const [inStock, setInStock] = useState(true); const [isPublished, setIsPublished] = useState(true); const [stockCount, setStockCount] = useState(2);
+  const [seoTitle, setSeoTitle] = useState(''); const [seoDescription, setSeoDescription] = useState(''); const [seoSlug, setSeoSlug] = useState('');
   const [options, setOptions] = useState<ProductOption[]>([]); const [variants, setVariants] = useState<VariantDraft[]>([]); const [origin, setOrigin] = useState(''); const [howToUse, setHowToUse] = useState(''); const [ingredients, setIngredients] = useState(''); const [benefits, setBenefits] = useState(''); const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     if (productToEdit) {
       const product = productToEdit;
-      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setPrice(product.price); setWholesalePrice(product.wholesalePrice); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
+      setName(product.name); setDepartment(product.department || 'beauty'); setBrand(product.brand); setCategory(product.category); setCategoryLabel(product.categoryLabel || ''); setSeoTitle(product.seoTitle || ''); setSeoDescription(product.seoDescription || ''); setSeoSlug(product.seoSlug || ''); setPrice(product.price); setWholesalePrice(product.wholesalePrice); setDeliveryPrice(product.deliveryPrice); setOriginalPrice(product.originalPrice); setDiscountBadge(product.discountBadge || ''); setUnit(product.unit || ''); setBarcode(product.barcode || ''); setSerialNumber(product.serialNumber || ''); setImage(product.image || ''); setUploadedImages(product.images?.length ? product.images : product.image ? [product.image] : []); setDescription(product.description); setHighlights(product.highlights || []); setBadge(product.badge); setInStock(product.inStock); setIsPublished(product.isPublished !== false); setStockCount(product.stockCount || 0); setOptions(product.options || []); setVariants((product.variants || []).map(variant => ({ ...variant, description: variant.description || '', optionValues: variant.options || {} }))); setOrigin(product.origin || ''); setHowToUse(product.details?.howToUse || ''); setIngredients(product.details?.ingredients || ''); setBenefits(product.details?.benefits || '');
     } else {
-      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setPrice(0); setWholesalePrice(undefined); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(2); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
+      setName(''); setDepartment('beauty'); setBrand(brands[1] || brands[0] || ''); setNewBrandInput(''); setCategory('skincare'); setCategoryLabel(''); setSeoTitle(''); setSeoDescription(''); setSeoSlug(''); setPrice(0); setWholesalePrice(undefined); setDeliveryPrice(undefined); setOriginalPrice(undefined); setDiscountBadge(''); setUnit(''); setBarcode(''); setSerialNumber(''); setImage(''); setUploadedImages([]); setDescription(''); setHighlights([]); setBadge(undefined); setInStock(true); setIsPublished(true); setStockCount(2); setOptions([]); setVariants([]); setOrigin(''); setHowToUse(''); setIngredients(''); setBenefits('');
     }
   }, [isOpen, productToEdit, brands]);
 
@@ -206,6 +207,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       unit: unit.trim() || 'Standard Pack',
       barcode: barcode.trim() || undefined,
       serialNumber: serialNumber.trim() || undefined,
+      seoTitle: seoTitle.trim() || undefined,
+      seoDescription: seoDescription.trim() || undefined,
+      seoSlug: seoSlug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || undefined,
       image: primaryImage,
       images: finalImages,
       description: description.trim(),
@@ -331,7 +335,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
           </div>
         </section>
 
-        {/* 2. Product Photos & Multi-Image Gallery */}
+        {/* 2. Search Engine Optimisation */}
+        <section className="border-t border-stone-200 pt-6">
+          <h3 className="text-lg font-bold text-stone-900">Search Engine Optimisation</h3>
+          <p className="mt-1 text-xs text-stone-500">Optional settings that improve how this product appears in search engines.</p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <label className="font-bold text-stone-800">
+              SEO title <span className="font-normal text-stone-400">({seoTitle.length}/70)</span>
+              <input value={seoTitle} onChange={event => setSeoTitle(event.target.value)} maxLength={70} placeholder="Example: Hydrating Face Cream for Dry Skin" className={`${fieldClass} font-normal`} />
+            </label>
+            <label className="font-bold text-stone-800">
+              SEO slug
+              <input value={seoSlug} onChange={event => setSeoSlug(event.target.value)} maxLength={160} placeholder="hydrating-face-cream" className={`${fieldClass} font-normal`} />
+            </label>
+          </div>
+          <label className="mt-4 block font-bold text-stone-800">
+            SEO description <span className="font-normal text-stone-400">({seoDescription.length}/160)</span>
+            <textarea value={seoDescription} onChange={event => setSeoDescription(event.target.value)} maxLength={160} rows={3} placeholder="Write a clear summary for search results..." className={`${fieldClass} font-normal`} />
+          </label>
+        </section>
+
+        {/* 3. Product Photos & Multi-Image Gallery */}
         <section className="border-t border-stone-200 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div>

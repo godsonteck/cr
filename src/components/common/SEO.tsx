@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import logoImg from '../../assets/logo-optimized.jpeg';
+import { serializeJsonLd } from '../../lib/serializeJsonLd';
 
 interface SEOProps {
   title?: string;
@@ -138,7 +139,7 @@ export const SEO: React.FC<SEOProps> = ({
       {structuredData && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
         />
       )}
     </>

@@ -45,7 +45,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     e.preventDefault();
     if (listingVariant || product.options?.length) {
-      navigate(`/product/${parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
+      navigate(`/product/${product.seoSlug || parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
       return;
     }
     // Use the correct price tier so cart totals and checkout reflect the right amount
@@ -70,7 +70,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
+    navigate(`/product/${product.seoSlug || parentId}${listingVariant ? `?variant=${encodeURIComponent(listingVariant.id)}` : ''}`);
   };
 
   return (

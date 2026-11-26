@@ -55,7 +55,7 @@ const variantItemSchema = z.object({
   description: z.string().trim().min(1).max(10_000),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
-  options: z.record(z.string()).optional().nullable(),
+  options: z.record(z.string(), z.string()).optional().nullable(),
 });
 
 /** Transform details sub-fields: null → undefined to match DB jsonb type */
@@ -87,6 +87,9 @@ const productCreateSchema = z.object({
   unit: z.string().min(1).max(100),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
+  seoTitle: z.string().trim().max(70).optional().nullable().transform(v => v || undefined),
+  seoDescription: z.string().trim().max(160).optional().nullable().transform(v => v || undefined),
+  seoSlug: z.string().trim().max(160).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).max(2_100_000),
   images: z.array(z.string().min(1).max(2_100_000)).min(1),
   description: z.string().min(1),
@@ -131,6 +134,9 @@ const productUpdateSchema = z.object({
   unit: z.string().min(1).max(100).optional(),
   barcode: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
   serialNumber: z.string().trim().max(128).optional().nullable().transform(v => v || undefined),
+  seoTitle: z.string().trim().max(70).optional().nullable().transform(v => v || undefined),
+  seoDescription: z.string().trim().max(160).optional().nullable().transform(v => v || undefined),
+  seoSlug: z.string().trim().max(160).optional().nullable().transform(v => v || undefined),
   image: z.string().min(1).optional(),
   images: z.array(z.string().min(1)).min(1).optional(),
   description: z.string().min(1).optional(),

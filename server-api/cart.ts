@@ -20,7 +20,7 @@ const cartUpdateSchema = z.object({
       image: z.string().optional(),
       inStock: z.boolean(),
       stockCount: z.number().int().min(0).optional(),
-      options: z.record(z.string()).optional(),
+      options: z.record(z.string(), z.string()).optional(),
     }).optional(),
   })).default([]).optional(),
   promoCode: z.string().max(50).optional().nullable(),

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from '../src/database.js';
-import { reviews, products } from '../src/db/schema.js';
+import { reviews, products, orders, reviewHelpfulVotes } from '../src/db/schema.js';
 import { eq, desc, and, sql, avg, count } from 'drizzle-orm';
 import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
@@ -18,7 +18,7 @@ const reviewUpdateSchema = z.object({
   isApproved: z.boolean().optional(),
   adminReply: z.string().optional(),
   // Accepts boolean or client's projected count; server always increments atomically by 1
-  helpfulCount: z.union([z.boolean(), z.number()]).optional(),
+  helpfulCount: z.literal(true).optional(),
 }).partial();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -157,6 +157,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isCustomer = auth.role === 'customer';
       const authorName = (isCustomer ? auth.name : (auth.adminName || auth.name)) || auth.email.split('@')[0] || 'CR Customer';
       const userId = isCustomer ? auth.sub : null;
+      const [purchase] = isCustomer
+        ? await db
+            .select({ id: orders.id })
+            .from(orders)
+            .where(and(
+              eq(orders.userId, auth.sub),
+              eq(orders.paymentStatus, 'paid'),
+              eq(orders.status, 'Delivered'),
+              sql`exists (
+                select 1
+                from jsonb_array_elements(${orders.items}) as order_item(item)
+                where order_item.item -> 'product' ->> 'id' = ${parsed.data.productId}
+              )`,
+            ))
+            .limit(1)
+        : [];
 
       const [newReview] = await db.insert(reviews).values({
         productId: parsed.data.productId,
@@ -167,7 +183,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         images: parsed.data.images || [],
         userId,
         authorName,
-        verifiedPurchase: isCustomer,
+        verifiedPurchase: Boolean(purchase),
         isApproved: true,
       }).returning();
 
@@ -209,20 +225,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid review data', details: parsed.error.flatten() });
       }
 
+      if (parsed.data.helpfulCount !== undefined) {
+        if (parsed.data.adminReply !== undefined || parsed.data.isApproved !== undefined) {
+          return res.status(400).json({ error: 'Helpful votes cannot be combined with administrative updates' });
+        }
+
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        if (auth.role !== 'customer') {
+          return res.status(403).json({ error: 'Customer access required' });
+        }
+
+        const result = await db.transaction(async (tx) => {
+          const [review] = await tx
+            .select({ id: reviews.id })
+            .from(reviews)
+            .where(eq(reviews.id, id))
+            .for('update')
+            .limit(1);
+          if (!review) return { status: 'not-found' as const };
+
+          const [vote] = await tx
+            .insert(reviewHelpfulVotes)
+            .values({ reviewId: id, userId: auth.sub })
+            .onConflictDoNothing()
+            .returning({ reviewId: reviewHelpfulVotes.reviewId });
+          if (!vote) return { status: 'already-voted' as const };
+
+          const [updated] = await tx
+            .update(reviews)
+            .set({ helpfulCount: sql`${reviews.helpfulCount} + 1`, updatedAt: new Date() })
+            .where(eq(reviews.id, id))
+            .returning();
+          return { status: 'updated' as const, review: updated };
+        });
+
+        if (result.status === 'not-found') return res.status(404).json({ error: 'Review not found' });
+        if (result.status === 'already-voted') return res.status(409).json({ error: 'You have already marked this review as helpful' });
+        return res.status(200).json(result.review);
+      }
+
       // If updating administrative fields (adminReply, isApproved), require admin
       if (parsed.data.adminReply !== undefined || parsed.data.isApproved !== undefined) {
         const auth = await requireAdmin(req, res, ['Super Admin', 'Store Manager']);
         if (!auth) return;
       }
 
-
-
-      let updateValues: Record<string, any> = { updatedAt: new Date() };
+      const updateValues: Partial<typeof reviews.$inferInsert> = { updatedAt: new Date() };
       if (parsed.data.adminReply !== undefined) updateValues.adminReply = parsed.data.adminReply;
       if (parsed.data.isApproved !== undefined) updateValues.isApproved = parsed.data.isApproved;
-      if (parsed.data.helpfulCount !== undefined) {
-        updateValues.helpfulCount = sql`${reviews.helpfulCount} + 1`;
-      }
 
       const [updated] = await db
         .update(reviews)

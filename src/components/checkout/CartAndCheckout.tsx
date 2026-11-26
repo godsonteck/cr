@@ -160,13 +160,13 @@ export const FullCartPage: React.FC = () => {
           <div className="space-y-3">
             {cartItems.map((item) => (
               <div key={`${item.product.id}:${item.selectedVariant?.id || 'base'}`} className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] p-3 flex gap-3 sm:p-4 sm:gap-4">
-                <Link to={`/product/${item.product.id}`}>
+                <Link to={`/product/${item.product.seoSlug || item.product.id}`}>
                   <img src={item.product.image} alt={item.product.name} className="h-20 w-20 object-cover rounded-xl shrink-0 hover:opacity-90 transition sm:h-24 sm:w-24" />
                 </Link>
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-[var(--text-subtle)]">{item.product.brand}</p>
-                    <Link to={`/product/${item.product.id}`}>
+                    <Link to={`/product/${item.product.seoSlug || item.product.id}`}>
                       <h3 className="break-words text-sm font-bold text-[var(--text-primary)] hover:text-[#FF6B00] transition">{item.product.name}</h3>
                     </Link>
                     {item.selectedOption && <p className="text-xs text-[var(--text-muted)]">Variant: {item.selectedOption}</p>}

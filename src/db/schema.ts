@@ -87,6 +87,9 @@ export const products = pgTable('products', {
   unit: varchar('unit', { length: 100 }).notNull(),
   barcode: varchar('barcode', { length: 128 }),
   serialNumber: varchar('serial_number', { length: 128 }),
+  seoTitle: varchar('seo_title', { length: 70 }),
+  seoDescription: varchar('seo_description', { length: 160 }),
+  seoSlug: varchar('seo_slug', { length: 160 }),
   image: text('image').notNull(),
   images: jsonb('images').$type<string[]>().notNull().default([]),
   description: text('description').notNull(),
@@ -313,6 +316,14 @@ export const reviews = pgTable('reviews', {
   productIdIdx: index('reviews_product_id_idx').on(table.productId),
   userIdIdx: index('reviews_user_id_idx').on(table.userId),
   approvedIdx: index('reviews_approved_idx').on(table.isApproved),
+}));
+
+export const reviewHelpfulVotes = pgTable('review_helpful_votes', {
+  reviewId: uuid('review_id').notNull().references(() => reviews.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserVote: uniqueIndex('review_helpful_votes_review_user_unique').on(table.reviewId, table.userId),
 }));
 
 export const promoCodes = pgTable('promo_codes', {

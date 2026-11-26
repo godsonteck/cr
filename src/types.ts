@@ -227,6 +227,9 @@ export interface Product {
   barcode?: string;
   /** Supplier or manufacturer identifier accepted by the POS scanner. */
   serialNumber?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoSlug?: string;
   image: string;
   images: string[];
   description: string;

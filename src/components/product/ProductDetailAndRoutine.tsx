@@ -100,7 +100,7 @@ export const ProductDetailPage: React.FC = () => {
   const { showAlert } = useAlert();
 
   const product = useMemo(() => {
-    return publishedProducts.find(p => p.id === productId);
+    return publishedProducts.find(p => p.id === productId || p.seoSlug === productId);
   }, [productId, publishedProducts]);
 
   const [selectedImage, setSelectedImage] = useState<string>('');
@@ -224,6 +224,10 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleMarkHelpful = async (reviewId: string) => {
     if (helpfulVoted[reviewId]) return;
+    if (!isAuthenticated) {
+      showAlert('Sign in to mark a review helpful.', 'error');
+      return;
+    }
     const rev = reviewsList.find((r) => r.id === reviewId);
     const currentCount = rev?.helpfulCount || 0;
     try {
@@ -234,7 +238,7 @@ export const ProductDetailPage: React.FC = () => {
       );
       showAlert('Thank you for your feedback!', 'success');
     } catch {
-      // Ignore
+      showAlert('Unable to record your vote. You may have already voted; please try again.', 'error');
     }
   };
 
@@ -387,8 +391,8 @@ export const ProductDetailPage: React.FC = () => {
   return (
     <>
       <SEO
-        title={`${product.name} | ${storeSettings.storeName}`}
-        description={`${product.name} by ${product.brand}. View price, availability, product details, and delivery information.`}
+        title={product.seoTitle?.trim() || `${product.name} | ${storeSettings.storeName}`}
+        description={product.seoDescription?.trim() || `${product.name} by ${product.brand}. View price, availability, product details, and delivery information.`}
         type="product"
         productName={product.name}
         productPrice={displayPrice}

@@ -101,7 +101,7 @@ export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const review = reviews.find(r => r.id === reviewId);
       const count = currentHelpfulCount !== undefined ? currentHelpfulCount + 1 : (review ? (review.helpfulCount || 0) + 1 : 1);
-      await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { helpfulCount: count });
+      await api.patch(`/reviews?id=${encodeURIComponent(reviewId)}`, { helpfulCount: true });
       setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpfulCount: count } : r));
     } catch (e) {
       console.error('Failed to mark helpful:', e);

@@ -106,6 +106,9 @@ async function runMigration() {
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "delivery_price" numeric(10, 2)`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "barcode" varchar(128)`,
     `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "serial_number" varchar(128)`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "seo_title" varchar(70)`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "seo_description" varchar(160)`,
+    `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "seo_slug" varchar(160)`,
     `ALTER TABLE "flash_deals" ADD COLUMN IF NOT EXISTS "product_ids" jsonb NOT NULL DEFAULT '[]'::jsonb`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_reference" varchar(100)`,
     `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_sender_phone" varchar(50)`,
@@ -135,6 +138,7 @@ async function runMigration() {
   }
 
   for (const posSql of [
+    `CREATE TABLE IF NOT EXISTS "review_helpful_votes" ("review_id" uuid NOT NULL REFERENCES "reviews"("id") ON DELETE CASCADE, "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE, "created_at" timestamp DEFAULT now() NOT NULL, CONSTRAINT "review_helpful_votes_review_user_unique" UNIQUE ("review_id", "user_id"))`,
     `CREATE UNIQUE INDEX IF NOT EXISTS "orders_idempotency_key_idx" ON "orders" ("idempotency_key") WHERE "idempotency_key" IS NOT NULL`,
     `CREATE TABLE IF NOT EXISTS "pos_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "order_id" uuid NOT NULL UNIQUE REFERENCES "orders"("id") ON DELETE RESTRICT, "method" "payment_method" NOT NULL, "status" varchar(20) NOT NULL, "amount" numeric(10,2) NOT NULL, "reference" varchar(100), "cash_received" numeric(10,2), "change_given" numeric(10,2), "cashier_name" varchar(100), "created_at" timestamp DEFAULT now() NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS "inventory_movements" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "product_id" varchar(100) NOT NULL REFERENCES "products"("id") ON DELETE RESTRICT, "variant_id" varchar(100), "order_id" uuid REFERENCES "orders"("id") ON DELETE RESTRICT, "movement_type" varchar(30) NOT NULL, "quantity" integer NOT NULL, "quantity_before" integer NOT NULL, "quantity_after" integer NOT NULL, "actor_name" varchar(100), "reason" text, "created_at" timestamp DEFAULT now() NOT NULL)`,
