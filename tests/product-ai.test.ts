@@ -5,6 +5,7 @@ process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:5432/product_ai_tes
 process.env.JWT_SECRET = 'product-ai-test-secret-with-at-least-32-characters';
 
 const {
+  createPrompt,
   getImageModelCandidates,
   isGeneralPurposeFlashModel,
   requestProductDetails,
@@ -24,6 +25,15 @@ function success() {
     candidates: [{ content: { parts: [{ text: '{"name":"Test product"}' }] } }],
   }), { status: 200 });
 }
+
+test('requests detailed, business-minded descriptions without invented claims', () => {
+  const prompt = createPrompt();
+  assert.match(prompt, /120 to 180 words/);
+  assert.match(prompt, /two short paragraphs separated by a blank line/);
+  assert.match(prompt, /customer value/);
+  assert.match(prompt, /Use only text and details that are clearly visible/);
+  assert.match(prompt, /Never invent a brand, size, origin, ingredient/);
+});
 
 test('uses the current image-capable Flash-Lite model by default', () => {
   const candidates = getImageModelCandidates();
