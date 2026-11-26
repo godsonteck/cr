@@ -4,13 +4,13 @@ import { escapeHtml, sendEmail } from './_email.js';
 
 export function orderNotificationRows(order: typeof orders.$inferSelect) {
   return [
-    {
+    ...(order.userId ? [{
       userId: order.userId || null,
       type: 'order',
       title: 'Order received',
       message: `Order #${order.orderNumber} has been received and is being prepared.`,
       actionUrl: '/account/orders',
-    },
+    }] : []),
     {
       userId: null,
       type: 'order',
@@ -19,6 +19,12 @@ export function orderNotificationRows(order: typeof orders.$inferSelect) {
       actionUrl: '/admin?tab=orders',
     },
   ];
+}
+
+export function guestTrackingUrl(order: typeof orders.$inferSelect): string | null {
+  if (order.userId || !order.idempotencyKey || !process.env.PUBLIC_SITE_URL) return null;
+  const origin = process.env.PUBLIC_SITE_URL.replace(/\/$/, '');
+  return `${origin}/order-confirmation/${encodeURIComponent(order.id)}?guestCheckoutKey=${encodeURIComponent(order.idempotencyKey)}`;
 }
 
 export function scheduleOrderConfirmationEmails(order: typeof orders.$inferSelect, fallbackEmail?: string) {
@@ -30,12 +36,17 @@ export function scheduleOrderConfirmationEmails(order: typeof orders.$inferSelec
   const storeEmail = process.env.STORE_NOTIFICATION_EMAIL || from.match(/<([^>]+)>/)?.[1];
   if (!customerEmail && !storeEmail) return;
 
-  const orderLink = `${process.env.PUBLIC_SITE_URL || ''}/account/orders`;
+  const orderLink = order.userId ? `${process.env.PUBLIC_SITE_URL || ''}/account/orders` : guestTrackingUrl(order);
+  const orderMessage = order.userId
+    ? '<p>You can track your order in your account.</p>'
+    : orderLink
+      ? `<p>You checked out as a guest. Keep this email private; it contains your secure order-tracking link.</p><p><a href="${escapeHtml(orderLink)}">Track your order</a></p>`
+      : '<p>You checked out as a guest. Keep your order number for delivery updates.</p>';
   const emails = [
     customerEmail ? sendEmail({
       to: customerEmail,
       subject: `Order received: ${order.orderNumber}`,
-      html: `<p>Hi ${escapeHtml(order.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(order.orderNumber)}</strong> and are preparing it now.</p><p>You can track your order in your account.</p><p><a href="${escapeHtml(orderLink)}">View order</a></p>`,
+      html: `<p>Hi ${escapeHtml(order.shippingAddress.fullName)},</p><p>Thanks for your order. We received <strong>${escapeHtml(order.orderNumber)}</strong> and are preparing it now.</p>${orderMessage}`,
     }) : Promise.resolve(false),
     storeEmail ? sendEmail({
       to: storeEmail,

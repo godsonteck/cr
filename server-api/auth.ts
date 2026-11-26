@@ -153,8 +153,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (action === 'paystack-initialize') {
-        const auth = await requireAuth(req, res);
-        if (!auth) return;
+        const guestCheckoutKey = typeof body?.guestCheckoutKey === 'string' ? body.guestCheckoutKey : undefined;
+        const auth = guestCheckoutKey ? null : await requireAuth(req, res);
+        if (!guestCheckoutKey && !auth) return;
         const parsed = paystackInitializeSchema.safeParse(body);
         // Strip BOM (U+FEFF) and whitespace that PowerShell stdin may inject
         const secretKey = getPaystackSecretKey();
@@ -163,7 +164,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const [order] = await db.select().from(orders)
           .where(eq(orders.id, parsed.data.orderId))
           .limit(1);
-        if (!order || order.userId !== auth.sub) return res.status(404).json({ error: 'Order not found' });
+        const ownsOrder = auth
+          ? order?.userId === auth.sub
+          : order?.userId == null && order?.idempotencyKey === guestCheckoutKey;
+        if (!order || !ownsOrder) return res.status(404).json({ error: 'Order not found' });
         if (order.paymentMethod !== 'paystack' || !order.paymentReference) {
           return res.status(400).json({ error: 'This order is not ready for Paystack payment.' });
         }
@@ -175,10 +179,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           body: JSON.stringify({
             amount: Math.round(Number(order.total) * 100),
             currency: 'GHS',
-            email: auth.email,
+            email: auth?.email || order.shippingAddress.email,
             reference: order.paymentReference,
             callback_url: parsed.data.callbackUrl,
-            metadata: { order_id: order.id, user_id: auth.sub },
+            metadata: { order_id: order.id, user_id: auth?.sub || null, guest_checkout: !auth },
           }),
           signal: AbortSignal.timeout(8000),
         });

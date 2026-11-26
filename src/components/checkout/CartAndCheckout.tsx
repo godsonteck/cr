@@ -14,7 +14,6 @@ import {
   Tag,
   Star,
   MessageCircle,
-  Lock,
   Share2,
   Copy,
   Loader2,
@@ -321,40 +320,50 @@ export const MultiStepCheckoutPage: React.FC = () => {
   );
 
   const completeReturnedOrder = useCallback(async () => {
-    if (!returnedReference || !isAuthenticated) return;
+    if (!returnedReference) return;
     setIsVerifyingReturn(true);
     setReturnError(null);
 
     try {
       const customerToken = localStorage.getItem('auth_token');
-      if (!customerToken) throw new ApiError(401, 'Authentication required');
-
+      const guestCheckoutKey = sessionStorage.getItem('paystack_prepare_key');
+      const guestOrderId = sessionStorage.getItem('paystack_guest_order_id');
+      const isGuestReturn = sessionStorage.getItem('paystack_guest_checkout') === '1'
+        && Boolean(guestCheckoutKey && guestOrderId);
       let existingOrder: Order | undefined;
-      try {
-        existingOrder = await api.get<Order>(`/orders?paymentReference=${encodeURIComponent(returnedReference)}`, customerToken);
-      } catch {
-        existingOrder = undefined;
+      if (!isGuestReturn && isAuthenticated && customerToken) {
+        try {
+          existingOrder = await api.get<Order>(`/orders?paymentReference=${encodeURIComponent(returnedReference)}`, customerToken);
+        } catch {
+          existingOrder = undefined;
+        }
       }
-      if (!existingOrder?.id) {
+      if (!existingOrder?.id && !isGuestReturn) {
         throw new Error(`No saved order was found for payment reference ${returnedReference}. If your account was charged, contact support with this reference.`);
       }
 
-      const confirmedOrder = existingOrder.paymentStatus === 'paid'
+      const confirmedOrder = existingOrder?.paymentStatus === 'paid'
         ? existingOrder
         : await api.post<Order>('/orders?action=confirm-paystack', {
-          orderId: existingOrder.id,
+          orderId: existingOrder?.id || guestOrderId,
           reference: returnedReference,
-        }, customerToken);
+          ...(isGuestReturn ? { guestCheckoutKey } : {}),
+        }, isGuestReturn ? null : customerToken);
       if (confirmedOrder.paymentStatus !== 'paid') throw new Error('Payment is still awaiting confirmation.');
 
       sessionStorage.removeItem('paystack_prepare_key');
+      sessionStorage.removeItem('paystack_guest_order_id');
+      sessionStorage.removeItem('paystack_guest_checkout');
       await addStoreOrder(confirmedOrder);
       addOrder(confirmedOrder);
       await fetchProducts();
-      if (confirmedOrder.shippingAddress) await saveAddress(confirmedOrder.shippingAddress);
+      if (!isGuestReturn && isAuthenticated && confirmedOrder.shippingAddress) await saveAddress(confirmedOrder.shippingAddress);
       await clearCart();
       window.history.replaceState({}, '', '/checkout');
-      navigate(`/order-confirmation/${confirmedOrder.id}`, { state: { order: confirmedOrder }, replace: true });
+      const confirmationUrl = isGuestReturn
+        ? `/order-confirmation/${confirmedOrder.id}?guestCheckoutKey=${encodeURIComponent(guestCheckoutKey!)}`
+        : `/order-confirmation/${confirmedOrder.id}`;
+      navigate(confirmationUrl, { state: { order: confirmedOrder }, replace: true });
     } catch (error: any) {
       console.error('Paystack return error:', error);
       hasHandledReturn.current = false;
@@ -372,26 +381,13 @@ export const MultiStepCheckoutPage: React.FC = () => {
   }, [returnedReference, isAuthenticated, addStoreOrder, addOrder, fetchProducts, saveAddress, clearCart, navigate, showAlert]);
 
   useEffect(() => {
-    if (!returnedReference || (returnedStatus && !['success', 'successful', 'completed'].includes(returnedStatus)) || !isAuthenticated) return;
+    if (!returnedReference) return;
     if (hasHandledReturn.current) return;
     hasHandledReturn.current = true;
     void completeReturnedOrder();
   }, [returnedReference, returnedStatus, isAuthenticated, completeReturnedOrder]);
 
   if (cartItems.length === 0 && !isPaystackCallback) return <Navigate to="/cart" replace />;
-
-  if (!isAuthenticated) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center font-sans">
-        <div className="space-y-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-sm">
-          <Lock className="mx-auto h-10 w-10 text-[#FF6B00]" />
-          <h2 className="text-xl font-black text-[var(--text-primary)]">Sign in required</h2>
-          <p className="text-sm text-[var(--text-muted)]">Please sign in before paying securely with Paystack.</p>
-          <Link to="/signin" className="inline-flex rounded-xl bg-[#FF6B00] px-6 py-2.5 text-sm font-black text-white hover:bg-[#E55A00]">Sign in</Link>
-        </div>
-      </div>
-    );
-  }
 
   if (isVerifyingReturn) {
     return (
@@ -425,7 +421,16 @@ export const MultiStepCheckoutPage: React.FC = () => {
     setIsProcessing(true);
     try {
       const customerToken = localStorage.getItem('auth_token');
-      if (!customerToken) throw new ApiError(401, 'Authentication required');
+      if (isAuthenticated) {
+        sessionStorage.removeItem('paystack_prepare_key');
+        sessionStorage.removeItem('paystack_guest_order_id');
+        sessionStorage.removeItem('paystack_guest_checkout');
+      }
+      if (!isAuthenticated && !email.trim()) {
+        showAlert('Please enter your email address so we can send your receipt and secure payment.', 'error');
+        setStep(1);
+        return;
+      }
       const orderPayload: Order = {
         id: `ord-${Date.now()}`,
         orderNumber: `CR-GH-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -447,9 +452,14 @@ export const MultiStepCheckoutPage: React.FC = () => {
         sessionStorage.removeItem('paystack_prepare_key');
         throw new Error('This checkout attempt has ended. Please retry your payment.');
       }
+      if (!isAuthenticated) {
+        sessionStorage.setItem('paystack_guest_order_id', preparedOrder.id);
+        sessionStorage.setItem('paystack_guest_checkout', '1');
+      }
       const result = await api.post<{ checkoutUrl: string }>('/auth?action=paystack-initialize', {
         orderId: preparedOrder.id,
         callbackUrl: `${window.location.origin}/checkout`,
+        ...(!isAuthenticated ? { guestCheckoutKey: idempotencyKey } : {}),
       }, customerToken);
       window.location.assign(result.checkoutUrl);
     } catch (error: any) {
@@ -471,6 +481,11 @@ export const MultiStepCheckoutPage: React.FC = () => {
             <ChevronRight className="h-3 w-3" />
             <span className={step >= 2 ? 'text-[#ff7a00] font-bold' : ''}>Confirm</span>
           </div>
+          {!isAuthenticated && (
+            <p className="mb-3 rounded-xl bg-[#fff4e8] px-3 py-2 text-xs text-[#8a3f00]">
+              Checking out as a guest. <Link to="/signin" className="font-bold underline">Sign in</Link> to save your details and see orders in your account.
+            </p>
+          )}
 
             <div className="grid grid-cols-2 gap-2 sm:flex">
             {[
@@ -641,8 +656,8 @@ export const MultiStepCheckoutPage: React.FC = () => {
                       <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} className={inputCls} placeholder="e.g. 0244123456" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Email Address <span className="text-[var(--text-subtle)] font-normal">(optional)</span></label>
-                      <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputCls} placeholder="you@example.com" />
+                      <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Email Address {!isAuthenticated && <span className="text-red-500">*</span>} {isAuthenticated && <span className="text-[var(--text-subtle)] font-normal">(optional)</span>}</label>
+                      <input type="email" required={!isAuthenticated} value={email} onChange={e => setEmail(e.target.value)} className={inputCls} placeholder="you@example.com" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">Region <span className="text-red-500">*</span></label>
@@ -684,7 +699,7 @@ export const MultiStepCheckoutPage: React.FC = () => {
                   </>)}
 
                   <button
-                    disabled={!fullName || !phone || (deliveryMethod !== 'store-pickup' && (!area || !region || !city))}
+                    disabled={!fullName || !phone || (!isAuthenticated && !email.trim()) || (deliveryMethod !== 'store-pickup' && (!area || !region || !city))}
                     onClick={() => setStep(2)}
                     className="w-full sm:w-auto px-8 h-12 bg-[#FF6B00] text-white font-black text-sm rounded-xl hover:bg-[#E55A00] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B00]/20"
                   >
@@ -801,6 +816,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const location = useLocation();
   const { orderId } = useParams<{ orderId: string }>();
   const { storeSettings } = useStore();
+  const guestCheckoutKey = new URLSearchParams(location.search).get('guestCheckoutKey');
   const [order, setOrder] = useState<Order | null>((location.state as { order?: Order })?.order || null);
   const [loading, setLoading] = useState(!order && Boolean(orderId));
   const [pickupDetailsCopied, setPickupDetailsCopied] = useState(false);
@@ -808,17 +824,21 @@ export const OrderConfirmationPage: React.FC = () => {
 
   const fetchOrder = useCallback(() => {
     if (!orderId) return;
-    api.get<Order>(`/orders?id=${encodeURIComponent(orderId)}`)
+    const guestEndpoint = guestCheckoutKey
+      ? `/orders?action=guest-track&id=${encodeURIComponent(orderId)}&guestCheckoutKey=${encodeURIComponent(guestCheckoutKey)}`
+      : `/orders?id=${encodeURIComponent(orderId)}`;
+    api.get<Order>(guestEndpoint)
       .then(fetched => {
         if (fetched && fetched.id) setOrder(fetched);
       })
       .catch(() => {
+        if (guestCheckoutKey) return;
         api.get<Order>(`/orders?orderNumber=${encodeURIComponent(orderId)}`)
           .then(fetched => { if (fetched && fetched.id) setOrder(fetched); })
           .catch(() => {});
       })
       .finally(() => setLoading(false));
-  }, [orderId]);
+  }, [orderId, guestCheckoutKey]);
 
   useEffect(() => {
     if (!order && orderId) {

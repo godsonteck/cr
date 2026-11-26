@@ -150,6 +150,46 @@ async function prepareOrder(fixture: Fixture, quantity = 1) {
   return { response, order };
 }
 
+async function prepareGuestOrder(fixture: Fixture, quantity = 1) {
+  const [product] = await db.select().from(schema.products).where((await import('drizzle-orm')).eq(schema.products.id, fixture.productId)).limit(1);
+  const idempotencyKey = `guest-payment-test-${randomBytes(12).toString('hex')}`;
+  fixture.idempotencyKeys.push(idempotencyKey);
+  const subtotal = Number(product.price) * quantity;
+  const response = await invoke(ordersHandler, {
+    method: 'POST',
+    query: { action: 'prepare-paystack' },
+    body: {
+      items: [{
+        product: {
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          price: Number(product.price),
+          image: product.image,
+          unit: product.unit,
+          category: product.category,
+          inStock: product.inStock,
+          stockCount: product.stockCount,
+        },
+        quantity,
+      }],
+      subtotal,
+      shippingFee: 0,
+      discount: 0,
+      total: subtotal,
+      paymentMethod: 'paystack',
+      paymentStatus: 'pending',
+      deliveryMethod: 'store-pickup',
+      shippingAddress: { fullName: 'Guest Payment Test', phone: '0000000000', email: fixture.email, city: 'Accra', area: 'Test' },
+      idempotencyKey,
+    },
+  });
+  const order = response.payload as { id?: string; orderNumber?: string; total?: string | number; paymentReference?: string; paymentStatus?: string };
+  if (order.id) fixture.orderIds.push(order.id);
+  if (order.orderNumber) fixture.orderNumbers.push(order.orderNumber);
+  return { response, order, idempotencyKey };
+}
+
 function successfulVerification(fixture: Fixture, order: { paymentReference?: string; total?: string | number }, amount = Math.round(Number(order.total) * 100)) {
   const reference = order.paymentReference!;
   verificationResponses.set(reference, {
@@ -224,6 +264,71 @@ test('successful payment initializes from the order and confirms server-side', a
     });
     assert.equal(confirmed.statusCode, 200);
     assert.equal((confirmed.payload as { paymentStatus: string }).paymentStatus, 'paid');
+  } finally {
+    await cleanupFixture(fixture);
+  }
+});
+
+test('guest payment is authorized by its checkout key and can be securely tracked', async () => {
+  const fixture = await createFixture(2);
+  try {
+    const { response, order, idempotencyKey } = await prepareGuestOrder(fixture);
+    assert.equal(response.statusCode, 201);
+
+    const initResponse = await invoke(authHandler, {
+      method: 'POST',
+      query: { action: 'paystack-initialize' },
+      body: { orderId: order.id, callbackUrl: 'https://store.example.test/checkout', guestCheckoutKey: idempotencyKey },
+    });
+    assert.equal(initResponse.statusCode, 200);
+    assert.equal(initializedPayload?.email, fixture.email);
+
+    successfulVerification(fixture, order);
+    const confirmed = await invoke(ordersHandler, {
+      method: 'POST',
+      query: { action: 'confirm-paystack' },
+      body: { orderId: order.id, reference: order.paymentReference, guestCheckoutKey: idempotencyKey },
+    });
+    assert.equal(confirmed.statusCode, 200);
+    assert.equal((confirmed.payload as { paymentStatus: string }).paymentStatus, 'paid');
+
+    const tracked = await invoke(ordersHandler, {
+      method: 'GET',
+      query: { action: 'guest-track', id: order.id, guestCheckoutKey: idempotencyKey },
+    });
+    assert.equal(tracked.statusCode, 200);
+    assert.equal((tracked.payload as { orderNumber: string }).orderNumber, order.orderNumber);
+    assert.equal('adminNotes' in (tracked.payload as object), false);
+
+    const rejected = await invoke(ordersHandler, {
+      method: 'GET',
+      query: { action: 'guest-track', id: order.id, guestCheckoutKey: `${idempotencyKey}-wrong` },
+    });
+    assert.equal(rejected.statusCode, 404);
+  } finally {
+    await cleanupFixture(fixture);
+  }
+});
+
+test('a failed guest payment releases its reserved stock on the payment return', async () => {
+  const fixture = await createFixture(1);
+  try {
+    const { order, idempotencyKey } = await prepareGuestOrder(fixture);
+    verificationResponses.set(order.paymentReference!, {
+      statusCode: 200,
+      payload: { status: true, data: { status: 'failed', reference: order.paymentReference, currency: 'GHS', customer: { email: fixture.email } } },
+    });
+    const response = await invoke(ordersHandler, {
+      method: 'POST',
+      query: { action: 'confirm-paystack' },
+      body: { orderId: order.id, reference: order.paymentReference, guestCheckoutKey: idempotencyKey },
+    });
+    const [stored] = await db.select().from(schema.orders).where((await import('drizzle-orm')).eq(schema.orders.id, order.id!)).limit(1);
+    const [product] = await db.select().from(schema.products).where((await import('drizzle-orm')).eq(schema.products.id, fixture.productId)).limit(1);
+    assert.equal(response.statusCode, 409);
+    assert.equal(stored.paymentStatus, 'failed');
+    assert.equal(stored.status, 'Cancelled');
+    assert.equal(product.stockCount, 1);
   } finally {
     await cleanupFixture(fixture);
   }

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { requireAdmin, requireAuth } from './_auth.js';
 import { getPaystackSecretKey } from './_paystack.js';
 import { escapeHtml, sendEmail } from './_email.js';
-import { orderNotificationRows, scheduleOrderConfirmationEmails } from './_order-notifications.js';
+import { guestTrackingUrl, orderNotificationRows, scheduleOrderConfirmationEmails } from './_order-notifications.js';
 import { checkRateLimit, getClientIp } from './_ratelimit.js';
 
 import { randomBytes } from 'crypto';
@@ -191,13 +191,13 @@ async function releaseFailedPaystackOrder(orderId: string): Promise<boolean> {
       }).where(eq(promoCodes.code, order.appliedPromoCode));
     }
     await tx.insert(notifications).values([
-      {
-        userId: order.userId || null,
-        type: 'order',
+      ...(order.userId ? [{
+        userId: order.userId,
+        type: 'order' as const,
         title: 'Payment not completed',
         message: `Order #${order.orderNumber} was cancelled and reserved stock was released.`,
         actionUrl: '/account/orders',
-      },
+      }] : []),
       {
         userId: null,
         type: 'order',
@@ -250,10 +250,12 @@ async function reconcilePaystackOrders(req: VercelRequest, res: VercelResponse) 
         const [owner] = order.userId
           ? await db.select({ email: users.email }).from(users).where(eq(users.id, order.userId)).limit(1)
           : [];
+        const expectedEmail = owner?.email || order.shippingAddress.email;
         if (payload.data.reference !== reference
           || payload.data.amount !== Math.round(Number(order.total) * 100)
           || payload.data.currency !== 'GHS'
-          || payload.data.customer?.email?.toLowerCase() !== owner?.email.toLowerCase()) {
+          || !expectedEmail
+          || payload.data.customer?.email?.toLowerCase() !== expectedEmail.toLowerCase()) {
           console.error(JSON.stringify({ event: 'paystack_reconciliation_mismatch', orderId: order.id, reference }));
           continue;
         }
@@ -285,6 +287,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (method === 'GET' && query.action === 'reconcile') return await reconcilePaystackOrders(req, res);
 
     if (method === 'GET') {
+      if (query.action === 'guest-track') {
+        const orderId = typeof query.id === 'string' ? query.id : '';
+        const guestCheckoutKey = typeof query.guestCheckoutKey === 'string' ? query.guestCheckoutKey : '';
+        if (!z.string().uuid().safeParse(orderId).success || guestCheckoutKey.length < 12 || guestCheckoutKey.length > 160) {
+          return res.status(400).json({ error: 'A valid guest tracking link is required.' });
+        }
+        const rateLimit = checkRateLimit(`guest-track:${getClientIp(req.headers)}`, 30, 60 * 60 * 1000);
+        if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many tracking attempts. Please try again later.' });
+        const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+        if (!order || order.userId || order.idempotencyKey !== guestCheckoutKey) return res.status(404).json({ error: 'Order not found.' });
+        const { adminNotes, idempotencyKey, paymentReference, paymentSenderPhone, cashierName, userId, ...guestOrder } = order;
+        return res.status(200).json(guestOrder);
+      }
       const { id, orderNumber, userId, status, limit = '50', offset = '0' } = query;
       const auth = await requireAuth(req, res);
       if (!auth) return;
@@ -400,13 +415,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (method === 'POST' && query.action === 'confirm-paystack') {
-      const auth = await requireAuth(req, res);
-      if (!auth) return;
+      const guestCheckoutKey = typeof body?.guestCheckoutKey === 'string' ? body.guestCheckoutKey : undefined;
+      const auth = guestCheckoutKey ? null : await requireAuth(req, res);
+      if (!guestCheckoutKey && !auth) return;
       const parsed = paystackConfirmSchema.safeParse(body);
       if (!parsed.success) return res.status(400).json({ error: 'A valid order and Paystack reference are required.' });
 
       const [order] = await db.select().from(orders).where(eq(orders.id, parsed.data.orderId)).limit(1);
-      if (!order || order.userId !== auth.sub || order.paymentMethod !== 'paystack' || order.paymentReference !== parsed.data.reference) {
+      const ownsOrder = auth
+        ? order?.userId === auth.sub
+        : order?.userId == null && order?.idempotencyKey === guestCheckoutKey;
+      if (!order || !ownsOrder || order.paymentMethod !== 'paystack' || order.paymentReference !== parsed.data.reference) {
         return res.status(404).json({ error: 'Order not found for this Paystack reference.' });
       }
       if (order.paymentStatus === 'paid') return res.status(200).json(order);
@@ -423,13 +442,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         message?: string;
         data?: { status?: string; reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
       };
+      if (payload.data?.status === 'failed' || payload.data?.status === 'abandoned') {
+        await releaseFailedPaystackOrder(order.id);
+        return res.status(409).json({ error: 'Payment was not completed. Reserved stock has been released.' });
+      }
       if (!paystackRes.ok || !payload.status || payload.data?.status !== 'success'
         || payload.data.reference !== order.paymentReference
         || payload.data.amount !== Math.round(Number(order.total) * 100)
         || payload.data.currency !== 'GHS') {
         return res.status(402).json({ error: payload.message || 'Payment could not be verified against this order.' });
       }
-      if (payload.data.customer?.email?.toLowerCase() !== auth.email.toLowerCase()) {
+      const orderEmail = auth?.email || order.shippingAddress.email;
+      if (!orderEmail || payload.data.customer?.email?.toLowerCase() !== orderEmail.toLowerCase()) {
         return res.status(403).json({ error: 'Payment customer does not match this account.' });
       }
 
@@ -442,7 +466,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return updated;
       });
       if (confirmedOrder) {
-        scheduleOrderConfirmationEmails(confirmedOrder, auth.email);
+        scheduleOrderConfirmationEmails(confirmedOrder, orderEmail);
         return res.status(200).json(confirmedOrder);
       }
 
@@ -455,8 +479,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isPaystackPrepare = query.action === 'prepare-paystack';
       const isWhatsAppOrder = query.channel === 'whatsapp';
       const isPosOrder = query.channel === 'pos';
-      const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : await requireAuth(req, res);
-      if (!isWhatsAppOrder && !auth) return;
+      const isGuestPaystackCheckout = isPaystackPrepare && !isPosOrder && !isWhatsAppOrder && !req.headers.authorization;
+      const auth = isWhatsAppOrder ? null : isPosOrder ? await requireAdmin(req, res) : isGuestPaystackCheckout ? null : await requireAuth(req, res);
+      if (!isWhatsAppOrder && !isGuestPaystackCheckout && !auth) return;
       if (isPosOrder && !['Super Admin', 'Store Manager', 'Cashier'].includes(auth?.adminRole || '')) {
         return res.status(403).json({ error: 'This account cannot record POS sales.' });
       }
@@ -465,7 +490,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many order attempts. Please try again later.' });
       }
       if (isPaystackPrepare) {
-        const rateLimit = checkRateLimit(`checkout:${auth?.sub}`, 5, 15 * 60 * 1000);
+        const rateLimit = checkRateLimit(`checkout:${auth?.sub || getClientIp(req.headers)}`, 5, 15 * 60 * 1000);
         if (!rateLimit.allowed) return res.status(429).json({ error: 'Too many checkout attempts. Please try again later.' });
       }
       const parsed = orderCreateSchema.safeParse(body);
@@ -480,6 +505,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (isPaystackPrepare && (parsed.data.paymentMethod !== 'paystack' || !parsed.data.idempotencyKey)) {
         return res.status(400).json({ error: 'A Paystack checkout key is required to prepare this order.' });
       }
+      if (isGuestPaystackCheckout && !parsed.data.shippingAddress.email) {
+        return res.status(400).json({ error: 'An email address is required for guest checkout.' });
+      }
       if (isPosOrder && parsed.data.orderSource !== 'pos') {
         return res.status(400).json({ error: 'POS sales must use the POS order source.' });
       }
@@ -487,7 +515,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if ((isPosOrder || isPaystackPrepare) && parsed.data.idempotencyKey) {
         const [existingOrder] = await db.select().from(orders).where(eq(orders.idempotencyKey, parsed.data.idempotencyKey)).limit(1);
         if (existingOrder) {
-          if (isPaystackPrepare && existingOrder.userId !== auth?.sub) {
+          if (isPaystackPrepare && (existingOrder.userId !== (auth?.sub || null))) {
             return res.status(409).json({ error: 'This checkout key is already in use.' });
           }
           return res.status(200).json(existingOrder);
@@ -849,27 +877,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return { order, replayed: false };
       });
       const createdOrder = transactionResult.order;
-      if (isPaystackPrepare && createdOrder.userId !== auth?.sub) {
+      if (isPaystackPrepare && createdOrder.userId !== (auth?.sub || null)) {
         return res.status(409).json({ error: 'This checkout key is already in use.' });
       }
 
       if (!transactionResult.replayed && !isPaystackPrepare) {
-        await db.insert(notifications).values([
-          {
-            userId: createdOrder.userId || null,
-            type: 'order',
-            title: 'Order received',
-            message: `Order #${createdOrder.orderNumber} has been received and is being prepared.`,
-            actionUrl: `/account/orders`,
-          },
-          {
-            userId: null,
-            type: 'order',
-            title: 'New order received',
-            message: `Order #${createdOrder.orderNumber} was placed and needs fulfillment review.`,
-            actionUrl: '/admin?tab=orders',
-          },
-        ]);
+        await db.insert(notifications).values(orderNotificationRows(createdOrder));
       }
 
       const newOrder = createdOrder;
@@ -979,10 +992,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (parsed.data.status) {
         const customerEmail = updated.shippingAddress?.email;
         if (customerEmail) {
+          const trackingLink = guestTrackingUrl(updated);
+          const trackingMessage = updated.userId
+            ? '<p>Open your account to view the latest delivery details.</p>'
+            : trackingLink
+              ? `<p><a href="${escapeHtml(trackingLink)}">Track your order</a></p>`
+              : '<p>Keep your order number for delivery updates.</p>';
           await sendEmail({
             to: customerEmail,
             subject: `Order update: ${updated.orderNumber}`,
-            html: `<p>Your order <strong>${escapeHtml(updated.orderNumber)}</strong> is now <strong>${escapeHtml(updated.status)}</strong>.</p><p>Open your account to view the latest delivery details.</p>`,
+            html: `<p>Your order <strong>${escapeHtml(updated.orderNumber)}</strong> is now <strong>${escapeHtml(updated.status)}</strong>.</p>${trackingMessage}`,
           });
         }
       }
