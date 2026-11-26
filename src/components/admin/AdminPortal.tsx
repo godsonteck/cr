@@ -366,7 +366,7 @@ export const AdminPortal: React.FC = () => {
     <div className="admin-portal-canvas min-h-screen flex selection:bg-[#B27A52] selection:text-white">
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-[#f7f2f0] dark:bg-[#151012] border-r border-white/60 dark:border-white/5 shadow-[8px_0_30px_rgba(45,30,35,0.05)] dark:shadow-[8px_0_30px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col ${
+        className={`admin-sidebar fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-[#f7f2f0] dark:bg-[#151012] border-r border-white/60 dark:border-white/5 shadow-[8px_0_30px_rgba(45,30,35,0.05)] dark:shadow-[8px_0_30px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col ${
           sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-20 md:translate-x-0'
         }`}
       >
@@ -504,7 +504,7 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:px-8 sm:py-4 bg-[#f8f4f2]/85 dark:bg-[#151012]/85 backdrop-blur-md border-b border-white/60 dark:border-white/5 shadow-[0_4px_20px_rgba(45,30,35,0.03)] sm:flex-nowrap">
+        <header className="admin-topbar sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:px-8 sm:py-4 bg-[#f8f4f2]/85 dark:bg-[#151012]/85 backdrop-blur-md border-b border-white/60 dark:border-white/5 shadow-[0_4px_20px_rgba(45,30,35,0.03)] sm:flex-nowrap">
           <div className="flex min-w-0 w-full items-center gap-3 sm:w-auto sm:gap-4">
             {/* Sidebar toggle */}
             <button

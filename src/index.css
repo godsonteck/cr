@@ -443,18 +443,129 @@ html.dark {
 }
 
 .admin-portal-canvas {
+  --admin-canvas: #eaf3f5;
+  --admin-card-bg: linear-gradient(145deg, #fbfeff 0%, #eaf3f5 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.92);
+  --admin-clay-shadow: 0 14px 30px -4px rgba(28, 76, 86, 0.09), 0 4px 10px -2px rgba(28, 76, 86, 0.04), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.98), inset -2px -2px 4px rgba(28, 76, 86, 0.05);
+  --admin-clay-shadow-sm: 0 6px 16px -2px rgba(28, 76, 86, 0.07), 0 2px 6px -1px rgba(28, 76, 86, 0.03), inset 1px 1px 1.5px rgba(255, 255, 255, 0.98), inset -1.5px -1.5px 3px rgba(28, 76, 86, 0.05);
+  --admin-clay-shadow-lg: 0 22px 44px -6px rgba(28, 76, 86, 0.12), 0 8px 18px -3px rgba(28, 76, 86, 0.06), inset 2px 2px 3px rgba(255, 255, 255, 0.98), inset -2.5px -2.5px 5px rgba(28, 76, 86, 0.06);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(28, 76, 86, 0.1), inset -2.5px -2.5px 6px rgba(255, 255, 255, 0.98);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(28, 76, 86, 0.08), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.95);
+  --admin-clay-primary: linear-gradient(135deg, #248da0 0%, #176b84 100%);
+  --admin-clay-primary-shadow: 0 8px 20px -2px rgba(23, 107, 132, 0.32), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.45), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.22);
+  --admin-clay-primary-active: inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.3), inset -1px -1px 2px rgba(255, 255, 255, 0.25);
   background-color: var(--admin-canvas);
-  background-image: 
-    radial-gradient(circle at 10% 8%, rgba(200, 109, 81, 0.06) 0%, transparent 35%),
-    radial-gradient(circle at 90% 92%, rgba(178, 122, 82, 0.05) 0%, transparent 40%);
+  background-image:
+    radial-gradient(ellipse at 12% 0%, rgba(73, 164, 180, 0.1) 0%, transparent 38%),
+    radial-gradient(ellipse at 100% 100%, rgba(103, 176, 187, 0.08) 0%, transparent 42%);
   background-attachment: fixed;
 }
 
 html.dark .admin-portal-canvas {
+  --admin-canvas: #142326;
+  --admin-card-bg: linear-gradient(145deg, #223438 0%, #1a2a2e 100%);
+  --admin-card-border: rgba(214, 242, 245, 0.1);
+  --admin-clay-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.42), 0 6px 14px -2px rgba(0, 0, 0, 0.25), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.1), inset -2px -2px 4px rgba(0, 0, 0, 0.3);
+  --admin-clay-shadow-sm: 0 8px 18px -3px rgba(0, 0, 0, 0.38), 0 3px 8px -1px rgba(0, 0, 0, 0.2), inset 1px 1px 1.5px rgba(255, 255, 255, 0.08), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.28);
+  --admin-clay-shadow-lg: 0 24px 50px -8px rgba(0, 0, 0, 0.5), 0 10px 22px -4px rgba(0, 0, 0, 0.3), inset 2px 2px 3px rgba(255, 255, 255, 0.12), inset -3px -3px 6px rgba(0, 0, 0, 0.38);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(0, 0, 0, 0.42), inset -2px -2px 5px rgba(255, 255, 255, 0.05);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(0, 0, 0, 0.35), inset -1px -1px 3px rgba(255, 255, 255, 0.04);
+  --admin-clay-primary: linear-gradient(135deg, #46aabd 0%, #277f93 100%);
+  --admin-clay-primary-shadow: 0 10px 24px -2px rgba(27, 119, 139, 0.4), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.3), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.32);
+  --admin-clay-primary-active: inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.48), inset -1px -1px 2px rgba(255, 255, 255, 0.12);
   background-color: var(--admin-canvas);
-  background-image: 
-    radial-gradient(circle at 10% 8%, rgba(210, 147, 109, 0.08) 0%, transparent 30%),
-    radial-gradient(circle at 90% 92%, rgba(0, 0, 0, 0.4) 0%, transparent 40%);
+  background-image:
+    radial-gradient(ellipse at 10% 8%, rgba(49, 153, 170, 0.12) 0%, transparent 32%),
+    radial-gradient(ellipse at 90% 92%, rgba(0, 0, 0, 0.3) 0%, transparent 40%);
+}
+
+.admin-portal-canvas .neu-sunken { background-color: #dfedf0; }
+.admin-portal-canvas .neu-sunken-sm { background-color: #e4f0f2; }
+.admin-portal-canvas .neu-input {
+  background-color: #e2eef0;
+  color: #17383e;
+}
+.admin-portal-canvas .neu-input:focus {
+  border-color: rgba(36, 141, 160, 0.48);
+  box-shadow: var(--admin-neu-inset), 0 0 0 3px rgba(36, 141, 160, 0.14);
+}
+.admin-portal-canvas .clay-btn-secondary {
+  background: linear-gradient(145deg, #fbfeff 0%, #e6f0f2 100%);
+  color: #24434a;
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px -2px rgba(28, 76, 86, 0.09), inset 1.5px 1.5px 2px #fff, inset -1.5px -1.5px 3px rgba(28, 76, 86, 0.06);
+}
+.admin-portal-canvas nav button[aria-current="page"] {
+  background: linear-gradient(135deg, #248da0 0%, #176b84 100%);
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(23, 107, 132, 0.24), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.3), inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+}
+.admin-portal-canvas [class~="text-[#B27A52]"],
+.admin-portal-canvas [class~="text-[#d49970]"],
+.admin-portal-canvas [class~="text-[#E8B792]"] { color: #176b84; }
+.admin-portal-canvas [class~="bg-[#B27A52]"] { background-color: #248da0; }
+
+html.dark .admin-portal-canvas [class~="text-[#B27A52]"],
+html.dark .admin-portal-canvas [class~="text-[#d49970]"],
+html.dark .admin-portal-canvas [class~="text-[#E8B792]"] { color: #74c8d3; }
+html.dark .admin-portal-canvas .neu-input {
+  background-color: #17282c;
+  color: #e4f2f4;
+}
+html.dark .admin-portal-canvas .clay-btn-secondary {
+  background: linear-gradient(145deg, #2b4146 0%, #1c3035 100%);
+  color: #e4f2f4;
+  border-color: rgba(214, 242, 245, 0.1);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.28), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.08), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.28);
+}
+
+.admin-sidebar {
+  background: linear-gradient(160deg, #f3fafb 0%, #e7f1f3 100%);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 8px 0 30px rgba(28, 76, 86, 0.07);
+}
+
+.admin-topbar {
+  background: rgba(239, 248, 249, 0.9);
+  color: #17383e;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 20px rgba(28, 76, 86, 0.06);
+}
+
+html.dark .admin-sidebar {
+  background: linear-gradient(160deg, #1d3034 0%, #16272b 100%);
+  border-color: rgba(214, 242, 245, 0.08);
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.28);
+}
+html.dark .admin-topbar {
+  background: rgba(22, 38, 42, 0.92);
+  color: #e4f2f4;
+  border-color: rgba(214, 242, 245, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.admin-dashboard-hero {
+  background: linear-gradient(145deg, #d8eef1 0%, #edf8f9 56%, #dceff1 100%) !important;
+  color: #17383e !important;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--admin-clay-shadow-lg) !important;
+}
+.admin-dashboard-hero h1 { color: #17383e !important; }
+.admin-dashboard-hero p { color: #46666d !important; }
+.admin-dashboard-hero .neu-sunken-sm {
+  background: #d0e7eb;
+  color: #176b84;
+}
+html.dark .admin-dashboard-hero {
+  background: linear-gradient(145deg, #24474e 0%, #1b363c 56%, #193238 100%) !important;
+  color: #effafb !important;
+  border-color: rgba(214, 242, 245, 0.12);
+}
+html.dark .admin-dashboard-hero h1 { color: #effafb !important; }
+html.dark .admin-dashboard-hero p { color: #c4dfe3 !important; }
+html.dark .admin-dashboard-hero .neu-sunken-sm {
+  background: #193238;
+  color: #86d0d9;
 }
 
 /* Clay Cards & Surfaces */

@@ -151,8 +151,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   return (
     <div className="space-y-6">
-      <section className="clay-card-lg relative overflow-hidden bg-gradient-to-br from-[#2c1d22] via-[#201519] to-[#160e11] p-6 sm:p-8 text-white">
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#B27A52]/15 blur-3xl pointer-events-none" />
+      <section className="admin-dashboard-hero clay-card-lg relative overflow-hidden bg-gradient-to-br from-[#2c1d22] via-[#201519] to-[#160e11] p-6 sm:p-8 text-white">
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm bg-black/20 text-[#E8B792] mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E8B792] animate-pulse" />
