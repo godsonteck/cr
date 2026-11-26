@@ -250,10 +250,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!geminiResponse.ok) {
-      if (geminiResponse.status === 429) return res.status(429).json({ error: 'The image assistant is busy. Try again shortly.' });
       const errorPayload = await geminiResponse.json().catch(() => null) as { error?: { message?: string } } | null;
       const providerMessage = errorPayload?.error?.message?.slice(0, 360);
       console.error('Gemini product details request failed:', geminiResponse.status, providerMessage || 'No provider message');
+      if (geminiResponse.status === 429) {
+        const providerDetails = JSON.stringify((errorPayload as any)?.error?.details || []);
+        const quotaExceeded = /quota|resource_exhausted|billing|limit:\s*0/i.test(`${providerMessage || ''} ${providerDetails}`);
+        const retryDelay = providerDetails.match(/retryDelay[^\d]*(\d+(?:\.\d+)?)s/i)?.[1];
+        return res.status(429).json({
+          error: quotaExceeded
+            ? 'Gemini quota is exhausted for this project. Check Google AI Studio quota and billing, or wait for the quota to reset.'
+            : retryDelay
+              ? `Gemini is rate-limiting requests. Try again in about ${Math.ceil(Number(retryDelay))} seconds.`
+              : 'Gemini is temporarily rate-limiting requests. Wait a minute and try again.',
+        });
+      }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         return res.status(502).json({ error: 'Gemini rejected the server key. Check that the key is active and the Generative Language API is enabled.' });
       }
