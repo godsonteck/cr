@@ -153,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         contents: [{
           parts: [
             { text: createPrompt() },
-            { inline_data: { mime_type: mimeType, data: bytes.toString('base64') } },
+            { inlineData: { mimeType, data: bytes.toString('base64') } },
           ],
         }],
         generationConfig: {
@@ -195,7 +195,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!geminiResponse.ok) {
       if (geminiResponse.status === 429) return res.status(429).json({ error: 'The image assistant is busy. Try again shortly.' });
-      console.error('Gemini product details request failed:', geminiResponse.status);
+      const errorPayload = await geminiResponse.json().catch(() => null) as { error?: { message?: string } } | null;
+      const providerMessage = errorPayload?.error?.message?.slice(0, 360);
+      console.error('Gemini product details request failed:', geminiResponse.status, providerMessage || 'No provider message');
+      if (geminiResponse.status === 401 || geminiResponse.status === 403) {
+        return res.status(502).json({ error: 'Gemini rejected the server key. Check that the key is active and the Generative Language API is enabled.' });
+      }
+      if (geminiResponse.status === 400) {
+        return res.status(502).json({ error: providerMessage ? `Gemini rejected the request: ${providerMessage}` : 'Gemini rejected the image request. Check the image format and model settings.' });
+      }
+      if (geminiResponse.status === 404) {
+        return res.status(502).json({ error: 'The configured Gemini model is not available. Check GEMINI_MODEL.' });
+      }
       return res.status(502).json({ error: 'Could not read the product details from this photo.' });
     }
 

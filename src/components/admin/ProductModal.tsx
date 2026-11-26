@@ -3,7 +3,7 @@ import { Product, CategoryConfig, CategoryType, DepartmentType, ProductOption, P
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { isValidProductImageUrl, uploadImageToR2 } from '../../lib/r2Upload';
-import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, Save, Sparkles, Trash2, Upload, X } from 'lucide-react';
+import { Check, Layers, Link as LinkIcon, Image as ImageIcon, Plus, RefreshCw, Save, Sparkles, Trash2, Upload, X } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface ProductModalProps { isOpen: boolean; onClose: () => void; productToEdit?: Product | null; }

@@ -1,0 +1,17 @@
+- generic [ref=e2]:
+  - generic [ref=e11140]:
+    - heading "Something went wrong" [level=1] [ref=e11144]
+    - paragraph [ref=e11145]: We encountered an unexpected error while rendering this page.
+    - generic [ref=e11146]:
+      - paragraph [ref=e11147]: Details
+      - paragraph [ref=e11148]: RefreshCw is not defined
+    - generic [ref=e11149]:
+      - button "Try Again" [ref=e11150]
+      - button "Return to Storefront" [ref=e11156]
+  - generic:
+    - generic [ref=e11157]:
+      - paragraph [ref=e11162]: Photo added
+      - button "Dismiss" [ref=e11163] [cursor=pointer]
+    - generic [ref=e11167]:
+      - paragraph [ref=e11172]: Could not read the product details from this photo.
+      - button "Dismiss" [ref=e11173] [cursor=pointer]
