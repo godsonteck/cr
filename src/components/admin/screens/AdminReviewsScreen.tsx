@@ -6,7 +6,7 @@ import { useAlert } from '../../../context/AlertContext';
 import { api } from '../../../lib/api';
 import { ProductReview } from '../../../types';
 
-const fieldClass = 'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719]';
+const fieldClass = 'neu-input';
 
 export const AdminReviewsScreen: React.FC = () => {
   const { reviews, loading, fetchAllReviews, replyToReview, deleteReview } = useReviews();
@@ -64,65 +64,95 @@ export const AdminReviewsScreen: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 border-b border-stone-200 dark:border-[#2e2428] pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-stone-200/60 dark:border-white/5 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Store trust</p>
-          <h1 className="mt-1 font-serif text-2xl font-bold text-[#1E1719] dark:text-stone-100 sm:text-3xl">Reviews</h1>
-          <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">Moderate customer feedback, publish trusted reviews, and answer questions from one queue.</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Store Trust</span>
+          </div>
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Reviews &amp; Moderation</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">Moderate customer feedback, publish trusted reviews, and answer questions from one queue.</p>
         </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">{pendingCount} pending</span>
+        <span className="clay-badge clay-badge-warning py-1.5 px-3 text-xs font-bold">{pendingCount} pending</span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <label className="relative block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-          <input className={`${fieldClass} pl-10`} placeholder="Search reviews, customers, or products" value={query} onChange={event => setQuery(event.target.value)} />
-        </label>
-        <select className={`${fieldClass} sm:w-44`} value={filter} onChange={event => setFilter(event.target.value as typeof filter)}>
-          <option value="all">All reviews</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Published</option>
-        </select>
+      <div className="clay-card p-4 sm:p-5">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+            <input className={`${fieldClass} pl-10`} placeholder="Search reviews, customers, or products" value={query} onChange={event => setQuery(event.target.value)} />
+          </label>
+          <select className={`${fieldClass} sm:w-48 cursor-pointer`} value={filter} onChange={event => setFilter(event.target.value as typeof filter)}>
+            <option value="all">All reviews</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Published</option>
+          </select>
+        </div>
       </div>
 
-      <div className="space-y-3">
-        {loading && <p className="rounded-2xl border border-stone-200 p-8 text-center text-sm text-stone-500">Loading reviews...</p>}
+      <div className="space-y-4">
+        {loading && (
+          <div className="clay-card p-12 text-center text-sm text-stone-500">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#B27A52] mb-3" />
+            Loading reviews...
+          </div>
+        )}
         {!loading && visibleReviews.map(review => (
-          <article key={review.id} className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
+          <article key={review.id} className="clay-card-interactive p-5 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#B27A52]">{productNames.get(review.productId) || 'Product removed'}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-stone-900 dark:text-stone-100">{review.authorName}</span>
-                  <span className="text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${review.isApproved ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'}`}>{review.isApproved ? 'Published' : 'Pending'}</span>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#B27A52] dark:text-[#d49970]">{productNames.get(review.productId) || 'Product removed'}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                  <span className="font-bold font-serif text-stone-900 dark:text-stone-100">{review.authorName}</span>
+                  <span className="text-amber-500 text-sm">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                  <span className={`clay-badge text-[10px] ${review.isApproved ? 'clay-badge-success' : 'clay-badge-warning'}`}>{review.isApproved ? 'Published' : 'Pending'}</span>
                 </div>
-                <h2 className="mt-2 font-semibold text-stone-900 dark:text-stone-100">{review.title || 'Customer review'}</h2>
-                <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">{review.comment}</p>
+                <h2 className="mt-2 font-bold text-stone-900 dark:text-stone-100 text-base">{review.title || 'Customer review'}</h2>
+                <p className="mt-1.5 text-sm leading-6 text-stone-600 dark:text-stone-300">{review.comment}</p>
                 {review.images && Array.isArray(review.images) && review.images.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2.5">
                     {review.images.map((img, i) => (
-                      <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block">
-                        <img src={img} alt={`Review photo ${i + 1}`} className="h-14 w-14 rounded-lg object-cover border border-stone-200 dark:border-stone-700 shadow-xs hover:opacity-80 transition" />
+                      <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block neu-sunken p-1 rounded-xl">
+                        <img src={img} alt={`Review photo ${i + 1}`} className="h-14 w-14 rounded-lg object-cover hover:opacity-80 transition" />
                       </a>
                     ))}
                   </div>
                 )}
               </div>
               <div className="flex shrink-0 gap-2">
-                {!review.isApproved && <button className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white" onClick={() => void approve(review, true)}><Check className="h-4 w-4" />Publish</button>}
-                {review.isApproved && <button className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 px-3 py-2 text-xs font-bold text-amber-700" onClick={() => void approve(review, false)}><X className="h-4 w-4" />Unpublish</button>}
-                <button className="rounded-xl p-2 text-stone-400 hover:bg-red-50 hover:text-red-700" aria-label="Delete review" onClick={() => void remove(review)}><Trash2 className="h-4 w-4" /></button>
+                {!review.isApproved && (
+                  <button className="clay-btn-primary py-1.5 px-3 text-xs" onClick={() => void approve(review, true)}>
+                    <Check className="h-3.5 w-3.5" /> Publish
+                  </button>
+                )}
+                {review.isApproved && (
+                  <button className="clay-btn-secondary py-1.5 px-3 text-xs text-amber-700 dark:text-amber-300" onClick={() => void approve(review, false)}>
+                    <X className="h-3.5 w-3.5" /> Unpublish
+                  </button>
+                )}
+                <button className="clay-card-sm p-2 text-stone-400 hover:text-rose-600 transition" aria-label="Delete review" onClick={() => void remove(review)}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <input className={fieldClass} placeholder={review.adminReply || 'Reply publicly to this customer'} value={replyDrafts[review.id] || ''} onChange={event => setReplyDrafts(previous => ({ ...previous, [review.id]: event.target.value }))} />
-              <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-semibold text-white" onClick={() => void saveReply(review)}><MessageSquare className="h-4 w-4" />Reply</button>
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row pt-3 border-t border-stone-200/50 dark:border-white/5">
+              <input className={`${fieldClass} text-xs`} placeholder={review.adminReply || 'Reply publicly to this customer...'} value={replyDrafts[review.id] || ''} onChange={event => setReplyDrafts(previous => ({ ...previous, [review.id]: event.target.value }))} />
+              <button className="clay-btn-primary py-2 px-4 text-xs shrink-0" onClick={() => void saveReply(review)}>
+                <MessageSquare className="h-3.5 w-3.5" /> Reply
+              </button>
             </div>
-            {review.adminReply && <p className="mt-2 text-xs text-stone-500">Current reply: {review.adminReply}</p>}
+            {review.adminReply && (
+              <div className="mt-2.5 neu-sunken-sm p-2.5 text-xs text-stone-600 dark:text-stone-300">
+                <span className="font-bold text-[#B27A52]">Public staff response:</span> {review.adminReply}
+              </div>
+            )}
           </article>
         ))}
-        {!loading && visibleReviews.length === 0 && <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500">No reviews match this view.</p>}
+        {!loading && visibleReviews.length === 0 && (
+          <div className="clay-card p-12 text-center text-sm text-stone-500">
+            No reviews match this view.
+          </div>
+        )}
       </div>
     </div>
   );

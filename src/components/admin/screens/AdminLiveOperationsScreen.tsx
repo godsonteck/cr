@@ -44,13 +44,17 @@ const money = (value: number) => `GHS ${value.toLocaleString('en-GH', { minimumF
 
 function Metric({ label, value, detail, icon: Icon }: { label: string; value: string | number; detail: string; icon: React.ElementType }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
+    <div className="clay-card-interactive p-4 sm:p-5 flex flex-col justify-between">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">{label}</span>
-        <Icon className="h-4 w-4 text-[#B27A52]" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{label}</span>
+        <div className="clay-icon-pod h-8 w-8">
+          <Icon className="h-4 w-4" />
+        </div>
       </div>
-      <p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p>
-      <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{detail}</p>
+      <div className="mt-4">
+        <p className="text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 tabular-nums">{value}</p>
+        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 font-medium">{detail}</p>
+      </div>
     </div>
   );
 }
@@ -220,36 +224,39 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-stone-200 pb-6 dark:border-[#2e2428] sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-stone-200/60 pb-6 dark:border-white/5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Operations &amp; Finance Command</p>
-          <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">Live Tracking &amp; Finance</h1>
-          <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-            Monitor open deliveries, filter revenue by date range, and sort all finances and transactions chronologically.
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Operations &amp; Finance</span>
+          </div>
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Live Tracking &amp; Finance</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">
+            Monitor open deliveries, filter revenue by date range, and sort all transactions chronologically.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleExportFinances}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3.5 py-2.5 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition cursor-pointer"
+            className="clay-btn-secondary py-2 px-3 text-xs"
           >
-            <Download className="h-4 w-4 text-[#B27A52]" />
+            <Download className="h-3.5 w-3.5 text-[#B27A52]" />
             Export Finances CSV
           </button>
           <button
             onClick={() => void handleRefresh()}
             disabled={refreshing}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#33282C] disabled:opacity-60 cursor-pointer"
+            className="clay-btn-primary py-2 px-3.5 text-xs"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh Data
           </button>
         </div>
       </div>
 
       {/* Date Range Controls & Auto-Refresh Indicator */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="clay-card p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 dark:text-stone-400 mr-1">
             <Calendar className="h-4 w-4 text-[#B27A52]" />
             <span>Finance Period:</span>
@@ -257,7 +264,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
           <select
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value as DateFilterPreset)}
-            className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100 cursor-pointer"
+            className="neu-input py-1.5 px-3 text-xs font-semibold sm:w-auto cursor-pointer"
           >
             {DATE_PRESETS.map(p => (
               <option key={p.id} value={p.id}>{p.label}</option>
@@ -270,14 +277,14 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
                 type="date"
                 value={customStart}
                 onChange={e => setCustomStart(e.target.value)}
-                className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1.5 text-xs text-stone-900 dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100"
+                className="neu-input py-1 px-2 text-xs"
               />
               <span className="text-stone-400">to</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={e => setCustomEnd(e.target.value)}
-                className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1.5 text-xs text-stone-900 dark:border-[#2e2428] dark:bg-[#2a2024] dark:text-stone-100"
+                className="neu-input py-1 px-2 text-xs"
               />
             </div>
           )}
@@ -285,7 +292,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
           {hasActiveDateFilter && (
             <button
               onClick={() => { setDateFilter('all'); setCustomStart(''); setCustomEnd(''); }}
-              className="flex items-center gap-1 rounded-xl border border-stone-200 px-2.5 py-1.5 text-[11px] font-semibold text-stone-500 hover:bg-stone-50 dark:border-[#2e2428] dark:text-stone-400 dark:hover:bg-[#2a2024] cursor-pointer transition"
+              className="clay-btn-secondary py-1 px-2.5 text-xs"
             >
               <RotateCcw className="h-3 w-3" />
               Reset
@@ -293,7 +300,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+        <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium">
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -304,7 +311,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
       </div>
 
       {/* Finance Metrics for Selected Date Range */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 xl:grid-cols-4">
         <Metric
           label={hasActiveDateFilter ? `Gross sales (${DATE_PRESETS.find(p => p.id === dateFilter)?.label})` : 'Gross sales'}
           value={money(metrics.grossSales)}
@@ -334,29 +341,36 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
       {/* Main Operations & Finance Grid */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
         {/* Order pipeline */}
-        <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
-          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-[#2e2428]">
+        <section className="clay-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-stone-200/50 dark:border-white/5 px-5 py-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52]">Order pipeline</p>
-              <h2 className="mt-1 text-base font-bold text-stone-900 dark:text-stone-100">Live delivery status</h2>
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52] dark:text-[#d49970]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
+                Order pipeline
+              </div>
+              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Live delivery status</h2>
             </div>
-            <Activity className="h-5 w-5 text-[#B27A52]" />
+            <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
+              <Activity className="h-4 w-4" />
+            </div>
           </div>
           <div className="grid gap-3 p-5 sm:grid-cols-5">
             {statusOrder.map(status => {
               const count = dateFilteredOrders.filter(order => order.status === status).length;
               return (
-                <div key={status} className="rounded-xl border border-stone-200 p-3 dark:border-[#2e2428]">
-                  <p className="text-[10px] font-bold uppercase leading-4 text-stone-500 dark:text-stone-400">{status}</p>
-                  <p className="mt-2 text-2xl font-bold text-stone-900 dark:text-stone-100">{count}</p>
-                  <div className={`mt-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusStyles[status]}`}>
+                <div key={status} className="neu-sunken-sm p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">{status}</p>
+                  <p className="mt-2 text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 tabular-nums">{count}</p>
+                  <div className={`mt-2 inline-flex ${
+                    status === 'Delivered' ? 'clay-badge clay-badge-success' : 'clay-badge clay-badge-info'
+                  }`}>
                     {status === 'Delivered' ? 'Complete' : 'Active'}
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
+          <div className="divide-y divide-stone-200/40 dark:divide-white/5">
             {recentOpenOrders.length === 0 ? (
               <p className="px-5 py-10 text-center text-sm text-stone-500">No open orders in this period.</p>
             ) : (
@@ -364,7 +378,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
                 <button
                   key={order.id}
                   onClick={() => onViewOrder?.(order)}
-                  className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-stone-50 dark:hover:bg-[#1a1316] sm:grid-cols-[1fr_auto_auto] sm:items-center cursor-pointer"
+                  className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-stone-100/50 dark:hover:bg-white/5 sm:grid-cols-[1fr_auto_auto] sm:items-center cursor-pointer"
                 >
                   <div className="min-w-0">
                     <p className="font-mono text-xs font-bold text-stone-900 dark:text-stone-100">{order.orderNumber}</p>
@@ -372,11 +386,11 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
                       {order.shippingAddress?.fullName} • {order.shippingAddress?.city} • {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className={`w-fit rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[order.status]}`}>
+                  <span className={`clay-badge text-[10px] ${statusStyles[order.status]}`}>
                     {order.status}
                   </span>
                   <div className="text-left sm:text-right">
-                    <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{money(Number(order.total || 0))}</p>
+                    <p className="text-sm font-bold text-stone-900 dark:text-stone-100 tabular-nums">{money(Number(order.total || 0))}</p>
                     <p className="mt-1 text-[10px] text-stone-500">{order.estimatedDeliveryTime || 'No ETA set'}</p>
                   </div>
                 </button>
@@ -386,37 +400,42 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
         </section>
 
         {/* Finance Reconciliation Box */}
-        <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
+        <section className="clay-card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52]">Finance</p>
-              <h2 className="mt-1 text-base font-bold text-stone-900 dark:text-stone-100">Period Reconciliation</h2>
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52] dark:text-[#d49970]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
+                Finance
+              </div>
+              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Period Reconciliation</h2>
             </div>
-            <DollarSign className="h-5 w-5 text-[#B27A52]" />
+            <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
+              <DollarSign className="h-4 w-4" />
+            </div>
           </div>
           <div className="mt-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 text-sm dark:border-[#2e2428]">
+            <div className="flex items-center justify-between border-b border-stone-200/50 pb-3 text-sm dark:border-white/5">
               <span className="text-stone-500 dark:text-stone-400">Gross sales</span>
-              <strong className="text-stone-900 dark:text-stone-100">{money(metrics.grossSales)}</strong>
+              <strong className="text-stone-900 dark:text-stone-100 tabular-nums">{money(metrics.grossSales)}</strong>
             </div>
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 text-sm dark:border-[#2e2428]">
+            <div className="flex items-center justify-between border-b border-stone-200/50 pb-3 text-sm dark:border-white/5">
               <span className="text-stone-500 dark:text-stone-400">Paid</span>
-              <strong className="text-emerald-600 dark:text-emerald-400">{money(metrics.paidSales)}</strong>
+              <strong className="text-emerald-600 dark:text-emerald-400 tabular-nums">{money(metrics.paidSales)}</strong>
             </div>
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 text-sm dark:border-[#2e2428]">
+            <div className="flex items-center justify-between border-b border-stone-200/50 pb-3 text-sm dark:border-white/5">
               <span className="text-stone-500 dark:text-stone-400">Awaiting payment</span>
-              <strong className="text-amber-600 dark:text-amber-400">{money(metrics.pendingSales)}</strong>
+              <strong className="text-amber-600 dark:text-amber-400 tabular-nums">{money(metrics.pendingSales)}</strong>
             </div>
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 text-sm dark:border-[#2e2428]">
+            <div className="flex items-center justify-between border-b border-stone-200/50 pb-3 text-sm dark:border-white/5">
               <span className="text-stone-500 dark:text-stone-400">Discounts granted</span>
-              <strong className="text-stone-900 dark:text-stone-100">{money(metrics.discounts)}</strong>
+              <strong className="text-stone-900 dark:text-stone-100 tabular-nums">{money(metrics.discounts)}</strong>
             </div>
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-400">Payment methods in period</p>
               {Array.from(metrics.byPayment.entries()).map(([method, data]) => (
                 <div key={method} className="flex items-center justify-between py-1.5 text-xs">
                   <span className="capitalize text-stone-500 dark:text-stone-400">{method.replaceAll('-', ' ')}</span>
-                  <span className="font-semibold text-stone-900 dark:text-stone-100">{data.count} • {money(data.value)}</span>
+                  <span className="font-semibold text-stone-900 dark:text-stone-100 tabular-nums">{data.count} • {money(data.value)}</span>
                 </div>
               ))}
               {metrics.byPayment.size === 0 && (
@@ -428,25 +447,27 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
       </div>
 
       {/* Detailed Financial Ledger & Date Sorting Section */}
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-100 dark:border-[#2e2428] pb-4">
+      <section className="clay-card p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/50 dark:border-white/5 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5 text-[#B27A52]" />
-              <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">Financial Ledger &amp; Transactions</h2>
+              <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
+                <FileSpreadsheet className="h-4 w-4" />
+              </div>
+              <h2 className="text-lg font-bold font-serif text-stone-900 dark:text-stone-100">Financial Ledger &amp; Transactions</h2>
             </div>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
               Review and sort financial transactions by date or amount with instant payment status breakdown.
             </p>
           </div>
 
           {/* Tab buttons: Transactions vs Daily summary */}
-          <div className="flex items-center rounded-xl bg-stone-100 p-1 dark:bg-[#2a2024] text-xs font-bold">
+          <div className="neu-sunken-sm p-1 flex items-center">
             <button
               onClick={() => setFinanceViewTab('transactions')}
-              className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 financeViewTab === 'transactions'
-                  ? 'bg-white text-stone-900 shadow-sm dark:bg-[#201b1a] dark:text-stone-100'
+                  ? 'clay-btn-secondary text-stone-900 dark:text-stone-100'
                   : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
               }`}
             >
@@ -454,9 +475,9 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
             </button>
             <button
               onClick={() => setFinanceViewTab('daily')}
-              className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 financeViewTab === 'daily'
-                  ? 'bg-white text-stone-900 shadow-sm dark:bg-[#201b1a] dark:text-stone-100'
+                  ? 'clay-btn-secondary text-stone-900 dark:text-stone-100'
                   : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
               }`}
             >
@@ -468,13 +489,13 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
         {/* Filter & Sort Bar for Financial Ledger */}
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search by order ID, customer, payment method, or ref..."
               value={financeSearch}
               onChange={e => setFinanceSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-[#1E1719]"
+              className="neu-input pl-10 pr-4 text-xs"
             />
           </div>
 
@@ -482,7 +503,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
             <select
               value={financeStatusFilter}
               onChange={e => setFinanceStatusFilter(e.target.value as any)}
-              className="px-3 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 text-xs font-semibold cursor-pointer"
+              className="neu-input md:w-48 text-xs font-semibold cursor-pointer"
             >
               <option value="all">All Payment Statuses</option>
               <option value="paid">Paid Only</option>
@@ -496,7 +517,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
             <select
               value={financeSortOrder}
               onChange={e => setFinanceSortOrder(e.target.value as DateSortOrder)}
-              className="px-3 py-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 text-xs font-bold cursor-pointer"
+              className="neu-input md:w-48 text-xs font-bold cursor-pointer"
             >
               <option value="date-desc">Date: Newest first</option>
               <option value="date-asc">Date: Oldest first</option>
@@ -508,9 +529,9 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
 
         {/* Transactions Table View */}
         {financeViewTab === 'transactions' && (
-          <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-[#2e2428]">
+          <div className="overflow-x-auto rounded-2xl border border-stone-200/50 dark:border-white/5">
             <table className="w-full text-xs min-w-[720px]">
-              <thead className="bg-stone-50 dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428]">
+              <thead className="neu-sunken border-b border-stone-200/40 dark:border-white/5">
                 <tr>
                   <th className="px-4 py-3 text-left font-bold uppercase tracking-wider text-stone-500">
                     <button

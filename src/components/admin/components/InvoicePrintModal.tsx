@@ -24,25 +24,27 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white text-stone-900 rounded-3xl w-full max-w-2xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="clay-modal text-stone-900 dark:text-stone-100 rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Modal Header */}
-        <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50 print:hidden">
+        <div className="p-4 border-b border-stone-200/60 dark:border-stone-800/60 flex items-center justify-between bg-stone-100/50 dark:bg-stone-900/50 print:hidden">
           <div className="flex items-center gap-2">
-            <Printer className="w-5 h-5 text-stone-700" />
-            <h3 className="font-bold text-sm text-stone-900">Print Official Customer Receipt</h3>
+            <div className="clay-icon-pod w-8 h-8 flex items-center justify-center">
+              <Printer className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+            </div>
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Print Official Customer Receipt</h3>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-[#1E1719] hover:bg-[#33282C] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="clay-btn-primary px-4 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print Document</span>
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-200 transition-colors"
+              className="p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-xl hover:bg-stone-200/60 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -50,30 +52,30 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
         </div>
 
         {/* Printable Invoice Area */}
-        <div className="p-8 sm:p-12 overflow-y-auto font-sans space-y-8 print:p-0 print:m-0">
+        <div className="p-8 sm:p-12 overflow-y-auto font-sans space-y-8 bg-white dark:bg-[#181315] print:p-0 print:m-0 print:bg-transparent">
           
           {/* Business Header */}
-          <div className="flex items-start justify-between border-b border-stone-200 pb-6">
+          <div className="flex items-start justify-between border-b border-stone-200/70 dark:border-stone-800/70 pb-6 print:border-stone-200">
             <div className="flex items-center gap-3">
-              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="" className="w-16 h-16 rounded-full object-contain border border-stone-200" />
+              <img src={storeSettings.storeLogo || logoImg} onError={(event) => { (event.currentTarget as HTMLImageElement).src = logoImg; }} alt="" className="w-16 h-16 rounded-2xl object-contain neu-sunken-sm" />
               <div>
-                <h1 className="font-serif font-bold text-xl text-stone-900 leading-tight">
+                <h1 className="font-serif font-bold text-xl text-stone-900 dark:text-stone-100 leading-tight">
                   {storeSettings.storeName}
                 </h1>
-                <p className="text-xs text-stone-500">{storeSettings.storeTagline}</p>
-                <p className="text-xs text-stone-500 mt-1">{storeSettings.storeAddress}</p>
-                <p className="text-xs text-stone-500">Phone: {storeSettings.storePhone} | Email: {storeSettings.storeEmail}</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">{storeSettings.storeTagline}</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">{storeSettings.storeAddress}</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">Phone: {storeSettings.storePhone} | Email: {storeSettings.storeEmail}</p>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold uppercase">
+              <span className="clay-badge clay-badge-success text-xs font-bold uppercase inline-block">
                 {order.paymentStatus === 'paid' ? 'Paid & Confirmed' : order.paymentStatus === 'failed' ? 'Payment Failed' : 'Payment Pending'}
               </span>
-              <p className="font-mono font-bold text-base text-stone-900 mt-2">
+              <p className="font-mono font-bold text-base text-stone-900 dark:text-stone-100 mt-2">
                 Invoice #{order.orderNumber}
               </p>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 Date: {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
@@ -81,23 +83,23 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
 
           {/* Customer & Delivery Summary */}
           <div className="grid grid-cols-2 gap-6 text-xs">
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
+            <div className="p-4 rounded-2xl neu-sunken-sm space-y-1 print:border print:border-stone-200 print:shadow-none">
               <p className="font-bold uppercase tracking-wider text-[10px] text-stone-400">Billed & Delivered To:</p>
-              <p className="font-bold text-sm text-stone-900">{order.shippingAddress.fullName}</p>
-              <p className="text-stone-600">{order.shippingAddress.phone}</p>
-              {order.shippingAddress.email && <p className="text-stone-500">{order.shippingAddress.email}</p>}
-              <p className="text-stone-700 font-medium pt-1">
+              <p className="font-bold text-sm text-stone-900 dark:text-stone-100">{order.shippingAddress.fullName}</p>
+              <p className="text-stone-600 dark:text-stone-300">{order.shippingAddress.phone}</p>
+              {order.shippingAddress.email && <p className="text-stone-500 dark:text-stone-400">{order.shippingAddress.email}</p>}
+              <p className="text-stone-700 dark:text-stone-300 font-medium pt-1">
                 {order.shippingAddress.area}, {order.shippingAddress.city}
               </p>
               {order.shippingAddress.landmarkOrGps && (
-                <p className="text-stone-500 text-[11px]">GPS / Landmark: {order.shippingAddress.landmarkOrGps}</p>
+                <p className="text-stone-500 dark:text-stone-400 text-[11px]">GPS / Landmark: {order.shippingAddress.landmarkOrGps}</p>
               )}
             </div>
 
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-1 text-right">
+            <div className="p-4 rounded-2xl neu-sunken-sm space-y-1 text-right print:border print:border-stone-200 print:shadow-none">
               <p className="font-bold uppercase tracking-wider text-[10px] text-stone-400">Order & Payment Info:</p>
-              <p className="text-stone-800">Payment Method: <strong className="uppercase">{order.paymentMethod.replace('-', ' ')}</strong></p>
-              <p className="text-stone-800">Delivery Service: <strong className="capitalize">{order.deliveryMethod.replace('-', ' ')}</strong></p>
+              <p className="text-stone-800 dark:text-stone-200">Payment Method: <strong className="uppercase">{order.paymentMethod.replace('-', ' ')}</strong></p>
+              <p className="text-stone-800 dark:text-stone-200">Delivery Service: <strong className="capitalize">{order.deliveryMethod.replace('-', ' ')}</strong></p>
               <p className="text-stone-800">Delivery Status: <strong>{order.status}</strong></p>
               {order.riderInfo?.riderName && (
                 <p className="text-stone-600 text-[11px]">Courier: {order.riderInfo.riderName} ({order.riderInfo.riderPhone})</p>

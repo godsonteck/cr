@@ -31,26 +31,28 @@ function ScreenHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 border-b border-stone-200 dark:border-[#2e2428] pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-4 border-b border-stone-200/60 dark:border-white/5 pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">{eyebrow}</p>
-        <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">{description}</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">{eyebrow}</span>
+        </div>
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">{title}</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">{description}</p>
       </div>
       {action}
     </div>
   );
 }
 
-const inputCls =
-  'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 transition';
+const inputCls = 'neu-input';
 
 const ROLE_BADGE: Record<string, string> = {
-  super_admin: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-  admin:       'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  manager:     'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  cashier:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-  Cashier:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  super_admin: 'clay-badge clay-badge-danger',
+  admin:       'clay-badge clay-badge-info',
+  manager:     'clay-badge clay-badge-warning',
+  cashier:     'clay-badge clay-badge-success',
+  Cashier:     'clay-badge clay-badge-success',
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -321,17 +323,22 @@ export const AdminAccountsManagementScreen: React.FC = () => {
       </div>
 
       {/* Accounts Table */}
-      <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] shadow-sm">
-        <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50/70 px-5 py-3 dark:border-[#2e2428] dark:bg-[#1a1316]">
+      <div className="clay-card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-stone-200/50 px-5 py-4 dark:border-white/5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">Access directory</p>
-            <p className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{filteredAccounts.length} team member{filteredAccounts.length === 1 ? '' : 's'}</p>
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52] dark:text-[#d49970]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
+              Access directory
+            </div>
+            <p className="mt-0.5 text-sm font-bold font-serif text-stone-900 dark:text-stone-100">{filteredAccounts.length} team member{filteredAccounts.length === 1 ? '' : 's'}</p>
           </div>
-          <Shield className="h-5 w-5 text-[#B27A52]" />
+          <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
+            <Shield className="h-4 w-4" />
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-[680px] w-full text-sm">
-            <thead className="bg-stone-50 dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428]">
+            <thead className="neu-sunken border-b border-stone-200/40 dark:border-white/5">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Email</th>

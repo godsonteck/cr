@@ -52,37 +52,37 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-fadeIn">
       <div 
-        className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-6"
+        className="w-full max-w-md clay-modal p-6 sm:p-7 space-y-6 text-stone-900 dark:text-stone-100"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-800">
+            <div className="clay-icon-pod h-10 w-10 text-[#B27A52]">
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-stone-900 text-base">Update stock</h3>
-              <p className="text-xs text-stone-500">Record when you receive new items or count the shop</p>
+              <h3 className="font-bold font-serif text-stone-900 dark:text-stone-100 text-base">Update stock</h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400">Record when you receive new items or count the shop</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full text-stone-400 hover:text-stone-700">
+          <button onClick={onClose} className="clay-card-sm p-1.5 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Product Preview */}
-        <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
-          <img src={product.image} alt="" className="w-12 h-12 rounded-xl object-cover bg-white shrink-0 border border-stone-200" />
+        <div className="flex items-center gap-3 p-3 neu-sunken-sm">
+          <img src={product.image} alt="" className="w-12 h-12 rounded-xl object-cover bg-white shrink-0 shadow-sm" />
           <div className="min-w-0 flex-1 text-xs">
-            <p className="font-bold text-stone-900 truncate">{product.name}</p>
-            <p className="text-stone-500">{product.brand} • Currently in shop: <strong>{currentStock} units</strong></p>
+            <p className="font-bold text-stone-900 dark:text-stone-100 truncate">{product.name}</p>
+            <p className="text-stone-500 dark:text-stone-400">{product.brand} • Currently in shop: <strong>{currentStock} units</strong></p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Action type */}
           <div>
-            <label className="block font-bold text-stone-700 mb-1.5">What are you doing?</label>
+            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1.5">What are you doing?</label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { id: 'add', label: '+ Add Stock', icon: ArrowUpRight },
@@ -93,10 +93,10 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => setAdjustmentType(opt.id as any)}
-                  className={`p-2 rounded-xl border text-[11px] font-bold transition-all flex flex-col items-center gap-1 cursor-pointer ${
+                  className={`p-2.5 rounded-2xl text-[11px] font-bold transition-all flex flex-col items-center gap-1.5 cursor-pointer ${
                     adjustmentType === opt.id 
-                      ? 'border-stone-900 bg-stone-100 text-stone-900' 
-                      : 'border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100'
+                      ? 'clay-btn-primary py-2 text-white' 
+                      : 'clay-btn-secondary py-2 text-stone-600 dark:text-stone-400'
                   }`}
                 >
                   <opt.icon className="w-3.5 h-3.5" />
@@ -108,7 +108,7 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
 
           {/* Quantity */}
           <div>
-            <label className="block font-bold text-stone-700 mb-1.5">
+            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1.5">
               {adjustmentType === 'set' ? 'New Total Number of Items' : 'Number of Items to Add/Remove'}
             </label>
             <input
@@ -117,17 +117,17 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
               required
               value={quantityInput}
               onChange={e => setQuantityInput(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none"
+              className="neu-input font-bold"
             />
           </div>
 
           {/* Reason */}
           <div>
-            <label className="block font-bold text-stone-700 mb-1.5">Why are you changing this?</label>
+            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1.5">Why are you changing this?</label>
             <select
               value={reason}
               onChange={e => setReason(e.target.value as any)}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-900 focus:bg-white focus:border-stone-900 outline-none"
+              className="neu-input cursor-pointer font-semibold"
             >
               <option value="Stock received">Received new stock from supplier / wholesaler</option>
               <option value="Sale">Sold items manually in shop</option>
@@ -141,36 +141,36 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block font-bold text-stone-700 mb-1.5">Extra Note (Optional)</label>
+            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1.5">Extra Note (Optional)</label>
             <input
               type="text"
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Optional note about this stock change"
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:bg-white focus:border-stone-900 outline-none"
+              className="neu-input"
             />
           </div>
 
           {/* Summary Box */}
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80 flex items-center justify-between font-mono text-xs">
-            <span className="text-stone-500">New Shop Total:</span>
-            <span className="font-bold text-sm text-stone-900">
-              {currentStock} ➔ <span className="text-emerald-700">{calculatedNew} items left</span>
+          <div className="p-3 neu-sunken-sm flex items-center justify-between font-mono text-xs">
+            <span className="text-stone-500 dark:text-stone-400 font-semibold">New Shop Total:</span>
+            <span className="font-bold text-sm text-stone-900 dark:text-stone-100">
+              {currentStock} ➔ <span className="text-emerald-600 dark:text-emerald-400">{calculatedNew} items left</span>
             </span>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-stone-200 rounded-xl font-bold text-stone-600 hover:bg-stone-100 cursor-pointer"
+              className="clay-btn-secondary py-2 px-4"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-[#1E1719] hover:bg-[#33282C] text-[#FAF6F0] rounded-xl font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="clay-btn-primary py-2 px-4"
             >
               <Check className="w-4 h-4" />
               <span>Save New Stock Count</span>

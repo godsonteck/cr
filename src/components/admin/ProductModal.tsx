@@ -19,7 +19,7 @@ const categoriesByDepartment: Record<DepartmentType, { value: CategoryType; labe
     { value: 'household-care', label: 'Household care' }, { value: 'daily-essentials', label: 'Daily essentials' },
   ],
 };
-const fieldClass = 'mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none transition focus:border-[#B27A52] focus:ring-2 focus:ring-[#B27A52]/15';
+const fieldClass = 'neu-input mt-1.5';
 
 const RichVariationDescription: React.FC<{ value: string; onChange: (value: string) => void; label: string }> = ({ value, onChange, label }) => {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -268,8 +268,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
       .map(item => ({ value: item.id, label: item.name })),
   ].map(item => [item.value, item])).values());
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1e1719]/65 p-3 font-sans backdrop-blur-sm sm:p-6"><div className="mx-auto flex min-h-full max-w-4xl items-center justify-center"><div className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-2xl bg-[#fffdfb] shadow-2xl" onClick={event => event.stopPropagation()}>
-      <header className="flex items-start justify-between border-b border-stone-200 px-5 py-5 sm:px-7"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#B27A52]">Products</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-[#1E1719]">{productToEdit ? 'Edit product' : 'Add a product'}</h2><p className="mt-1 text-sm text-stone-500">Add the details customers need to buy this item.</p></div><button type="button" onClick={onClose} disabled={isSaving} aria-label="Close" className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-900"><X className="h-5 w-5" /></button></header>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1e1719]/65 p-3 font-sans backdrop-blur-sm sm:p-6"><div className="mx-auto flex min-h-full max-w-4xl items-center justify-center"><div className="flex max-h-[94vh] w-full flex-col overflow-hidden clay-modal text-stone-900 dark:text-stone-100" onClick={event => event.stopPropagation()}>
+      <header className="flex items-start justify-between border-b border-stone-200/60 dark:border-white/5 px-5 py-5 sm:px-7"><div><div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full neu-sunken-sm text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52] dark:text-[#d49970] mb-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />Products Catalog</div><h2 className="text-2xl font-bold font-serif tracking-tight text-stone-900 dark:text-stone-100">{productToEdit ? 'Edit product' : 'Add a product'}</h2><p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Configure catalog details, pricing, and high-resolution visuals.</p></div><button type="button" onClick={onClose} disabled={isSaving} aria-label="Close" className="clay-card-sm p-2 text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"><X className="h-5 w-5" /></button></header>
       <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto px-5 py-6 text-sm sm:px-7">
         {/* 1. Basic Product Info */}
         <section className="space-y-4">
@@ -907,11 +907,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
           </div>
         </details>
 
-        <footer className="sticky bottom-0 -mx-5 flex items-center justify-between border-t border-stone-200 bg-[#fffdfb]/95 px-5 py-4 backdrop-blur sm:-mx-7 sm:px-7">
-          <button type="button" onClick={onClose} disabled={isSaving} className="rounded-lg border border-stone-300 px-4 py-2.5 font-bold text-stone-700 hover:bg-stone-50">
+        <footer className="sticky bottom-0 -mx-5 flex items-center justify-between border-t border-stone-200/60 dark:border-white/5 bg-[#fcf8f6]/95 dark:bg-[#191316]/95 px-5 py-4 backdrop-blur sm:-mx-7 sm:px-7">
+          <button type="button" onClick={onClose} disabled={isSaving} className="clay-btn-secondary">
             Cancel
           </button>
-          <button type="submit" disabled={isSaving} className="inline-flex items-center gap-2 rounded-lg bg-[#1E1719] px-5 py-2.5 font-bold text-white hover:bg-[#33282C] disabled:opacity-60">
+          <button type="submit" disabled={isSaving} className="clay-btn-primary">
             <Save className="h-4 w-4" />
             {isSaving ? 'Saving...' : productToEdit ? 'Save product' : 'Add product'}
           </button>

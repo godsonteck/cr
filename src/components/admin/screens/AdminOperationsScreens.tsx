@@ -34,14 +34,11 @@ import { GHANA_LOCATIONS, GHANA_REGIONS } from '../../../data/ghanaLocations';
 
 const money = (value: number) => `GHS ${Number(value || 0).toFixed(2)}`;
 
-const inputClass =
-  'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 transition';
+const inputClass = 'neu-input';
 
-const buttonClass =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#33282C]';
+const buttonClass = 'clay-btn-primary';
 
-const mutedButton =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 transition hover:bg-stone-50 dark:hover:bg-[#2a2024]';
+const mutedButton = 'clay-btn-secondary';
 
 const optimizeUploadedImage = (file: File, maxDimension = 1600): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -76,11 +73,14 @@ function ScreenHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 border-b border-stone-200 dark:border-[#2e2428] pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-4 border-b border-stone-200/60 dark:border-white/5 pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#B27A52]">{eyebrow}</p>
-        <h1 className="mt-1 font-serif text-3xl font-bold text-[#1E1719] dark:text-stone-100">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">{description}</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">{eyebrow}</span>
+        </div>
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">{title}</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">{description}</p>
       </div>
       {action}
     </div>
@@ -99,15 +99,19 @@ function Stat({
   icon: React.ElementType;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+    <div className="clay-card-interactive p-4 sm:p-5 flex flex-col justify-between">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
           {label}
         </span>
-        <Icon className="h-4 w-4 text-[#B27A52]" />
+        <div className="clay-icon-pod h-8 w-8">
+          <Icon className="h-4 w-4" />
+        </div>
       </div>
-      <p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p>
-      <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{detail}</p>
+      <div className="mt-4">
+        <p className="text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 tabular-nums">{value}</p>
+        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 font-medium">{detail}</p>
+      </div>
     </div>
   );
 }
@@ -193,7 +197,7 @@ export function AdminInventoryScreen({ onAddProduct }: { onAddProduct?: () => vo
         onChange={e => setQuery(e.target.value)}
       />
 
-      <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+      <div className="overflow-hidden clay-card">
         <div className="divide-y divide-stone-100 dark:divide-[#2e2428]">
           {rows.map(product => (
             <div key={product.id} className="flex flex-wrap items-center gap-3 p-4 sm:flex-nowrap">
@@ -509,13 +513,13 @@ export function AdminCustomersScreen() {
       />
 
       {loading ? (
-        <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-10 text-center text-sm text-stone-500 dark:text-stone-400">
+        <div className="clay-card p-10 text-center text-sm text-stone-500 dark:text-stone-400">
           Loading customer records…
         </div>
       ) : (
         <div className="space-y-6">
           {/* ── Registered Customers ── */}
-          <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+          <div className="overflow-hidden clay-card">
             <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
               Registered accounts ({filtered.length})
             </div>
@@ -592,7 +596,7 @@ export function AdminCustomersScreen() {
 
           {/* ── Guest / Unregistered Customers ── */}
           {filteredGuests.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+            <div className="overflow-hidden clay-card">
               <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
                 Guest / unregistered customers ({filteredGuests.length})
               </div>
@@ -748,7 +752,7 @@ function LiveCustomerDetailDrawer({
           </div>
 
           {/* Contact */}
-          <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <div className="space-y-3 clay-card p-4">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-stone-900 dark:text-stone-100">Contact Details</h4>
               {hasWhatsApp && (
@@ -775,7 +779,7 @@ function LiveCustomerDetailDrawer({
           </div>
 
           {/* Account status */}
-          <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <div className="flex items-center justify-between clay-card p-4">
             <div>
               <h4 className="font-bold text-stone-900 dark:text-stone-100">Account Status</h4>
               <p className={`mt-1 text-xs font-semibold ${customer.isActive ? 'text-emerald-600' : 'text-red-500'}`}>
@@ -792,7 +796,7 @@ function LiveCustomerDetailDrawer({
           </div>
 
           {/* Admin Notes */}
-          <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <div className="space-y-3 clay-card p-4">
             <h4 className="font-bold text-stone-900 dark:text-stone-100">Admin Notes</h4>
             <textarea
               rows={3}
@@ -814,7 +818,7 @@ function LiveCustomerDetailDrawer({
 
           {/* Saved Addresses */}
           {customer.savedAddresses && customer.savedAddresses.length > 0 && (
-            <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <div className="space-y-3 clay-card p-4">
               <h4 className="flex items-center gap-1.5 font-bold text-stone-900 dark:text-stone-100">
                 <MapPin className="h-4 w-4 text-[#B27A52]" /> Saved Addresses
               </h4>
@@ -1085,11 +1089,11 @@ function LegacyAdminCustomersScreen() {
       />
 
       {loading ? (
-        <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-10 text-center text-sm text-stone-500 dark:text-stone-400">
+        <div className="clay-card p-10 text-center text-sm text-stone-500 dark:text-stone-400">
           Loading customer records...
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a]">
+        <div className="overflow-hidden clay-card">
           <div className="border-b border-stone-200 bg-stone-50/70 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:border-[#2e2428] dark:bg-[#1a1316] dark:text-stone-400">
             Customer directory
           </div>
@@ -1211,7 +1215,7 @@ export function AdminPromotionsScreen() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         {/* Create Form */}
-        <form onSubmit={add} className="space-y-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
+        <form onSubmit={add} className="space-y-4 clay-card p-5">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">New discount code</h2>
           <input
             required
@@ -1270,7 +1274,7 @@ export function AdminPromotionsScreen() {
           {store.promoCodes.map(promo => (
             <div
               key={promo.id}
-              className="flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-4"
+              className="flex flex-wrap items-center gap-3 clay-card p-4"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F2E3D7] dark:bg-[#3d2a22] text-[#8A5738] dark:text-[#E8B792]">
                 <Tag className="h-5 w-5" />
@@ -1369,7 +1373,7 @@ export function AdminFlashDealsScreen() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         {/* Form */}
-        <form onSubmit={save} className="space-y-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5">
+        <form onSubmit={save} className="space-y-4 clay-card p-5">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">
             {editing ? 'Edit deal' : 'New deal'}
           </h2>
@@ -1639,7 +1643,7 @@ export function AdminSettingsScreen() {
 
       <form onSubmit={save} className="space-y-5">
         {/* STORE LOGO */}
-        <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <div className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100 mb-1">Store logo</h2>
           <p className="text-xs text-stone-500 dark:text-stone-400 mb-4">Upload your store's logo image. Appears everywhere on website and admin.</p>
           <div className="flex items-start gap-6">
@@ -1726,7 +1730,7 @@ export function AdminSettingsScreen() {
         </div>
 
         {/* STORE BRANDING */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Store branding</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">How your store appears to customers</p>
           <div className="mt-4 space-y-4">
@@ -1778,7 +1782,7 @@ export function AdminSettingsScreen() {
         </section>
 
         {/* HOMEPAGE */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage hero</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Choose the background image and copy customers see first on the storefront.</p>
           <div className="mt-4 space-y-4">
@@ -1871,7 +1875,7 @@ export function AdminSettingsScreen() {
         </section>
 
         {/* DELIVERY & CONTACT */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Delivery &amp; contact</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">How customers reach you and get orders</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -1910,7 +1914,7 @@ export function AdminSettingsScreen() {
         </section>
 
         {/* PRODUCT PAGE MARKETPLACE CONTENT */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Product page marketplace content</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Control every optional message shown beside product pricing. Leave a field empty to hide it.</p>
           <div className="mt-4 space-y-4">
@@ -1956,7 +1960,7 @@ export function AdminSettingsScreen() {
         </section>
 
         {/* HOMEPAGE SECTIONS */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Homepage sections</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Show or hide areas of your homepage</p>
           <div className="mt-4 space-y-2">
@@ -1978,7 +1982,7 @@ export function AdminSettingsScreen() {
         </section>
 
         {/* CUSTOMER PAGES */}
-        <section className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-6">
+        <section className="clay-card p-6">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Customer pages</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">Control which pages customers can access</p>
           <div className="mt-4 space-y-2">
@@ -2131,7 +2135,7 @@ export function AdminNotificationsScreen({ notifications = [], reviewed = [], on
         {visible.map(item => (
           <div
             key={item.id}
-            className="flex gap-4 rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-5"
+            className="flex gap-4 clay-card p-5"
           >
             {/* Icon */}
             <div

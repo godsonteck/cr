@@ -6,7 +6,7 @@ import { CategoryConfig, CategoryType, DepartmentType } from '../../../types';
 import { DATE_PRESETS, DateFilterPreset, isWithinDateRange } from '../../../utils/dateFilters';
 import { AdminPageHeader } from '../components/AdminPrimitives';
 
-const inputClass = 'w-full rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#2a2024] px-3 py-2.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-[#1E1719]';
+const inputClass = 'neu-input';
 
 const defaultCreateForm = {
   id: '',
@@ -119,14 +119,14 @@ export const AdminCategoriesScreen: React.FC = () => {
         action={<span className="rounded-full bg-stone-100 px-3 py-1.5 text-xs font-bold text-stone-600 dark:bg-stone-800 dark:text-stone-300">{store.categories.filter(category => category.isActive).length} active</span>}
       />
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><Layers className="h-5 w-5 text-[#B27A52]" /><p className="mt-3 text-2xl font-bold">{store.categories.length}</p><p className="text-xs text-stone-500">Total categories</p></div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><Check className="h-5 w-5 text-emerald-600" /><p className="mt-3 text-2xl font-bold">{store.categories.filter(category => category.isActive).length}</p><p className="text-xs text-stone-500">Visible to customers</p></div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]"><EyeOff className="h-5 w-5 text-amber-600" /><p className="mt-3 text-2xl font-bold">{store.categories.filter(category => !category.isActive).length}</p><p className="text-xs text-stone-500">Hidden categories</p></div>
+        <div className="clay-card p-4"><Layers className="h-5 w-5 text-[#B27A52]" /><p className="mt-3 text-2xl font-bold">{store.categories.length}</p><p className="text-xs text-stone-500">Total categories</p></div>
+        <div className="clay-card p-4"><Check className="h-5 w-5 text-emerald-600" /><p className="mt-3 text-2xl font-bold">{store.categories.filter(category => category.isActive).length}</p><p className="text-xs text-stone-500">Visible to customers</p></div>
+        <div className="clay-card p-4"><EyeOff className="h-5 w-5 text-amber-600" /><p className="mt-3 text-2xl font-bold">{store.categories.filter(category => !category.isActive).length}</p><p className="text-xs text-stone-500">Hidden categories</p></div>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-3">
           {store.categories.map(category => (
-            <div key={category.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
+            <div key={category.id} className="flex flex-wrap items-center gap-3 clay-card p-4">
               <img src={category.image} alt="" className="h-12 w-12 rounded-xl object-cover" />
               <div className="min-w-0 flex-1"><p className="font-bold text-stone-900 dark:text-stone-100">{category.name}</p><p className="text-xs text-stone-500">{category.department} · /{category.slug}</p></div>
               <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${category.isActive ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'}`}>{category.isActive ? 'Visible' : 'Hidden'}</span>
@@ -137,7 +137,7 @@ export const AdminCategoriesScreen: React.FC = () => {
           ))}
         </div>
         <div className="space-y-5">
-          <form onSubmit={createCategory} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <form onSubmit={createCategory} className="h-fit space-y-4 clay-card p-5">
             <div className="flex items-center justify-between gap-2"><h2 className="font-bold">Add category</h2><span className="inline-flex items-center gap-1 rounded-full bg-[#F3E5D8] px-2 py-1 text-[10px] font-bold text-[#6B3B2E]"><Plus className="h-3 w-3" />New</span></div>
             <label className="block text-xs font-bold text-stone-600">ID<input className={`${inputClass} mt-1`} placeholder="e.g. bath-body" value={createForm.id} onChange={event => setCreateForm({ ...createForm, id: event.target.value })} /></label>
             <label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} placeholder="Category name" value={createForm.name} onChange={event => setCreateForm({ ...createForm, name: event.target.value })} /></label>
@@ -151,7 +151,7 @@ export const AdminCategoriesScreen: React.FC = () => {
             <label className="block text-xs font-bold text-stone-600">Description<textarea className={`${inputClass} mt-1 min-h-24`} placeholder="Short customer-facing description" value={createForm.description} onChange={event => setCreateForm({ ...createForm, description: event.target.value })} /></label>
             <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2.5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Add category</button>
           </form>
-          <form onSubmit={save} className="h-fit space-y-4 rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+          <form onSubmit={save} className="h-fit space-y-4 clay-card p-5">
             <h2 className="font-bold">{editing ? `Edit ${editing.name}` : 'Select a category'}</h2>
             {editing ? <>
               <label className="block text-xs font-bold text-stone-600">Name<input className={`${inputClass} mt-1`} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} /></label>
@@ -279,7 +279,7 @@ export const AdminAnalyticsScreen: React.FC = () => {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top products */}
-        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+        <section className="clay-card p-5">
           <h2 className="font-bold text-stone-900 dark:text-stone-100">Top products by units sold</h2>
           <div className="mt-5 space-y-4">
             {productSales.map(({ product, quantity }) => (
@@ -302,7 +302,7 @@ export const AdminAnalyticsScreen: React.FC = () => {
         </section>
 
         {/* Daily sales timeline sorted by date */}
-        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-[#2e2428] dark:bg-[#201b1a]">
+        <section className="clay-card p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-stone-900 dark:text-stone-100">Daily Sales Timeline</h2>
             <button
@@ -356,10 +356,16 @@ export const AdminAnalyticsScreen: React.FC = () => {
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-[#2e2428] dark:bg-[#201b1a]">
-      <Icon className="h-5 w-5 text-[#B27A52]" />
-      <p className="mt-3 text-2xl font-bold text-stone-900 dark:text-stone-100">{value}</p>
-      <p className="mt-1 text-xs text-stone-500">{label}</p>
+    <div className="clay-card-interactive p-4 sm:p-5 flex flex-col justify-between">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{label}</span>
+        <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
+          <Icon className="h-4 w-4" />
+        </div>
+      </div>
+      <div className="mt-4">
+        <p className="text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 tabular-nums">{value}</p>
+      </div>
     </div>
   );
 }

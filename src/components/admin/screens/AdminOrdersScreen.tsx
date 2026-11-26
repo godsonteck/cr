@@ -160,39 +160,39 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
       <AdminPageHeader
         eyebrow="Store"
         title="Orders"
-        description="Review orders, filter by date range, and sort by date or amount."
+        description="Review orders, filter by date range, and track order fulfillment."
         action={
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors cursor-pointer"
+            className="clay-btn-secondary py-2 px-3.5 text-xs"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5" />
             Export CSV ({filteredOrders.length})
           </button>
         }
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3.5 xl:grid-cols-5">
         <AdminMetricCard label="Orders"         value={stats.total}                                              detail="All orders"             icon={ShoppingCart} />
-        <AdminMetricCard label="Open"           value={stats.pending}                                            detail="Still in progress"      icon={Clock} />
-        <AdminMetricCard label="Delivered"      value={stats.delivered}                                          detail="Completed"              icon={CheckCircle2} />
-        <AdminMetricCard label="Sales"          value={`GHS ${stats.totalRevenue.toFixed(2)}`}                  detail="From all orders"        icon={DollarSign} />
-        <AdminMetricCard label="WhatsApp"       value={stats.whatsapp}                                           detail="Orders to confirm"       icon={MessageCircle} />
+        <AdminMetricCard label="Open"           value={stats.pending}                                            detail="Still in progress"      icon={Clock} accent={stats.pending > 0 ? "amber" : "neutral"} />
+        <AdminMetricCard label="Delivered"      value={stats.delivered}                                          detail="Completed"              icon={CheckCircle2} accent="green" />
+        <AdminMetricCard label="Sales"          value={`GHS ${stats.totalRevenue.toFixed(2)}`}                  detail="From all orders"        icon={DollarSign} accent="blue" />
+        <AdminMetricCard label="WhatsApp"       value={stats.whatsapp}                                           detail="Direct messaging"       icon={MessageCircle} accent="purple" />
       </div>
 
       {/* Filters & Sorting Controls */}
-      <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-4 space-y-3 shadow-sm">
+      <div className="clay-card p-4 sm:p-5 space-y-3">
         <div className="flex flex-col lg:flex-row gap-3">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search orders, customers, phone..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm"
+              className="neu-input pl-10 pr-4"
             />
           </div>
 
@@ -202,7 +202,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             <select
               value={dateFilter}
               onChange={e => setDateFilter(e.target.value as DateFilterPreset)}
-              className="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm cursor-pointer"
+              className="neu-input lg:w-44 cursor-pointer"
             >
               {DATE_PRESETS.map(p => (
                 <option key={p.id} value={p.id}>
@@ -216,7 +216,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as OrderStatus | 'all')}
-            className="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm cursor-pointer"
+            className="neu-input lg:w-44 cursor-pointer"
           >
             {statuses.map(s => (
               <option key={s} value={s}>
@@ -231,7 +231,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             <select
               value={sortOrder}
               onChange={e => setSortOrder(e.target.value as DateSortOrder)}
-              className="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm font-medium cursor-pointer"
+              className="neu-input lg:w-48 cursor-pointer font-medium"
             >
               <option value="date-desc">Date: Newest first</option>
               <option value="date-asc">Date: Oldest first</option>
@@ -245,7 +245,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
             <button
               onClick={handleResetFilters}
               title="Reset all filters"
-              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] text-xs font-semibold transition cursor-pointer"
+              className="clay-btn-secondary py-2 px-3 text-xs"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset</span>
@@ -255,30 +255,30 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
 
         {/* Custom Date Range Picker */}
         {dateFilter === 'custom' && (
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-stone-100 dark:border-[#2e2428] text-xs">
-            <span className="font-semibold text-stone-600 dark:text-stone-400">Date Range:</span>
+          <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-stone-200/50 dark:border-white/5 text-xs">
+            <span className="font-bold text-stone-700 dark:text-stone-300">Date Range:</span>
             <div className="flex items-center gap-2">
-              <label className="text-stone-500">From:</label>
+              <label className="text-stone-500 font-medium">From:</label>
               <input
                 type="date"
                 value={customStart}
                 onChange={e => setCustomStart(e.target.value)}
-                className="px-2.5 py-1.5 rounded-lg border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100"
+                className="neu-input py-1 px-2.5 w-auto"
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-stone-500">To:</label>
+              <label className="text-stone-500 font-medium">To:</label>
               <input
                 type="date"
                 value={customEnd}
                 onChange={e => setCustomEnd(e.target.value)}
-                className="px-2.5 py-1.5 rounded-lg border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100"
+                className="neu-input py-1 px-2.5 w-auto"
               />
             </div>
             {(customStart || customEnd) && (
               <button
                 onClick={() => { setCustomStart(''); setCustomEnd(''); }}
-                className="text-stone-500 hover:text-stone-700 underline text-xs ml-1 cursor-pointer"
+                className="text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 underline text-xs ml-1 cursor-pointer"
               >
                 Clear range
               </button>
@@ -288,24 +288,24 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
 
         <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 pt-1">
           <p>
-            Showing <span className="font-semibold text-stone-900 dark:text-stone-100">{filteredOrders.length}</span> of {stats.total} orders
+            Showing <span className="font-bold text-stone-900 dark:text-stone-100">{filteredOrders.length}</span> of {stats.total} orders
             {dateFilter !== 'all' && <span className="ml-1 text-[#B27A52] font-semibold">({DATE_PRESETS.find(p => p.id === dateFilter)?.label})</span>}
           </p>
           <p className="font-medium text-stone-700 dark:text-stone-300">
-            Selected total: <span className="font-bold text-stone-900 dark:text-stone-100">GHS {filteredRevenue.toFixed(2)}</span>
+            Selected total: <span className="font-bold text-stone-900 dark:text-stone-100 tabular-nums">GHS {filteredRevenue.toFixed(2)}</span>
           </p>
         </div>
       </div>
 
       {/* Orders Table */}
-      <div className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] shadow-sm">
+      <div className="clay-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-[760px] w-full text-sm">
-            <thead className="bg-stone-50 dark:bg-[#1a1316] border-b border-stone-200 dark:border-[#2e2428]">
+            <thead className="neu-sunken border-b border-stone-200/40 dark:border-white/5">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Customer &amp; source</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Customer &amp; source</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                   <button
                     type="button"
                     onClick={() => setSortOrder(s => s === 'amount-desc' ? 'amount-asc' : 'amount-desc')}
@@ -321,9 +321,9 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                     )}
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Payment</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Payment</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                   <button
                     type="button"
                     onClick={() => setSortOrder(s => s === 'date-desc' ? 'date-asc' : 'date-desc')}
@@ -339,15 +339,15 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                     )}
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide">Actions</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 dark:divide-[#2e2428]">
+            <tbody className="divide-y divide-stone-200/40 dark:divide-white/5">
               {filteredOrders.length > 0 ? (
                 filteredOrders.map(order => {
                   const StatusIcon = STATUS_ICONS[order.status] || Clock;
                   return (
-                    <tr key={order.id} className="hover:bg-stone-50 dark:hover:bg-[#1a1316] transition-colors">
+                    <tr key={order.id} className="hover:bg-stone-100/50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-mono font-bold text-xs text-stone-900 dark:text-stone-100">
                           {order.orderNumber}
@@ -359,36 +359,37 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-stone-900 dark:text-stone-100 text-sm">
+                        <p className="font-bold font-serif text-stone-900 dark:text-stone-100 text-sm">
                           {order.shippingAddress?.fullName}
                         </p>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                           {order.shippingAddress?.phone}
                         </p>
                         {order.orderSource === 'whatsapp' && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-[#168542] dark:text-[#7eeaa1]"><MessageCircle className="h-3 w-3" /> WhatsApp order</span>}
                       </td>
-                      <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100">
+                      <td className="px-6 py-4 font-bold text-stone-900 dark:text-stone-100 tabular-nums">
                         GHS {Number(order.total).toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
-                        {/* Read-only status badge — changes happen in the drawer */}
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[order.status] ?? ''}`}>
+                        <span className={`clay-badge ${
+                          order.status === 'Confirmed' ? 'clay-badge-success' :
+                          order.status === 'Processing' || order.status === 'Packing Order' ? 'clay-badge-info' :
+                          order.status === 'Out for Delivery' ? 'clay-badge-warning' :
+                          order.status === 'Delivered' ? 'clay-badge-neutral' : 'clay-badge-danger'
+                        }`}>
                           <StatusIcon className="w-3 h-3" />
                           {order.status}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            order.paymentStatus === 'paid'
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
-                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
-                          }`}
-                        >
+                        <span className={`clay-badge ${
+                          order.paymentStatus === 'paid' ? 'clay-badge-success' :
+                          order.paymentStatus === 'failed' ? 'clay-badge-danger' : 'clay-badge-warning'
+                        }`}>
                           {order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-stone-500 dark:text-stone-400">
+                      <td className="px-6 py-4 text-xs text-stone-500 dark:text-stone-400 tabular-nums">
                         {new Date(order.createdAt).toLocaleDateString('en-GH', {
                           day: 'numeric',
                           month: 'short',
@@ -398,7 +399,7 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
                       <td className="px-6 py-4">
                         <button
                           onClick={() => onViewOrder?.(order)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#1E1719] text-white hover:bg-[#33282C] transition-colors"
+                          className="clay-btn-secondary py-1.5 px-3 text-xs"
                         >
                           <Eye className="w-3 h-3" />
                           Manage
@@ -410,9 +411,11 @@ export const AdminOrdersScreen: React.FC<OrdersScreenProps> = ({ onViewOrder }) 
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-14 text-center">
-                    <ShoppingCart className="w-8 h-8 text-stone-300 dark:text-stone-600 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">No orders found</p>
-                    <p className="text-xs text-stone-400 dark:text-stone-600 mt-1">Try adjusting your filters</p>
+                    <div className="neu-sunken h-14 w-14 rounded-2xl mx-auto flex items-center justify-center text-stone-400 mb-3">
+                      <ShoppingCart className="w-6 h-6" />
+                    </div>
+                    <p className="text-base font-bold text-stone-700 dark:text-stone-300">No orders found</p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Try adjusting your filters</p>
                   </td>
                 </tr>
               )}

@@ -10,13 +10,16 @@ interface AdminPageHeaderProps {
 
 export function AdminPageHeader({ eyebrow, title, description, action }: AdminPageHeaderProps) {
   return (
-    <header className="flex flex-col gap-4 border-b border-stone-200 pb-5 dark:border-[#2e2428] sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52]">{eyebrow}</p>
-        <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100 sm:text-3xl">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">{description}</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">{eyebrow}</span>
+        </div>
+        <h1 className="font-serif text-2xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100 sm:text-3xl">{title}</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">{description}</p>
       </div>
-      {action ? <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div> : null}
+      {action ? <div className="flex shrink-0 flex-wrap items-center gap-2.5">{action}</div> : null}
     </header>
   );
 }
@@ -25,9 +28,9 @@ const metricAccents = {
   neutral: 'text-stone-900 dark:text-stone-100',
   green: 'text-emerald-700 dark:text-emerald-400',
   amber: 'text-amber-700 dark:text-amber-400',
-  red: 'text-red-700 dark:text-red-400',
-  blue: 'text-blue-700 dark:text-blue-400',
-  orange: 'text-orange-700 dark:text-orange-400',
+  red: 'text-rose-700 dark:text-rose-400',
+  blue: 'text-sky-700 dark:text-sky-400',
+  orange: 'text-amber-800 dark:text-amber-300',
   purple: 'text-[#8a5271] dark:text-[#d7a9c4]',
 } as const;
 
@@ -45,39 +48,55 @@ export function AdminMetricCard({
   accent?: keyof typeof metricAccents;
 }) {
   return (
-    <article className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 shadow-[0_8px_24px_rgba(30,23,25,0.04)] transition-shadow hover:shadow-md dark:border-[#2e2428] dark:bg-[#201b1a]">
+    <article className="clay-card-interactive p-4 sm:p-5 flex flex-col justify-between">
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-stone-400 dark:text-stone-500">{label}</span>
-        <Icon className="h-4 w-4 shrink-0 text-[#B27A52]" aria-hidden="true" />
+        <span className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">{label}</span>
+        <div className="clay-icon-pod h-8 w-8 shrink-0">
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </div>
       </div>
-      <p className={`mt-3 truncate text-xl font-bold tabular-nums sm:text-2xl ${metricAccents[accent]}`} title={String(value)}>{value}</p>
-      <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400" title={detail}>{detail}</p>
+      <div className="mt-4">
+        <p className={`truncate text-2xl font-bold tabular-nums tracking-tight sm:text-3xl ${metricAccents[accent]}`} title={String(value)}>{value}</p>
+        <p className="mt-1 truncate text-xs text-stone-500 dark:text-stone-400 font-medium" title={detail}>{detail}</p>
+      </div>
     </article>
   );
 }
 
 export function AdminStatusBadge({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'info' }) {
   const styles = {
-    neutral: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-    success: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-    warning: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-    danger: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-    info: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+    neutral: 'clay-badge-neutral',
+    success: 'clay-badge-success',
+    warning: 'clay-badge-warning',
+    danger: 'clay-badge-danger',
+    info: 'clay-badge-info',
   };
-  return <span className={`inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[10px] font-bold ${styles[tone]}`}><span className="truncate">{label}</span></span>;
+  return (
+    <span className={`clay-badge ${styles[tone]}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+      <span className="truncate">{label}</span>
+    </span>
+  );
 }
 
 export function AdminEmptyState({ title, description, icon: Icon = Inbox, action }: { title: string; description: string; icon?: LucideIcon; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/70 px-6 py-12 text-center dark:border-[#3a2c30] dark:bg-[#1a1415]">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#B27A52] shadow-sm dark:bg-[#251d1e]"><Icon className="h-5 w-5" /></div>
-      <h3 className="mt-4 text-sm font-bold text-stone-900 dark:text-stone-100">{title}</h3>
-      <p className="mt-1 max-w-sm text-xs leading-5 text-stone-500 dark:text-stone-400">{description}</p>
-      {action ? <div className="mt-4">{action}</div> : null}
+    <div className="clay-card flex flex-col items-center justify-center p-8 sm:p-12 text-center">
+      <div className="neu-sunken flex h-14 w-14 items-center justify-center rounded-2xl text-[#B27A52] dark:text-[#d49970]">
+        <Icon className="h-6 w-6" />
+      </div>
+      <h3 className="mt-4 text-base font-bold text-stone-900 dark:text-stone-100">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-xs leading-5 text-stone-500 dark:text-stone-400">{description}</p>
+      {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
 }
 
 export function AdminSuccessMark({ label = 'All clear' }: { label?: string }) {
-  return <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" />{label}</span>;
+  return (
+    <span className="clay-badge clay-badge-success font-semibold">
+      <CheckCircle2 className="h-3.5 w-3.5" />
+      <span>{label}</span>
+    </span>
+  );
 }

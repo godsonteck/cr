@@ -29,23 +29,25 @@ export function AdminLayout({
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans selection:bg-[var(--accent)] selection:text-white">
-      <header className="bg-[#140D10] text-stone-100 border-b border-stone-800/80 sticky top-0 z-40 shadow-sm">
+    <div className="admin-portal-canvas min-h-screen text-[var(--text-primary)] flex flex-col font-sans selection:bg-[#B27A52] selection:text-white">
+      <header className="bg-[#140D10]/90 backdrop-blur-md text-stone-100 border-b border-white/10 sticky top-0 z-40 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <img
-                src={store.storeSettings.storeLogo || new URL('../../assets/logo-optimized.jpeg', import.meta.url).toString()}
-                onError={(event) => { (event.currentTarget as HTMLImageElement).src = new URL('../../assets/logo-optimized.jpeg', import.meta.url).toString(); }}
-                alt={store.storeSettings.storeName}
-                className="w-10 h-10 rounded-full object-contain bg-white p-0.5 shadow-sm border border-stone-700"
-              />
+              <div className="clay-icon-pod h-10 w-10 p-0.5 shrink-0 overflow-hidden">
+                <img
+                  src={store.storeSettings.storeLogo || new URL('../../assets/logo-optimized.jpeg', import.meta.url).toString()}
+                  onError={(event) => { (event.currentTarget as HTMLImageElement).src = new URL('../../assets/logo-optimized.jpeg', import.meta.url).toString(); }}
+                  alt={store.storeSettings.storeName}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-serif font-bold text-sm tracking-wide text-white">
                     {store.storeSettings.storeName}
                   </span>
-                  <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-800 text-[#E8B792] border border-stone-700">
+                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-800/80 text-[#E8B792] border border-stone-700/80 neu-sunken-sm">
                     Store Manager
                   </span>
                 </div>
@@ -60,11 +62,11 @@ export function AdminLayout({
 
           <button
             onClick={onOpenCommandPalette}
-            className="hidden md:flex items-center gap-3 px-3.5 py-1.5 bg-[#23171C] hover:bg-[#2C1E23] border border-stone-800 rounded-xl text-xs text-stone-400 transition-colors w-72 cursor-pointer"
+            className="hidden md:flex items-center gap-3 px-3.5 py-2 neu-sunken text-xs text-stone-400 transition-all w-72 cursor-pointer hover:border-amber-500/30"
           >
             <Search className="w-3.5 h-3.5 text-stone-400" />
             <span className="flex-1 text-left">Search items, orders, people...</span>
-            <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 text-[10px] font-mono rounded text-stone-300">
+            <kbd className="px-1.5 py-0.5 bg-stone-800/80 border border-stone-700 text-[10px] font-mono rounded text-stone-300">
               Ctrl+K
             </kbd>
           </button>
@@ -72,7 +74,7 @@ export function AdminLayout({
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/')}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded-lg text-xs font-semibold text-stone-200 transition-colors cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 clay-btn-secondary py-1.5 px-3 text-xs"
             >
               <span>View Online Shop</span>
               <ExternalLink className="w-3.5 h-3.5 text-stone-400" />
@@ -81,12 +83,12 @@ export function AdminLayout({
             <div className="relative">
               <button
                 onClick={() => setCurrentTab('notifications')}
-                className="p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors relative cursor-pointer"
+                className="p-2 rounded-xl clay-card-sm text-stone-300 hover:text-white transition-all relative cursor-pointer hover:scale-105"
                 title="Alerts"
               >
                 <Bell className="w-4 h-4" />
                 {unreadNotifsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C89B3C] text-cr-espresso text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C89B3C] text-cr-espresso text-[9px] font-bold flex items-center justify-center shadow-sm">
                     {unreadNotifsCount}
                   </span>
                 )}
@@ -110,7 +112,7 @@ export function AdminLayout({
                   store.logoutAdmin();
                   navigate('/admin', { replace: true });
                 }}
-                className="p-2 rounded-xl bg-stone-800 hover:bg-red-950 text-stone-400 hover:text-red-200 transition-colors cursor-pointer"
+                className="p-2 rounded-xl clay-card-sm text-stone-400 hover:text-red-400 hover:scale-105 transition-all cursor-pointer"
                 title="Sign Out"
               >
                 <LogOut className="w-4 h-4" />
@@ -127,8 +129,8 @@ export function AdminLayout({
               <button
                 key={id}
                 onClick={() => setCurrentTab(id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
-                  currentTab === id ? 'bg-[var(--accent)] text-white shadow-sm' : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)]'
+                className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+                  currentTab === id ? 'clay-btn-primary' : 'clay-card-sm text-stone-700 dark:text-stone-300'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -137,15 +139,17 @@ export function AdminLayout({
             ))}
           </div>
 
-          <div className="hidden md:block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-3 shadow-xs space-y-4">
+          <div className="hidden md:block clay-card p-4 space-y-4">
             <div className="space-y-1">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Main</span>
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Main</span>
               {navTabs.filter((t) => t.group === 'MAIN').map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => setCurrentTab(id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    currentTab === id ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
+                    currentTab === id
+                      ? 'bg-gradient-to-r from-[#2c1c21] to-[#1c1316] text-white font-bold shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_1px_1px_1.5px_rgba(255,255,255,0.2)]'
+                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-white/5 font-medium'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -156,16 +160,18 @@ export function AdminLayout({
               ))}
             </div>
 
-            <div className="space-y-1 pt-2 border-t border-[var(--border-color)]">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Shop & Sales</span>
+            <div className="space-y-1 pt-3 border-t border-stone-200/60 dark:border-stone-800/60">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Shop & Sales</span>
               {navTabs.filter((t) => t.group === 'SHOPPING').map(({ id, label, icon: Icon }) => {
                 const isActive = currentTab === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setCurrentTab(id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-soft)]'
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-[#2c1c21] to-[#1c1316] text-white font-bold shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_1px_1px_1.5px_rgba(255,255,255,0.2)]'
+                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-white/5 font-medium'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -173,12 +179,12 @@ export function AdminLayout({
                       <span>{label}</span>
                     </div>
                     {id === 'orders' && pendingOrdersCount > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-red-100 text-red-800'}`}>
+                      <span className={`clay-badge clay-badge-danger text-[9px] py-0.5 px-2`}>
                         {pendingOrdersCount}
                       </span>
                     )}
                     {id === 'inventory' && lowStockProducts > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                      <span className={`clay-badge clay-badge-warning text-[9px] py-0.5 px-2`}>
                         {lowStockProducts}
                       </span>
                     )}
@@ -187,16 +193,18 @@ export function AdminLayout({
               })}
             </div>
 
-            <div className="space-y-1 pt-2 border-t border-[var(--border-color)]">
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Reports & Settings</span>
+            <div className="space-y-1 pt-3 border-t border-stone-200/60 dark:border-stone-800/60">
+              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">Reports & Settings</span>
               {navTabs.filter((t) => t.group === 'REPORTS' || t.group === 'SETTINGS').map(({ id, label, icon: Icon }) => {
                 const isActive = currentTab === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setCurrentTab(id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive ? 'bg-[#1E1719] text-[#FAF6F0] shadow-xs font-bold' : 'text-stone-600 hover:text-cr-espresso hover:bg-cr-sand'
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-[#2c1c21] to-[#1c1316] text-white font-bold shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_1px_1px_1.5px_rgba(255,255,255,0.2)]'
+                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-white/5 font-medium'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -204,7 +212,7 @@ export function AdminLayout({
                       <span>{label}</span>
                     </div>
                     {id === 'notifications' && unreadNotifsCount > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-[#1E1719] text-white'}`}>
+                      <span className={`clay-badge clay-badge-neutral text-[9px] py-0.5 px-2`}>
                         {unreadNotifsCount}
                       </span>
                     )}
@@ -218,5 +226,6 @@ export function AdminLayout({
         <main className="flex-1 min-w-0 space-y-6">{children}</main>
       </div>
     </div>
+  );
   );
 }

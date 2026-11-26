@@ -363,22 +363,22 @@ export const AdminPortal: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-[#0d0a0a] flex">
+    <div className="admin-portal-canvas min-h-screen flex selection:bg-[#B27A52] selection:text-white">
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-white dark:bg-[#131010] border-r border-stone-200 dark:border-[#1f1a1a] shadow-[8px_0_28px_rgba(28,20,22,0.04)] transition-all duration-300 flex flex-col ${
-          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-16 md:translate-x-0'
+        className={`fixed md:sticky md:top-0 z-40 h-screen flex-shrink-0 bg-[#f7f2f0] dark:bg-[#151012] border-r border-white/60 dark:border-white/5 shadow-[8px_0_30px_rgba(45,30,35,0.05)] dark:shadow-[8px_0_30px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col ${
+          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-20 md:translate-x-0'
         }`}
       >
         {/* Sidebar inner */}
         <div className="flex h-full min-h-0 flex-col overflow-hidden">
           {/* Store Logo & Branding */}
-          <div className={`border-b border-stone-200 dark:border-[#1f1a1a] py-5 flex items-center min-w-0 ${sidebarOpen ? 'px-4 gap-3' : 'justify-center px-2'}`}>
-            <div className="flex-shrink-0 rounded-lg border border-stone-200 dark:border-[#1f1a1a] bg-white dark:bg-[#1a1515] p-1.5">
+          <div className={`border-b border-stone-200/60 dark:border-stone-800/60 py-5 flex items-center min-w-0 ${sidebarOpen ? 'px-4 gap-3' : 'justify-center px-2'}`}>
+            <div className="clay-icon-pod h-10 w-10 p-1 flex-shrink-0">
               <img
                 src={store.storeSettings.storeLogo || logoImg}
                 alt={store.storeSettings.storeName}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-full h-full rounded-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).src = logoImg; }}
               />
             </div>
@@ -388,29 +388,29 @@ export const AdminPortal: React.FC = () => {
                   {store.storeSettings.storeName}
                 </p>
                 <p className="mt-1 truncate text-xs font-bold text-stone-700 dark:text-stone-200">{store.adminSession.adminName}</p>
-                <p className="truncate text-[10px] font-medium uppercase tracking-wider text-stone-500 dark:text-stone-500">{store.adminSession.adminRole}</p>
+                <p className="truncate text-[10px] font-medium uppercase tracking-wider text-[#B27A52] dark:text-[#d49970]">{store.adminSession.adminRole}</p>
               </div>
             )}
             {sidebarOpen && (
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-[#1f1a1a] md:hidden"
+                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-stone-500 transition-all hover:bg-stone-200/60 dark:text-stone-400 dark:hover:bg-white/10 md:hidden"
                 aria-label="Close navigation"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
 
           {/* Navigation */}
-          <nav className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-6 px-2 space-y-1">
+          <nav className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-5 px-3 space-y-1">
             {navGroups.map(group => {
               const groupItems = visibleNavItems.filter(item => item.group === group.key);
               return (
-                <div key={group.key} className="mb-3">
+                <div key={group.key} className="mb-4">
                   {sidebarOpen && (
-                    <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-600">
+                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">
                       {group.label}
                     </p>
                   )}
@@ -423,13 +423,13 @@ export const AdminPortal: React.FC = () => {
                         onClick={() => handleTabChange(item.id)}
                         aria-current={isActive ? 'page' : undefined}
                         title={!sidebarOpen ? item.label : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-left font-medium text-sm ${
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all text-left font-medium text-sm my-0.5 ${
                           isActive
-                            ? 'bg-[#1E1719] text-white shadow-md'
-                            : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#1f1a1a]'
+                            ? 'bg-gradient-to-r from-[#2c1c21] to-[#1c1316] text-white shadow-[0_6px_18px_rgba(30,20,25,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.25),inset_-1px_-1px_2px_rgba(0,0,0,0.3)] dark:from-[#d28c5e] dark:to-[#b3683c] dark:text-stone-950 dark:shadow-[0_8px_20px_rgba(210,140,94,0.35),inset_1.5px_1.5px_2px_rgba(255,255,255,0.4)] font-bold scale-[1.02]'
+                            : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-white/70 dark:hover:bg-white/5'
                         } ${!sidebarOpen ? 'justify-center px-2' : ''}`}
                       >
-                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <Icon className="w-4 h-4 flex-shrink-0" />
                         {sidebarOpen && <span className="truncate">{item.label}</span>}
                       </button>
                     );
@@ -440,17 +440,17 @@ export const AdminPortal: React.FC = () => {
           </nav>
 
           {/* Logout & Profile Section */}
-          <div className="border-t border-stone-200 dark:border-[#1f1a1a] p-3 space-y-2">
+          <div className="border-t border-stone-200/60 dark:border-stone-800/60 p-3 space-y-2">
             {/* My Profile Button */}
             <button
               type="button"
               onClick={() => setProfilePanelOpen(true)}
               title={!sidebarOpen ? 'My Profile & Password' : undefined}
-              className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl border border-stone-200/80 dark:border-[#2b2024] bg-stone-50/50 dark:bg-[#1a1416]/50 hover:bg-stone-100 dark:hover:bg-[#251d20] transition-all text-left ${
-                !sidebarOpen ? 'justify-center px-1.5' : ''
+              className={`w-full flex items-center gap-3 p-2 clay-card-sm hover:scale-[1.01] transition-all text-left ${
+                !sidebarOpen ? 'justify-center p-1.5' : ''
               }`}
             >
-              <div className="h-8 w-8 rounded-lg overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">
+              <div className="h-8 w-8 rounded-xl overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 neu-sunken-sm">
                 {store.adminSession.avatar ? (
                   <img src={store.adminSession.avatar} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -462,7 +462,7 @@ export const AdminPortal: React.FC = () => {
                   <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate leading-snug">
                     {store.adminSession.adminName}
                   </p>
-                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold truncate leading-tight">
+                  <p className="text-[10px] text-[#B27A52] dark:text-[#d49970] font-semibold truncate leading-tight">
                     Manage Profile & PIN
                   </p>
                 </div>
@@ -472,16 +472,16 @@ export const AdminPortal: React.FC = () => {
               <div className={`flex gap-1.5 ${!sidebarOpen ? 'flex-col' : ''}`}>
                 <button
                   onClick={handleLogout}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg bg-red-600 text-white text-xs font-bold transition-colors hover:bg-red-700"
+                  className="flex-1 clay-btn-danger py-2 text-xs"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                   {sidebarOpen && <span>Logout</span>}
                 </button>
                 <button
                   onClick={() => setConfirmLogout(false)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border border-stone-200 dark:border-[#1f1a1a] text-stone-600 dark:text-stone-400 text-xs font-bold transition-colors hover:bg-stone-100 dark:hover:bg-[#1f1a1a]"
+                  className="flex-1 clay-btn-secondary py-2 text-xs"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                   {sidebarOpen && <span>Cancel</span>}
                 </button>
               </div>
@@ -489,12 +489,12 @@ export const AdminPortal: React.FC = () => {
               <button
                 onClick={handleLogout}
                 title={!sidebarOpen ? 'Logout' : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-700 dark:hover:text-red-400 transition-all text-sm font-medium ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50/80 dark:hover:bg-rose-950/20 transition-all text-xs font-semibold ${
                   !sidebarOpen ? 'justify-center px-2' : ''
                 }`}
               >
                 <LogOut className="w-4 h-4 flex-shrink-0" />
-                {sidebarOpen && <span>Logout</span>}
+                {sidebarOpen && <span>Sign Out</span>}
               </button>
             )}
           </div>
@@ -504,31 +504,31 @@ export const AdminPortal: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-3 border-b border-stone-200 bg-white px-4 py-3 shadow-sm dark:border-[#1f1a1a] dark:bg-[#131010] sm:flex-nowrap sm:px-8 sm:py-4">
+        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:px-8 sm:py-4 bg-[#f8f4f2]/85 dark:bg-[#151012]/85 backdrop-blur-md border-b border-white/60 dark:border-white/5 shadow-[0_4px_20px_rgba(45,30,35,0.03)] sm:flex-nowrap">
           <div className="flex min-w-0 w-full items-center gap-3 sm:w-auto sm:gap-4">
             {/* Sidebar toggle */}
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] rounded-lg transition-colors flex-shrink-0"
+              className="clay-card-sm p-2 text-stone-600 dark:text-stone-300 hover:scale-105 transition-transform flex-shrink-0"
               title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
               aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
               aria-expanded={sidebarOpen}
             >
-              {sidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+              {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
             </button>
 
             {/* Page Title */}
-            <h2 className="text-xl font-bold text-stone-900 dark:text-stone-50 truncate">
+            <h2 className="text-xl font-bold font-serif text-stone-900 dark:text-stone-50 truncate">
               {tabLabels[currentTab] || 'Dashboard'}
             </h2>
           </div>
 
           {/* Right Actions */}
-          <div className="ml-auto flex w-full flex-shrink-0 items-center justify-end gap-1.5 sm:w-auto sm:gap-2">
+          <div className="ml-auto flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto sm:gap-2.5">
             {currentTab === 'products' && (
               <button
                 onClick={handleAddProduct}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#1E1719] text-white rounded-lg font-medium text-sm hover:bg-[#33282C] transition-colors"
+                className="clay-btn-primary"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Add product</span>
@@ -537,7 +537,7 @@ export const AdminPortal: React.FC = () => {
             <button
               onClick={() => void refreshAdminData()}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#35272c] dark:text-stone-300 dark:hover:bg-[#1f1a1a]"
+              className="clay-btn-secondary"
               title="Refresh portal data"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -545,19 +545,19 @@ export const AdminPortal: React.FC = () => {
             </button>
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2.5 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#1f1a1a] transition-colors"
+              className="clay-card-sm p-2.5 text-stone-600 dark:text-stone-400 hover:scale-105 transition-transform"
               title="Search (Ctrl+K)"
               aria-label="Search products, orders, and customers"
             >
               <Search className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1f1a1a] rounded-lg p-1">
+            <div className="neu-sunken-sm p-1 flex items-center">
               <button
                 onClick={toggleTheme}
-                className="p-2 hover:bg-white dark:hover:bg-[#2a2024] rounded transition-colors"
+                className="clay-card-sm p-1.5 text-stone-600 dark:text-stone-300 hover:scale-105 transition-transform"
                 title="Toggle dark mode"
               >
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
               </button>
             </div>
 
@@ -565,10 +565,10 @@ export const AdminPortal: React.FC = () => {
             <button
               type="button"
               onClick={() => setProfilePanelOpen(true)}
-              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-xl border border-stone-200 dark:border-[#2b2024] bg-stone-50/70 dark:bg-[#1f1a1a] hover:bg-stone-100 dark:hover:bg-[#251d20] transition-colors ml-1"
+              className="clay-card-sm flex items-center gap-2.5 px-3 py-1.5 hover:scale-[1.02] transition-all ml-1 cursor-pointer"
               title="My Account, Profile & Password"
             >
-              <div className="h-7 w-7 rounded-lg overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/20 shrink-0">
+              <div className="h-7 w-7 rounded-xl overflow-hidden bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs neu-sunken-sm shrink-0">
                 {store.adminSession.avatar ? (
                   <img src={store.adminSession.avatar} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -579,7 +579,7 @@ export const AdminPortal: React.FC = () => {
                 <p className="text-xs font-bold text-stone-800 dark:text-stone-200 truncate leading-tight">
                   {store.adminSession.adminName}
                 </p>
-                <p className="text-[10px] text-stone-400 truncate leading-tight">
+                <p className="text-[10px] text-[#B27A52] dark:text-[#d49970] truncate leading-tight font-medium">
                   {store.adminSession.adminRole}
                 </p>
               </div>

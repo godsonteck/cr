@@ -253,13 +253,13 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl bg-white dark:bg-[#181314] h-full shadow-2xl flex flex-col border-l border-stone-200 dark:border-[#2e2326] animate-in slide-in-from-right duration-200 overflow-hidden"
+        className="w-full max-w-xl clay-drawer h-full flex flex-col animate-in slide-in-from-right duration-200 overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-stone-200 dark:border-[#2e2326] flex items-center justify-between bg-stone-50/80 dark:bg-[#1f1719]/80 shrink-0">
+        <div className="px-6 py-5 border-b border-stone-200/60 dark:border-stone-800/60 flex items-center justify-between bg-stone-100/50 dark:bg-stone-900/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+            <div className="clay-icon-pod h-11 w-11 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
               <User className="h-5 w-5" />
             </div>
             <div>
@@ -274,7 +274,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-[#2b2023] transition-colors"
+            className="p-2 rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors cursor-pointer"
             aria-label="Close profile panel"
           >
             <X className="h-5 w-5" />
@@ -286,8 +286,8 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
           <div
             className={`mx-6 mt-4 p-3.5 rounded-xl border flex items-center gap-3 text-xs font-semibold animate-in fade-in duration-150 shrink-0 ${
               alert.type === 'success'
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60'
-                : 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/60'
+                ? 'clay-badge clay-badge-success justify-start py-2.5 px-4'
+                : 'clay-badge clay-badge-danger justify-start py-2.5 px-4'
             }`}
           >
             {alert.type === 'success' ? (
@@ -307,7 +307,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
         )}
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 divide-y divide-stone-100 dark:divide-[#251d20]">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 divide-y divide-stone-200/50 dark:divide-stone-800/50">
           {/* Section 1: Avatar & Quick Info */}
           <div className="pt-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-4 flex items-center gap-2">
@@ -316,7 +316,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
             <div className="flex items-center gap-5">
               {/* Avatar circle */}
               <div className="relative group shrink-0">
-                <div className="h-20 w-20 rounded-2xl overflow-hidden border-2 border-amber-500/30 shadow-md bg-stone-100 dark:bg-[#251d20] flex items-center justify-center text-2xl font-bold text-amber-700 dark:text-amber-400">
+                <div className="clay-icon-pod h-20 w-20 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-bold text-amber-700 dark:text-amber-400">
                   {avatar ? (
                     <img
                       src={avatar}
@@ -330,7 +330,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-full bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-lg hover:scale-105 transition"
+                  className="absolute -bottom-1.5 -right-1.5 p-2 rounded-xl bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-md hover:scale-105 transition cursor-pointer"
                   title="Upload profile photo"
                 >
                   <Camera className="h-3.5 w-3.5" />
@@ -350,7 +350,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg border border-stone-200 dark:border-[#3b2d30] text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-[#241b1d] transition"
+                    className="clay-btn-secondary px-3 py-1.5 text-xs"
                   >
                     Change Photo
                   </button>
@@ -358,7 +358,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                     <button
                       type="button"
                       onClick={handleRemovePhoto}
-                      className="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-1"
+                      className="clay-btn-danger px-3 py-1.5 text-xs flex items-center gap-1"
                     >
                       <Trash2 className="h-3 w-3" /> Remove
                     </button>
@@ -389,7 +389,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="e.g. Ama Boateng"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  className="neu-input w-full pl-9 pr-3 py-2.5 text-sm font-medium"
                 />
               </div>
             </div>
@@ -406,7 +406,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="e.g. staff@crcosmetics.com"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  className="neu-input w-full pl-9 pr-3 py-2.5 text-sm font-medium"
                 />
               </div>
             </div>
@@ -422,13 +422,13 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="e.g. 0244123456"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  className="neu-input w-full pl-9 pr-3 py-2.5 text-sm font-medium"
                 />
               </div>
             </div>
 
             {/* Role Display (Read-Only) */}
-            <div className="rounded-xl border border-stone-200 dark:border-[#2e2326] bg-stone-50/60 dark:bg-[#1e1719]/60 p-3.5">
+            <div className="neu-sunken-sm p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-stone-400" />
@@ -449,7 +449,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
             <button
               type="submit"
               disabled={isSavingProfile}
-              className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="clay-btn-primary w-full py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSavingProfile ? (
                 <>Saving Changes...</>
@@ -482,12 +482,12 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   value={currentPin}
                   onChange={e => setCurrentPin(e.target.value)}
                   placeholder="Enter current PIN / password"
-                  className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  className="neu-input w-full pl-9 pr-10 py-2.5 text-sm font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPin(!showCurrentPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
                 >
                   {showCurrentPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -507,12 +507,12 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                     value={newPin}
                     onChange={e => setNewPin(e.target.value)}
                     placeholder="Min 4 characters"
-                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                    className="neu-input w-full pl-9 pr-10 py-2.5 text-sm font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPin(!showNewPin)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
                   >
                     {showNewPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -531,12 +531,12 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                     value={confirmPin}
                     onChange={e => setConfirmPin(e.target.value)}
                     placeholder="Re-enter new password"
-                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-stone-200 dark:border-[#382b2e] bg-stone-50/50 dark:bg-[#1e1719] text-sm font-medium text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                    className="neu-input w-full pl-9 pr-10 py-2.5 text-sm font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPin(!showConfirmPin)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
                   >
                     {showConfirmPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -547,7 +547,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
             <button
               type="submit"
               disabled={isSavingPassword || !newPin || !currentPin}
-              className="w-full py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white font-bold text-xs shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="clay-btn-primary w-full py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSavingPassword ? 'Updating Password...' : 'Update Password & PIN'}
             </button>
@@ -559,7 +559,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
               <Shield className="h-3.5 w-3.5 text-stone-500" /> Active Session
             </h3>
 
-            <div className="rounded-xl border border-stone-200 dark:border-[#2e2326] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-50/50 dark:bg-[#1c1617]/50">
+            <div className="clay-card-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-0.5">
                 <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
                   Signed in as {adminSession.adminName}
@@ -574,7 +574,7 @@ export const AdminMyProfilePanel: React.FC<AdminMyProfilePanelProps> = ({ isOpen
                   onClose();
                   void logoutAdmin();
                 }}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-950/50 transition self-start sm:self-auto"
+                className="clay-btn-danger text-xs px-3.5 py-2 flex items-center gap-2 self-start sm:self-auto cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5" /> Sign Out
               </button>

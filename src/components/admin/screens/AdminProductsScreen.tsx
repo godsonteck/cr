@@ -168,33 +168,33 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
       <AdminPageHeader
         eyebrow="Store"
         title="Products"
-        description="Add products, update prices, and keep stock accurate."
+        description="Add products, update prices, and keep inventory accurate."
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleMigrateImages}
               disabled={migratingImages}
-              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50 dark:border-[#2e2428] dark:bg-[#201b1a] dark:text-stone-300"
+              className="clay-btn-secondary py-2 px-3 text-xs"
             >
               {migratingImages ? 'Moving photos…' : 'Move legacy photos'}
             </button>
             <button
               onClick={handleExport}
-              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors"
+              className="clay-btn-secondary py-2 px-3 text-xs"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               Export
             </button>
             <button
               onClick={() => { setBarcodeInitialProductId(undefined); setBarcodeModalOpen(true); }}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#B27A52]/40 bg-white dark:bg-[#201b1a] px-3 py-2 text-sm font-semibold text-[#8A5738] dark:text-[#E8B792] hover:bg-[#F2E3D7] dark:hover:bg-[#3d2a22] transition-colors"
+              className="clay-btn-secondary py-2 px-3 text-xs text-[#8A5738] dark:text-[#E8B792]"
             >
-              <Tag className="w-4 h-4" />
+              <Tag className="w-3.5 h-3.5" />
               Print Barcodes
             </button>
             <button
               onClick={onAddProduct}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#1E1719] px-4 py-2 text-sm font-semibold text-white hover:bg-[#33282C] transition-colors"
+              className="clay-btn-primary py-2 px-3.5 text-xs"
             >
               <Plus className="w-4 h-4" />
               Add Product
@@ -204,31 +204,31 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <AdminMetricCard label="Products"      value={stats.total}          detail="In catalog"        icon={Package} />
-        <AdminMetricCard label="Published"     value={stats.published}      detail="Marked for online display" icon={Check as any} />
-        <AdminMetricCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} />
-        <AdminMetricCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} />
-        <AdminMetricCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} />
+        <AdminMetricCard label="Published"     value={stats.published}      detail="Marked for online display" icon={Check as any} accent="green" />
+        <AdminMetricCard label="Stock"         value={stats.totalInventory} detail="Units on hand"      icon={Package} accent="blue" />
+        <AdminMetricCard label="Low stock"     value={stats.lowStock}       detail="5 or fewer left"    icon={AlertTriangle} accent={stats.lowStock > 0 ? "amber" : "neutral"} />
+        <AdminMetricCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} accent={stats.outOfStock > 0 ? "red" : "neutral"} />
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl border border-stone-200 dark:border-[#2e2428] bg-white dark:bg-[#201b1a] p-4 space-y-3">
+      <div className="clay-card p-4 sm:p-5 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search by name, brand, or category..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm"
+              className="neu-input pl-10 pr-4"
             />
           </div>
           <select
             value={departmentFilter}
             onChange={e => setDepartmentFilter(e.target.value as 'all' | 'beauty' | 'groceries')}
-            className="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm"
+            className="neu-input sm:w-48 cursor-pointer"
           >
             <option value="all">All Departments</option>
             <option value="beauty">Beauty</option>
@@ -237,7 +237,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
           <select
             value={stockFilter}
             onChange={e => setStockFilter(e.target.value as 'all' | 'in' | 'low' | 'out')}
-            className="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2428] bg-stone-50 dark:bg-[#2a2024] text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#1E1719] dark:focus:ring-stone-600 text-sm"
+            className="neu-input sm:w-44 cursor-pointer"
           >
             <option value="all">All Stock</option>
             <option value="in">In Stock</option>
@@ -246,7 +246,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
           </select>
         </div>
         <p className="text-xs text-stone-500 dark:text-stone-400">
-          Showing <span className="font-semibold text-stone-900 dark:text-stone-100">{filteredProducts.length}</span> of {stats.total} products
+          Showing <span className="font-bold text-stone-900 dark:text-stone-100">{filteredProducts.length}</span> of {stats.total} products
         </p>
       </div>
 
@@ -256,28 +256,32 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
           filteredProducts.map(product => (
             <div
               key={product.id}
-              className="bg-white dark:bg-[#201b1a] rounded-2xl border border-stone-200 dark:border-[#2e2428] overflow-hidden hover:shadow-md transition-shadow"
+              className="clay-card-interactive p-4 sm:p-5 flex flex-col justify-between"
             >
-              <div className="flex gap-4 p-4">
-                {/* Image */}
-                <div className="w-20 h-20 rounded-xl bg-stone-100 dark:bg-[#2a2024] flex-shrink-0 overflow-hidden">
-                  {isRenderableProductImage(product.image) ? <img src={product.image} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-stone-200 dark:bg-stone-700" aria-label="Product image unavailable" />}
+              <div className="flex gap-4">
+                {/* Image Pod */}
+                <div className="w-20 h-20 rounded-2xl neu-sunken p-1 flex-shrink-0 overflow-hidden">
+                  {isRenderableProductImage(product.image) ? (
+                    <img src={product.image} alt={product.name} className="h-full w-full rounded-xl object-cover" />
+                  ) : (
+                    <div className="h-full w-full rounded-xl animate-pulse bg-stone-200 dark:bg-stone-700" aria-label="Product image unavailable" />
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-stone-900 dark:text-stone-100 truncate text-sm">
+                      <h3 className="font-bold font-serif text-stone-900 dark:text-stone-100 truncate text-base">
                         {product.name}
                       </h3>
-                      <p className="text-xs text-stone-500 dark:text-stone-400 truncate">
+                      <p className="text-xs text-stone-500 dark:text-stone-400 truncate mt-0.5">
                         {product.brand} · {product.categoryLabel}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {!product.isPublished && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 font-bold uppercase tracking-wide">
+                        <span className="clay-badge clay-badge-neutral text-[9px] py-0.5 px-2">
                           Draft
                         </span>
                       )}
@@ -286,39 +290,42 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
 
                   <div className="flex items-center gap-3 mt-2 mb-3">
                     <div>
-                      <p className="font-bold text-stone-900 dark:text-stone-100 text-sm">
+                      <p className="font-bold text-stone-900 dark:text-stone-100 text-sm tabular-nums">
                         GHS {Number(product.price || 0).toFixed(2)}
                       </p>
                       {product.wholesalePrice != null && (
-                        <p className="text-[11px] font-semibold text-[#8A5738] dark:text-[#E8B792]">
+                        <p className="text-[11px] font-semibold text-[#8A5738] dark:text-[#E8B792] tabular-nums">
                           WS: GHS {Number(product.wholesalePrice).toFixed(2)}
                         </p>
                       )}
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${stockBadge(product.stockCount || 0)}`}>
+                    <span className={`clay-badge text-[10px] py-0.5 px-2.5 ${
+                      (product.stockCount || 0) === 0 ? 'clay-badge-danger' :
+                      (product.stockCount || 0) <= 5 ? 'clay-badge-warning' : 'clay-badge-success'
+                    }`}>
                       {product.stockCount || 0} units
                     </span>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-1.5 flex-wrap">
+                  <div className="flex gap-1.5 flex-wrap pt-1 border-t border-stone-200/50 dark:border-white/5">
                     <button
                       onClick={() => onViewProduct?.(product)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium"
+                      className="clay-btn-secondary py-1 px-2.5 text-xs"
                     >
                       <Eye className="w-3 h-3" />
                       View
                     </button>
                     <button
                       onClick={() => onEditProduct?.(product)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium"
+                      className="clay-btn-secondary py-1 px-2.5 text-xs"
                     >
                       <Edit3 className="w-3 h-3" />
                       Edit
                     </button>
                     <button
                       onClick={() => { setBarcodeInitialProductId(product.id); setBarcodeModalOpen(true); }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-[#B27A52]/40 text-[#8A5738] dark:text-[#E8B792] hover:bg-[#F2E3D7] dark:hover:bg-[#3d2a22] transition-colors font-medium"
+                      className="clay-btn-secondary py-1 px-2.5 text-xs text-[#8A5738] dark:text-[#E8B792]"
                       title="Print barcode label"
                     >
                       <Tag className="w-3 h-3" />
@@ -327,7 +334,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                     <button
                       onClick={() => handleTogglePublish(product)}
                       disabled={loading}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium disabled:opacity-50"
+                      className="clay-btn-secondary py-1 px-2.5 text-xs"
                     >
                       {product.isPublished ? 'Unpublish' : 'Publish'}
                     </button>
@@ -337,14 +344,14 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
                           disabled={loading}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-bold disabled:opacity-50"
+                          className="clay-btn-danger py-1 px-2.5 text-xs"
                         >
                           <Trash2 className="w-3 h-3" />
                           Confirm
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-[#2e2428] text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-[#2a2024] transition-colors font-medium"
+                          className="clay-btn-secondary py-1 px-2 text-xs"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -353,7 +360,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
                         disabled={loading}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors font-medium disabled:opacity-50"
+                        className="clay-btn-secondary py-1 px-2.5 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700"
                       >
                         <Trash2 className="w-3 h-3" />
                         Delete
@@ -365,10 +372,12 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
             </div>
           ))
         ) : (
-          <div className="col-span-2 rounded-2xl border border-dashed border-stone-300 dark:border-[#2e2428] py-16 text-center">
-            <Package className="w-8 h-8 text-stone-300 dark:text-stone-600 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">No products found</p>
-            <p className="text-xs text-stone-400 dark:text-stone-600 mt-1">Try adjusting your search or filters</p>
+          <div className="col-span-2 clay-card p-12 text-center">
+            <div className="neu-sunken h-14 w-14 rounded-2xl mx-auto flex items-center justify-center text-stone-400 mb-3">
+              <Package className="w-6 h-6" />
+            </div>
+            <p className="text-base font-bold text-stone-700 dark:text-stone-300">No products found</p>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Try adjusting your search or filters</p>
           </div>
         )}
       </div>

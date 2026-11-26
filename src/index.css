@@ -409,3 +409,405 @@ aside .grid-cols-3 > button:nth-child(2) {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   MATURE CLAYMORPHISM & NEUMORPHISM DESIGN SYSTEM (ADMIN PORTAL)
+   ============================================================ */
+
+:root {
+  --admin-canvas: #f0ebe9;
+  --admin-card-bg: linear-gradient(145deg, #ffffff 0%, #f8f4f2 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.85);
+  --admin-clay-shadow: 0 14px 30px -4px rgba(45, 30, 35, 0.08), 0 4px 10px -2px rgba(45, 30, 35, 0.04), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.95), inset -2px -2px 4px rgba(45, 30, 35, 0.04);
+  --admin-clay-shadow-sm: 0 6px 16px -2px rgba(45, 30, 35, 0.06), 0 2px 6px -1px rgba(45, 30, 35, 0.03), inset 1px 1px 1.5px rgba(255, 255, 255, 0.95), inset -1.5px -1.5px 3px rgba(45, 30, 35, 0.04);
+  --admin-clay-shadow-lg: 0 22px 44px -6px rgba(45, 30, 35, 0.12), 0 8px 18px -3px rgba(45, 30, 35, 0.06), inset 2px 2px 3px rgba(255, 255, 255, 0.95), inset -2.5px -2.5px 5px rgba(45, 30, 35, 0.05);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(45, 30, 35, 0.08), inset -2.5px -2.5px 6px rgba(255, 255, 255, 0.95);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(45, 30, 35, 0.06), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.9);
+  --admin-clay-primary: linear-gradient(135deg, #c77b4d 0%, #a45a32 100%);
+  --admin-clay-primary-shadow: 0 8px 20px -2px rgba(164, 90, 50, 0.38), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.45), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.25);
+  --admin-clay-primary-active: inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.2);
+}
+
+html.dark {
+  --admin-canvas: #120d0f;
+  --admin-card-bg: linear-gradient(145deg, #1f181b 0%, #171214 100%);
+  --admin-card-border: rgba(255, 255, 255, 0.07);
+  --admin-clay-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.65), 0 6px 14px -2px rgba(0, 0, 0, 0.4), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12), inset -2px -2px 4px rgba(0, 0, 0, 0.45);
+  --admin-clay-shadow-sm: 0 8px 18px -3px rgba(0, 0, 0, 0.55), 0 3px 8px -1px rgba(0, 0, 0, 0.35), inset 1px 1px 1.5px rgba(255, 255, 255, 0.1), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.4);
+  --admin-clay-shadow-lg: 0 24px 50px -8px rgba(0, 0, 0, 0.8), 0 10px 22px -4px rgba(0, 0, 0, 0.5), inset 2px 2px 3px rgba(255, 255, 255, 0.15), inset -3px -3px 6px rgba(0, 0, 0, 0.55);
+  --admin-neu-inset: inset 2.5px 2.5px 6px rgba(0, 0, 0, 0.65), inset -2px -2px 5px rgba(255, 255, 255, 0.04);
+  --admin-neu-inset-sm: inset 1.5px 1.5px 4px rgba(0, 0, 0, 0.55), inset -1px -1px 3px rgba(255, 255, 255, 0.03);
+  --admin-clay-primary: linear-gradient(135deg, #d28c5e 0%, #b3683c 100%);
+  --admin-clay-primary-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.6), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.35), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.4);
+  --admin-clay-primary-active: inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.6), inset -1px -1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.admin-portal-canvas {
+  background-color: var(--admin-canvas);
+  background-image: 
+    radial-gradient(circle at 10% 8%, rgba(200, 109, 81, 0.06) 0%, transparent 35%),
+    radial-gradient(circle at 90% 92%, rgba(178, 122, 82, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+html.dark .admin-portal-canvas {
+  background-color: var(--admin-canvas);
+  background-image: 
+    radial-gradient(circle at 10% 8%, rgba(210, 147, 109, 0.08) 0%, transparent 30%),
+    radial-gradient(circle at 90% 92%, rgba(0, 0, 0, 0.4) 0%, transparent 40%);
+}
+
+/* Clay Cards & Surfaces */
+.clay-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow);
+  border-radius: 1.25rem;
+}
+
+.clay-card-sm {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow-sm);
+  border-radius: 1rem;
+}
+
+.clay-card-lg {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow-lg);
+  border-radius: 1.5rem;
+}
+
+.clay-card-interactive {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow);
+  border-radius: 1.25rem;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clay-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-clay-shadow-lg);
+}
+
+/* Neumorphic Inset / Sunken Elements */
+.neu-sunken {
+  background-color: #e9e3e0;
+  box-shadow: var(--admin-neu-inset);
+  border-radius: 0.875rem;
+}
+
+html.dark .neu-sunken {
+  background-color: #161113;
+  box-shadow: var(--admin-neu-inset);
+}
+
+.neu-sunken-sm {
+  background-color: #ebe5e2;
+  box-shadow: var(--admin-neu-inset-sm);
+  border-radius: 0.75rem;
+}
+
+html.dark .neu-sunken-sm {
+  background-color: #171214;
+  box-shadow: var(--admin-neu-inset-sm);
+}
+
+/* Neumorphic Form Input */
+.neu-input {
+  width: 100%;
+  background-color: #eae3e0;
+  box-shadow: var(--admin-neu-inset);
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: #1d1716;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.neu-input:focus {
+  border-color: rgba(199, 123, 77, 0.5);
+  box-shadow: var(--admin-neu-inset), 0 0 0 3px rgba(199, 123, 77, 0.15);
+}
+
+html.dark .neu-input {
+  background-color: #171214;
+  color: #f8f1ed;
+  box-shadow: var(--admin-neu-inset);
+}
+
+html.dark .neu-input:focus {
+  border-color: rgba(210, 140, 94, 0.5);
+  box-shadow: var(--admin-neu-inset), 0 0 0 3px rgba(210, 140, 94, 0.2);
+}
+
+/* Clay Action Buttons */
+.clay-btn-primary {
+  background: var(--admin-clay-primary);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0.875rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.875rem;
+  box-shadow: var(--admin-clay-primary-shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.clay-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.clay-btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: var(--admin-clay-primary-active);
+}
+
+.clay-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clay-btn-secondary {
+  background: linear-gradient(145deg, #ffffff 0%, #ede6e3 100%);
+  color: #3d3134;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  border-radius: 0.875rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 12px -2px rgba(45, 30, 35, 0.08), inset 1.5px 1.5px 2px rgba(255, 255, 255, 1), inset -1.5px -1.5px 3px rgba(45, 30, 35, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.clay-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  color: #1a1215;
+  box-shadow: 0 6px 16px -2px rgba(45, 30, 35, 0.12), inset 1.5px 1.5px 2px rgba(255, 255, 255, 1), inset -1.5px -1.5px 3px rgba(45, 30, 35, 0.06);
+}
+
+.clay-btn-secondary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 2px 2px 4px rgba(45, 30, 35, 0.12), inset -1px -1px 2px rgba(255, 255, 255, 0.8);
+}
+
+html.dark .clay-btn-secondary {
+  background: linear-gradient(145deg, #271f22 0%, #1c1518 100%);
+  color: #ede2db;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.4), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.1), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .clay-btn-secondary:hover:not(:disabled) {
+  color: #ffffff;
+  box-shadow: 0 6px 18px -2px rgba(0, 0, 0, 0.5), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.14), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .clay-btn-secondary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.6), inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+}
+
+.clay-btn-danger {
+  background: linear-gradient(135deg, #e05260 0%, #be2b3a 100%);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0.875rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.875rem;
+  box-shadow: 0 8px 18px -2px rgba(190, 43, 58, 0.35), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.4), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clay-btn-danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.clay-btn-danger:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* Clay Status Badges */
+.clay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.clay-badge-success {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.12));
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 6px -1px rgba(16, 185, 129, 0.2), inset 1px 1px 1.5px rgba(255, 255, 255, 0.6), inset -1px -1px 2px rgba(5, 150, 105, 0.15);
+}
+
+html.dark .clay-badge-success {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.18));
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1px -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.clay-badge-warning {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.12));
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 2px 6px -1px rgba(245, 158, 11, 0.2), inset 1px 1px 1.5px rgba(255, 255, 255, 0.6), inset -1px -1px 2px rgba(217, 119, 6, 0.15);
+}
+
+html.dark .clay-badge-warning {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.18));
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1px -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.clay-badge-danger {
+  background: linear-gradient(145deg, rgba(244, 63, 94, 0.2), rgba(225, 29, 72, 0.12));
+  color: #9f1239;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  box-shadow: 0 2px 6px -1px rgba(244, 63, 94, 0.2), inset 1px 1px 1.5px rgba(255, 255, 255, 0.6), inset -1px -1px 2px rgba(225, 29, 72, 0.15);
+}
+
+html.dark .clay-badge-danger {
+  background: linear-gradient(145deg, rgba(244, 63, 94, 0.25), rgba(225, 29, 72, 0.18));
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1px -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.clay-badge-info {
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(2, 132, 199, 0.12));
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  box-shadow: 0 2px 6px -1px rgba(14, 165, 233, 0.2), inset 1px 1px 1.5px rgba(255, 255, 255, 0.6), inset -1px -1px 2px rgba(2, 132, 199, 0.15);
+}
+
+html.dark .clay-badge-info {
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.18));
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1px -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.clay-badge-neutral {
+  background: linear-gradient(145deg, #f0eae7, #e4dedb);
+  color: #594c48;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 6px -1px rgba(45, 30, 35, 0.08), inset 1px 1px 1.5px rgba(255, 255, 255, 0.9), inset -1px -1px 2px rgba(45, 30, 35, 0.06);
+}
+
+html.dark .clay-badge-neutral {
+  background: linear-gradient(145deg, #241c1f, #1b1517);
+  color: #c4b5b0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.4), inset 1px 1px 1.5px rgba(255, 255, 255, 0.1), inset -1px -1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Clay Icon Pod */
+.clay-icon-pod {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #ffffff, #f2ece8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 14px -2px rgba(45, 30, 35, 0.08), inset 1.5px 1.5px 2px rgba(255, 255, 255, 1), inset -1.5px -1.5px 3px rgba(45, 30, 35, 0.05);
+  color: #a85f36;
+}
+
+html.dark .clay-icon-pod {
+  background: linear-gradient(145deg, #281f23, #1c1518);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.5), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.45);
+  color: #d8966c;
+}
+
+/* Neumorphic Tab / Pill */
+.neu-pill {
+  border-radius: 9999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #655755;
+}
+
+.neu-pill:hover {
+  color: #1f1719;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.neu-pill-active {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow-sm);
+  color: #1f1719;
+  font-weight: 700;
+}
+
+html.dark .neu-pill {
+  color: #a89794;
+}
+
+html.dark .neu-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .neu-pill-active {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow-sm);
+  color: #ffffff;
+}
+
+/* Clay Modal & Drawer Surfaces */
+.clay-modal {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  box-shadow: var(--admin-clay-shadow-lg);
+  border-radius: 1.5rem;
+}
+
+.clay-drawer {
+  background: var(--admin-card-bg);
+  border-left: 1px solid var(--admin-card-border);
+  box-shadow: -12px 0 40px -4px rgba(45, 30, 35, 0.15), inset 1.5px 0 2px rgba(255, 255, 255, 0.6);
+}
+
+html.dark .clay-drawer {
+  border-left: 1px solid var(--admin-card-border);
+  box-shadow: -16px 0 50px rgba(0, 0, 0, 0.75), inset 1.5px 0 2px rgba(255, 255, 255, 0.08);
+}
+
