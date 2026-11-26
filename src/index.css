@@ -1198,20 +1198,20 @@ html.dark .clay-drawer {
 }
 
 .signin-card {
-  width: min(100%, 940px);
-  min-height: 600px;
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  width: min(100%, 520px);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.94);
-  border-radius: 28px;
+  border-radius: 30px;
   background: linear-gradient(145deg, #fbfeff 0%, #edf6f8 100%);
-  box-shadow: 18px 22px 55px rgba(35, 91, 108, 0.16), 5px 7px 18px rgba(35, 91, 108, 0.08), inset 2px 2px 3px #fff, inset -2px -2px 5px rgba(32, 90, 108, 0.05);
+  box-shadow: 20px 24px 58px rgba(35, 91, 108, 0.2), 6px 8px 20px rgba(35, 91, 108, 0.09), inset 2px 2px 3px #fff, inset -2px -2px 5px rgba(32, 90, 108, 0.05);
 }
 
 .signin-image-pane {
   position: relative;
-  min-height: 600px;
+  flex: none;
+  height: 245px;
   overflow: hidden;
   background: #c1e0e9;
 }
@@ -1227,14 +1227,14 @@ html.dark .clay-drawer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(17, 75, 96, 0.02) 45%, rgba(12, 57, 78, 0.34) 100%);
+  background: linear-gradient(180deg, rgba(17, 75, 96, 0.02) 35%, rgba(12, 57, 78, 0.28) 100%);
 }
 
 .signin-form-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 44px clamp(28px, 5vw, 58px);
+  padding: 32px clamp(28px, 7vw, 48px) 36px;
   background: linear-gradient(145deg, #fbfeff 0%, #eef7f9 100%);
 }
 .signin-content { width: min(100%, 390px); }
@@ -1249,7 +1249,7 @@ html.dark .clay-drawer {
 .signin-title {
   margin: 0;
   color: var(--signin-ink);
-  font-family: var(--font-display);
+  font-family: "Plus Jakarta Sans", var(--font-sans);
   font-size: 34px;
   font-weight: 700;
   line-height: 1.1;
@@ -1320,8 +1320,8 @@ html.dark .clay-drawer {
   .signin-brand { max-width: 70%; font-size: 11px; }
   .signin-brand-logo { width: 34px; height: 34px; }
   .signin-main { padding: 18px 0; }
-  .signin-card { width: min(100%, 470px); min-height: 0; grid-template-columns: 1fr; border-radius: 22px; }
-  .signin-image-pane { min-height: 0; height: clamp(150px, 25vh, 220px); }
+  .signin-card { width: min(100%, 470px); border-radius: 24px; }
+  .signin-image-pane { height: clamp(155px, 23vh, 200px); }
   .signin-form-panel { padding: 28px 22px 24px; }
   .signin-intro { margin-bottom: 24px; }
   .signin-title { font-size: 30px; }
