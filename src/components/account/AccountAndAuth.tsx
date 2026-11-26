@@ -119,6 +119,35 @@ const GoogleSignInButton: React.FC<{ onCredential: (credential: string) => Promi
 // ============================================================================
 const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode }> = ({ mode, children }) => {
   const { storeSettings } = useStore();
+  if (mode === 'signin') {
+    return (
+      <div className="customer-signin-page">
+        <header className="signin-header">
+          <Link to="/" className="signin-brand">
+            <img
+              src={storeSettings.storeLogo || logoImg}
+              onError={(event) => { event.currentTarget.src = logoImg; }}
+              alt=""
+              className="signin-brand-logo"
+            />
+            <span>{storeSettings.storeName}</span>
+          </Link>
+          <Link to="/shop" className="signin-back-link">Back to shop</Link>
+        </header>
+        <main className="signin-main">
+          <section className="signin-card">
+            <div className="signin-image-pane">
+              <img src={storeSettings.heroImage} alt="" />
+              <div className="signin-image-overlay" />
+            </div>
+            <div className="signin-form-panel">{children}</div>
+          </section>
+        </main>
+        <footer className="signin-footer">{storeSettings.storeName}</footer>
+      </div>
+    );
+  }
+
   return (
     <div className="relative mx-auto max-w-5xl px-4 py-10 font-sans sm:px-6 sm:py-16">
       <div className="mx-auto max-w-xl overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--bg-card)] shadow-[0_24px_70px_rgba(11,31,56,0.12)]">
@@ -146,7 +175,7 @@ const AuthShell: React.FC<{ mode: 'signin' | 'signup'; children: React.ReactNode
 // ============================================================================
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const { showAlert } = useAlert();
   const { storeSettings } = useStore();
 
@@ -155,15 +184,6 @@ export const SignInPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
-
-  const handleGoogleCredential = async (credential: string) => {
-    try {
-      await loginWithGoogle(credential);
-        navigate('/');
-    } catch (error: any) {
-      showAlert(error?.message || 'Google sign-in failed. Please try again.', 'error');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,54 +202,54 @@ export const SignInPage: React.FC = () => {
 
   return (
     <AuthShell mode="signin">
-      <div className="space-y-7">
-        <div className="space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C86D51]">Customer account</p>
-          <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">Welcome back</h1>
-          <p className="text-sm text-[var(--text-muted)]">Sign in to manage your orders, saved addresses, and wishlist.</p>
+      <div className="signin-content space-y-7">
+        <div className="signin-intro space-y-2">
+          <p className="signin-eyebrow">Customer account</p>
+          <h1 className="signin-title">Welcome back</h1>
+          <p className="signin-description">Sign in to view your orders and account details.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="signin-form space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-[var(--text-primary)]">Email Address</label>
-            <div className="relative">
+            <label className="signin-label mb-1.5 block text-xs font-bold">Email address</label>
+            <div className="signin-field relative">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 pl-10 text-sm text-[var(--text-primary)] outline-none transition focus:border-[#C86D51]"
+                className="signin-input w-full rounded-xl border p-3.5 pl-10 text-sm outline-none transition"
                 placeholder="customer@example.com"
               />
-              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <Mail className="signin-field-icon absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
             </div>
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-bold text-[var(--text-primary)]">Password</label>
+              <label className="signin-label text-xs font-bold">Password</label>
               <button
                 type="button"
                 onClick={() => setShowForgotModal(true)}
-                className="text-xs font-semibold text-[#C86D51] hover:underline"
+                className="signin-forgot text-xs font-semibold hover:underline"
               >
                 Forgot password?
               </button>
             </div>
-            <div className="relative">
+            <div className="signin-field relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] p-3.5 pl-10 pr-10 text-sm text-[var(--text-primary)] outline-none transition focus:border-[#C86D51]"
+                className="signin-input w-full rounded-xl border p-3.5 pl-10 pr-10 text-sm outline-none transition"
                 placeholder="Enter your password"
               />
-              <Key className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <Key className="signin-field-icon absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                className="signin-password-toggle absolute right-3.5 top-1/2 -translate-y-1/2"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -240,21 +260,13 @@ export const SignInPage: React.FC = () => {
             type="submit"
             variant="primary"
             disabled={isSubmitting}
-            className="w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-[0.12em] bg-[#1C1817] text-white hover:bg-[#2A1D20]"
+            className="signin-submit w-full rounded-xl py-3.5 text-sm font-bold"
           >
             {isSubmitting ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
 
-        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
-          <span className="h-px flex-1 bg-[var(--border-color)]" />
-          <span>Or continue with</span>
-          <span className="h-px flex-1 bg-[var(--border-color)]" />
-        </div>
-
-        <GoogleSignInButton onCredential={handleGoogleCredential} />
-
-        <div className="border-t border-[var(--border-color)] pt-5 text-center text-sm text-[var(--text-muted)]">
+        <div className="signin-signup border-t pt-5 text-center text-sm">
           Don&apos;t have an account yet?{' '}
           <Link to="/signup" className="font-bold text-[#C86D51] hover:underline">
             Create account

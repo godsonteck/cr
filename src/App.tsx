@@ -151,6 +151,22 @@ function AppLayout() {
     );
   }
 
+  if (location.pathname === '/signin' && !siteIsPaused && pageVisibility.account) {
+    return (
+      <>
+        <Helmet>
+          <html lang="en" />
+          <title>{storeSettings.storeName} | Sign in</title>
+        </Helmet>
+        <ErrorBoundary>
+          <Suspense fallback={<PageSkeleton />}>
+            <SignInPage />
+          </Suspense>
+        </ErrorBoundary>
+      </>
+    );
+  }
+
   return (
     <>
       <Helmet>
