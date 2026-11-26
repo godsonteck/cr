@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { House, LogOut, Search, Settings, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { House, LogOut, Settings, ShoppingBag, ShoppingCart, UserRound } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,33 +9,17 @@ import logoImg from '../../assets/logo-optimized.jpeg';
 
 export const Header: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { totalItems } = useCart();
   const { storeSettings } = useStore();
   const { user, isAuthenticated, logout } = useAuth();
   const [profileImgError, setProfileImgError] = React.useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
-  const [headerSearch, setHeaderSearch] = React.useState('');
-  const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
   const displayStoreName = String(storeSettings?.storeName || 'CR COSMETICS').replace(/\s+AND\s+/gi, ' & ');
   const [brandPrimary, brandSecondary] = displayStoreName.split(' & ');
 
   React.useEffect(() => {
     setProfileImgError(false);
   }, [user?.profileImage]);
-
-  React.useEffect(() => {
-    if (location.pathname === '/search') {
-      setHeaderSearch(new URLSearchParams(location.search).get('q') || '');
-    }
-  }, [location.pathname, location.search]);
-
-  const submitHeaderSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    const query = headerSearch.trim();
-    navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
-    setMobileSearchOpen(false);
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -65,17 +49,7 @@ export const Header: React.FC = () => {
                 )}
               </span>
             </Link>
-            <form role="search" onSubmit={submitHeaderSearch} className="mx-auto hidden w-full max-w-md items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-1.5 focus-within:border-[var(--accent)] lg:flex">
-              <Search className="h-4 w-4 shrink-0 text-[var(--text-subtle)]" aria-hidden="true" />
-              <input type="search" value={headerSearch} onChange={event => setHeaderSearch(event.target.value)} placeholder="Search products, brands, ingredients" aria-label="Search all products" className="min-w-0 flex-1 bg-transparent text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]" />
-              <button type="submit" aria-label="Submit product search" className="rounded-full p-1.5 text-[var(--text-muted)] transition hover:bg-[var(--bg-card)] hover:text-[var(--accent)]">
-                <ArrowRightIcon />
-              </button>
-            </form>
             <div className="flex shrink-0 items-center gap-2">
-              <button type="button" onClick={() => setMobileSearchOpen(open => !open)} aria-label={mobileSearchOpen ? 'Close product search' : 'Open product search'} aria-expanded={mobileSearchOpen} className="rounded-full p-2 text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)] lg:hidden">
-                <Search className="h-4 w-4" />
-              </button>
               <Link to="/shop" className="hidden lg:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-soft)] hover:text-[var(--accent)]">
                 <ShoppingBag className="h-4 w-4" /> Products
               </Link>
@@ -131,13 +105,6 @@ export const Header: React.FC = () => {
               )}
             </div>
           </div>
-          {mobileSearchOpen && (
-            <form role="search" onSubmit={submitHeaderSearch} className="flex items-center gap-2 border-t border-[var(--border-color)] py-3 lg:hidden">
-              <Search className="h-4 w-4 shrink-0 text-[var(--text-subtle)]" aria-hidden="true" />
-              <input type="search" autoFocus value={headerSearch} onChange={event => setHeaderSearch(event.target.value)} placeholder="Search products, brands, ingredients" aria-label="Search all products" className="min-w-0 flex-1 rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
-              <button type="submit" className="rounded-xl bg-[var(--text-primary)] px-3 py-2.5 text-xs font-bold text-[var(--bg-card)]">Search</button>
-            </form>
-          )}
         </div>
       </header>
 

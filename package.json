@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test:payments": "tsx --test tests/payment-lifecycle.integration.test.ts",
     "test:product-ai": "tsx --test tests/product-ai.test.ts",
+    "test:admin-catalog": "tsx --test tests/admin-catalog.test.ts",
     "lint": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "tsx scripts/migrate.ts",

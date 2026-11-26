@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Flame } from 'lucide-react';
 import { ProductCard } from '../product/ProductCard';
-import { CatalogControls, CatalogEmptyState } from '../shop/CatalogControls';
 import { useStore } from '../../context/StoreContext';
-import { filterCatalogProducts, readCatalogFilters } from '../../lib/catalog';
 import { storefrontListings } from '../../lib/storefrontListings';
 
 const getResponsiveImageSet = (image: string) => {
@@ -19,10 +17,9 @@ const getResponsiveImageSet = (image: string) => {
 };
 
 export const HomePage: React.FC = () => {
-  const { products, categories, storeSettings, flashDeals, loading } = useStore();
-  const [searchParams] = useSearchParams();
+  const { products, storeSettings, flashDeals, loading } = useStore();
   const publishedProducts = useMemo(() => storefrontListings(products), [products]);
-  const filters = useMemo(() => readCatalogFilters(searchParams), [searchParams]);
+  const [catalogSort, setCatalogSort] = useState<'featured' | 'newest' | 'price-low' | 'price-high' | 'rating'>('featured');
   const homepageSections = storeSettings.homepageSections || {
     flashDeal: true,
     hero: true,
@@ -49,15 +46,23 @@ export const HomePage: React.FC = () => {
   const hotDeals = homepageSections.hotDeals
     ? [...flashDealProducts, ...publishedProducts.filter(product => !hotDealIds.has(product.id) && (product.badge === 'Sale' || (product.originalPrice && product.originalPrice > product.price)))].slice(0, 12)
     : [];
-  const fullCollection = useMemo(() => (
-    filterCatalogProducts(publishedProducts, filters, categories)
-  ), [publishedProducts, filters, categories]);
+  const fullCollection = useMemo(() => {
+    const collection = publishedProducts
+      .map((product, index) => ({ product, index }));
+
+    return collection.sort((a, b) => {
+      if (catalogSort === 'price-low') return a.product.price - b.product.price;
+      if (catalogSort === 'price-high') return b.product.price - a.product.price;
+      if (catalogSort === 'rating') return b.product.rating - a.product.rating;
+      if (catalogSort === 'newest') return b.index - a.index;
+      return a.index - b.index;
+    }).map(item => item.product);
+  }, [publishedProducts, catalogSort]);
   const displayedCollection = useMemo(() => {
     const hotDealIdSet = new Set(hotDeals.map(hotDeal => hotDeal.id));
     const remaining = fullCollection.filter(product => !hotDealIdSet.has(product.id));
     return remaining.length > 0 ? remaining : fullCollection;
   }, [fullCollection, hotDeals]);
-  const hiddenHotDealCount = displayedCollection.length < fullCollection.length ? hotDeals.length : 0;
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)]">
@@ -139,15 +144,16 @@ export const HomePage: React.FC = () => {
             <h2 className="text-sm sm:text-base font-bold uppercase tracking-[0.12em] text-[var(--text-primary)]">
               All Products
             </h2>
-            <Link to="/shop" className="text-xs font-bold text-[var(--accent)] hover:underline">View full catalog</Link>
+            <div className="flex flex-wrap gap-2">
+              <select aria-label="Sort collection" value={catalogSort} onChange={event => setCatalogSort(event.target.value as typeof catalogSort)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+                <option value="featured">Featured</option>
+                <option value="newest">Newest first</option>
+                <option value="price-low">Price: low to high</option>
+                <option value="price-high">Price: high to low</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </div>
           </div>
-          <CatalogControls
-            products={publishedProducts}
-            categories={categories}
-            resultCount={displayedCollection.length}
-            totalCount={Math.max(0, publishedProducts.length - hiddenHotDealCount)}
-            loading={loading}
-          />
           {loading ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
               {Array.from({ length: 8 }).map((_, index) => (
@@ -163,7 +169,9 @@ export const HomePage: React.FC = () => {
               {displayedCollection.map(product => <ProductCard key={product.id} product={product} />)}
             </div>
           ) : (
-            <CatalogEmptyState />
+            <div className="py-16 text-center text-sm text-[var(--text-subtle)]">
+              No products found in the catalog.
+            </div>
           )}
         </section>
 

@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, Check, Tag } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, Eye, Download, Package, AlertTriangle, X, Check, Tag, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import { useAlert } from '../../../context/AlertContext';
-import { Product } from '../../../types';
+import { Product, CategoryType } from '../../../types';
 import { isRenderableProductImage } from '../../../lib/productImages';
+import {
+  filterAndSortAdminProducts,
+  type AdminProductSort,
+  type AdminPublicationFilter,
+  type AdminStockFilter,
+} from '../../../lib/adminCatalog';
 import { AdminMetricCard, AdminPageHeader } from '../components/AdminPrimitives';
 import { BarcodeLabelsModal } from '../../../../POS/components/BarcodeLabelsModal';
 
@@ -22,7 +28,11 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
   const { showAlert } = useAlert();
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<'all' | 'beauty' | 'groceries'>('all');
-  const [stockFilter, setStockFilter] = useState<'all' | 'in' | 'low' | 'out'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | CategoryType>('all');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState<AdminStockFilter>('all');
+  const [publicationFilter, setPublicationFilter] = useState<AdminPublicationFilter>('all');
+  const [sortBy, setSortBy] = useState<AdminProductSort>('featured');
   const [loading, setLoading] = useState(false);
   const [migratingImages, setMigratingImages] = useState(false);
   // Per-product delete confirmation state
@@ -31,31 +41,46 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
   const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
   const [barcodeInitialProductId, setBarcodeInitialProductId] = useState<string | undefined>(undefined);
 
-  const filteredProducts = useMemo(() => {
-    let products = store.products || [];
+  const brandOptions = useMemo(() => (
+    Array.from(new Set((store.products || []).map(product => product.brand.trim()).filter(Boolean)))
+      .sort((left, right) => left.localeCompare(right))
+  ), [store.products]);
 
-    if (departmentFilter !== 'all') {
-      products = products.filter(p => p.department === departmentFilter);
-    }
+  const categoryOptions = useMemo(() => (
+    (store.categories || []).filter(category => category.isActive)
+  ), [store.categories]);
 
-    if (stockFilter !== 'all') {
-      if (stockFilter === 'out')      products = products.filter(p => (p.stockCount || 0) === 0);
-      else if (stockFilter === 'low') products = products.filter(p => (p.stockCount || 0) > 0 && (p.stockCount || 0) <= 5);
-      else if (stockFilter === 'in')  products = products.filter(p => (p.stockCount || 0) > 5);
-    }
+  const filteredProducts = useMemo(() => (
+    filterAndSortAdminProducts(store.products || [], {
+      query: searchTerm,
+      department: departmentFilter,
+      category: categoryFilter,
+      brand: brandFilter,
+      stock: stockFilter,
+      publication: publicationFilter,
+      sort: sortBy,
+    })
+  ), [store.products, searchTerm, departmentFilter, categoryFilter, brandFilter, stockFilter, publicationFilter, sortBy]);
 
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      products = products.filter(
-        p =>
-          (p?.name || '').toLowerCase().includes(q) ||
-          (p?.brand || '').toLowerCase().includes(q) ||
-          (p?.category || '').toLowerCase().includes(q)
-      );
-    }
+  const hasActiveFilters = Boolean(
+    searchTerm.trim()
+    || departmentFilter !== 'all'
+    || categoryFilter !== 'all'
+    || brandFilter !== 'all'
+    || stockFilter !== 'all'
+    || publicationFilter !== 'all'
+    || sortBy !== 'featured'
+  );
 
-    return products;
-  }, [store.products, departmentFilter, stockFilter, searchTerm]);
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDepartmentFilter('all');
+    setCategoryFilter('all');
+    setBrandFilter('all');
+    setStockFilter('all');
+    setPublicationFilter('all');
+    setSortBy('featured');
+  };
 
   const stats = useMemo(() => {
     const products = store.products || [];
@@ -212,40 +237,107 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
         <AdminMetricCard label="Out of stock"  value={stats.outOfStock}     detail="Needs restocking"   icon={X as any} accent={stats.outOfStock > 0 ? "red" : "neutral"} />
       </div>
 
-      {/* Filters */}
-      <div className="clay-card p-4 sm:p-5 space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-            <input
-              type="text"
-              placeholder="Search by name, brand, or category..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="neu-input pl-10 pr-4"
-            />
+      {/* Search, filters, and sorting */}
+      <div className="clay-card p-4 sm:p-5 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="clay-card-sm p-2.5 text-[#8A5738] dark:text-[#E8B792]">
+              <SlidersHorizontal className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">Search &amp; filters</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">Find products by name, brand, category, barcode, or stock.</p>
+            </div>
           </div>
-          <select
-            value={departmentFilter}
-            onChange={e => setDepartmentFilter(e.target.value as 'all' | 'beauty' | 'groceries')}
-            className="neu-input sm:w-48 cursor-pointer"
-          >
-            <option value="all">All Departments</option>
-            <option value="beauty">Beauty</option>
-            <option value="groceries">Groceries</option>
-          </select>
-          <select
-            value={stockFilter}
-            onChange={e => setStockFilter(e.target.value as 'all' | 'in' | 'low' | 'out')}
-            className="neu-input sm:w-44 cursor-pointer"
-          >
-            <option value="all">All Stock</option>
-            <option value="in">In Stock</option>
-            <option value="low">Low Stock</option>
-            <option value="out">Out of Stock</option>
-          </select>
+          {hasActiveFilters && (
+            <button type="button" onClick={clearFilters} className="clay-btn-secondary py-2 px-3 text-xs">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset all
+            </button>
+          )}
         </div>
-        <p className="text-xs text-stone-500 dark:text-stone-400">
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <label className="grid gap-1.5 sm:col-span-2">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Search products</span>
+            <span className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+              <input
+                type="search"
+                placeholder="Name, brand, ingredient, barcode..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="neu-input w-full pl-10 pr-10"
+                aria-label="Search products"
+              />
+              {searchTerm && (
+                <button type="button" onClick={() => setSearchTerm('')} aria-label="Clear product search" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-700 dark:hover:text-stone-100">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </span>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Department</span>
+            <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value as 'all' | 'beauty' | 'groceries')} className="neu-input w-full cursor-pointer">
+              <option value="all">All departments</option>
+              <option value="beauty">Beauty</option>
+              <option value="groceries">Groceries</option>
+            </select>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Category</span>
+            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as 'all' | CategoryType)} className="neu-input w-full cursor-pointer">
+              <option value="all">All categories</option>
+              {categoryOptions.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </select>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Brand</span>
+            <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} className="neu-input w-full cursor-pointer">
+              <option value="all">All brands</option>
+              {brandOptions.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+            </select>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Stock</span>
+            <select value={stockFilter} onChange={e => setStockFilter(e.target.value as AdminStockFilter)} className="neu-input w-full cursor-pointer">
+              <option value="all">All stock</option>
+              <option value="in">In stock</option>
+              <option value="low">Low stock</option>
+              <option value="out">Out of stock</option>
+            </select>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Status</span>
+            <select value={publicationFilter} onChange={e => setPublicationFilter(e.target.value as AdminPublicationFilter)} className="neu-input w-full cursor-pointer">
+              <option value="all">All statuses</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Sort by</span>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value as AdminProductSort)} className="neu-input w-full cursor-pointer">
+              <option value="featured">Featured</option>
+              <option value="newest">Newest first</option>
+              <option value="name-asc">Name: A to Z</option>
+              <option value="name-desc">Name: Z to A</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+              <option value="stock-asc">Stock: low to high</option>
+              <option value="stock-desc">Stock: high to low</option>
+            </select>
+          </label>
+        </div>
+
+        <p className="text-xs text-stone-500 dark:text-stone-400" aria-live="polite">
           Showing <span className="font-bold text-stone-900 dark:text-stone-100">{filteredProducts.length}</span> of {stats.total} products
         </p>
       </div>
@@ -377,7 +469,13 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
               <Package className="w-6 h-6" />
             </div>
             <p className="text-base font-bold text-stone-700 dark:text-stone-300">No products found</p>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Try adjusting your search or filters</p>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Try another search or reset the filters.</p>
+            {hasActiveFilters && (
+              <button type="button" onClick={clearFilters} className="clay-btn-secondary mt-4 py-2 px-3 text-xs">
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset filters
+              </button>
+            )}
           </div>
         )}
       </div>

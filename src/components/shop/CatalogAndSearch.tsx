@@ -1,122 +1,329 @@
-import { useMemo } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import {
+  Filter,
+  ChevronRight,
+  X,
+  SlidersHorizontal,
+  RotateCcw,
+  Search
+} from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { filterCatalogProducts, readCatalogFilters } from '../../lib/catalog';
-import { storefrontListings } from '../../lib/storefrontListings';
+import { DepartmentType } from '../../types';
 import { ProductCard } from '../product/ProductCard';
-import { CatalogControls, CatalogEmptyState } from './CatalogControls';
+import { storefrontListings } from '../../lib/storefrontListings';
 
-export const ShopCatalogPage = () => {
-  const { products, categories, loading } = useStore();
+export const ShopCatalogPage: React.FC = () => {
+  const { products, categories, brands } = useStore();
+  const navigate = useNavigate();
+  const publishedProducts = storefrontListings(products);
   const { categorySlug } = useParams<{ categorySlug?: string }>();
-  const [searchParams] = useSearchParams();
-  const publishedProducts = useMemo(() => storefrontListings(products), [products]);
-  const filters = useMemo(() => readCatalogFilters(searchParams, { categorySlug }), [searchParams, categorySlug]);
-  const currentCategory = useMemo(() => (
-    filters.categorySlug ? categories.find(category => category.slug === filters.categorySlug) || null : null
-  ), [filters.categorySlug, categories]);
-  const filteredProducts = useMemo(() => (
-    filterCatalogProducts(publishedProducts, filters, categories)
-  ), [publishedProducts, filters, categories]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategorySlug = categorySlug || searchParams.get('category') || '';
+
+  const currentCategoryObj = useMemo(() => {
+    if (!selectedCategorySlug) return null;
+    return categories.find(category => category.slug === selectedCategorySlug) || null;
+  }, [selectedCategorySlug, categories]);
+
+  const selectedDepartment = searchParams.get('dept') as DepartmentType | null;
+  const selectedBrand = searchParams.get('brand') || 'All Brands';
+  const selectedSort = searchParams.get('sort') || 'featured';
+  const onlyInStock = searchParams.get('instock') === 'true';
+
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
+
+  const handleCatalogSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    const query = catalogSearch.trim();
+    navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+  };
+
+  // Filter products based on URL parameters
+  const filteredProducts = useMemo(() => {
+    return publishedProducts.filter((product) => {
+      // Category filter
+      if (currentCategoryObj) {
+        if (product.category !== currentCategoryObj.id) return false;
+      }
+      // Department filter
+      if (selectedDepartment) {
+        if (product.department !== selectedDepartment) return false;
+      }
+      // Brand filter
+      if (selectedBrand !== 'All Brands') {
+        if (product.brand !== selectedBrand) return false;
+      }
+      // In-stock filter
+      if (onlyInStock) {
+        if (!product.inStock) return false;
+      }
+      return true;
+    }).sort((a, b) => {
+      if (selectedSort === 'price-low') return a.price - b.price;
+      if (selectedSort === 'price-high') return b.price - a.price;
+      if (selectedSort === 'best-sellers') return b.reviewCount - a.reviewCount;
+      return 0; // default featured
+    });
+  }, [currentCategoryObj, selectedDepartment, selectedBrand, selectedSort, onlyInStock, publishedProducts]);
+
+  const updateFilter = (key: string, value: string | null) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value === null || value === '' || value === 'All Brands' || value === 'featured') {
+      newParams.delete(key);
+    } else {
+      newParams.set(key, value);
+    }
+    setSearchParams(newParams);
+  };
+
+  const clearAllFilters = () => {
+    setSearchParams(new URLSearchParams());
+  };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 font-sans sm:px-6 sm:py-10 lg:px-8">
-      <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400" aria-label="Breadcrumb">
-        <Link to="/" className="hover:text-[var(--text-primary)]">Home</Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <Link to="/shop" className="hover:text-[var(--text-primary)]">Shop</Link>
-        {currentCategory && (
+    <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 font-sans sm:space-y-7 sm:px-6 sm:py-10 lg:px-8">
+
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
+        <Link to="/" className="hover:text-[#1C1817] dark:hover:text-stone-100">Home</Link>
+        <ChevronRight className="w-3.5 h-3.5" />
+        <Link to="/shop" className="hover:text-[#1C1817]">Shop</Link>
+        {currentCategoryObj && (
           <>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="font-bold uppercase text-[var(--text-primary)]">{currentCategory.name}</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-[#1C1817] dark:text-stone-200 uppercase font-bold">{currentCategoryObj.name}</span>
           </>
         )}
       </nav>
 
-      <header className="border-b border-[var(--border-color)] pb-6">
-        <h1 className="font-serif text-4xl tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
-          {currentCategory?.name || 'Find your everyday'}
+      {/* Catalog Header */}
+      <div className="pb-6 border-b border-[#E8E2DA] dark:border-[#2A2725]">
+        <h1 className="font-serif text-4xl tracking-[-0.06em] text-[var(--text-primary)] sm:text-5xl">
+          {currentCategoryObj ? currentCategoryObj.name : 'Find your everyday'}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-          {currentCategory?.description || 'Search and filter skincare, beauty, fragrance, pantry basics, and useful things for home.'}
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl">
+          {currentCategoryObj
+            ? currentCategoryObj.description
+            : 'A focused edit of skincare, beauty, fragrance, pantry basics, and useful things for home.'}
         </p>
-      </header>
+      </div>
 
-      <CatalogControls
-        products={publishedProducts}
-        categories={categories}
-        resultCount={filteredProducts.length}
-        totalCount={publishedProducts.length}
-        loading={loading}
-        fixedCategorySlug={categorySlug || undefined}
-      />
+      <form onSubmit={handleCatalogSearch} className="flex max-w-2xl items-center overflow-hidden rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] p-1 shadow-[var(--shadow-soft)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+        <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
+        <input type="search" value={catalogSearch} onChange={event => setCatalogSearch(event.target.value)} placeholder="Search products" aria-label="Search products" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]" />
+        <button type="submit" aria-label="Search" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]"><Search className="h-3.5 w-3.5" /></button>
+      </form>
 
-      {loading ? (
-        <CatalogGridSkeleton />
-      ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
+      {/* Top filter bar keeps the catalog width available for product images. */}
+      <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 shadow-sm" aria-label="Catalog filters">
+        <div className="hidden lg:flex flex-wrap items-center gap-2">
+          <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wide text-[var(--text-primary)]"><SlidersHorizontal className="h-4 w-4 text-[var(--accent)]" /> Filters</span>
+          <select value={selectedDepartment || ''} onChange={event => updateFilter('dept', event.target.value || null)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+            <option value="">All departments</option><option value="beauty">Beauty &amp; Skincare</option><option value="groceries">Groceries &amp; Essentials</option>
+          </select>
+          <select value={selectedCategorySlug} onChange={event => navigate(event.target.value ? `/shop?category=${encodeURIComponent(event.target.value)}` : '/shop')} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]" aria-label="Filter by category">
+            <option value="">All categories</option>{categories.filter(category => category.isActive).map(category => <option key={category.id} value={category.slug}>{category.name}</option>)}
+          </select>
+          <select value={selectedBrand} onChange={event => updateFilter('brand', event.target.value)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]"><>{brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}</></select>
+          <select value={selectedSort} onChange={event => updateFilter('sort', event.target.value)} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)]"><option value="featured">Featured</option><option value="best-sellers">Best Sellers</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option></select>
+          <label className="flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-[var(--text-muted)]"><input type="checkbox" checked={onlyInStock} onChange={event => updateFilter('instock', event.target.checked ? 'true' : null)} className="rounded accent-[var(--accent)]" /> In stock</label>
+          {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && <button onClick={clearAllFilters} className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-[var(--accent)] hover:underline"><RotateCcw className="h-3.5 w-3.5" /> Reset</button>}
         </div>
-      ) : (
-        <CatalogEmptyState />
-      )}
+      </section>
+
+      <div className="space-y-4">
+        <main className="space-y-4">
+
+          {/* Toolbar (Mobile Filter toggle + Count + Sort) */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 sm:gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className="lg:hidden flex items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] px-3 py-1.5 text-xs font-bold uppercase text-[var(--text-primary)]"
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span>Filters</span>
+              </button>
+
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-stone-500 hidden sm:inline font-semibold">Sort by:</span>
+              <select
+                value={selectedSort}
+                onChange={(e) => updateFilter('sort', e.target.value)}
+                className="max-w-[10.5rem] rounded-lg border border-[var(--border-color)] bg-[var(--bg-soft)] px-2 py-2 text-[11px] font-semibold text-[var(--text-primary)] sm:max-w-none sm:px-2.5 sm:text-xs"
+              >
+                <option value="featured">Featured</option>
+                <option value="best-sellers">Best Sellers</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+            </div>
+          </div>
+
+          {isMobileFilterOpen && (
+            <div className="space-y-4 rounded-2xl border border-[#E8E2DA] bg-white p-4 shadow-sm dark:border-[#2A2725] dark:bg-[#1A1817] lg:hidden">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-primary)]">Filter catalog</h2>
+                <button onClick={() => setIsMobileFilterOpen(false)} aria-label="Close filters" className="rounded-full p-1 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
+                {([['', 'All'], ['beauty', 'Beauty'], ['groceries', 'Groceries']] as const).map(([value, label]) => (
+                  <button key={value || 'all'} onClick={() => updateFilter('dept', value || null)} className={`rounded-xl border px-2 py-2 text-xs font-bold ${selectedDepartment === (value || null) ? 'border-[#1C1817] bg-[#1C1817] text-white' : 'border-stone-200 text-stone-700 dark:border-stone-700 dark:text-stone-300'}`}>{label}</button>
+                ))}
+              </div>
+              <select
+                value={selectedCategorySlug}
+                onChange={event => navigate(event.target.value ? `/shop?category=${encodeURIComponent(event.target.value)}` : '/shop')}
+                className="w-full rounded-xl border border-[#E8E2DA] bg-white p-2.5 text-xs font-semibold dark:border-[#2A2725] dark:bg-[#1C1A19]"
+                aria-label="Filter by category"
+              >
+                <option value="">All Categories</option>
+                {categories.filter(category => category.isActive).map(category => <option key={category.id} value={category.slug}>{category.name}</option>)}
+              </select>
+              <select value={selectedBrand} onChange={e => updateFilter('brand', e.target.value)} className="w-full rounded-xl border border-[#E8E2DA] bg-white p-2.5 text-xs font-semibold dark:border-[#2A2725] dark:bg-[#1C1A19]">
+                {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+              </select>
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300"><input type="checkbox" checked={onlyInStock} onChange={e => updateFilter('instock', e.target.checked ? 'true' : null)} className="rounded accent-[#C86D51]" />In-stock only</label>
+              <button onClick={clearAllFilters} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C86D51]"><RotateCcw className="h-3 w-3" />Reset filters</button>
+            </div>
+          )}
+
+          {/* Active Filter Badges */}
+          {(selectedCategorySlug || selectedDepartment || selectedBrand !== 'All Brands' || onlyInStock) && (
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              {selectedCategorySlug && currentCategoryObj && (
+                <span className="bg-[#2385ad] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+                  Category: {currentCategoryObj.name}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => navigate('/shop')} />
+                </span>
+              )}
+              {selectedDepartment && (
+                <span className="bg-[#1C1817] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+                  Dept: {selectedDepartment}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => updateFilter('dept', null)} />
+                </span>
+              )}
+              {selectedBrand !== 'All Brands' && (
+                <span className="bg-[#C86D51] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+                  Brand: {selectedBrand}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => updateFilter('brand', null)} />
+                </span>
+              )}
+              {onlyInStock && (
+                <span className="bg-[#4A5D4E] text-white text-[11px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+                  In Stock Only
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => updateFilter('instock', null)} />
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Product Grid */}
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2.5 min-[390px]:gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-[#1A1817] p-12 rounded border border-[#E8E2DA] text-center space-y-3">
+              <h3 className="text-base font-bold text-[#1C1817] dark:text-stone-200">No Products Found</h3>
+              <p className="text-xs text-stone-500 max-w-xs mx-auto">
+                No catalog items match your selected filters. Try clearing your search parameters.
+              </p>
+              <button
+                onClick={clearAllFilters}
+                className="px-4 py-2 bg-[#1C1817] text-white text-xs font-bold uppercase rounded"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 };
 
-export const SearchResultsPage = () => {
-  const { products, categories, loading } = useStore();
-  const [searchParams] = useSearchParams();
-  const publishedProducts = useMemo(() => storefrontListings(products), [products]);
-  const filters = useMemo(() => readCatalogFilters(searchParams), [searchParams]);
-  const filteredProducts = useMemo(() => (
-    filterCatalogProducts(publishedProducts, filters, categories)
-  ), [publishedProducts, filters, categories]);
+export const SearchResultsPage: React.FC = () => {
+  const { products } = useStore();
+  const publishedProducts = storefrontListings(products);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
+  const [searchInput, setSearchInput] = useState(query);
+
+  React.useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const nextQuery = searchInput.trim();
+    setSearchParams(nextQuery ? { q: nextQuery } : {});
+  };
+
+  const matchedProducts = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase().trim();
+    return publishedProducts.filter((p) => {
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.highlights.some(h => h.toLowerCase().includes(q))
+      );
+    });
+  }, [query, publishedProducts]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 font-sans sm:px-6 sm:py-10 lg:px-8">
-      <header className="border-b border-[var(--border-color)] pb-5">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Catalog search</p>
-        <h1 className="mt-2 text-2xl font-extrabold text-[var(--text-primary)] sm:text-3xl">
-          {filters.query ? <>Results for &ldquo;<span className="text-[var(--accent)]">{filters.query}</span>&rdquo;</> : 'Search the catalog'}
-        </h1>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">Search by product name, brand, ingredient, category, or pack size, then narrow the results.</p>
-      </header>
-
-      <CatalogControls
-        products={publishedProducts}
-        categories={categories}
-        resultCount={filteredProducts.length}
-        totalCount={publishedProducts.length}
-        loading={loading}
-      />
-
-      {loading ? (
-        <CatalogGridSkeleton />
-      ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
-        </div>
-      ) : (
-        <CatalogEmptyState
-          message={filters.query ? `No products match “${filters.query}” with the selected filters. Try a different search or reset the filters.` : undefined}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans space-y-6">
+      <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-2xl items-center rounded-full border border-[var(--border-color)] bg-[var(--bg-soft)] p-1.5 shadow-[var(--shadow-soft)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10">
+        <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
+        <input
+          type="search"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="Search products"
+          aria-label="Search products"
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
         />
+        <button type="submit" aria-label="Submit search" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:bg-[var(--accent)]">
+          <Search className="h-3.5 w-3.5" />
+        </button>
+      </form>
+
+      <div className="pb-4 border-b border-[#E8E2DA] dark:border-[#2A2725]">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-[#1C1817] dark:text-stone-100 uppercase">
+          Search Results for &ldquo;<span className="text-[#C86D51]">{query}</span>&rdquo;
+        </h1>
+
+      </div>
+
+      {matchedProducts.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 sm:gap-4">
+          {matchedProducts.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-[#1A1817] p-12 rounded border border-[#E8E2DA] text-center space-y-4">
+          <Search className="w-8 h-8 text-stone-400 mx-auto" />
+          <h3 className="text-base font-bold text-[#1C1817] dark:text-stone-200">No Results Found</h3>
+          <p className="text-xs text-stone-500 max-w-md mx-auto">
+            We couldn&apos;t find any items matching &ldquo;{query}&rdquo;.
+          </p>
+          <Link to="/shop" className="inline-block px-4 py-2 bg-[#1C1817] text-white text-xs font-bold uppercase rounded">
+            Browse Entire Catalog
+          </Link>
+        </div>
       )}
     </div>
   );
 };
-
-function CatalogGridSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-label="Loading products">
-      {Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="space-y-3 animate-pulse">
-          <div className="aspect-square rounded-2xl bg-stone-200 dark:bg-stone-800" />
-          <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-800" />
-          <div className="h-4 w-1/2 rounded bg-stone-200 dark:bg-stone-800" />
-        </div>
-      ))}
-    </div>
-  );
-}
