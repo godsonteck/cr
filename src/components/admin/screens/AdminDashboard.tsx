@@ -134,7 +134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         type: 'info',
         title: `${metrics.pendingOrders} Order${metrics.pendingOrders > 1 ? 's' : ''} Pending`,
         description: 'Orders awaiting processing or shipment.',
-        actionLabel: 'Review Orders',
+        actionLabel: 'Review orders',
         tab: 'orders',
       });
     }
@@ -155,10 +155,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm bg-black/20 text-[#E8B792] mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E8B792] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Store Pulse</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Today</span>
           </div>
-          <h1 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl text-white">Your shop, at a glance.</h1>
-          <p className="mt-2.5 max-w-xl text-sm leading-6 text-stone-300 font-normal">Review today&apos;s activity, resolve anything that needs attention, and keep the storefront moving smoothly.</p>
+          <h1 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl text-white">Store overview</h1>
+          <p className="mt-2.5 max-w-xl text-sm leading-6 text-stone-300 font-normal">Sales, orders, stock, and customer activity for today.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button onClick={() => onNavigate?.('orders')} className="clay-btn-primary">
               Review orders <ArrowUpRight className="h-4 w-4" />
@@ -256,7 +256,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52] dark:text-[#d49970]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
-              Activity
+              Recent activity
             </div>
             <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Latest orders</h2>
           </div>
@@ -327,9 +327,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <div>
               <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#B27A52] dark:text-[#d49970]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
-                At a glance
+                Summary
               </div>
-              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">What needs attention</h2>
+              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Needs follow-up</h2>
             </div>
             <div className="clay-icon-pod h-8 w-8 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
@@ -341,11 +341,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               <span className="clay-badge clay-badge-info text-sm py-1 px-2.5 font-bold">{metrics.pendingOrders}</span>
             </button>
             <button onClick={() => onNavigate?.('inventory')} className="neu-sunken-sm flex w-full items-center justify-between p-3.5 text-left transition-transform hover:scale-[1.01] cursor-pointer">
-              <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Stock watch</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Low or unavailable</span></span>
+              <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Stock alerts</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Low or out of stock</span></span>
               <span className="clay-badge clay-badge-warning text-sm py-1 px-2.5 font-bold">{metrics.lowStock + metrics.outOfStock}</span>
             </button>
             <button onClick={() => onNavigate?.('products')} className="neu-sunken-sm flex w-full items-center justify-between p-3.5 text-left transition-transform hover:scale-[1.01] cursor-pointer">
-              <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Published catalog</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Active storefront items</span></span>
+              <span><span className="block text-sm font-bold text-stone-900 dark:text-stone-100">Published products</span><span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">Visible in the shop</span></span>
               <span className="clay-badge clay-badge-success text-sm py-1 px-2.5 font-bold">{metrics.published}</span>
             </button>
           </div>

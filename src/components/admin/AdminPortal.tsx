@@ -83,7 +83,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview',       label: 'Dashboard',  icon: BarChart3,      group: 'main'   },
-  { id: 'live',           label: 'Live & Finance', icon: Activity,    group: 'main'   },
+  { id: 'live',           label: 'Orders & sales', icon: Activity,    group: 'main'   },
   { id: 'pos',            label: 'Point of Sale', icon: ScanLine,    group: 'main'   },
   { id: 'products',       label: 'Products',   icon: Boxes,          group: 'shop'   },
   { id: 'orders',         label: 'Orders',     icon: ClipboardList,  group: 'shop'   },
@@ -113,7 +113,7 @@ const roleAccess: Record<AdminSession['adminRole'], AdminTab[]> = {
 
 const tabLabels: Record<AdminTab, string> = {
   overview:      'Dashboard',
-  live:          'Live & Finance',
+  live:          'Orders & sales',
   pos:           'Point of Sale',
   products:      'Products',
   orders:        'Orders',

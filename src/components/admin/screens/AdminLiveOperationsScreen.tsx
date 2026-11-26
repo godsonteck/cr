@@ -228,11 +228,11 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Operations &amp; Finance</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Operations</span>
           </div>
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Live Tracking &amp; Finance</h1>
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Orders &amp; sales</h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">
-            Monitor open deliveries, filter revenue by date range, and sort all transactions chronologically.
+            View open deliveries, sales totals, and payment records by date.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -241,7 +241,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
             className="clay-btn-secondary py-2 px-3 text-xs"
           >
             <Download className="h-3.5 w-3.5 text-[#B27A52]" />
-            Export Finances CSV
+            Export sales CSV
           </button>
           <button
             onClick={() => void handleRefresh()}
@@ -405,9 +405,9 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
             <div>
               <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#B27A52] dark:text-[#d49970]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52]" />
-                Finance
+                Sales
               </div>
-              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Period Reconciliation</h2>
+              <h2 className="mt-0.5 text-base font-bold font-serif text-stone-900 dark:text-stone-100">Sales summary</h2>
             </div>
             <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
               <DollarSign className="h-4 w-4" />
@@ -431,7 +431,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
               <strong className="text-stone-900 dark:text-stone-100 tabular-nums">{money(metrics.discounts)}</strong>
             </div>
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-400">Payment methods in period</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-400">Payments by method</p>
               {Array.from(metrics.byPayment.entries()).map(([method, data]) => (
                 <div key={method} className="flex items-center justify-between py-1.5 text-xs">
                   <span className="capitalize text-stone-500 dark:text-stone-400">{method.replaceAll('-', ' ')}</span>
@@ -446,7 +446,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
         </section>
       </div>
 
-      {/* Detailed Financial Ledger & Date Sorting Section */}
+      {/* Sales and payments */}
       <section className="clay-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/50 dark:border-white/5 pb-4">
           <div>
@@ -454,10 +454,10 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
               <div className="clay-icon-pod h-8 w-8 text-[#B27A52]">
                 <FileSpreadsheet className="h-4 w-4" />
               </div>
-              <h2 className="text-lg font-bold font-serif text-stone-900 dark:text-stone-100">Financial Ledger &amp; Transactions</h2>
+              <h2 className="text-lg font-bold font-serif text-stone-900 dark:text-stone-100">Sales and payments</h2>
             </div>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-              Review and sort financial transactions by date or amount with instant payment status breakdown.
+              View sales and payment records. Sort by date or amount.
             </p>
           </div>
 
@@ -486,7 +486,7 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
           </div>
         </div>
 
-        {/* Filter & Sort Bar for Financial Ledger */}
+        {/* Filter and sort sales */}
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
@@ -699,11 +699,11 @@ export const AdminLiveOperationsScreen: React.FC<AdminLiveOperationsScreenProps>
         )}
       </section>
 
-      {/* Delivery Attention */}
+      {/* Delivery status */}
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm dark:border-[#2e2428] dark:bg-[#201b1a]">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-[#B27A52]" />
-          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">Delivery Attention</h2>
+          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">Delivery status</h2>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-amber-50 p-4 dark:bg-amber-950/20">

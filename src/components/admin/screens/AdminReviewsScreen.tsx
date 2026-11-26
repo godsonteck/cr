@@ -68,10 +68,10 @@ export const AdminReviewsScreen: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neu-sunken-sm mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B27A52] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Store Trust</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#B27A52] dark:text-[#d49970]">Reviews</span>
           </div>
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Reviews &amp; Moderation</h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">Moderate customer feedback, publish trusted reviews, and answer questions from one queue.</p>
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-[#1E1719] dark:text-stone-100">Customer reviews</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">Read customer feedback, publish reviews, and reply to questions.</p>
         </div>
         <span className="clay-badge clay-badge-warning py-1.5 px-3 text-xs font-bold">{pendingCount} pending</span>
       </div>
