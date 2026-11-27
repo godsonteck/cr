@@ -210,6 +210,7 @@ export interface ProductOption {
 
 export interface Product {
   id: string;
+  createdAt?: string;
   /** Storefront-only fields for a variation shown as its own catalogue card. */
   listingParentId?: string;
   listingVariantId?: string;

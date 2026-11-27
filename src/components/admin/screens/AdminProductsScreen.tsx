@@ -325,7 +325,7 @@ export const AdminProductsScreen: React.FC<ProductsScreenProps> = ({
           <label className="grid gap-1.5">
             <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Sort by</span>
             <select value={sortBy} onChange={e => setSortBy(e.target.value as AdminProductSort)} className="neu-input w-full cursor-pointer">
-              <option value="featured">Featured</option>
+              <option value="featured">Default order</option>
               <option value="newest">Newest first</option>
               <option value="name-asc">Name: A to Z</option>
               <option value="name-desc">Name: Z to A</option>

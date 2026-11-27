@@ -77,18 +77,35 @@ test('admin filters combine department, category, brand, stock, and publication'
 
 test('admin sorting orders price, stock, name, and newest without mutating the source', () => {
   const products = [
-    makeProduct({ id: 'alpha', name: 'Alpha serum', price: 20, stockCount: 10 }),
-    makeProduct({ id: 'bravo', name: 'Bravo oil', price: 5, stockCount: 2 }),
-    makeProduct({ id: 'charlie', name: 'Charlie cream', price: 10, stockCount: 0 }),
+    makeProduct({ id: 'alpha', name: 'Alpha serum', price: 20, stockCount: 10, createdAt: '2024-01-01T00:00:00.000Z' }),
+    makeProduct({ id: 'bravo', name: 'Bravo oil', price: 5, stockCount: 2, createdAt: '2026-01-01T00:00:00.000Z' }),
+    makeProduct({ id: 'charlie', name: 'Charlie cream', price: 10, stockCount: 0, createdAt: '2025-01-01T00:00:00.000Z' }),
   ];
   const originalOrder = products.map(product => product.id);
 
+  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'featured' }).map(product => product.id), ['alpha', 'bravo', 'charlie']);
+  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'newest' }).map(product => product.id), ['bravo', 'charlie', 'alpha']);
+  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'name-asc' }).map(product => product.id), ['alpha', 'bravo', 'charlie']);
+  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'name-desc' }).map(product => product.id), ['charlie', 'bravo', 'alpha']);
   assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'price-asc' }).map(product => product.id), ['bravo', 'charlie', 'alpha']);
   assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'price-desc' }).map(product => product.id), ['alpha', 'charlie', 'bravo']);
   assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'stock-asc' }).map(product => product.id), ['charlie', 'bravo', 'alpha']);
-  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'name-desc' }).map(product => product.id), ['charlie', 'bravo', 'alpha']);
-  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'newest' }).map(product => product.id), ['charlie', 'bravo', 'alpha']);
+  assert.deepEqual(filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'stock-desc' }).map(product => product.id), ['alpha', 'bravo', 'charlie']);
   assert.deepEqual(products.map(product => product.id), originalOrder);
+});
+
+test('admin newest sorting keeps stable order for equal or missing dates', () => {
+  const products = [
+    makeProduct({ id: 'missing-first' }),
+    makeProduct({ id: 'dated-first', createdAt: '2026-01-01T00:00:00.000Z' }),
+    makeProduct({ id: 'missing-second' }),
+    makeProduct({ id: 'dated-second', createdAt: '2026-01-01T00:00:00.000Z' }),
+  ];
+
+  assert.deepEqual(
+    filterAndSortAdminProducts(products, { ...defaultFilters, sort: 'newest' }).map(product => product.id),
+    ['dated-first', 'dated-second', 'missing-first', 'missing-second'],
+  );
 });
 
 test('admin stock and status filters have distinct results', () => {

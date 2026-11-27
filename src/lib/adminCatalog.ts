@@ -79,7 +79,17 @@ export function filterAndSortAdminProducts(products: Product[], filters: AdminCa
     const leftStock = Number(left.stockCount || 0);
     const rightStock = Number(right.stockCount || 0);
 
-    if (filters.sort === 'newest') return rightIndex - leftIndex;
+    if (filters.sort === 'newest') {
+      const leftCreatedAt = Date.parse(left.createdAt || '');
+      const rightCreatedAt = Date.parse(right.createdAt || '');
+      if (Number.isFinite(leftCreatedAt) && Number.isFinite(rightCreatedAt) && leftCreatedAt !== rightCreatedAt) {
+        return rightCreatedAt - leftCreatedAt;
+      }
+      if (Number.isFinite(leftCreatedAt) !== Number.isFinite(rightCreatedAt)) {
+        return Number.isFinite(rightCreatedAt) ? 1 : -1;
+      }
+      return leftIndex - rightIndex;
+    }
     if (filters.sort === 'name-asc') return leftName.localeCompare(rightName) || leftIndex - rightIndex;
     if (filters.sort === 'name-desc') return rightName.localeCompare(leftName) || leftIndex - rightIndex;
     if (filters.sort === 'price-asc') return leftPrice - rightPrice || leftIndex - rightIndex;
